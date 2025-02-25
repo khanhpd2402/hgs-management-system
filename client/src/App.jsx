@@ -1,11 +1,7 @@
-import EmployeeTable from "./pages/Employee/EmployeeTable";
+import DefaultLayout from "./layouts/DefaultLayout/DefaultLayout";
 
 const App = () => {
-  return (
-    <>
-      <EmployeeTable />
-    </>
-  );
+  return DefaultLayout;
 };
 
 export default App;

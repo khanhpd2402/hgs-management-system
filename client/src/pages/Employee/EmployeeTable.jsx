@@ -15,14 +15,23 @@ import MyPagination from "@/components/MyPagination";
 import { useEmployees } from "@/services/employee/queries";
 import EmployeeTableHeader from "./EmployeeTableHeader";
 import PaginationControls from "@/components/PaginationControls"; // Import component mới
+import EmployeeFilter from "./EmployeeFilter";
 
 export default function EmployeeTable() {
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(5); // Chọn số lượng hiển thị mỗi trang
+  const [sort, setSort] = useState("");
+  const [order, setOrder] = useState("asc");
+  const [search, setSearch] = useState("");
 
-  const { data, isPending, error, isError } = useEmployees(page, pageSize);
+  const { data, isPending, error, isError } = useEmployees(
+    page,
+    pageSize,
+    sort,
+    order,
+    search,
+  );
 
-  // Tính toán phạm vi hiển thị dữ liệu
   const startIndex = (page - 1) * pageSize + 1;
   const endIndex = (page - 1) * pageSize + data?.length;
 
@@ -34,7 +43,15 @@ export default function EmployeeTable() {
         <div>Error {error.message}</div>
       ) : (
         <>
-          <EmployeeTableHeader type="employees" />
+          <EmployeeFilter
+            setSort={setSort}
+            setSearch={setSearch}
+            setOrder={setOrder}
+          />
+          <EmployeeTableHeader
+            type="employees"
+            filter={{ setSearch, setSort, setOrder }}
+          />
           <Card className="p-4">
             <Table className="w-full table-fixed border border-gray-300">
               <TableHeader className="bg-gray-100">
