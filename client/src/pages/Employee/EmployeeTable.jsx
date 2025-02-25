@@ -34,7 +34,7 @@ export default function EmployeeTable() {
         <div>Error {error.message}</div>
       ) : (
         <>
-          <EmployeeTableHeader type="employees" data={data} />
+          <EmployeeTableHeader type="employees" />
           <Card className="p-4">
             <Table className="w-full table-fixed border border-gray-300">
               <TableHeader className="bg-gray-100">
