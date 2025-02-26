@@ -9,7 +9,7 @@ import PropTypes from "prop-types";
 
 const PaginationControls = ({
   pageSize,
-  setPageSize,
+  setFilter,
   totalItems,
   startIndex,
   endIndex,
@@ -18,11 +18,18 @@ const PaginationControls = ({
     <div className="flex items-center gap-4">
       {/* Chọn số lượng hiển thị */}
       <Select
-        value={pageSize.toString()}
-        onValueChange={(value) => setPageSize(Number(value))}
+        value={pageSize.toString()} // Đảm bảo giá trị là string
+        onValueChange={(value) => {
+          setFilter((prev) => ({
+            ...prev,
+            page: 1, // Reset về trang 1 khi thay đổi pageSize
+            pageSize: Number(value), // Chuyển thành số trước khi cập nhật
+          }));
+        }}
       >
         <SelectTrigger className="w-20">
-          <SelectValue />
+          <SelectValue defaultValue={pageSize.toString()} />{" "}
+          {/* Hiển thị giá trị hiện tại */}
         </SelectTrigger>
         <SelectContent>
           {[5, 10, 20, 50].map((size) => (
@@ -43,7 +50,7 @@ const PaginationControls = ({
 
 PaginationControls.propTypes = {
   pageSize: PropTypes.number.isRequired,
-  setPageSize: PropTypes.func.isRequired,
+  setFilter: PropTypes.func.isRequired,
   totalItems: PropTypes.number.isRequired,
   startIndex: PropTypes.number.isRequired,
   endIndex: PropTypes.number.isRequired,

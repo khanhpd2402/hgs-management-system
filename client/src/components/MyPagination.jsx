@@ -21,7 +21,7 @@ import {
 const MyPagination = ({ totalPages, currentPage, onPageChange }) => {
   const handlePageChange = (page) => {
     if (page < 1 || page > totalPages) return;
-    onPageChange(page);
+    onPageChange((options) => ({ ...options, page }));
   };
 
   const pageNumbers = [];

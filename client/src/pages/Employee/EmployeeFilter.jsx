@@ -26,7 +26,7 @@ const fields = [
   { value: "id", label: "ID" },
 ];
 
-export default function EmployeeFilter({ setSort, setSearch, setOrder }) {
+export default function EmployeeFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
   const { control, handleSubmit, watch, reset } = useForm({
     defaultValues: { field: "", order: "", search: "" },
@@ -35,9 +35,14 @@ export default function EmployeeFilter({ setSort, setSearch, setOrder }) {
   const selectedField = watch("field");
 
   const onSubmit = (data) => {
-    setSort(data.field);
-    setSearch(data.search.trim());
-    setOrder(data.order);
+    setFilter((options) => ({
+      ...options,
+      page: 1,
+      sort: data.field,
+      order: data.order,
+      search: data.search.trim(),
+    }));
+
     setOpen(false);
   };
 

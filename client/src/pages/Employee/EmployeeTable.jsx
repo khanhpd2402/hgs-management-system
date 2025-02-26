@@ -15,22 +15,19 @@ import MyPagination from "@/components/MyPagination";
 import { useEmployees } from "@/services/employee/queries";
 import EmployeeTableHeader from "./EmployeeTableHeader";
 import PaginationControls from "@/components/PaginationControls"; // Import component mới
-import EmployeeFilter from "./EmployeeFilter";
 
 export default function EmployeeTable() {
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(5); // Chọn số lượng hiển thị mỗi trang
-  const [sort, setSort] = useState("");
-  const [order, setOrder] = useState("asc");
-  const [search, setSearch] = useState("");
+  const [filter, setFilter] = useState({
+    page: 1,
+    pageSize: 5,
+    sort: "",
+    order: "asc",
+    search: "",
+  }); // Chọn số lượng hiển thị mặt trang
 
-  const { data, isPending, error, isError } = useEmployees(
-    page,
-    pageSize,
-    sort,
-    order,
-    search,
-  );
+  const { data, isPending, error, isError } = useEmployees(filter);
+
+  const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;
   const endIndex = (page - 1) * pageSize + data?.length;
@@ -43,10 +40,7 @@ export default function EmployeeTable() {
         <div>Error {error.message}</div>
       ) : (
         <>
-          <EmployeeTableHeader
-            type="employees"
-            filter={{ setSearch, setSort, setOrder }}
-          />
+          <EmployeeTableHeader type="employees" filter={{ setFilter }} />
           <Card className="p-4">
             <div className="overflow-x-auto">
               <Table className="w-full min-w-max border border-gray-300">
@@ -160,7 +154,7 @@ export default function EmployeeTable() {
             <div className="mt-4 flex items-center justify-between">
               <PaginationControls
                 pageSize={pageSize}
-                setPageSize={setPageSize}
+                setFilter={setFilter}
                 totalItems={data.length}
                 startIndex={startIndex}
                 endIndex={endIndex}
@@ -169,7 +163,7 @@ export default function EmployeeTable() {
               <MyPagination
                 totalPages={6}
                 currentPage={page}
-                onPageChange={setPage}
+                onPageChange={setFilter}
               />
             </div>
           </Card>
