@@ -85,8 +85,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
             <div
               className={`overflow-hidden ${
                 openMenus[item.label] && isOpen
-                  ? "mt-2 ml-6 h-auto"
-                  : "mt-0 ml-6 h-0 opacity-0"
+                  ? "submenu mt-2 ml-6"
+                  : "submenu submenu-open mt-0 ml-6 opacity-0"
               }`}
             >
               {item.children?.map((child) => (

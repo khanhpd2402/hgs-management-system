@@ -1,7 +1,7 @@
 import DefaultLayout from "./layouts/DefaultLayout/DefaultLayout";
 
 const App = () => {
-  return DefaultLayout;
+  return <DefaultLayout />;
 };
 
 export default App;

@@ -2,12 +2,21 @@ import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
+  PaginationFirst,
   PaginationItem,
+  PaginationLast,
   PaginationLink,
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import PropTypes from "prop-types";
+import clsx from "clsx";
+import {
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
+} from "lucide-react";
 
 const MyPagination = ({ totalPages, currentPage, onPageChange }) => {
   const handlePageChange = (page) => {
@@ -17,22 +26,13 @@ const MyPagination = ({ totalPages, currentPage, onPageChange }) => {
 
   const pageNumbers = [];
   if (totalPages <= 7) {
-    // Hiển thị toàn bộ nếu totalPages nhỏ hơn hoặc bằng 7
     for (let i = 1; i <= totalPages; i++) {
       pageNumbers.push(i);
     }
   } else {
-    // Thêm trang đầu tiên nếu currentPage > 3
-    if (currentPage > 3) {
-      pageNumbers.push(1);
-    }
+    if (currentPage > 3) pageNumbers.push(1);
+    if (currentPage > 4) pageNumbers.push("ellipsis-start");
 
-    // Thêm dấu ... nếu currentPage > 4
-    if (currentPage > 4) {
-      pageNumbers.push("ellipsis-start");
-    }
-
-    // Hiển thị các trang gần currentPage
     for (
       let i = Math.max(1, currentPage - 2);
       i <= Math.min(totalPages, currentPage + 2);
@@ -41,38 +41,60 @@ const MyPagination = ({ totalPages, currentPage, onPageChange }) => {
       pageNumbers.push(i);
     }
 
-    // Thêm dấu ... nếu currentPage < totalPages - 3
-    if (currentPage < totalPages - 3) {
-      pageNumbers.push("ellipsis-end");
-    }
-
-    // Thêm trang cuối cùng nếu currentPage < totalPages - 2
-    if (currentPage < totalPages - 2) {
-      pageNumbers.push(totalPages);
-    }
+    if (currentPage < totalPages - 3) pageNumbers.push("ellipsis-end");
+    if (currentPage < totalPages - 2) pageNumbers.push(totalPages);
   }
 
   return (
     <Pagination>
       <PaginationContent>
-        {/* Nút Previous */}
+        {/* First Page */}
         <PaginationItem>
-          <PaginationPrevious
-            href="#"
-            onClick={() => handlePageChange(currentPage - 1)}
-            disabled={currentPage === 1}
-            style={{ backgroundColor: currentPage === 1 && "#E5E7EB" }}
-          />
+          <PaginationFirst
+            className={clsx(
+              "flex cursor-pointer items-center justify-center",
+              currentPage === 1 && "pointer-events-none opacity-50",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(1);
+            }}
+          >
+            <ChevronsLeft size={18} />
+          </PaginationFirst>
         </PaginationItem>
 
-        {/* Hiển thị danh sách trang */}
+        {/* Previous Page */}
+        <PaginationItem>
+          <PaginationPrevious
+            className={clsx(
+              "flex cursor-pointer items-center justify-center",
+              currentPage === 1 && "pointer-events-none opacity-50",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(currentPage - 1);
+            }}
+          >
+            <ChevronLeft size={18} />
+          </PaginationPrevious>
+        </PaginationItem>
+
+        {/* Page Numbers */}
         {pageNumbers.map((page, index) =>
           typeof page === "number" ? (
             <PaginationItem key={index}>
               <PaginationLink
-                href="#"
-                isActive={page === currentPage}
-                onClick={() => handlePageChange(page)}
+                className={clsx(
+                  "cursor-pointer",
+                  page === currentPage
+                    ? "pointer-events-none bg-blue-500 text-white"
+                    : "hover:bg-gray-200",
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  handlePageChange(page);
+                }}
               >
                 {page}
               </PaginationLink>
@@ -84,14 +106,36 @@ const MyPagination = ({ totalPages, currentPage, onPageChange }) => {
           ),
         )}
 
-        {/* Nút Next */}
+        {/* Next Page */}
         <PaginationItem>
           <PaginationNext
-            href="#"
-            onClick={() => handlePageChange(currentPage + 1)}
-            disabled={currentPage === totalPages}
-            style={{ backgroundColor: currentPage === totalPages && "#E5E7EB" }}
-          />
+            className={clsx(
+              "flex cursor-pointer items-center justify-center",
+              currentPage === totalPages && "pointer-events-none opacity-50",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(currentPage + 1);
+            }}
+          >
+            <ChevronRight size={18} />
+          </PaginationNext>
+        </PaginationItem>
+
+        {/* Last Page */}
+        <PaginationItem>
+          <PaginationLast
+            className={clsx(
+              "flex cursor-pointer items-center justify-center",
+              currentPage === totalPages && "pointer-events-none opacity-50",
+            )}
+            onClick={(e) => {
+              e.preventDefault();
+              handlePageChange(totalPages);
+            }}
+          >
+            <ChevronsRight size={18} />
+          </PaginationLast>
         </PaginationItem>
       </PaginationContent>
     </Pagination>
