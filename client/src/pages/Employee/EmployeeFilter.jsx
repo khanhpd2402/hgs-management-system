@@ -28,11 +28,11 @@ const fields = [
 
 export default function EmployeeFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
-  const { control, handleSubmit, watch, reset } = useForm({
+  const { control, handleSubmit, watch, reset, setValue } = useForm({
     defaultValues: { field: "", order: "", search: "" },
   });
 
-  const selectedField = watch("field");
+  const selectedField = watch("field"); // Theo dõi giá trị của field
 
   const onSubmit = (data) => {
     setFilter((options) => ({
@@ -56,11 +56,19 @@ export default function EmployeeFilter({ setFilter }) {
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            {/* Chọn trường lọc */}
             <Controller
               name="field"
               control={control}
+              defaultValue="" // Đảm bảo không bị undefined
               render={({ field }) => (
-                <Select onValueChange={field.onChange} value={field.value}>
+                <Select
+                  onValueChange={(value) => {
+                    field.onChange(value);
+                    setValue("field", value); // Cập nhật state để tránh selectedField bị rỗng
+                  }}
+                  value={field.value || ""}
+                >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn trường lọc" />
                   </SelectTrigger>
@@ -75,14 +83,16 @@ export default function EmployeeFilter({ setFilter }) {
               )}
             />
 
+            {/* Chọn thứ tự sắp xếp */}
             <Controller
               name="order"
               control={control}
+              defaultValue="" // Đảm bảo không bị undefined
               render={({ field }) => (
                 <Select
                   onValueChange={field.onChange}
-                  value={field.value}
-                  disabled={!selectedField}
+                  value={field.value || ""}
+                  disabled={!selectedField} // Chỉ chọn nếu đã chọn trường lọc
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn thứ tự" />
@@ -95,16 +105,25 @@ export default function EmployeeFilter({ setFilter }) {
               )}
             />
 
+            {/* Ô tìm kiếm */}
             <Controller
               name="search"
               control={control}
+              defaultValue=""
               render={({ field }) => (
                 <Input placeholder="Tìm kiếm" {...field} />
               )}
             />
 
             <div className="flex justify-end space-x-2">
-              <Button type="button" variant="outline" onClick={() => reset()}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => {
+                  reset();
+                  setValue("field", ""); // Reset giá trị field về rỗng
+                }}
+              >
                 Reset
               </Button>
               <Button type="submit">Xác nhận</Button>
