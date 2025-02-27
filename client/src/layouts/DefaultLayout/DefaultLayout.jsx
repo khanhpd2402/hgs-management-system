@@ -1,18 +1,20 @@
-import EmployeeTable from "@/pages/Employee/EmployeeTable";
 import "./DefaultLayout.scss";
-
 import Sidebar from "@/components/sidebar/Sidebar";
 import { useState } from "react";
+import EmployeeTable from "@/pages/Employee/EmployeeTable";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   return (
-    <div className="flex">
+    <div className="flex h-screen overflow-hidden">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
-      <div className={`flex-1 ${sidebarOpen ? "ml-64" : "ml-16"}`}>
-        <div className="container mx-auto pl-8">
-          {/* Thêm pl-8 để tạo khoảng cách bên trái */}
-          <EmployeeTable />
+      <div
+        className={`flex-1 ${sidebarOpen ? "ml-64" : "ml-16"} overflow-hidden`}
+      >
+        <div className="h-full overflow-auto">
+          <div className="container mx-auto px-4 py-4">
+            <EmployeeTable />
+          </div>
         </div>
       </div>
     </div>

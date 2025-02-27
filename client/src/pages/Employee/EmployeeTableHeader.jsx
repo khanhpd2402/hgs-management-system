@@ -4,6 +4,7 @@ import PropTypes from "prop-types";
 import EmployeeFilter from "./EmployeeFilter";
 
 const EmployeeTableHeader = ({ type, setFilter }) => {
+  console.log(setFilter);
   return (
     <div className="mb-4 flex items-center justify-between">
       <h2 className="text-lg font-semibold">Danh sách cán bộ</h2>

@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { useForm, Controller } from "react-hook-form";
+import PropTypes from "prop-types";
 import {
   Dialog,
   DialogContent,
@@ -26,24 +26,32 @@ const fields = [
   { value: "id", label: "ID" },
 ];
 
+EmployeeFilter.propTypes = {
+  setFilter: PropTypes.func.isRequired,
+};
+
 export default function EmployeeFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
-  const { control, handleSubmit, watch, reset, setValue } = useForm({
-    defaultValues: { field: "", order: "", search: "" },
-  });
+  const [field, setField] = useState("");
+  const [order, setOrder] = useState("");
+  const [search, setSearch] = useState("");
 
-  const selectedField = watch("field"); // Theo dõi giá trị của field
-
-  const onSubmit = (data) => {
+  const handleSubmit = (e) => {
+    e.preventDefault();
     setFilter((options) => ({
       ...options,
       page: 1,
-      sort: data.field,
-      order: data.order,
-      search: data.search.trim(),
+      sort: field,
+      order,
+      search: search.trim(),
     }));
-
     setOpen(false);
+  };
+
+  const handleReset = () => {
+    setField("");
+    setOrder("");
+    setSearch("");
   };
 
   return (
@@ -55,75 +63,41 @@ export default function EmployeeFilter({ setFilter }) {
             <DialogTitle>Bộ lọc</DialogTitle>
             <DialogDescription></DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+          <form onSubmit={handleSubmit} className="space-y-4">
             {/* Chọn trường lọc */}
-            <Controller
-              name="field"
-              control={control}
-              defaultValue="" // Đảm bảo không bị undefined
-              render={({ field }) => (
-                <Select
-                  onValueChange={(value) => {
-                    field.onChange(value);
-                    setValue("field", value); // Cập nhật state để tránh selectedField bị rỗng
-                  }}
-                  value={field.value || ""}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn trường lọc" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {fields.map((f) => (
-                      <SelectItem key={f.value} value={f.value}>
-                        {f.label}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <Select onValueChange={setField} value={field}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn trường lọc" />
+              </SelectTrigger>
+              <SelectContent>
+                {fields.map((f) => (
+                  <SelectItem key={f.value} value={f.value}>
+                    {f.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
 
             {/* Chọn thứ tự sắp xếp */}
-            <Controller
-              name="order"
-              control={control}
-              defaultValue="" // Đảm bảo không bị undefined
-              render={({ field }) => (
-                <Select
-                  onValueChange={field.onChange}
-                  value={field.value || ""}
-                  disabled={!selectedField} // Chỉ chọn nếu đã chọn trường lọc
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn thứ tự" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="asc">Tăng dần</SelectItem>
-                    <SelectItem value="desc">Giảm dần</SelectItem>
-                  </SelectContent>
-                </Select>
-              )}
-            />
+            <Select onValueChange={setOrder} value={order} disabled={!field}>
+              <SelectTrigger>
+                <SelectValue placeholder="Chọn thứ tự" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="asc">Tăng dần</SelectItem>
+                <SelectItem value="desc">Giảm dần</SelectItem>
+              </SelectContent>
+            </Select>
 
             {/* Ô tìm kiếm */}
-            <Controller
-              name="search"
-              control={control}
-              defaultValue=""
-              render={({ field }) => (
-                <Input placeholder="Tìm kiếm" {...field} />
-              )}
+            <Input
+              placeholder="Tìm kiếm"
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
             />
 
             <div className="flex justify-end space-x-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => {
-                  reset();
-                  setValue("field", ""); // Reset giá trị field về rỗng
-                }}
-              >
+              <Button type="button" variant="outline" onClick={handleReset}>
                 Reset
               </Button>
               <Button type="submit">Xác nhận</Button>
