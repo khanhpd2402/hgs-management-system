@@ -1,18 +1,22 @@
-import EmployeeTable from "@/pages/Employee/EmployeeTable";
-import "./DefaultLayout.scss";
-
+import { Routes, Route } from "react-router-dom";
 import Sidebar from "@/components/sidebar/Sidebar";
 import { useState } from "react";
+import Schedule from "@/pages/Schedule/Schedule";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
   return (
     <div className="flex">
+      {/* Sidebar */}
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
+
+      {/* Nội dung chính */}
       <div className={`flex-1 ${sidebarOpen ? "ml-64" : "ml-16"}`}>
         <div className="container mx-auto pl-8">
-          {/* Thêm pl-8 để tạo khoảng cách bên trái */}
-          <EmployeeTable />
+          <Routes>
+            <Route path="/system/schedule" element={<Schedule />} />
+          </Routes>
         </div>
       </div>
     </div>

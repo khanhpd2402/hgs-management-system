@@ -1,0 +1,39 @@
+.schedule-container {
+    width: 90%;
+    margin: auto;
+    text-align: center;
+
+    h2 {
+        color: #333;
+        margin-bottom: 20px;
+    }
+}
+
+.schedule-table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th, td {
+        border: 1px solid #ccc;
+        padding: 10px;
+        text-align: center;
+    }
+
+    th {
+        background-color: #727CF5;
+        color: white;
+    }
+
+ 
+    td {
+        font-size: 14px;
+    }
+}
+.even-day {
+    background-color: #f0f0f5; /* Màu nền cho Thứ Ba, Thứ Năm, Thứ Bảy */
+}
+
+.odd-day {
+    background-color: white; /* Màu trắng cho Thứ Hai, Thứ Tư, Thứ Sáu */
+}
+
