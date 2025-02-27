@@ -29,11 +29,15 @@
         font-size: 14px;
     }
 }
+/* Schedule.scss */
 .even-day {
-    background-color: #f0f0f5; /* Màu nền cho Thứ Ba, Thứ Năm, Thứ Bảy */
+    background-color: #f2f2f2; /* Màu nền cho các ngày chẵn */
 }
 
 .odd-day {
-    background-color: white; /* Màu trắng cho Thứ Hai, Thứ Tư, Thứ Sáu */
+    background-color: #ffffff; /* Màu nền cho các ngày lẻ */
 }
 
+.sunday {
+    background-color: #ffcccc; /* Màu nền cho Chủ nhật */
+}
