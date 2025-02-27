@@ -1,43 +1,107 @@
 .schedule-container {
-    width: 90%;
-    margin: auto;
-    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    padding: 20px;
+}
 
-    h2 {
-        color: #333;
-        margin-bottom: 20px;
+.filters {
+    background: #f8f9fa;
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+
+    .filter-header {
+        text-align: center;
+        font-size: 20px;
+        font-weight: bold;
+        background: #e0e0e0;
+        padding: 12px;
+        border-radius: 5px;
+        margin-bottom: 15px;
+    }
+
+    .filter-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); // Chia thành 3 cột
+        gap: 20px;
+        padding: 15px;
+
+        @media (max-width: 992px) {
+            grid-template-columns: repeat(2, 1fr); // Tablet chia thành 2 cột
+        }
+
+        @media (max-width: 600px) {
+            grid-template-columns: 1fr; // Mobile hiển thị 1 cột
+        }
+    }
+
+    .filter-item {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+
+        label {
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        select, input {
+            padding: 12px;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            font-size: 16px;
+            background: white;
+            transition: all 0.3s;
+
+            &:hover {
+                border-color: #727CF5;
+            }
+
+            &:focus {
+                outline: none;
+                border-color: #727CF5;
+                box-shadow: 0 0 6px rgba(114, 124, 245, 0.5);
+            }
+        }
     }
 }
+
+
+
+
+
 
 .schedule-table {
     width: 100%;
+    max-width: 1000px;
     border-collapse: collapse;
+    text-align: center;
 
     th, td {
-        border: 1px solid #ccc;
+        border: 1px solid #ddd;
         padding: 10px;
-        text-align: center;
     }
 
     th {
-        background-color: #727CF5;
+        background: #727CF5;
         color: white;
+        font-weight: bold;
     }
 
- 
-    td {
-        font-size: 14px;
+    .even-day {
+        background: #f1f1f1;
     }
-}
-/* Schedule.scss */
-.even-day {
-    background-color: #f2f2f2; /* Màu nền cho các ngày chẵn */
-}
 
-.odd-day {
-    background-color: #ffffff; /* Màu nền cho các ngày lẻ */
-}
+    .odd-day {
+        background: white;
+    }
 
-.sunday {
-    background-color: #ffcccc; /* Màu nền cho Chủ nhật */
+    tbody tr:hover {
+        background: #e9ecef;
+    }
 }

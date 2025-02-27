@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { Menu, ChevronDown, ChevronRight, Home, Users, Settings, ComputerIcon } from "lucide-react";
 
 const menuItems = [
@@ -30,6 +30,7 @@ const menuItems = [
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const [openMenus, setOpenMenus] = useState({});
+  const location = useLocation();
 
   const toggleMenu = (label) => {
     if (isOpen) {
@@ -46,51 +47,57 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
       {/* Sidebar Menu */}
       <nav className="space-y-2 p-2">
-        {menuItems.map((item) => (
-          <div key={item.label}>
-            {item.path ? (
-              // Nếu là menu chính có link, dùng Link
-              <Link
-                to={item.path}
-                className="flex items-center space-x-3 w-full rounded-md p-2 hover:bg-teal-600 transition-all"
-              >
-                <item.icon className="h-5 w-5" />
-                <span className={`truncate transition-all duration-200 ${isOpen ? "opacity-100" : "opacity-0 w-0 hidden"}`}>
-                  {item.label}
-                </span>
-              </Link>
-            ) : (
-              // Nếu có submenu, dùng button để toggle
-              <button
-                className="flex items-center space-x-3 w-full rounded-md p-2 hover:bg-teal-600 transition-all"
-                onClick={() => toggleMenu(item.label)}
-              >
-                <item.icon className="h-5 w-5" />
-                <span className={`truncate transition-all duration-200 ${isOpen ? "opacity-100" : "opacity-0 w-0 hidden"}`}>
-                  {item.label}
-                </span>
-                {item.children && isOpen && (
-                  <div>{openMenus[item.label] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
-                )}
-              </button>
-            )}
+        {menuItems.map((item) => {
+          const isActive = item.path === location.pathname;
+          return (
+            <div key={item.label}>
+              {item.path ? (
+                <Link
+                  to={item.path}
+                  className={`flex items-center space-x-3 w-full rounded-md p-2 transition-all ${isActive ? "bg-teal-500 font-semibold" : "hover:bg-teal-600"
+                    }`}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className={`truncate transition-all duration-200 ${isOpen ? "opacity-100" : "opacity-0 w-0 hidden"}`}>
+                    {item.label}
+                  </span>
+                </Link>
+              ) : (
+                <button
+                  className="flex items-center space-x-3 w-full rounded-md p-2 hover:bg-teal-600 transition-all"
+                  onClick={() => toggleMenu(item.label)}
+                >
+                  <item.icon className="h-5 w-5" />
+                  <span className={`truncate transition-all duration-200 ${isOpen ? "opacity-100" : "opacity-0 w-0 hidden"}`}>
+                    {item.label}
+                  </span>
+                  {item.children && isOpen && (
+                    <div>{openMenus[item.label] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
+                  )}
+                </button>
+              )}
 
-            {/* Submenu */}
-            {item.children && (
-              <div className={`overflow-hidden transition-all ${openMenus[item.label] && isOpen ? "mt-2 ml-6 opacity-100" : "h-0 opacity-0 hidden"}`}>
-                {item.children.map((child) => (
-                  <Link
-                    key={child.label}
-                    to={child.path}
-                    className="block w-full rounded-md p-2 text-left hover:bg-teal-500"
-                  >
-                    {child.label}
-                  </Link>
-                ))}
-              </div>
-            )}
-          </div>
-        ))}
+              {/* Submenu */}
+              {item.children && (
+                <div className={`overflow-hidden transition-all ${openMenus[item.label] && isOpen ? "mt-2 ml-6 opacity-100" : "h-0 opacity-0 hidden"}`}>
+                  {item.children.map((child) => {
+                    const isChildActive = child.path === location.pathname;
+                    return (
+                      <Link
+                        key={child.label}
+                        to={child.path}
+                        className={`block w-full rounded-md p-2 text-left transition-all ${isChildActive ? "bg-teal-500 font-semibold" : "hover:bg-teal-500"
+                          }`}
+                      >
+                        {child.label}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+            </div>
+          );
+        })}
       </nav>
     </div>
   );
