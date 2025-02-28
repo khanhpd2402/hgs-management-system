@@ -1,46 +1,71 @@
-import { useState } from "react";
-import { cn } from "@/lib/utils";
-import { Button } from "@/components/ui/button";
-import { Sheet, SheetTrigger, SheetContent } from "@/components/ui/sheet";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router";
 import {
+  Menu,
   ChevronDown,
   ChevronRight,
   Home,
   Users,
   Settings,
-  Menu,
 } from "lucide-react";
 
 const menuItems = [
   {
     label: "Trang chủ",
     icon: Home,
+    path: "/home",
   },
   {
     label: "Quản trị",
     icon: Settings,
+    path: "/admin",
   },
   {
     label: "Cán bộ",
     icon: Users,
-    children: [
-      "Hồ sơ cán bộ",
-      "Phân công giảng dạy",
-      "Phân công giáo vụ",
-      "Công việc kiêm nhiệm",
-      "Phân công chủ nhiệm",
-      "Khen thưởng - Kỷ luật",
-    ],
+    path: "/employee",
+    children: [{ label: "Hồ sơ cán bộ", path: "/employee" }],
+  },
+  {
+    label: "Học Sinh",
+    icon: Users,
+    path: "/student",
+    children: [{ label: "Hồ sơ học sinh", path: "/student" }],
   },
 ];
+
 export default function Sidebar({ isOpen, setIsOpen }) {
   const [openMenus, setOpenMenus] = useState({});
+  const navigate = useNavigate();
+  const location = useLocation();
+  const currentPath = location.pathname;
+
+  useEffect(() => {
+    menuItems.forEach((item) => {
+      if (
+        currentPath === item.path ||
+        item.children?.some((child) => child.path === currentPath)
+      ) {
+        setOpenMenus((prev) => ({ ...prev, [item.label]: true }));
+      }
+    });
+  }, [currentPath]);
 
   const toggleMenu = (label) => {
-    // Chỉ toggle menu khi sidebar đang mở
     if (isOpen) {
       setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
     }
+  };
+
+  const isMenuActive = (item) => {
+    return (
+      currentPath === item.path ||
+      item.children?.some((child) => child.path === currentPath)
+    );
+  };
+
+  const isSubmenuActive = (path) => {
+    return currentPath === path;
   };
 
   return (
@@ -49,29 +74,41 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         isOpen ? "w-64" : "w-16"
       }`}
     >
-      <button
-        className="p-4 text-white focus:outline-none"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        <Menu className="h-6 w-6" />
-      </button>
-      <nav className="space-y-2 p-2">
+      {/* Button đóng/mở menu */}
+      <div className="flex h-12 items-center p-2 hover:bg-teal-500">
+        <button
+          className={`cursor-pointer p-2 text-white focus:outline-none ${isOpen ? "ml-1" : "justify-center"}`}
+          onClick={() => setIsOpen(!isOpen)}
+        >
+          <Menu className="h-6 w-6" />
+        </button>
+      </div>
+
+      {/* Danh sách menu */}
+      <nav className="space-y-1 p-2">
         {menuItems.map((item) => (
           <div key={item.label}>
+            {/* Menu chính */}
             <button
-              className="flex w-full items-center justify-between rounded-md p-2 hover:bg-teal-600"
-              onClick={() => item.children && toggleMenu(item.label)}
+              className={`flex h-12 w-full cursor-pointer items-center justify-between rounded-md px-2 hover:bg-teal-600 ${
+                isMenuActive(item) ? "bg-teal-500" : ""
+              }`}
+              onClick={() =>
+                item.children ? toggleMenu(item.label) : navigate(item.path)
+              }
             >
-              <div className="flex items-center space-x-2">
-                <item.icon className="h-5 w-5" />
+              <div className="flex min-w-0 items-center">
+                <div className="flex w-8 shrink-0 justify-center">
+                  <item.icon className="h-5 w-5" />
+                </div>
                 <span
-                  className={`${isOpen ? "w-auto" : "w-0 opacity-0"} truncate`}
+                  className={`truncate ${isOpen ? "inline-block" : "hidden"}`}
                 >
                   {item.label}
                 </span>
               </div>
-              {item.children && (
-                <div className={`${isOpen ? "w-auto" : "w-0 opacity-0"}`}>
+              {item.children && isOpen && (
+                <div className="w-8 shrink-0">
                   {openMenus[item.label] ? (
                     <ChevronDown className="h-4 w-4" />
                   ) : (
@@ -81,20 +118,23 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               )}
             </button>
 
-            {/* Luôn render menu con nhưng ẩn bằng CSS */}
+            {/* Submenu */}
             <div
-              className={`overflow-hidden ${
-                openMenus[item.label] && isOpen
-                  ? "submenu mt-2 ml-6"
-                  : "submenu submenu-open mt-0 ml-6 opacity-0"
+              className={`${
+                openMenus[item.label] && isOpen ? "block" : "hidden"
               }`}
             >
               {item.children?.map((child) => (
                 <button
-                  key={child}
-                  className="block w-full rounded-md p-2 text-left hover:bg-teal-500"
+                  key={child.label}
+                  className={`mt-1 flex h-12 w-full items-center rounded-md text-left hover:bg-teal-500 ${
+                    isSubmenuActive(child.path) ? "bg-teal-500" : ""
+                  }`}
+                  onClick={() => navigate(child.path)}
                 >
-                  {child}
+                  <div className="ml-2 w-8 shrink-0" />
+                  {/* Khoảng cách để thẳng hàng với icon cha */}
+                  <span className="truncate">{child.label}</span>
                 </button>
               ))}
             </div>

@@ -36,10 +36,6 @@ export default function EmployeeTable() {
   );
 
   // Tính toán hàng hiển thị
-  const displayRows = data || [];
-  const emptyRowsCount = Math.max(0, pageSize - displayRows.length);
-  const emptyRows = emptyRowsCount > 0 ? Array(emptyRowsCount).fill(null) : [];
-
   if (isPending) {
     return (
       <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
@@ -122,8 +118,7 @@ export default function EmployeeTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {/* Dữ liệu thực */}
-              {displayRows.map((employee) => (
+              {data.map((employee) => (
                 <TableRow
                   key={employee.id}
                   className="divide-x divide-gray-300"
@@ -172,19 +167,6 @@ export default function EmployeeTable() {
                   <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
                     {employee.workLocation}
                   </TableCell>
-                </TableRow>
-              ))}
-
-              {/* Thêm hàng trống để duy trì chiều cao */}
-              {emptyRows.map((_, index) => (
-                <TableRow
-                  key={`empty-${index}`}
-                  className="divide-x divide-gray-300"
-                >
-                  <TableCell
-                    className="h-16 border border-gray-300"
-                    colSpan={15}
-                  ></TableCell>
                 </TableRow>
               ))}
             </TableBody>

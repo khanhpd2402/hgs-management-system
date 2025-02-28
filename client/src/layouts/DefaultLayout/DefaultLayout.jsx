@@ -1,7 +1,7 @@
 import "./DefaultLayout.scss";
 import Sidebar from "@/components/sidebar/Sidebar";
 import { useState } from "react";
-import StudentTable from "@/pages/Student/StudentProfile/StudentTable";
+import { Outlet } from "react-router";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -13,8 +13,7 @@ const DefaultLayout = () => {
       >
         <div className="h-full overflow-auto">
           <div className="container mx-auto px-4 py-4">
-            {/* <EmployeeTable /> */}
-            <StudentTable />
+            <Outlet />
           </div>
         </div>
       </div>
