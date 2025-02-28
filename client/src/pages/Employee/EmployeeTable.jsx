@@ -29,12 +29,6 @@ export default function EmployeeTable() {
   const { data, isPending, error, isError, isFetching } = useEmployees(filter);
   const { page, pageSize } = filter;
 
-  const [placeholderRows, setPlaceholderRows] = useState([]);
-
-  useEffect(() => {
-    setPlaceholderRows(Array(pageSize).fill(null));
-  }, [pageSize]);
-
   const startIndex = (page - 1) * pageSize + 1;
   const endIndex = Math.min(
     (page - 1) * pageSize + (data?.length || 0),
@@ -173,7 +167,7 @@ export default function EmployeeTable() {
                     {employee.department}
                   </TableCell>
                   <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.contractType}
+                    {employee.contract}
                   </TableCell>
                   <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
                     {employee.workLocation}

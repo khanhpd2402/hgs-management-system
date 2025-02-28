@@ -1,11 +1,11 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import { getEmployees } from "./api";
 
-export function useEmployees({ page, pageSize, sort, order, search }) {
+export function useEmployees({ page, pageSize, department, contract, search }) {
   return useQuery({
-    queryKey: ["employees", { page, pageSize, sort, order, search }],
+    queryKey: ["employees", { page, pageSize, department, contract, search }],
     queryFn: () => {
-      return getEmployees(page, pageSize, sort, order, search);
+      return getEmployees(page, pageSize, department, contract, search);
     },
     placeholderData: keepPreviousData,
   });

@@ -17,63 +17,51 @@ import {
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
 
-const fields = [
-  { value: "name", label: "Họ tên cán bộ" },
-  { value: "code", label: "Mã cán bộ" },
-  { value: "phone", label: "Số ĐTDD" },
-  { value: "email", label: "Địa chỉ Email" },
-  { value: "dob", label: "Ngày sinh" },
-  { value: "id", label: "ID" },
+const grades = [
+  { value: "Khối 6", label: "Khối 6" },
+  { value: "Khối 7", label: "Khối 7" },
+  { value: "Khối 8", label: "Khối 8" },
+  { value: "Khối 9", label: "Khối 9" },
 ];
 
-// const departments = [
-//   { value: "natural_science", label: "Khoa học tự nhiên" },
-//   { value: "social_science", label: "Khoa học xã hội" },
-//   { value: "whole_school", label: "Toàn trường" },
-// ];
-const departments = [
-  { value: "Physics", label: "Vật Lý" },
-  { value: "Math", label: "Toán" },
-];
+const classMap = {
+  "Khối 6": ["6A", "6B"],
+  "Khối 7": ["7A", "7B", "7C"],
+  "Khối 8": ["8A", "8B"],
+  "Khối 9": ["9A", "9B"],
+};
 
-// const contracts = [
-//   { value: "less_than_1_year", label: "Hợp đồng dưới 1 năm" },
-//   { value: "more_than_1_year", label: "Hợp đồng trên 1 năm" },
-//   { value: "permanent", label: "Viên chức HĐLV không xác định thời hạn" },
-// ];
-const contracts = [
-  { value: "Payroll", label: "Biên chế" },
-  { value: "long term contract", label: "Hợp đồng dài hạn" },
-];
-
-EmployeeFilter.propTypes = {
+StudentFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
 };
 
-export default function EmployeeFilter({ setFilter }) {
+export default function StudentFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
-
   const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("");
-  const [contract, setContract] = useState("");
+  const [grade, setGrade] = useState("");
+  const [classname, setClassname] = useState("");
+
+  const handleGradeChange = (value) => {
+    setGrade(value);
+    setClassname(""); // Reset lớp khi chọn khối mới
+  };
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setFilter((options) => ({
       ...options,
       page: 1,
-
-      search: search.trim(),
-      department,
-      contract,
+      searchValue: search.trim(),
+      grade,
+      classname,
     }));
     setOpen(false);
   };
 
   const handleReset = () => {
     setSearch("");
-    setDepartment("");
-    setContract("");
+    setGrade("");
+    setClassname("");
   };
 
   return (
@@ -86,13 +74,13 @@ export default function EmployeeFilter({ setFilter }) {
             <DialogDescription></DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            {/* Lọc theo tổ bộ môn */}
-            <Select onValueChange={setDepartment} value={department}>
+            {/* Lọc theo khối */}
+            <Select onValueChange={handleGradeChange} value={grade}>
               <SelectTrigger>
-                <SelectValue placeholder="Chọn tổ bộ môn" />
+                <SelectValue placeholder="Chọn khối" />
               </SelectTrigger>
               <SelectContent>
-                {departments.map((d) => (
+                {grades.map((d) => (
                   <SelectItem key={d.value} value={d.value}>
                     {d.label}
                   </SelectItem>
@@ -100,17 +88,22 @@ export default function EmployeeFilter({ setFilter }) {
               </SelectContent>
             </Select>
 
-            {/* Lọc theo hợp đồng lao động */}
-            <Select onValueChange={setContract} value={contract}>
+            {/* Lọc theo lớp */}
+            <Select
+              onValueChange={setClassname}
+              value={classname}
+              disabled={!grade}
+            >
               <SelectTrigger>
-                <SelectValue placeholder="Chọn loại hợp đồng" />
+                <SelectValue placeholder="Chọn lớp" />
               </SelectTrigger>
               <SelectContent>
-                {contracts.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
-                  </SelectItem>
-                ))}
+                {grade &&
+                  classMap[grade].map((c) => (
+                    <SelectItem key={c} value={c}>
+                      {c}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
