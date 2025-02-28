@@ -75,11 +75,11 @@ export default function Sidebar({ isOpen, setIsOpen }) {
       }`}
     >
       {/* Button đóng/mở menu */}
-      <div className="flex h-12 items-center p-2 hover:bg-teal-500">
-        <button
-          className={`cursor-pointer p-2 text-white focus:outline-none ${isOpen ? "ml-1" : "justify-center"}`}
-          onClick={() => setIsOpen(!isOpen)}
-        >
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex h-12 cursor-pointer items-center p-2 hover:bg-teal-500 ${isOpen ? "pl-3" : "justify-center"}`}
+      >
+        <button className="p-2 text-white focus:outline-none">
           <Menu className="h-6 w-6" />
         </button>
       </div>
@@ -127,7 +127,7 @@ export default function Sidebar({ isOpen, setIsOpen }) {
               {item.children?.map((child) => (
                 <button
                   key={child.label}
-                  className={`mt-1 flex h-12 w-full items-center rounded-md text-left hover:bg-teal-500 ${
+                  className={`mt-1 flex h-12 w-full cursor-pointer items-center rounded-md text-left hover:bg-teal-500 ${
                     isSubmenuActive(child.path) ? "bg-teal-500" : ""
                   }`}
                   onClick={() => navigate(child.path)}
