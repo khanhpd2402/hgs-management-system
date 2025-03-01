@@ -1,4 +1,4 @@
-﻿
+﻿--create database HGSDB
 -- Bảng 2: Roles (Vai trò người dùng)
 CREATE TABLE Roles (
     RoleID INT IDENTITY(1,1) PRIMARY KEY,
