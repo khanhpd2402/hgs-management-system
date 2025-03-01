@@ -1,5 +1,5 @@
 using Domain.Models;
-using Common.AutoMapper;
+using HGSMAPI.AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
