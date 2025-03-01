@@ -12,6 +12,8 @@ using Infrastructure.Repositories.Interfaces;
 using Common.Constants;
 using Application.Features.Students.Interfaces;
 using Application.Features.Students.Services;
+using Application.Features.Users.Interfaces;
+using Application.Features.Users.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -28,8 +30,10 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<HgsdbContext>();
 //Service 
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
 //repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IUserService, UserService>();
 
 
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
