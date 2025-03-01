@@ -24,5 +24,41 @@ export const getEmployees = async (
   ).data;
 };
 
-// Sử dụng hàm với hai trường lọc
-// getEmployees(1, 5, "IT", "Full-time", "John Doe");
+export const getTeachingAssignments = async (
+  page,
+  limit,
+  department,
+  teacher,
+  semester,
+) => {
+  const filterParams = [];
+  if (department)
+    filterParams.push(`department=${encodeURIComponent(department)}`);
+  if (teacher) filterParams.push(`teacher=${encodeURIComponent(teacher)}`);
+  if (semester) filterParams.push(`semester=${encodeURIComponent(semester)}`);
+
+  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
+  return (
+    await axiosInstance.get(
+      `teaching-assignment?_limit=${limit}&_page=${page}${queryString}`,
+    )
+  ).data;
+};
+
+export const getHeadTeacherAssignments = async (
+  page,
+  limit,
+  grade,
+  teacher,
+) => {
+  const filterParams = [];
+  if (grade) filterParams.push(`grade=${encodeURIComponent(grade)}`);
+  if (teacher) filterParams.push(`teacher=${encodeURIComponent(teacher)}`);
+
+  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
+  return (
+    await axiosInstance.get(
+      `head-teacher-assignment?_limit=${limit}&_page=${page}${queryString}`,
+    )
+  ).data;
+};
