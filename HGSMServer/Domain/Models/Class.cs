@@ -11,11 +11,9 @@ public partial class Class
 
     public int Grade { get; set; }
 
-    public int? HomeroomTeacherId { get; set; }
-
-    public virtual Teacher? HomeroomTeacher { get; set; }
-
     public virtual ICollection<Student> Students { get; set; } = new List<Student>();
+
+    public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 
     public virtual ICollection<Timetable> Timetables { get; set; } = new List<Timetable>();
 }

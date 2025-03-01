@@ -4,14 +4,14 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
-//using Repositories.Interfaces;
-//using Repositories.Repository;
 using System.Text;
 using System.Text.Json.Serialization;
 using NLog;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
 using Common.Constants;
+using Application.Features.Students.Interfaces;
+using Application.Features.Students.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -26,8 +26,12 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<HgsdbContext>();
-//builder.Services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
-//builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+//Service 
+builder.Services.AddScoped<IStudentService, StudentService>();
+//repository
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+
+
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
 builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
