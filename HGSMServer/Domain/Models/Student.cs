@@ -9,7 +9,7 @@ public partial class Student
 
     public string FullName { get; set; } = null!;
 
-    public DateOnly Dob { get; set; }
+    public DateTime Dob { get; set; }
 
     public string Gender { get; set; } = null!;
 
@@ -17,7 +17,7 @@ public partial class Student
 
     public int ClassId { get; set; }
 
-    public DateOnly AdmissionDate { get; set; }
+    public DateTime AdmissionDate { get; set; }
 
     public string? EnrollmentType { get; set; }
 
