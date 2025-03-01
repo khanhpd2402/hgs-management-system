@@ -11,6 +11,7 @@ using System.Text.Json.Serialization;
 using NLog;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
+using Common.Constants;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -28,7 +29,7 @@ builder.Services.AddDbContext<HgsdbContext>();
 //builder.Services.AddScoped<IRepositoryWrapper, RepositoryWrapper>();
 //builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
-builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(100));
+builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(option =>
