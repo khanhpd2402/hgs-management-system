@@ -13,17 +13,50 @@ import { Pencil, Trash } from "lucide-react";
 import { useHTA } from "@/services/employee/queries";
 import HTAHeader from "./HTAHeader";
 import { Spinner } from "@/components/Spinner";
+import PaginationControls from "@/components/PaginationControls";
+import MyPagination from "@/components/MyPagination";
+
+const teachers = [
+  "Tạ Tuấn Anh",
+  "Vương Thị Ngọc Anh",
+  "Nguyễn Thị Chiêm",
+  "Phạm Thị Duyên",
+  "Phạm Công Đoàn",
+  "Nguyễn Thị Đượm",
+  "Phạm Thị Hải",
+  "Lê Thị Hằng",
+  "Nguyễn Thị Hiền",
+  "Vũ Thị Thu Hoài",
+  "Vũ Thị Huệ",
+  "Trần Thị Lan",
+  "Nguyễn Thị Huyền",
+  "Nguyễn Hữu Luận",
+  "Vũ Viết Lượng",
+  "Trần Thị Minh Nguyệt",
+  "Lê Hồng Nhung",
+  "Trần Thị Tuyết Nhung",
+  "Đỗ Thị Thu",
+  "Phạm Thị Thuỷ",
+  "Nguyễn Ngọc Trang",
+  "Bùi Văn Trang",
+  "Nguyễn Thành Trung",
+];
 
 export default function HTATable() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
     grade: "",
-    teacher: "",
   });
 
   const { data, isPending, error, isError, isFetching } = useHTA(filter);
-  console.log(data);
+  const { page, pageSize } = filter;
+
+  const startIndex = (page - 1) * pageSize + 1;
+  const endIndex = Math.min(
+    (page - 1) * pageSize + (data?.length || 0),
+    startIndex + pageSize - 1,
+  );
 
   if (isPending) {
     return (
@@ -42,10 +75,10 @@ export default function HTATable() {
   }
 
   return (
-    <Card className="relative mt-6 min-h-[550px] p-4">
+    <Card className="relative mt-6 p-4">
       <HTAHeader type="employees" setFilter={setFilter} />
 
-      <div className="relative min-h-[400px]">
+      <div className="relative">
         {isFetching && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
             <Spinner />
@@ -56,19 +89,19 @@ export default function HTATable() {
           <Table className="w-full border border-gray-300">
             <TableHeader className="bg-gray-100 text-white">
               <TableRow>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="h-10 border border-gray-300 text-center whitespace-nowrap">
                   STT
                 </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="h-10 border border-gray-300 text-center whitespace-nowrap">
                   Lớp
                 </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="h-10 border border-gray-300 text-center whitespace-nowrap">
                   Sĩ số
                 </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="h-10 border border-gray-300 text-center whitespace-nowrap">
                   Giáo viên chủ nhiệm
                 </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="h-10 border border-gray-300 text-center whitespace-nowrap">
                   Thao tác
                 </TableHead>
               </TableRow>
@@ -77,19 +110,19 @@ export default function HTATable() {
               {data.length > 0 ? (
                 data?.map((classItem) => (
                   <TableRow key={classItem.id}>
-                    <TableCell className="border border-gray-300 text-center">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {classItem.id}
                     </TableCell>
-                    <TableCell className="border border-gray-300 text-center">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {classItem.class}
                     </TableCell>
-                    <TableCell className="border border-gray-300 text-center">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {classItem.student_number}
                     </TableCell>
-                    <TableCell className="border border-gray-300 text-center">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {classItem.head_teacher}
                     </TableCell>
-                    <TableCell className="border border-gray-300 text-center">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       <div className="flex justify-center space-x-2">
                         <Button
                           variant="outline"
@@ -121,6 +154,21 @@ export default function HTATable() {
               )}
             </TableBody>
           </Table>
+        </div>
+        <div className="mt-8 flex items-center justify-between">
+          <PaginationControls
+            pageSize={pageSize}
+            setFilter={setFilter}
+            totalItems={data?.length || 0}
+            startIndex={startIndex}
+            endIndex={endIndex}
+          />
+
+          <MyPagination
+            totalPages={6}
+            currentPage={page}
+            onPageChange={setFilter}
+          />
         </div>
       </div>
     </Card>

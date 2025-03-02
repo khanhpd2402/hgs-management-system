@@ -53,7 +53,7 @@ export default function EmployeeTable() {
   }
 
   return (
-    <Card className="relative mt-6 min-h-[550px] p-4">
+    <Card className="relative mt-6 p-4">
       <EmployeeTableHeader type="employees" setFilter={setFilter} />
 
       {/* Container chính không có overflow-x-auto */}

@@ -34,11 +34,11 @@ export function useTA({ page, pageSize, department, teacher, semester }) {
   });
 }
 
-export function useHTA({ page, pageSize, grade, teacher }) {
+export function useHTA({ page = 1, pageSize = 5, grade = "" }) {
   return useQuery({
-    queryKey: ["head-teacher-assignments", { page, pageSize, grade, teacher }],
+    queryKey: ["head-teacher-assignments", { page, pageSize, grade }],
     queryFn: () => {
-      return getHeadTeacherAssignments(page, pageSize, grade, teacher);
+      return getHeadTeacherAssignments(page, pageSize, grade);
     },
     placeholderData: keepPreviousData,
   });

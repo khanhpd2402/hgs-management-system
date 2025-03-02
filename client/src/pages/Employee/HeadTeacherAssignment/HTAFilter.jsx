@@ -14,49 +14,36 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Input } from "@/components/ui/input";
+
 import { DialogDescription } from "@radix-ui/react-dialog";
 
-const grade = [
+const gradeList = [
   { value: "6", label: "Khối 6" },
   { value: "7", label: "Khối 7" },
   { value: "8", label: "Khối 8" },
   { value: "9", label: "Khối 9" },
 ];
 
-const teacher = [
-  { value: "Physics", label: "Vật Lý" },
-  { value: "Math", label: "Toán" },
-];
-
 HTAFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
 };
-
 export default function HTAFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
 
-  const [search, setSearch] = useState("");
-  const [department, setDepartment] = useState("");
-  const [contract, setContract] = useState("");
+  const [grade, setGrade] = useState("");
 
   const handleSubmit = (e) => {
     e.preventDefault();
     setFilter((options) => ({
       ...options,
       page: 1,
-
-      search: search.trim(),
-      department,
-      contract,
+      grade,
     }));
     setOpen(false);
   };
 
   const handleReset = () => {
-    setSearch("");
-    setDepartment("");
-    setContract("");
+    setGrade("");
   };
 
   return (
@@ -70,28 +57,14 @@ export default function HTAFilter({ setFilter }) {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Lọc theo tổ bộ môn */}
-            <Select onValueChange={setDepartment} value={department}>
+            <Select onValueChange={setGrade} value={grade}>
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khối" />
               </SelectTrigger>
               <SelectContent>
-                {grade.map((d) => (
+                {gradeList.map((d) => (
                   <SelectItem key={d.value} value={d.value}>
                     {d.label}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-
-            {/* Lọc theo hợp đồng lao động */}
-            <Select onValueChange={setContract} value={contract}>
-              <SelectTrigger>
-                <SelectValue placeholder="Chọn giáo viên" />
-              </SelectTrigger>
-              <SelectContent>
-                {teacher.map((c) => (
-                  <SelectItem key={c.value} value={c.value}>
-                    {c.label}
                   </SelectItem>
                 ))}
               </SelectContent>

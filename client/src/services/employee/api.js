@@ -45,20 +45,15 @@ export const getTeachingAssignments = async (
   ).data;
 };
 
-export const getHeadTeacherAssignments = async (
-  page,
-  limit,
-  grade,
-  teacher,
-) => {
-  const filterParams = [];
-  if (grade) filterParams.push(`grade=${encodeURIComponent(grade)}`);
-  if (teacher) filterParams.push(`teacher=${encodeURIComponent(teacher)}`);
+export const getHeadTeacherAssignments = async (page, limit, grade) => {
+  // const filterParams = [];
+  // if (grade) filterParams.push(`grade=${encodeURIComponent(grade)}`);
 
-  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
+  // const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
+  const encodeGrade = encodeURIComponent(grade);
   return (
     await axiosInstance.get(
-      `head-teacher-assignment?_limit=${limit}&_page=${page}${queryString}`,
+      `head-teacher-assignment?_limit=${limit}&_page=${page}&class_like=${encodeGrade}`,
     )
   ).data;
 };

@@ -46,14 +46,14 @@ export default function TATable() {
 
   if (isError) {
     return (
-      <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
+      <Card className="relative mt-6 flex items-center justify-center p-4">
         <div className="text-red-500">Lỗi khi tải dữ liệu</div>
       </Card>
     );
   }
 
   return (
-    <Card className="relative mt-6 min-h-[550px] p-4">
+    <Card className="relative mt-6 p-4">
       <TAHeader type="employees" setFilter={setFilter} />
 
       {/* Container chính không có overflow-x-auto */}
