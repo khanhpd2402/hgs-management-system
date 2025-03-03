@@ -1,5 +1,5 @@
-﻿using Domain.Models;
-using Common.AutoMapper;
+using Domain.Models;
+using HGSMAPI.AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authentication.Cookies; // Thêm namespace này
 using Microsoft.AspNetCore.OData;
