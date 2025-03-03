@@ -72,7 +72,6 @@ CREATE TABLE Students (
     FullName NVARCHAR(100) NOT NULL,
     DOB DATE NOT NULL,
     Gender NVARCHAR(10) NOT NULL,
-    GradeLevel INT NOT NULL,  -- Khối lớp
     ClassID INT NOT NULL, 
     AdmissionDate DATE NOT NULL,  -- Ngày vào trường
     EnrollmentType NVARCHAR(50),  -- Hình thức nhập học
