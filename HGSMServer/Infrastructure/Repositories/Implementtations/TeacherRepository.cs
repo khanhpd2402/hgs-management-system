@@ -20,12 +20,15 @@ namespace Infrastructure.Repositories.Implementtations
 
         public async Task<IEnumerable<Teacher>> GetAllAsync()
         {
-            return await _context.Teachers.ToListAsync();
+
+            return await _context.Teachers.Include(t => t.User).ToListAsync();
         }
 
         public async Task<Teacher?> GetByIdAsync(int id)
         {
-            return await _context.Teachers.FindAsync(id);
+
+            return await _context.Teachers.Include(t => t.User)
+                                          .FirstOrDefaultAsync(t => t.TeacherId == id);
         }
 
         public async Task AddAsync(Teacher teacher)
