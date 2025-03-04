@@ -1,4 +1,4 @@
-﻿using Application.Features.Teachers.DTOs;
+using Application.Features.Teachers.DTOs;
 using Application.Features.Teachers.Interfaces;
 using AutoMapper;
 using DocumentFormat.OpenXml.Math;
