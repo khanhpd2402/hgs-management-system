@@ -1,5 +1,5 @@
 .export-button {
-    background-color: #727CF5; // Màu nền theo sở thích của bạn
+    background-color: #00786F; // Màu nền theo sở thích của bạn
     color: white;
     border: none;
     padding: 10px 15px;
@@ -10,11 +10,11 @@
     transition: all 0.3s ease;
 
     &:hover {
-        background-color: #5a62d6; // Màu hover nhạt hơn một chút
+        background-color: #00786F; // Màu hover nhạt hơn một chút
     }
 
     &:active {
-        background-color: #4148b0; // Màu khi nhấn xuống
+        background-color: #00786F; // Màu khi nhấn xuống
     }
 
     &:disabled {
