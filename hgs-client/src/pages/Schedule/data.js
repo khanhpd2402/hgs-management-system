@@ -1,496 +1,778 @@
+export const teacherData = [
+  { teacher_id: 1, teacher_name: "Nguyễn Văn A" },
+  { teacher_id: 2, teacher_name: "Trần Thị B" },
+  { teacher_id: 3, teacher_name: "Lê Văn C" },
+  { teacher_id: 4, teacher_name: "Phạm Thị D" },
+  { teacher_id: 5, teacher_name: "Hoàng Văn E" },
+  { teacher_id: 6, teacher_name: "Dương Văn F" },
+  { teacher_id: 7, teacher_name: "Phan Thị G" },
+  { teacher_id: 8, teacher_name: "Đoàn Thị H" },
+  { teacher_id: 9, teacher_name: "Lý Thị I" },
+  { teacher_id: 10, teacher_name: "Tôn Thị J" },
+  { teacher_id: 11, teacher_name: "NguyễnNguyễn Văn K" },
+  { teacher_id: 12, teacher_name: "Trần Thị L" },
+  { teacher_id: 13, teacher_name: "Lê Văn M" },
+  { teacher_id: 14, teacher_name: "Tôn Thị N" },
+  { teacher_id: 15, teacher_name: "NguyễnNguyễn Văn O" },
+  { teacher_id: 16, teacher_name: "Trần Thị P" },
+  { teacher_id: 17, teacher_name: "Lê Văn Q" },
+  { teacher_id: 18, teacher_name: "Tôn Thị R" },
+  { teacher_id: 19, teacher_name: "Nguyễn Văn S" },
+  { teacher_id: 20, teacher_name: "Trần Thị T" },
+  { teacher_id: 21, teacher_name: "Lê Văn U" },
+];
+
+export const subjectData = [
+  { subject_Id: 1, subject_code: "TOAN", subject_name: "Toán học" },
+  { subject_Id: 2, subject_code: "VAN", subject_name: "Ngữ văn" },
+  { subject_Id: 3, subject_code: "ANH", subject_name: "Tiếng Anh" },
+  { subject_Id: 4, subject_code: "LY", subject_name: "Vật lý" },
+  { subject_Id: 5, subject_code: "HOA", subject_name: "Hóa học" },
+  { subject_Id: 6, subject_code: "SINH", subject_name: "Sinh học" },
+  { subject_Id: 7, subject_code: "SU", subject_name: "Lịch sử" },
+  { subject_Id: 8, subject_code: "DIA", subject_name: "Địa lý" },
+  { subject_Id: 9, subject_code: "GDCD", subject_name: "Giáo dục công dân" },
+  { subject_Id: 10, subject_code: "CN", subject_name: "Công nghệ" },
+  { subject_Id: 11, subject_code: "TIN", subject_name: "Tin học" },
+  { subject_Id: 12, subject_code: "NHAC", subject_name: "Âm nhạc" },
+  { subject_Id: 13, subject_code: "MYTHUAT", subject_name: "Mỹ thuật" },
+  { subject_Id: 14, subject_code: "TD", subject_name: "Thể dục" },
+  { subject_Id: 15, subject_code: "SHCD", subject_name: "Sinh hoạt chủ nhiệm" },
+];
+
 export const scheduleData = {
-  "Khối 6": {
+  "Grade 6": {
     "6A": {
-      "Thứ hai": {
-        Sáng: [
-          "HĐ TN, hướng nghiệp",
-          "Khoa học Tự nhiên",
-          "HĐ TN, hướng nghiệp",
-          "Giáo dục thể chất",
-          "Tin học",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Thứ ba": {
-        Sáng: ["Tiếng Anh", "Ngữ Văn", "Giáo dục thể chất", "Toán", "GDCD"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: [
-          "Toán",
-          "Khoa học Tự nhiên",
-          "Khoa học Tự nhiên",
-          "Lịch sử",
-          "Mĩ Thuật",
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
       },
-      "Thứ năm": {
-        Sáng: ["Ngữ Văn", "Ngữ Văn", "Công nghệ", "Tiếng Anh"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Toán", "Âm nhạc", "Địa lí", "Khoa học Tự nhiên", "Tiếng Anh"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Toán",
-          "Ngữ Văn",
-          "Giáo dục địa phương",
-          "Lịch sử và Địa lí",
-          "HĐ TN, hướng nghiệp",
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "2" },
+          { period: 2, subject_Id: "7", teacher_id: "4" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "6B": {
-      "Thứ hai": {
-        Sáng: [
-          "Toán",
-          "Ngữ Văn",
-          "Giáo dục thể chất",
-          "Lịch sử",
-          "HĐ TN, hướng nghiệp",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "23" },
+          { period: 3, subject_Id: "7", teacher_id: "2" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
       },
-      "Thứ ba": {
-        Sáng: ["Tiếng Anh", "Công nghệ", "Toán", "Khoa học Tự nhiên", "GDCD"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Ngữ Văn", "Mĩ Thuật", "Tin học", "Lịch sử", "Âm nhạc"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: [
-          "Toán",
-          "Khoa học Tự nhiên",
-          "Địa lí",
-          "Tiếng Anh",
-          "HĐ TN, hướng nghiệp",
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "4", teacher_id: "9" },
+          { period: 4, subject_Id: "7", teacher_id: "4" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ sáu": {
-        Sáng: [
-          "Giáo dục địa phương",
-          "Ngữ Văn",
-          "Toán",
-          "Khoa học Tự nhiên",
-          "Công nghệ",
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "7", teacher_id: "4" },
+          { period: 2, subject_Id: "4", teacher_id: "4" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "1", teacher_id: "8" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ bảy": {
-        Sáng: ["Tiếng Anh", "Toán", "Ngữ Văn", "GDCD", "Giáo dục thể chất"],
-        Chiều: ["", "", ""],
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "6C": {
-      "Thứ hai": {
-        Sáng: ["Toán", "Ngữ Văn", "Lịch sử", "Tiếng Anh", "Khoa học Tự nhiên"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: [
-          "Công nghệ",
-          "Giáo dục thể chất",
-          "Toán",
-          "Mĩ Thuật",
-          "HĐ TN, hướng nghiệp",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "23" },
+          { period: 3, subject_Id: "7", teacher_id: "2" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
       },
-      "Thứ tư": {
-        Sáng: ["Tiếng Anh", "Ngữ Văn", "Khoa học Tự nhiên", "GDCD", "Âm nhạc"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Toán", "Khoa học Tự nhiên", "Địa lí", "Tin học", "Lịch sử"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: [
-          "Ngữ Văn",
-          "Toán",
-          "Công nghệ",
-          "Giáo dục địa phương",
-          "Tiếng Anh",
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "4", teacher_id: "9" },
+          { period: 4, subject_Id: "7", teacher_id: "4" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "HĐ TN, hướng nghiệp",
-          "Toán",
-          "Giáo dục thể chất",
-          "Ngữ Văn",
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "7", teacher_id: "4" },
+          { period: 2, subject_Id: "4", teacher_id: "4" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "1", teacher_id: "8" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
     },
   },
-  "Khối 7": {
+  "Grade 7": {
     "7A": {
-      "Thứ hai": {
-        Sáng: [
-          "Ngữ Văn",
-          "Toán",
-          "HĐ TN, hướng nghiệp",
-          "Khoa học Tự nhiên",
-          "Tiếng Anh",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Thứ ba": {
-        Sáng: ["Công nghệ", "Giáo dục thể chất", "Địa lí", "Lịch sử", "GDCD"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Ngữ Văn", "Toán", "Mĩ Thuật", "HĐ TN, hướng nghiệp", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: [
-          "Toán",
-          "Khoa học Tự nhiên",
-          "Tiếng Anh",
-          "Âm nhạc",
-          "Giáo dục thể chất",
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
       },
-      "Thứ sáu": {
-        Sáng: [
-          "Giáo dục địa phương",
-          "Ngữ Văn",
-          "Công nghệ",
-          "Toán",
-          "Khoa học Tự nhiên",
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ bảy": {
-        Sáng: ["Lịch sử", "Tiếng Anh", "Toán", "Ngữ Văn", "GDCD"],
-        Chiều: ["", "", ""],
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "7B": {
-      "Thứ hai": {
-        Sáng: [
-          "Toán",
-          "Khoa học Tự nhiên",
-          "Ngữ Văn",
-          "Lịch sử",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Thứ ba": {
-        Sáng: ["Công nghệ", "Địa lí", "Toán", "GDCD", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Tiếng Anh", "Ngữ Văn", "Toán", "Khoa học Tự nhiên", "Mĩ Thuật"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: [
-          "HĐ TN, hướng nghiệp",
-          "Âm nhạc",
-          "Toán",
-          "Giáo dục thể chất",
-          "Tin học",
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
       },
-      "Thứ sáu": {
-        Sáng: [
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Tiếng Anh",
-          "Toán",
-          "Công nghệ",
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Giáo dục địa phương",
-          "Toán",
-          "Ngữ Văn",
-          "Tiếng Anh",
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "7C": {
-      "Thứ hai": {
-        Sáng: [
-          "Ngữ Văn",
-          "Toán",
-          "HĐ TN, hướng nghiệp",
-          "Lịch sử",
-          "Tiếng Anh",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Thứ ba": {
-        Sáng: [
-          "Giáo dục thể chất",
-          "Khoa học Tự nhiên",
-          "Công nghệ",
-          "GDCD",
-          "Mĩ Thuật",
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
       },
-      "Thứ tư": {
-        Sáng: ["Toán", "Ngữ Văn", "Tiếng Anh", "Lịch sử", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: [
-          "Toán",
-          "HĐ TN, hướng nghiệp",
-          "Khoa học Tự nhiên",
-          "Âm nhạc",
-          "Địa lí",
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "4" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ sáu": {
-        Sáng: [
-          "Giáo dục địa phương",
-          "Ngữ Văn",
-          "Toán",
-          "Tiếng Anh",
-          "Công nghệ",
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [],
       },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
   },
-  "Khối 8": {
+  "Grade 8": {
     "8A": {
-      "Thứ hai": {
-        Sáng: ["Ngữ Văn", "Toán", "Hóa học", "Lịch sử", "Tiếng Anh"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: ["Sinh học", "Vật lý", "Công nghệ", "Địa lí", "GDCD"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Toán", "Ngữ Văn", "Mĩ Thuật", "Hóa học", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Tiếng Anh", "Thể dục", "Toán", "Vật lý", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Sinh học", "Ngữ Văn", "Âm nhạc", "GDCD", "Công nghệ"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
+      },
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
+        ],
+        Afternoon: [],
+      },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "8B": {
-      "Thứ hai": {
-        Sáng: ["Toán", "Hóa học", "Ngữ Văn", "Tiếng Anh", "Lịch sử"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: ["Vật lý", "Sinh học", "Công nghệ", "GDCD", "Địa lí"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Ngữ Văn", "Toán", "Hóa học", "Mĩ Thuật", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Tiếng Anh", "Thể dục", "Toán", "Vật lý", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Ngữ Văn", "Sinh học", "GDCD", "Âm nhạc", "Công nghệ"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
+      },
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
+        ],
+        Afternoon: [],
+      },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "8C": {
-      "Thứ hai": {
-        Sáng: ["Ngữ Văn", "Hóa học", "Toán", "Lịch sử", "Tiếng Anh"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: ["Sinh học", "Vật lý", "Công nghệ", "GDCD", "Địa lí"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Toán", "Ngữ Văn", "Hóa học", "Mĩ Thuật", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Tiếng Anh", "Thể dục", "Toán", "Vật lý", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Ngữ Văn", "Sinh học", "GDCD", "Âm nhạc", "Công nghệ"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
+      },
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
+        ],
+        Afternoon: [],
+      },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
   },
-  "Khối 9": {
+  "Grade 9": {
     "9A": {
-      "Thứ hai": {
-        Sáng: ["Toán", "Ngữ Văn", "Hóa học", "Vật lý", "Lịch sử"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: ["Sinh học", "Tiếng Anh", "Công nghệ", "GDCD", "Địa lí"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Ngữ Văn", "Toán", "Mĩ Thuật", "Hóa học", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Tiếng Anh", "Thể dục", "Toán", "Vật lý", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Ngữ Văn", "Sinh học", "Âm nhạc", "GDCD", "Công nghệ"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
+      },
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
+        ],
+        Afternoon: [],
+      },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "9B": {
-      "Thứ hai": {
-        Sáng: ["Hóa học", "Toán", "Ngữ Văn", "Lịch sử", "Tiếng Anh"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: ["Sinh học", "Vật lý", "Công nghệ", "GDCD", "Địa lí"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Ngữ Văn", "Toán", "Mĩ Thuật", "Hóa học", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Tiếng Anh", "Thể dục", "Toán", "Vật lý", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Ngữ Văn", "Sinh học", "GDCD", "Âm nhạc", "Công nghệ"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
+      },
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
+        ],
+        Afternoon: [],
+      },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
     "9C": {
-      "Thứ hai": {
-        Sáng: ["Toán", "Ngữ Văn", "Hóa học", "Lịch sử", "Tiếng Anh"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ ba": {
-        Sáng: ["Sinh học", "Vật lý", "Công nghệ", "GDCD", "Địa lí"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ tư": {
-        Sáng: ["Ngữ Văn", "Toán", "Mĩ Thuật", "Hóa học", "Tin học"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ năm": {
-        Sáng: ["Tiếng Anh", "Thể dục", "Toán", "Vật lý", "HĐ TN, hướng nghiệp"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ sáu": {
-        Sáng: ["Ngữ Văn", "Sinh học", "GDCD", "Âm nhạc", "Công nghệ"],
-        Chiều: ["", "", ""],
-      },
-      "Thứ bảy": {
-        Sáng: [
-          "Lịch sử",
-          "Toán",
-          "Ngữ Văn",
-          "Khoa học Tự nhiên",
-          "Giáo dục thể chất",
+      Monday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "1", teacher_id: "9" },
+          { period: 5, subject_Id: "4", teacher_id: "6" },
         ],
-        Chiều: ["", "", ""],
+        Afternoon: [{ period: 1, subject_Id: "7", teacher_id: "4" }],
       },
-      "Chủ nhật": { Sáng: ["", "", "", "", ""], Chiều: ["", "", ""] },
+      Tuesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "3", teacher_id: "5" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "4" }],
+      },
+      Wednesday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "12" },
+          { period: 2, subject_Id: "7", teacher_id: "14" },
+          { period: 3, subject_Id: "1", teacher_id: "8" },
+          { period: 4, subject_Id: "3", teacher_id: "5" },
+        ],
+        Afternoon: [],
+      },
+      Thursday: {
+        Morning: [
+          { period: 1, subject_Id: "4", teacher_id: "1" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Friday: {
+        Morning: [
+          { period: 1, subject_Id: "1", teacher_id: "3" },
+          { period: 2, subject_Id: "4", teacher_id: "1" },
+          { period: 3, subject_Id: "3", teacher_id: "5" },
+          { period: 4, subject_Id: "4", teacher_id: "9" },
+        ],
+        Afternoon: [{ period: 1, subject_Id: "4", teacher_id: "2" }],
+      },
+      Saturday: {
+        Morning: [
+          { period: 1, subject_Id: "3", teacher_id: "5" },
+          { period: 2, subject_Id: "4", teacher_id: "9" },
+          { period: 3, subject_Id: "7", teacher_id: "4" },
+          { period: 4, subject_Id: "4", teacher_id: "4" },
+        ],
+        Afternoon: [],
+      },
+      Sunday: {
+        Morning: [],
+        Afternoon: [],
+      },
     },
   },
 };
