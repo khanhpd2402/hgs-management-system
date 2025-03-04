@@ -1,7 +1,6 @@
-import React from "react";
-import * as XLSX from "xlsx";
-import { saveAs } from "file-saver";
-import { scheduleData, teacherData, subjectData } from "./data";
+import React from 'react';
+import * as XLSX from 'xlsx';
+import { scheduleData, teacherData, subjectData } from './data'; // Đảm bảo đường dẫn này đúng
 
 const getTeacherName = (teacher_id) => {
   const teacher = teacherData.find((t) => t.teacher_id === parseInt(teacher_id));
@@ -19,42 +18,52 @@ const ExportSchedule = () => {
     const sessions = ["Morning", "Afternoon"];
     const grades = Object.keys(scheduleData);
 
-    let worksheetData = [["Thứ", "Buổi", "Tiết", "Khối", "Lớp", "Môn học", "Giáo viên"]];
+    let data = [["Thứ", "Buổi", "Tiết", ...grades.flatMap(grade => Object.keys(scheduleData[grade]))]];
 
-    grades.forEach((grade) => {
-      Object.keys(scheduleData[grade]).forEach((className) => {
-        days.forEach((day) => {
-          sessions.forEach((session) => {
-            (scheduleData[grade][className]?.[day]?.[session] || []).forEach((period, index) => {
-              worksheetData.push([
-                day,
-                session,
-                `Tiết ${index + 1}`,
-                `Khối ${grade}`,
-                className,
-                getSubjectName(period.subject_Id),
-                getTeacherName(period.teacher_id)
-              ]);
+    days.forEach((day, dayIndex) => {
+      sessions.forEach((session) => {
+        const maxPeriods = Math.max(
+          ...grades.flatMap(grade =>
+            Object.keys(scheduleData[grade]).map(className =>
+              scheduleData[grade][className]?.[day]?.[session]?.length || 0
+            )
+          )
+        );
+
+        for (let periodIndex = 0; periodIndex < maxPeriods; periodIndex++) {
+          let row = [];
+          if (periodIndex === 0) {
+            if (session === sessions[0]) {
+              row.push(day);
+            } else {
+              row.push("");
+            }
+            row.push(session);
+          } else {
+            row.push("", "");
+          }
+          row.push(`Tiết ${periodIndex + 1}`);
+
+          grades.forEach(grade => {
+            Object.keys(scheduleData[grade]).forEach(className => {
+              const period = scheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
+              row.push(period ? `${getSubjectName(period.subject_Id)} - ${getTeacherName(period.teacher_id)}` : "");
             });
           });
-        });
+
+          data.push(row);
+        }
       });
     });
 
-    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
-    const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Schedule");
-
-    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
-    const data = new Blob([excelBuffer], { type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" });
-
-    saveAs(data, "ThoiKhoaBieu.xlsx");
+    const ws = XLSX.utils.aoa_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, "Schedule");
+    XLSX.writeFile(wb, "schedule.xlsx");
   };
 
   return (
-    <button onClick={exportToExcel} style={{ padding: "10px 15px", backgroundColor: "#4CAF50", color: "white", border: "none", borderRadius: "5px", cursor: "pointer" }}>
-      Xuất Excel
-    </button>
+    <button onClick={exportToExcel}>Export to Excel</button>
   );
 };
 
