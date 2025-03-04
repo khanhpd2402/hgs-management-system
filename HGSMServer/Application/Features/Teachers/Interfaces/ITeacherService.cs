@@ -3,9 +3,6 @@ using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
 namespace Application.Features.Teachers.Interfaces
 {
     public interface ITeacherService
@@ -19,4 +16,5 @@ namespace Application.Features.Teachers.Interfaces
         Task<byte[]> ExportTeachersToExcelAsync();
         Task ImportTeachersFromExcelAsync(IFormFile file);
     }
+
 }

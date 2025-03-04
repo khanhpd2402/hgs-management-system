@@ -79,6 +79,7 @@ public partial class HgsdbContext : DbContext
             entity.HasKey(e => e.ClassId).HasName("PK__Classes__CB1927A05C4623F2");
 
             entity.HasIndex(e => e.ClassName, "UQ__Classes__F8BF561B91446313").IsUnique();
+
             entity.Property(e => e.ClassId).HasColumnName("ClassID");
             entity.Property(e => e.ClassName).HasMaxLength(50);
         });
@@ -226,6 +227,7 @@ public partial class HgsdbContext : DbContext
             entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A19B1AA22");
 
             entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B6160C0A3270F").IsUnique();
+
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.RoleName).HasMaxLength(50);
         });

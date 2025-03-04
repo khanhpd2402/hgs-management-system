@@ -19,10 +19,5 @@ namespace Application.Features.Students.Interfaces
         Task DeleteStudentAsync(int id);
         Task<byte[]> ExportStudentsToExcelAsync();
         Task ImportStudentsFromExcelAsync(IFormFile file);
-        Task<IEnumerable<StudentDTO>> GetAllStudentsAsync();
-        Task<StudentDTO?> GetStudentByIdAsync(int id);
-        Task AddStudentAsync(StudentDTO studentDto);
-        Task UpdateStudentAsync(StudentDTO studentDto);
-        Task DeleteStudentAsync(int id);
     }
 }
