@@ -31,8 +31,6 @@ public partial class Teacher
 
     public string? Department { get; set; }
 
-    public string? MainSubject { get; set; }
-
     public string? AdditionalDuties { get; set; }
 
     public bool? IsHeadOfDepartment { get; set; }
@@ -51,8 +49,6 @@ public partial class Teacher
 
     public string? Hometown { get; set; }
 
-    public virtual ICollection<Class> Classes { get; set; } = new List<Class>();
-
     public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
@@ -60,6 +56,8 @@ public partial class Teacher
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
 
     public virtual ICollection<Reward> Rewards { get; set; } = new List<Reward>();
+
+    public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 

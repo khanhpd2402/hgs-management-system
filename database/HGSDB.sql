@@ -14,7 +14,8 @@ CREATE TABLE Users (
     RoleID INT NOT NULL,
     Status NVARCHAR(20) DEFAULT 'Active',
     FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
-);
+);	 
+
 -- Bảng 4: Teachers (Giáo viên)
 CREATE TABLE Teachers (
     TeacherID INT IDENTITY(1,1) PRIMARY KEY, -- Mã cán bộ
@@ -30,7 +31,6 @@ CREATE TABLE Teachers (
     EmploymentType NVARCHAR(100), -- Tên hình thức hợp đồng
     Position NVARCHAR(100), -- Vị trí việc làm
     Department NVARCHAR(100), -- Tổ bộ môn
-    MainSubject NVARCHAR(100), -- Môn dạy chính
     AdditionalDuties NVARCHAR(255), -- Nhiệm vụ kiêm nhiệm (nếu có)
     IsHeadOfDepartment BIT DEFAULT 0, -- Là tổ trưởng (1: Có, 0: Không)
     EmploymentStatus NVARCHAR(50), -- Trạng thái cán bộ (Đang công tác, Nghỉ hưu, Nghỉ việc,...)
@@ -48,9 +48,16 @@ CREATE TABLE Classes (
     ClassID INT IDENTITY(1,1) PRIMARY KEY,
     ClassName NVARCHAR(50) UNIQUE NOT NULL,
     Grade INT NOT NULL,
-    HomeroomTeacherID INT,
-    FOREIGN KEY (HomeroomTeacherID) REFERENCES Teachers(TeacherID)
 );
+CREATE TABLE TeacherClasses (
+    ID INT IDENTITY(1,1) PRIMARY KEY,
+    TeacherID INT NOT NULL,
+    ClassID INT NOT NULL,
+	IsHomeroomTeacher BIT DEFAULT 0,
+    FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID) ON DELETE CASCADE,
+    FOREIGN KEY (ClassID) REFERENCES Classes(ClassID) ON DELETE CASCADE
+);
+
 CREATE TABLE Parents (
     ParentID INT IDENTITY(1,1) PRIMARY KEY,
 	UserID INT UNIQUE,
@@ -66,7 +73,6 @@ CREATE TABLE Students (
     FullName NVARCHAR(100) NOT NULL,
     DOB DATE NOT NULL,
     Gender NVARCHAR(10) NOT NULL,
-    GradeLevel INT NOT NULL,  -- Khối lớp
     ClassID INT NOT NULL, 
     AdmissionDate DATE NOT NULL,  -- Ngày vào trường
     EnrollmentType NVARCHAR(50),  -- Hình thức nhập học
@@ -95,6 +101,7 @@ CREATE TABLE TeacherSubjects (
     ID INT IDENTITY(1,1) PRIMARY KEY,
     TeacherID INT NOT NULL,
     SubjectID INT NOT NULL,
+	IsMainSubject BIT DEFAULT 0,
     FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
     FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID)
 );
