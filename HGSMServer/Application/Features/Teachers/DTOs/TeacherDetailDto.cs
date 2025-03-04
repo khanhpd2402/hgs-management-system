@@ -30,6 +30,8 @@ namespace Application.Features.Teachers.DTOs
         public DateOnly SchoolJoinDate { get; set; }  // Ngày vào trường
         public string? PermanentAddress { get; set; }
         public string? Hometown { get; set; }
+
+
     }
 
 }
