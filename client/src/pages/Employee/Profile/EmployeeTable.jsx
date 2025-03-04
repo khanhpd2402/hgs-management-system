@@ -16,8 +16,12 @@ import { useEmployees } from "@/services/employee/queries";
 import EmployeeTableHeader from "./EmployeeTableHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export default function EmployeeTable() {
+  const queryClient = useQueryClient();
+
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
@@ -27,6 +31,7 @@ export default function EmployeeTable() {
   });
 
   const { data, isPending, error, isError, isFetching } = useEmployees(filter);
+
   const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;
@@ -46,9 +51,16 @@ export default function EmployeeTable() {
 
   if (isError) {
     return (
-      <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
-        <div className="text-red-500">Lỗi khi tải dữ liệu</div>
-      </Card>
+      <div className="rounded border border-red-300 bg-red-50 p-4 text-red-500">
+        <h3 className="font-bold">Đã xảy ra lỗi:</h3>
+        <p>{error.message || "Không thể tải dữ liệu nhân viên"}</p>
+        <button
+          onClick={() => queryClient.invalidateQueries(["employees"])}
+          className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
+          Thử lại
+        </button>
+      </div>
     );
   }
 

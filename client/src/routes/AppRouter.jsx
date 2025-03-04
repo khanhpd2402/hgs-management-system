@@ -1,5 +1,8 @@
+import ErrorRouteComponent from "@/components/ErrorRouteComponent";
+import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
 import { lazy, Suspense } from "react";
+import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
 const EmployeeTable = lazy(
@@ -24,14 +27,18 @@ const AppRouter = () => {
 const privateRouter = [
   {
     element: <DefaultLayout />,
+
     children: [
       {
         path: "/employee/profile",
         element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <EmployeeTable />
-          </Suspense>
+          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <EmployeeTable />
+            </Suspense>
+          </ErrorBoundary>
         ),
+        // errorElement: <ErrorRouteComponent />,
       },
       {
         path: "/employee/teaching-assignment",

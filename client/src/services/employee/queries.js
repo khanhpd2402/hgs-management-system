@@ -12,6 +12,7 @@ export function useEmployees({ page, pageSize, department, contract, search }) {
       return getEmployees(page, pageSize, department, contract, search);
     },
     placeholderData: keepPreviousData,
+    // throwOnError: true,
   });
 }
 
