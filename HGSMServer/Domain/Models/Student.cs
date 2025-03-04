@@ -13,8 +13,6 @@ public partial class Student
 
     public string Gender { get; set; } = null!;
 
-    public int GradeLevel { get; set; }
-
     public int ClassId { get; set; }
 
     public DateTime AdmissionDate { get; set; }

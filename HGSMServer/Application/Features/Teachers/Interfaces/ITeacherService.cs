@@ -1,4 +1,5 @@
 ﻿using Application.Features.Teachers.DTOs;
+using Microsoft.AspNetCore.Http;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,13 +10,13 @@ namespace Application.Features.Teachers.Interfaces
 {
     public interface ITeacherService
     {
-        Task<IEnumerable<TeacherListDto>> GetAllTeachersAsync();
+
+        Task<IEnumerable<TeacherDetailDto>> GetAllTeachersAsync();
         Task<TeacherDetailDto?> GetTeacherByIdAsync(int id);
         Task AddTeacherAsync(TeacherDetailDto teacherDto);
         Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto);
         Task DeleteTeacherAsync(int id);
         Task<byte[]> ExportTeachersToExcelAsync();
-        //Task ImportTeachersFromExcelAsync(IFormFile file);
+        Task ImportTeachersFromExcelAsync(IFormFile file);
     }
-
 }
