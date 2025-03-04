@@ -28,6 +28,9 @@ const ScheduleTable = () => {
                 <table className="schedule-table">
                     <thead>
                         <tr>
+                            <th className="sticky-header" colSpan={3}>Lịch học</th>
+                        </tr>
+                        <tr>
                             <th className="sticky-col col-1">Thứ</th>
                             <th className="sticky-col col-2">Buổi</th>
                             <th className="sticky-col col-3">Tiết</th>
@@ -36,8 +39,10 @@ const ScheduleTable = () => {
                             ))}
                         </tr>
                     </thead>
+
+
                     <tbody>
-                        {days.map((day) => {
+                        {days.map((day, dayIndex) => {
                             let maxPeriodsInDay = 0;
 
                             sessions.forEach((session) => {
@@ -49,6 +54,9 @@ const ScheduleTable = () => {
                                 maxPeriodsInDay += maxPeriods;
                             });
 
+                            // Xác định class màu cho từng thứ
+                            const rowClass = dayIndex % 2 === 0 ? "even-day" : "odd-day";
+
                             return (
                                 <React.Fragment key={day}>
                                     {sessions.map((session, sessionIndex) => {
@@ -59,7 +67,7 @@ const ScheduleTable = () => {
                                         );
 
                                         return [...Array(maxPeriods)].map((_, periodIndex) => (
-                                            <tr key={`${day}-${session}-${periodIndex}`}>
+                                            <tr key={`${day}-${session}-${periodIndex}`} className={rowClass}>
                                                 {sessionIndex === 0 && periodIndex === 0 && (
                                                     <td className="sticky-col col-1" rowSpan={maxPeriodsInDay}>{day}</td>
                                                 )}
@@ -82,6 +90,7 @@ const ScheduleTable = () => {
                             );
                         })}
                     </tbody>
+
                 </table>
             </div>
         </div>
