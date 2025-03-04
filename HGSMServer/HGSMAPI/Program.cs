@@ -15,6 +15,8 @@ using Application.Features.Students.Interfaces;
 using Application.Features.Students.Services;
 using Application.Features.Users.Interfaces;
 using Application.Features.Users.Services;
+using Application.Features.Teachers.Interfaces;
+using Application.Features.Teachers.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -30,10 +32,14 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<HgsdbContext>();
 // Service 
 builder.Services.AddScoped<IStudentService, StudentService>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITeacherService, TeacherService>();
+
 builder.Services.AddScoped<IUserService, UserService>();
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+
 
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
 builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));

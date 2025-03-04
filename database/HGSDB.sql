@@ -14,7 +14,8 @@ CREATE TABLE Users (
     RoleID INT NOT NULL,
     Status NVARCHAR(20) DEFAULT 'Active',
     FOREIGN KEY (RoleID) REFERENCES Roles(RoleID)
-);
+);	 
+
 -- Bảng 4: Teachers (Giáo viên)
 CREATE TABLE Teachers (
     TeacherID INT IDENTITY(1,1) PRIMARY KEY, -- Mã cán bộ

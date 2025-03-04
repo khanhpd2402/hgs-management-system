@@ -18,7 +18,7 @@ namespace HGSMAPI.Controllers
 
         // GET: api/Student
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentDTO>>> GetStudents()
+        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
         {
             var students = await _studentService.GetAllStudentsAsync();
             return Ok(students);
@@ -26,7 +26,7 @@ namespace HGSMAPI.Controllers
 
         // GET: api/Student/5
         [HttpGet("{id}")]
-        public async Task<ActionResult<StudentDTO>> GetStudent(int id)
+        public async Task<ActionResult<StudentDto>> GetStudent(int id)
         {
             var student = await _studentService.GetStudentByIdAsync(id);
             if (student == null) return NotFound();
@@ -36,7 +36,7 @@ namespace HGSMAPI.Controllers
 
         // POST: api/Student
         [HttpPost]
-        public async Task<IActionResult> CreateStudent([FromBody] StudentDTO studentDto)
+        public async Task<IActionResult> CreateStudent([FromBody] StudentDto studentDto)
         {
             if (studentDto == null) return BadRequest();
 
@@ -46,7 +46,7 @@ namespace HGSMAPI.Controllers
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentDTO studentDto)
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentDto studentDto)
         {
             if (id != studentDto.StudentId) return BadRequest();
 
@@ -61,5 +61,22 @@ namespace HGSMAPI.Controllers
             await _studentService.DeleteStudentAsync(id);
             return NoContent();
         }
+        [HttpGet("export")]
+        public async Task<IActionResult> ExportStudentsToExcel()
+        {
+            var fileData = await _studentService.ExportStudentsToExcelAsync();
+            return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students.xlsx");
+        }
+
+        [HttpPost("import")]
+        public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)
+        {
+            if (file == null || file.Length == 0)
+                return BadRequest("Vui lòng chọn file Excel!");
+
+            await _studentService.ImportStudentsFromExcelAsync(file);
+            return Ok("Import danh sách học sinh thành công!");
+        }
+
     }
 }
