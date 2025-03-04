@@ -6,14 +6,15 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Students.DTOs
 {
-    public class StudentDto
+    public class StudentDTO
     {
         public int StudentId { get; set; }
         public string FullName { get; set; } = null!;
-        public DateOnly Dob { get; set; }  // Ngày sinh
+        public DateTime Dob { get; set; }
         public string Gender { get; set; } = null!;
+        public int GradeLevel { get; set; }
         public int ClassId { get; set; }
-        public DateOnly AdmissionDate { get; set; }  // Ngày nhập học
+        public DateTime AdmissionDate { get; set; }
         public string? EnrollmentType { get; set; }
         public string? Ethnicity { get; set; }
         public string? PermanentAddress { get; set; }
@@ -23,4 +24,5 @@ namespace Application.Features.Students.DTOs
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
     }
+
 }
