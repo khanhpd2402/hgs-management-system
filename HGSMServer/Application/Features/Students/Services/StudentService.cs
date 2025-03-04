@@ -37,10 +37,12 @@ namespace Application.Features.Students.Services
         }
 
         public async Task AddStudentAsync(StudentDto studentDto)
+
         {
             var student = _mapper.Map<Student>(studentDto);
             await _studentRepository.AddAsync(student);
         }
+
 
         public async Task UpdateStudentAsync(StudentDto studentDto)
         {

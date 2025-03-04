@@ -10,6 +10,7 @@ namespace Application.Features.Teachers.Interfaces
 {
     public interface ITeacherService
     {
+
         Task<IEnumerable<TeacherDetailDto>> GetAllTeachersAsync();
         Task<TeacherDetailDto?> GetTeacherByIdAsync(int id);
         Task AddTeacherAsync(TeacherDetailDto teacherDto);
