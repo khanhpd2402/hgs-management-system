@@ -54,9 +54,17 @@ const ScheduleTable = () => {
                         ))}
                 </select>
             </div>
-            <div>
-                <ExportSchedule />
-            </div>
+            <ExportSchedule
+                selectedGrade={selectedGrade}
+                selectedClass={selectedClass}
+                filteredClasses={filteredClasses}
+                scheduleData={scheduleData}
+                days={days}
+                sessions={sessions}
+                getSubjectName={getSubjectName}
+                getTeacherName={getTeacherName}
+            />
+
 
             <div className="table-container">
                 <table className="schedule-table">

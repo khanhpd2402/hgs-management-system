@@ -1,69 +1,75 @@
-import React from 'react';
-import * as XLSX from 'xlsx';
-import { scheduleData, teacherData, subjectData } from './data'; // Đảm bảo đường dẫn này đúng
+import React from "react";
+import * as XLSX from "xlsx";
+import { saveAs } from "file-saver";
+import "./ExportSchedule.scss";
 
-const getTeacherName = (teacher_id) => {
-  const teacher = teacherData.find((t) => t.teacher_id === parseInt(teacher_id));
-  return teacher ? teacher.teacher_name : "Unknown";
-};
+const ExportSchedule = ({ selectedGrade, selectedClass, filteredClasses, scheduleData, days, sessions, getSubjectName, getTeacherName }) => {
 
-const getSubjectName = (subject_Id) => {
-  const subject = subjectData.find((s) => s.subject_Id === parseInt(subject_Id));
-  return subject ? subject.subject_name : "Unknown";
-};
-
-const ExportSchedule = () => {
   const exportToExcel = () => {
-    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
-    const sessions = ["Morning", "Afternoon"];
-    const grades = Object.keys(scheduleData);
+    const worksheetData = [];
 
-    let data = [["Thứ", "Buổi", "Tiết", ...grades.flatMap(grade => Object.keys(scheduleData[grade]))]];
+    // Tiêu đề chính
+    worksheetData.push(["Thời Khóa Biểu"]);
+    worksheetData.push([]); // Dòng trống
 
-    days.forEach((day, dayIndex) => {
+    // Hàng tiêu đề
+    const headerRow = ["Thứ", "Buổi", "Tiết"];
+    filteredClasses.forEach(({ grade, className }) => {
+      headerRow.push(`Khối ${grade} - ${className}`);
+    });
+    worksheetData.push(headerRow);
+
+    // Dữ liệu của bảng
+    days.forEach((day) => {
       sessions.forEach((session) => {
         const maxPeriods = Math.max(
-          ...grades.flatMap(grade =>
-            Object.keys(scheduleData[grade]).map(className =>
-              scheduleData[grade][className]?.[day]?.[session]?.length || 0
-            )
+          ...filteredClasses.map(({ grade, className }) =>
+            scheduleData[grade]?.[className]?.[day]?.[session]?.length || 0
           )
         );
 
         for (let periodIndex = 0; periodIndex < maxPeriods; periodIndex++) {
-          let row = [];
+          const row = [];
+
           if (periodIndex === 0) {
-            if (session === sessions[0]) {
-              row.push(day);
-            } else {
-              row.push("");
-            }
+            row.push(day);
+          } else {
+            row.push("");
+          }
+
+          if (periodIndex === 0) {
             row.push(session);
           } else {
-            row.push("", "");
+            row.push("");
           }
+
           row.push(`Tiết ${periodIndex + 1}`);
 
-          grades.forEach(grade => {
-            Object.keys(scheduleData[grade]).forEach(className => {
-              const period = scheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
-              row.push(period ? `${getSubjectName(period.subject_Id)} - ${getTeacherName(period.teacher_id)}` : "");
-            });
+          filteredClasses.forEach(({ grade, className }) => {
+            const period = scheduleData[grade]?.[className]?.[day]?.[session]?.[periodIndex];
+            row.push(period ? `${getSubjectName(period.subject_Id)} - ${getTeacherName(period.teacher_id)}` : "");
           });
 
-          data.push(row);
+          worksheetData.push(row);
         }
       });
     });
 
-    const ws = XLSX.utils.aoa_to_sheet(data);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, "Schedule");
-    XLSX.writeFile(wb, "schedule.xlsx");
+    // Tạo file Excel
+    const worksheet = XLSX.utils.aoa_to_sheet(worksheetData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Thoi_Khoa_Bieu");
+
+    // Xuất file
+    const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
+    const data = new Blob([excelBuffer], { type: "application/octet-stream" });
+    saveAs(data, "Thoi_Khoa_Bieu.xlsx");
   };
 
   return (
-    <button onClick={exportToExcel}>Export to Excel</button>
+    <button onClick={exportToExcel} className="export-button">
+      Xuất Excel
+    </button>
   );
 };
 
