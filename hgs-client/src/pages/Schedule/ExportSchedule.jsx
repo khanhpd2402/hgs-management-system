@@ -60,11 +60,21 @@ const ExportSchedule = ({ selectedGrade, selectedClass, filteredClasses, schedul
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Thoi_Khoa_Bieu");
 
+    // Thiết lập độ rộng cho từng cột
+    worksheet["!cols"] = [
+      { width: 10 }, // "Thứ" giữ nguyên
+      { width: 10 }, // "Buổi" giữ nguyên
+      { width: 10 }, // "Tiết" giữ nguyên
+      ...filteredClasses.map(() => ({ width: 20 })) // Các lớp có độ rộng gấp đôi
+    ];
+
     // Xuất file
     const excelBuffer = XLSX.write(workbook, { bookType: "xlsx", type: "array" });
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(data, "Thoi_Khoa_Bieu.xlsx");
   };
+
+
 
   return (
     <button onClick={exportToExcel} className="export-button">
