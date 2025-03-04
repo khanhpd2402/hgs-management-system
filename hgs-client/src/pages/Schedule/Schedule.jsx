@@ -1,6 +1,7 @@
-import React from "react";
+import React, { useState } from "react";
 import { scheduleData, teacherData, subjectData } from "./data";
 import "./Schedule.scss";
+import ExportSchedule from "./ExportSchedule";
 
 const getTeacherName = (teacher_id) => {
     const teacher = teacherData.find((t) => t.teacher_id === parseInt(teacher_id));
@@ -17,13 +18,46 @@ const ScheduleTable = () => {
     const sessions = ["Morning", "Afternoon"];
     const grades = Object.keys(scheduleData);
 
+    // 🌟 State để lưu khối và lớp được chọn
+    const [selectedGrade, setSelectedGrade] = useState("");
+    const [selectedClass, setSelectedClass] = useState("");
+
+    // Lấy danh sách tất cả các lớp
     const allClasses = grades.flatMap((grade) =>
         Object.keys(scheduleData[grade] || {}).map((className) => ({ grade, className }))
+    );
+
+    // Lọc danh sách lớp dựa theo lựa chọn của người dùng
+    const filteredClasses = allClasses.filter(({ grade, className }) =>
+        (!selectedGrade || grade === selectedGrade) &&
+        (!selectedClass || className === selectedClass)
     );
 
     return (
         <div>
             <h2 style={{ textAlign: "center" }}>Thời Khóa Biểu</h2>
+
+            {/* 🎯 Bộ lọc chọn khối và lớp */}
+            <div className="filter-container">
+                <select onChange={(e) => setSelectedGrade(e.target.value)} value={selectedGrade}>
+                    <option value="">Chọn khối</option>
+                    {grades.map((grade) => (
+                        <option key={grade} value={grade}>Khối {grade}</option>
+                    ))}
+                </select>
+
+                <select onChange={(e) => setSelectedClass(e.target.value)} value={selectedClass} disabled={!selectedGrade}>
+                    <option value="">Chọn lớp</option>
+                    {selectedGrade &&
+                        Object.keys(scheduleData[selectedGrade]).map((className) => (
+                            <option key={className} value={className}>{className}</option>
+                        ))}
+                </select>
+            </div>
+            <div>
+                <ExportSchedule />
+            </div>
+
             <div className="table-container">
                 <table className="schedule-table">
                     <thead>
@@ -34,34 +68,31 @@ const ScheduleTable = () => {
                             <th className="sticky-col col-1">Thứ</th>
                             <th className="sticky-col col-2">Buổi</th>
                             <th className="sticky-col col-3">Tiết</th>
-                            {allClasses.map(({ grade, className }) => (
+                            {filteredClasses.map(({ grade, className }) => (
                                 <th key={`${grade}-${className}`}>Khối {grade} - {className}</th>
                             ))}
                         </tr>
                     </thead>
-
-
                     <tbody>
                         {days.map((day, dayIndex) => {
                             let maxPeriodsInDay = 0;
 
                             sessions.forEach((session) => {
                                 const maxPeriods = Math.max(
-                                    ...allClasses.map(({ grade, className }) =>
+                                    ...filteredClasses.map(({ grade, className }) =>
                                         scheduleData[grade][className]?.[day]?.[session]?.length || 0
                                     )
                                 );
                                 maxPeriodsInDay += maxPeriods;
                             });
 
-                            // Xác định class màu cho từng thứ
                             const rowClass = dayIndex % 2 === 0 ? "even-day" : "odd-day";
 
                             return (
                                 <React.Fragment key={day}>
                                     {sessions.map((session, sessionIndex) => {
                                         const maxPeriods = Math.max(
-                                            ...allClasses.map(({ grade, className }) =>
+                                            ...filteredClasses.map(({ grade, className }) =>
                                                 scheduleData[grade][className]?.[day]?.[session]?.length || 0
                                             )
                                         );
@@ -73,7 +104,7 @@ const ScheduleTable = () => {
                                                 )}
                                                 {periodIndex === 0 && <td className="sticky-col col-2" rowSpan={maxPeriods}>{session}</td>}
                                                 <td className="sticky-col col-3">Tiết {periodIndex + 1}</td>
-                                                {allClasses.map(({ grade, className }) => {
+                                                {filteredClasses.map(({ grade, className }) => {
                                                     const period = scheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
                                                     return (
                                                         <td key={`${grade}-${className}-${day}-${session}-${periodIndex}`}>
@@ -90,7 +121,6 @@ const ScheduleTable = () => {
                             );
                         })}
                     </tbody>
-
                 </table>
             </div>
         </div>
