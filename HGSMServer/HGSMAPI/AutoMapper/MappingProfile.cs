@@ -9,7 +9,7 @@ using AutoMapper;
 using Domain.Models;
 namespace HGSMAPI.AutoMapper
 {
-   public class MappingProfile : Profile
+    public class MappingProfile : Profile
     {
         public MappingProfile()
         {

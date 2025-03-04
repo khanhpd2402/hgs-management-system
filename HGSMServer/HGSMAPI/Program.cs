@@ -40,7 +40,6 @@ builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 
-
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
 builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
 
