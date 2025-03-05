@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Pencil, Trash } from "lucide-react";
-import { useHTA } from "@/services/employee/queries";
+import { useHTA } from "@/services/teacher/queries";
 import HTAHeader from "./HTAHeader";
 import { Spinner } from "@/components/Spinner";
 import PaginationControls from "@/components/PaginationControls";

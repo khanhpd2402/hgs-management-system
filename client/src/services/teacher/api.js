@@ -19,7 +19,7 @@ export const getEmployees = async (
 
   return (
     await axiosInstance.get(
-      `Employees?_limit=${limit}&_page=${page}&q=${encodeURIComponent(searchValue)}${queryString}`,
+      `teachers?_limit=${limit}&_page=${page}&q=${encodeURIComponent(searchValue)}${queryString}`,
     )
   ).data;
 };
@@ -56,4 +56,9 @@ export const getHeadTeacherAssignments = async (page, limit, grade) => {
       `head-teacher-assignment?_limit=${limit}&_page=${page}&class_like=${encodeGrade}`,
     )
   ).data;
+};
+
+export const importTeachers = async (fileExcel) => {
+  console.log(fileExcel);
+  return await axiosInstance.post("teachers/import", fileExcel);
 };

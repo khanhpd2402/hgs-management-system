@@ -23,16 +23,20 @@ const menuItems = [
   {
     label: "Cán bộ",
     icon: Users,
-    path: "/employee",
+    path: "/teacher",
     children: [
-      { label: "Hồ sơ cán bộ", path: "/employee/profile" },
+      { label: "Hồ sơ cán bộ", path: "/teacher/profile" },
       {
         label: "Phân công giảng dạy",
-        path: "/employee/teaching-assignment",
+        path: "/teacher/teaching-assignment",
       },
       {
         label: "Phân công chủ nhiệm",
-        path: "/employee/head-teacher-assignment",
+        path: "/teacher/head-teacher-assignment",
+      },
+      {
+        label: "Điểm danh",
+        path: "/teacher/take-attendance",
       },
     ],
   },

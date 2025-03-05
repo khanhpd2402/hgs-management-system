@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -12,16 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import MyPagination from "@/components/MyPagination";
-import { useEmployees } from "@/services/employee/queries";
-import EmployeeTableHeader from "./EmployeeTableHeader";
+import { useTA } from "@/services/teacher/queries";
+import TAHeader from "./TAHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 
-export default function EmployeeTable() {
-  const queryClient = useQueryClient();
-
+export default function TATable() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
@@ -30,8 +26,7 @@ export default function EmployeeTable() {
     search: "",
   });
 
-  const { data, isPending, error, isError, isFetching } = useEmployees(filter);
-
+  const { data, isPending, error, isError, isFetching } = useTA(filter);
   const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;
@@ -51,22 +46,15 @@ export default function EmployeeTable() {
 
   if (isError) {
     return (
-      <div className="rounded border border-red-300 bg-red-50 p-4 text-red-500">
-        <h3 className="font-bold">Đã xảy ra lỗi:</h3>
-        <p>{error.message || "Không thể tải dữ liệu nhân viên"}</p>
-        <button
-          onClick={() => queryClient.invalidateQueries(["employees"])}
-          className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
-        >
-          Thử lại
-        </button>
-      </div>
+      <Card className="relative mt-6 flex items-center justify-center p-4">
+        <div className="text-red-500">Lỗi khi tải dữ liệu</div>
+      </Card>
     );
   }
 
   return (
     <Card className="relative mt-6 p-4">
-      <EmployeeTableHeader type="employees" setFilter={setFilter} />
+      <TAHeader type="employees" setFilter={setFilter} />
 
       {/* Container chính không có overflow-x-auto */}
       <div className="relative min-h-[400px]">
@@ -94,38 +82,31 @@ export default function EmployeeTable() {
                   ID
                 </TableHead>
                 <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                  Mã cán bộ
+                </TableHead>
+                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
                   Họ tên cán bộ
-                </TableHead>
-
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Số ĐTDD
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Địa chỉ Email
-                </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Ngày sinh
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Giới tính
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Dân tộc
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Chức vụ
                 </TableHead>
                 <TableHead className="border border-gray-300 text-left whitespace-nowrap">
                   Tổ bộ môn
                 </TableHead>
                 <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Hình thức hợp đồng
+                  Môn học
                 </TableHead>
                 <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Vị trí làm việc
+                  Phân môn
+                </TableHead>
+                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                  Lớp phân công
+                </TableHead>
+                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                  Số tiết định mức trên tuần
+                </TableHead>
+                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                  Số tiết đã phân công
+                </TableHead>
+                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                  Trạng thái
                 </TableHead>
               </TableRow>
             </TableHeader>
@@ -150,34 +131,7 @@ export default function EmployeeTable() {
                     {employee.name}
                   </TableCell>
                   <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.phone}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.email}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                    {employee.status}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.dob}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.gender}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.ethnicity}
-                  </TableCell>
-                  <TableCell className="h-16border border-gray-300 text-left whitespace-nowrap">
-                    {employee.position}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
                     {employee.department}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.contract}
-                  </TableCell>
-                  <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                    {employee.workLocation}
                   </TableCell>
                 </TableRow>
               ))}

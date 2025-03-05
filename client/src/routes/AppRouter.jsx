@@ -1,19 +1,18 @@
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
+import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
-const EmployeeTable = lazy(
-  () => import("@/pages/Employee/Profile/EmployeeTable"),
-);
+const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
 const TATable = lazy(
-  () => import("@/pages/Employee/TeachingAssignment/TATable"),
+  () => import("@/pages/Teacher/TeachingAssignment/TATable"),
 );
 const HTATable = lazy(
-  () => import("@/pages/Employee/HeadTeacherAssignment/HTATable"),
+  () => import("@/pages/Teacher/HeadTeacherAssignment/HTATable"),
 );
 
 const AppRouter = () => {
@@ -30,18 +29,22 @@ const privateRouter = [
 
     children: [
       {
-        path: "/employee/profile",
+        path: "/",
+        element: <div>Home</div>,
+      },
+      {
+        path: "/teacher/profile",
         element: (
           <ErrorBoundary fallback={<FallbackErrorBoundary />}>
             <Suspense fallback={<div>Loading...</div>}>
-              <EmployeeTable />
+              <TeacherTable />
             </Suspense>
           </ErrorBoundary>
         ),
         // errorElement: <ErrorRouteComponent />,
       },
       {
-        path: "/employee/teaching-assignment",
+        path: "/teacher/teaching-assignment",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <TATable />
@@ -49,7 +52,15 @@ const privateRouter = [
         ),
       },
       {
-        path: "/employee/head-teacher-assignment",
+        path: "teacher/take-attendance",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <AttendanceTable />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/teacher/head-teacher-assignment",
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <HTATable />

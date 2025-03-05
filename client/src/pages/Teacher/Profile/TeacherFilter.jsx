@@ -46,11 +46,11 @@ const contracts = [
   { value: "long term contract", label: "Hợp đồng dài hạn" },
 ];
 
-EmployeeFilter.propTypes = {
+TeacherFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
 };
 
-export default function EmployeeFilter({ setFilter }) {
+export default function TeacherFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
 
   const [search, setSearch] = useState("");
