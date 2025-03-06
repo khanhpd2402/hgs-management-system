@@ -16,7 +16,8 @@ import { useEmployees } from "@/services/teacher/queries";
 import TeacherTableHeader from "./TeacherTableHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
-import { useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import axios from "axios";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
@@ -29,7 +30,18 @@ export default function TeacherTable() {
     search: "",
   });
 
-  const { data, isPending, error, isError, isFetching } = useEmployees(filter);
+  // const { data, isPending, error, isError, isFetching } = useEmployees(filter);
+  const { data, isPending, error, isError, isFetching } = useQuery({
+    queryKey: ["employees", filter],
+    queryFn: async () => {
+      const res = await axios.get(
+        `http://localhost:8080/Employees?_page=${filter.page}&_limit=${filter.pageSize}`,
+      );
+      return res.data;
+    },
+  });
+
+  console.log(data);
 
   const { page, pageSize } = filter;
 
@@ -68,7 +80,7 @@ export default function TeacherTable() {
       <TeacherTableHeader setFilter={setFilter} />
 
       {/* Container chính không có overflow-x-auto */}
-      <div className="relative min-h-[400px]">
+      <div className="max-h-[400px] overflow-auto">
         {isFetching && (
           <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
             <Spinner />
@@ -76,7 +88,7 @@ export default function TeacherTable() {
         )}
 
         {/* Container cho bảng với overflow-x-auto */}
-        <div className="overflow-x-auto">
+        <div className="min-w-max">
           <Table
             className="w-full border border-gray-300"
             style={{ minWidth: "1500px" }}
@@ -129,7 +141,7 @@ export default function TeacherTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data > 0 ? (
+              {data.length > 0 ? (
                 data.map((employee) => (
                   <TableRow
                     key={employee.id}
@@ -191,22 +203,21 @@ export default function TeacherTable() {
             </TableBody>
           </Table>
         </div>
+      </div>
+      <div className="mt-4 flex items-center justify-between">
+        <PaginationControls
+          pageSize={pageSize}
+          setFilter={setFilter}
+          totalItems={data?.length || 0}
+          startIndex={startIndex}
+          endIndex={endIndex}
+        />
 
-        <div className="mt-4 flex items-center justify-between">
-          <PaginationControls
-            pageSize={pageSize}
-            setFilter={setFilter}
-            totalItems={data?.length || 0}
-            startIndex={startIndex}
-            endIndex={endIndex}
-          />
-
-          <MyPagination
-            totalPages={6}
-            currentPage={page}
-            onPageChange={setFilter}
-          />
-        </div>
+        <MyPagination
+          totalPages={6}
+          currentPage={page}
+          onPageChange={setFilter}
+        />
       </div>
     </Card>
   );

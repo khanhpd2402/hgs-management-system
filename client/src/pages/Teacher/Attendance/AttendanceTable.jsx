@@ -108,7 +108,7 @@ export default function AttendanceTable() {
 
       {/* Hiển thị dữ liệu phù hợp với chế độ xem */}
       <div className="relative">
-        <div className="max-h-[400px] overflow-auto border border-gray-300">
+        <div className="max-h-[500px] overflow-auto border border-gray-300">
           <div className="min-w-max">
             {viewMode === "day" && (
               <Table className="w-full">
