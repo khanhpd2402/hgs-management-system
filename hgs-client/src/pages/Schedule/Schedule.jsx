@@ -24,7 +24,16 @@ const ScheduleTable = () => {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [selectedSession, setSelectedSession] = useState("");
 
+
+    const [tempTeacher, setTempTeacher] = useState("");
+    const [tempGrade, setTempGrade] = useState("");
+    const [tempClass, setTempClass] = useState("");
+    const [tempSubject, setTempSubject] = useState("");
+    const [tempSession, setTempSession] = useState("");
+
     const [showTeacherName, setShowTeacherName] = useState(true);
+    const [originalScheduleData, setOriginalScheduleData] = useState(scheduleData);
+
 
     const allClasses = useMemo(() => {
         return grades.flatMap((grade) =>
@@ -40,7 +49,7 @@ const ScheduleTable = () => {
     }, [allClasses, selectedGrade, selectedClass]);
 
     const filteredScheduleData = useMemo(() => {
-        let filteredData = scheduleData;
+        let filteredData = originalScheduleData;
 
         if (selectedGrade) {
             filteredData = Object.fromEntries(
@@ -131,12 +140,40 @@ const ScheduleTable = () => {
             );
         }
 
+
         return filteredData;
-    }, [selectedGrade, selectedClass, selectedTeacher, selectedSubject, selectedSession]);
+    }, [selectedGrade, selectedClass, selectedTeacher, selectedSubject, selectedSession, originalScheduleData]);
+
 
     const handleSearch = () => {
-        // No need to filter here anymore as filtering is already handled by useMemo
+        setOriginalScheduleData(scheduleData);
+        if (tempTeacher === null && tempGrade === null && tempSubject === null && tempSession === null && tempClass === null && temp) {
+            setShowTeacherName(true);
+            return;
+        }
+
+        setSelectedTeacher(tempTeacher);
+        setSelectedGrade(tempGrade);
+        setSelectedClass(tempClass);
+        setSelectedSubject(tempSubject);
+        setSelectedSession(tempSession);
     };
+    const handleReset = () => {
+        setTempTeacher("");
+        setTempGrade("");
+        setTempClass("");
+        setTempSubject("");
+        setTempSession("");
+
+        setSelectedTeacher("");
+        setSelectedGrade("");
+        setSelectedClass("");
+        setSelectedSubject("");
+        setSelectedSession("");
+
+        setOriginalScheduleData(scheduleData);
+    };
+
 
     return (
         <div>
@@ -157,7 +194,7 @@ const ScheduleTable = () => {
 
                     <div className="filter-column">
                         <label>Giáo viên</label>
-                        <select onChange={(e) => setSelectedTeacher(e.target.value)} value={selectedTeacher}>
+                        <select onChange={(e) => setTempTeacher(e.target.value)} value={tempTeacher}>
                             <option value="">Chọn giáo viên</option>
                             {teacherData.map((teacher) => (
                                 <option key={teacher.teacher_id} value={teacher.teacher_id}>{teacher.teacher_name}</option>
@@ -170,7 +207,7 @@ const ScheduleTable = () => {
                 <div className="filter-row">
                     <div className="filter-column">
                         <label>Khối</label>
-                        <select onChange={(e) => setSelectedGrade(e.target.value)} value={selectedGrade}>
+                        <select onChange={(e) => setTempGrade(e.target.value)} value={tempGrade}>
                             <option value="">-- Lựa chọn --</option>
                             {grades.map((grade) => (
                                 <option key={grade} value={grade}>Khối {grade}</option>
@@ -180,9 +217,9 @@ const ScheduleTable = () => {
 
                     <div className="filter-column">
                         <label>Lớp</label>
-                        <select onChange={(e) => setSelectedClass(e.target.value)} value={selectedClass} disabled={!selectedGrade}>
+                        <select onChange={(e) => setTempClass(e.target.value)} value={tempClass} disabled={!tempGrade}>
                             <option value="">-- Lựa chọn --</option>
-                            {selectedGrade && Object.keys(scheduleData[selectedGrade]).map((className) => (
+                            {tempGrade && Object.keys(scheduleData[tempGrade]).map((className) => (
                                 <option key={className} value={className}>{className}</option>
                             ))}
                         </select>
@@ -190,7 +227,7 @@ const ScheduleTable = () => {
 
                     <div className="filter-column">
                         <label>Môn học</label>
-                        <select onChange={(e) => setSelectedSubject(e.target.value)} value={selectedSubject}>
+                        <select onChange={(e) => setTempSubject(e.target.value)} value={tempSubject}>
                             <option value="">-- Lựa chọn --</option>
                             {subjectData.map((subject) => (
                                 <option key={subject.subject_Id} value={subject.subject_Id}>{subject.subject_name}</option>
@@ -203,7 +240,7 @@ const ScheduleTable = () => {
                 <div className="filter-row">
                     <div className="filter-column">
                         <label>Chọn buổi</label>
-                        <select onChange={(e) => setSelectedSession(e.target.value)} value={selectedSession}>
+                        <select onChange={(e) => setTempSession(e.target.value)} value={tempSession}>
                             <option value="">Chọn buổi</option>
                             <option value="Morning">Sáng</option>
                             <option value="Afternoon">Chiều</option>
@@ -211,12 +248,16 @@ const ScheduleTable = () => {
                     </div>
                 </div>
 
-                {/* Nút tìm kiếm */}
+                {/* Nút tìm kiếm và nút reset */}
                 <div className="filter-row">
                     <div className="filter-column search-button">
                         <button onClick={handleSearch}>Tìm kiếm</button>
+                        <button onClick={handleReset} className="reset-button">Reset</button>
                     </div>
                 </div>
+
+
+
             </div>
 
 
