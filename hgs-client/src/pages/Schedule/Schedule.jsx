@@ -24,6 +24,8 @@ const ScheduleTable = () => {
     const [selectedSubject, setSelectedSubject] = useState("");
     const [selectedSession, setSelectedSession] = useState("");
 
+    const [showTeacherName, setShowTeacherName] = useState(true);
+
     const allClasses = useMemo(() => {
         return grades.flatMap((grade) =>
             Object.keys(scheduleData[grade] || {}).map((className) => ({ grade, className }))
@@ -219,20 +221,28 @@ const ScheduleTable = () => {
 
 
 
+            <div className="filter-row" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
+                <div className="filter-column" style={{ marginRight: '10px' }}>
+                    <button onClick={() => setShowTeacherName(!showTeacherName)}>
+                        {showTeacherName ? "Ẩn tên giáo viên" : "Hiển thị tên giáo viên"}
+                    </button>
+                </div>
+
+                <ExportSchedule
+                    selectedGrade={selectedGrade}
+                    selectedClass={selectedClass}
+                    filteredClasses={filteredClasses}
+                    scheduleData={filteredScheduleData}
+                    days={days}
+                    sessions={sessions}
+                    getSubjectName={getSubjectName}
+                    getTeacherName={getTeacherName}
+                />
+            </div>
 
 
 
 
-            <ExportSchedule
-                selectedGrade={selectedGrade}
-                selectedClass={selectedClass}
-                filteredClasses={filteredClasses}
-                scheduleData={filteredScheduleData}
-                days={days}
-                sessions={sessions}
-                getSubjectName={getSubjectName}
-                getTeacherName={getTeacherName}
-            />
 
             <div className="table-container">
                 <table className="schedule-table">
@@ -301,7 +311,7 @@ const ScheduleTable = () => {
                                             }
 
                                             if (!shouldDisplay) {
-                                                return null; // Skip rendering if filters don't match
+                                                return null; // Bỏ qua nếu không khớp bộ lọc
                                             }
 
                                             return (
@@ -315,9 +325,12 @@ const ScheduleTable = () => {
                                                         const period = filteredScheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
                                                         return (
                                                             <td key={`${grade}-${className}-${day}-${session}-${periodIndex}`}>
-                                                                {period
-                                                                    ? `${getSubjectName(period.subject_Id)} - ${getTeacherName(period.teacher_id)}`
-                                                                    : " "}
+                                                                {period ? (
+                                                                    <>
+                                                                        {getSubjectName(period.subject_Id)}
+                                                                        {showTeacherName && ` - ${getTeacherName(period.teacher_id)}`}
+                                                                    </>
+                                                                ) : " "}
                                                             </td>
                                                         );
                                                     })}
@@ -329,6 +342,7 @@ const ScheduleTable = () => {
                             );
                         })}
                     </tbody>
+
                 </table>
             </div>
         </div>
