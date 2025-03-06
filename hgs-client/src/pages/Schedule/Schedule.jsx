@@ -283,35 +283,28 @@ const ScheduleTable = () => {
                                             )
                                         );
 
-                                        return [...Array(maxPeriods)].map((_, periodIndex) => {
+                                        return Array.from({ length: maxPeriods }).map((_, periodIndex) => {
                                             let shouldDisplay = true;
+                                            const period = filteredScheduleData[selectedGrade]?.[selectedClass]?.[day]?.[session]?.[periodIndex];
 
-                                            if (selectedTeacher) {
-                                                const period = filteredScheduleData[selectedGrade]?.[selectedClass]?.[day]?.[session]?.[periodIndex];
-                                                if (period && parseInt(period.teacher_id) !== parseInt(selectedTeacher)) {
-                                                    shouldDisplay = false;
-                                                }
+                                            if (selectedTeacher && period && parseInt(period.teacher_id) !== parseInt(selectedTeacher)) {
+                                                shouldDisplay = false;
                                             }
 
-                                            if (selectedSubject) {
-                                                const period = filteredScheduleData[selectedGrade]?.[selectedClass]?.[day]?.[session]?.[periodIndex];
-                                                if (period && parseInt(period.subject_Id) !== parseInt(selectedSubject)) {
-                                                    shouldDisplay = false;
-                                                }
+                                            if (selectedSubject && period && parseInt(period.subject_Id) !== parseInt(selectedSubject)) {
+                                                shouldDisplay = false;
                                             }
 
                                             if (selectedSession && selectedSession !== session) {
                                                 shouldDisplay = false;
                                             }
 
-                                            if (selectedGrade && selectedClass) {
-                                                if (!filteredScheduleData[selectedGrade][selectedClass][day][session][periodIndex]) {
-                                                    shouldDisplay = false;
-                                                }
+                                            if (selectedGrade && selectedClass && !period) {
+                                                shouldDisplay = false;
                                             }
 
                                             if (!shouldDisplay) {
-                                                return null; // Bỏ qua nếu không khớp bộ lọc
+                                                return null;
                                             }
 
                                             return (
@@ -325,12 +318,9 @@ const ScheduleTable = () => {
                                                         const period = filteredScheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
                                                         return (
                                                             <td key={`${grade}-${className}-${day}-${session}-${periodIndex}`}>
-                                                                {period ? (
-                                                                    <>
-                                                                        {getSubjectName(period.subject_Id)}
-                                                                        {showTeacherName && ` - ${getTeacherName(period.teacher_id)}`}
-                                                                    </>
-                                                                ) : " "}
+                                                                {period
+                                                                    ? `${getSubjectName(period.subject_Id)}${showTeacherName ? " - " + getTeacherName(period.teacher_id) : ""}`
+                                                                    : " "}
                                                             </td>
                                                         );
                                                     })}
