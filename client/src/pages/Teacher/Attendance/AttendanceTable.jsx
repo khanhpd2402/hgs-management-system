@@ -11,6 +11,14 @@ import {
 } from "@/components/ui/table";
 import AttendanceHeader from "./AttendanceHeader";
 import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { data } from "./data";
 
 export default function AttendanceTable() {
   const [date, setDate] = useState(new Date());
@@ -18,207 +26,50 @@ export default function AttendanceTable() {
   const [classroom, setClassroom] = useState("");
   const [session, setSession] = useState("");
   const [selectAll, setSelectAll] = useState(false);
-  const [students, setStudents] = useState([
-    {
-      id: "1",
-      name: "Vũ Mai Tuyết Anh",
-      status: "KP",
-    },
-    {
-      id: "2",
-      name: "Vũ Hải Chính",
-      status: "KP",
-    },
-    {
-      id: "3",
-      name: "Trần Thị Phương Dung",
-      status: "KP",
-    },
-    {
-      id: "4",
-      name: "Nguyễn Hoàng Duy",
-      status: "KP",
-    },
-    {
-      id: "5",
-      name: "Bùi Tiến Đại Dương",
-      status: "KP",
-    },
-    {
-      id: "6",
-      name: "Nguyễn Hoàng Hải",
-      status: "KP",
-    },
-    {
-      id: "7",
-      name: "Vũ Xuân Hải",
-      status: "KP",
-    },
-    {
-      id: "8",
-      name: "Bùi Quang Huy",
-      status: "KP",
-    },
-    {
-      id: "9",
-      name: "Phạm Quang Huy",
-      status: "KP",
-    },
-    {
-      id: "10",
-      name: "Trịnh Gia Huy",
-      status: "KP",
-    },
-    {
-      id: "11",
-      name: "Nguyễn Thị Thoại Khanh",
-      status: "KP",
-    },
-    {
-      id: "12",
-      name: "Trần Xuân Kiên",
-      status: "KP",
-    },
-    {
-      id: "13",
-      name: "Nguyễn Hoàng Long",
-      status: "KP",
-    },
-    {
-      id: "14",
-      name: "Vũ Gia Lộc",
-      status: "KP",
-    },
-    {
-      id: "15",
-      name: "Vũ Thị Trà My",
-      status: "KP",
-    },
-    {
-      id: "16",
-      name: "Phạm Hoài Nam",
-      status: "KP",
-    },
-    {
-      id: "17",
-      name: "Trần Thị Huyền Nga",
-      status: "KP",
-    },
-    {
-      id: "18",
-      name: "Nguyễn Khánh Ngọc",
-      status: "KP",
-    },
-    {
-      id: "19",
-      name: "Vũ Duy Phúc",
-      status: "KP",
-    },
-    {
-      id: "20",
-      name: "Tống Thị Bích Phượng",
-      status: "KP",
-    },
-    {
-      id: "21",
-      name: "Bùi Minh Quang",
-      status: "KP",
-    },
-    {
-      id: "22",
-      name: "Nguyễn Hoàng Quân",
-      status: "KP",
-    },
-    {
-      id: "23",
-      name: "Phạm Hoàng Quân",
-      status: "KP",
-    },
-    {
-      id: "24",
-      name: "Vũ Đức Minh Quân",
-      status: "KP",
-    },
-    {
-      id: "25",
-      name: "Nguyễn Phương Thanh",
-      status: "KP",
-    },
-    {
-      id: "26",
-      name: "Trần Phương Thảo",
-      status: "KP",
-    },
-    {
-      id: "27",
-      name: "Mai Đức Thiện",
-      status: "KP",
-    },
-    {
-      id: "28",
-      name: "Nguyễn Thị Minh Thư",
-      status: "KP",
-    },
-    {
-      id: "29",
-      name: "Phạm Nguyễn Minh Thư",
-      status: "KP",
-    },
-    {
-      id: "30",
-      name: "Trần Thủy Tiên",
-      status: "KP",
-    },
-    {
-      id: "31",
-      name: "Trần Duy Tiến",
-      status: "KP",
-    },
-    {
-      id: "32",
-      name: "Lê Quang Trưởng",
-      status: "KP",
-    },
-    {
-      id: "33",
-      name: "Nguyễn Thị Tươi",
-      status: "KP",
-    },
-    {
-      id: "34",
-      name: "Nguyễn Thị Kiều Vy",
-      status: "KP",
-    },
-    {
-      id: "35",
-      name: "Nguyễn Tường Vy",
-      status: "KP",
-    },
-    {
-      id: "36",
-      name: "Bùi Hải Yến",
-      status: "KP",
-    },
-    {
-      id: "37",
-      name: "Trần Đình Khánh Chi",
-      status: "KP",
-    },
-  ]);
+  const [viewMode, setViewMode] = useState("day"); // State để chọn chế độ xem
 
   const updateStatus = (id, status) => {
     setStudents(students.map((s) => (s.id === id ? { ...s, status } : s)));
   };
+  const daysInMonth = new Date(
+    date.getFullYear(),
+    date.getMonth() + 1,
+    0,
+  ).getDate();
+
+  const [students, setStudents] = useState(
+    data.map((s) => ({
+      ...s,
+      attendance: Array(daysInMonth).fill("C"), // Mặc định "Có mặt"
+    })),
+  );
 
   const toggleSelectAll = () => {
     setSelectAll(!selectAll);
     setStudents(
       students.map((s) => ({
         ...s,
-        status: selectAll ? "present" : "absent_excused",
+        status: selectAll && "C",
       })),
     );
   };
+
+  const updateAttendance = (id, dayIndex, status) => {
+    setStudents((prev) =>
+      prev.map((s) =>
+        s.id === id
+          ? {
+              ...s,
+              attendance: s.attendance.map((att, i) =>
+                i === dayIndex ? status : att,
+              ),
+            }
+          : s,
+      ),
+    );
+  };
+
+  console.log(students);
 
   return (
     <Card className="relative mt-6 p-4">
@@ -241,52 +92,196 @@ export default function AttendanceTable() {
         toggleSelectAll={toggleSelectAll}
       />
 
-      <div className="max-h-[600px] overflow-auto border border-gray-300">
-        <Table className="min-w-full">
-          <TableHeader className="bg-gray-100">
-            <TableRow>
-              <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                ID
-              </TableHead>
-              <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                Họ và Tên
-              </TableHead>
-              <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                Trạng Thái
-              </TableHead>
-              <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                Lí do
-              </TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {students.map((student) => (
-              <TableRow key={student.id} className="divide-x divide-gray-300">
-                <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                  {student.id}
-                </TableCell>
-                <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                  {student.name}
-                </TableCell>
-                <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                  <select
-                    value={student.status}
-                    onChange={(e) => updateStatus(student.id, e.target.value)}
-                    className="rounded border px-2 py-1"
-                  >
-                    <option value="C">Có mặt</option>
-                    <option value="P">Nghỉ có phép</option>
-                    <option value="KP">Nghỉ không phép</option>
-                    <option value="K">Lí do khác</option>
-                  </select>
-                </TableCell>
-                <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                  <Input type="text" disabled={student.status !== "K"} />
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
+      {/* Dropdown chọn chế độ xem */}
+      <div className="mb-4 flex justify-end">
+        <Select value={viewMode} onValueChange={setViewMode}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="Chế độ xem" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="day">Xem theo ngày</SelectItem>
+            <SelectItem value="week">Xem theo tuần</SelectItem>
+            <SelectItem value="month">Xem theo tháng</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {/* Hiển thị dữ liệu phù hợp với chế độ xem */}
+      <div className="relative">
+        <div className="max-h-[400px] overflow-auto border border-gray-300">
+          <div className="min-w-max">
+            {viewMode === "day" && (
+              <Table className="w-full">
+                <TableHeader className="bg-gray-100">
+                  <TableRow>
+                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                      ID
+                    </TableHead>
+                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                      Họ và Tên
+                    </TableHead>
+                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                      Trạng Thái
+                    </TableHead>
+                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                      Lí do
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student) => (
+                    <TableRow
+                      key={student.id}
+                      className="divide-x divide-gray-300"
+                    >
+                      <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
+                        {student.id}
+                      </TableCell>
+                      <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                        {student.name}
+                      </TableCell>
+                      <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
+                        <select
+                          value={student.attendance}
+                          onChange={(e) =>
+                            updateStatus(student.id, e.target.value)
+                          }
+                          className="rounded border px-2 py-1"
+                        >
+                          <option value="C">Có mặt</option>
+                          <option value="P">Nghỉ có phép</option>
+                          <option value="KP">Nghỉ không phép</option>
+                          <option value="K">Lí do khác</option>
+                        </select>
+                      </TableCell>
+                      <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                        <Input type="text" disabled={student.status !== "K"} />
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {viewMode === "week" && (
+              <Table className="w-full">
+                <TableHeader className="bg-gray-100">
+                  <TableRow>
+                    <TableHead className="text-center">STT</TableHead>
+                    <TableHead className="text-center">Họ và tên</TableHead>
+                    {[...Array(6)].map((_, i) => (
+                      <TableHead
+                        key={i}
+                        className="text-center"
+                      >{`Thứ ${i + 2}`}</TableHead>
+                    ))}
+                    <TableHead className="text-center">Chủ nhật</TableHead>
+                    <TableHead className="text-center">
+                      Tổng ngày nghỉ
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student, index) => (
+                    <TableRow key={student.id}>
+                      <TableCell>{index + 1}</TableCell>
+                      <TableCell>{student.name}</TableCell>
+                      {[...Array(7)].map((_, i) => (
+                        <TableCell
+                          key={i}
+                          className="border border-gray-300 text-center"
+                        >
+                          <Input
+                            type="text"
+                            value={student.attendance[i]}
+                            onChange={(e) =>
+                              updateAttendance(
+                                student.id,
+                                i,
+                                e.target.value.toUpperCase(),
+                              )
+                            }
+                            maxLength={2} // Giới hạn ký tự nhập vào
+                            className="w-[50px] text-center"
+                          />
+                        </TableCell>
+                      ))}
+                      <TableCell className="border border-gray-300 text-center">
+                        {
+                          student.attendance.filter(
+                            (status) => status === "P" || status === "KP",
+                          ).length
+                        }
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+            {viewMode === "month" && (
+              <Table className="w-full border-collapse border-gray-300">
+                <TableHeader className="bg-gray-100">
+                  <TableRow>
+                    <TableHead className="border border-gray-300">
+                      STT
+                    </TableHead>
+                    <TableHead className="min-w-[200px] border border-gray-300">
+                      Họ và tên
+                    </TableHead>
+                    {[...Array(daysInMonth)].map((_, i) => (
+                      <TableHead
+                        key={i}
+                        className="min-w-[25px] border border-gray-300 text-center"
+                      >{`${i + 1}`}</TableHead>
+                    ))}
+                    <TableHead className="border border-gray-300">
+                      Tổng ngày nghỉ
+                    </TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {students.map((student, index) => (
+                    <TableRow key={student.id}>
+                      <TableCell className="border border-gray-300 text-center">
+                        {index + 1}
+                      </TableCell>
+                      <TableCell className="border border-gray-300">
+                        {student.name}
+                      </TableCell>
+                      {[...Array(daysInMonth)].map((_, i) => (
+                        <TableCell
+                          key={i}
+                          className="border border-gray-300 text-center"
+                        >
+                          <Input
+                            type="text"
+                            value={student.attendance[i]}
+                            onChange={(e) =>
+                              updateAttendance(
+                                student.id,
+                                i,
+                                e.target.value.toUpperCase(),
+                              )
+                            }
+                            maxLength={2} // Giới hạn ký tự nhập vào
+                            className="w-[50px] text-center"
+                          />
+                        </TableCell>
+                      ))}
+                      <TableCell className="border border-gray-300 text-center">
+                        {
+                          student.attendance.filter(
+                            (status) => status === "P" || status === "KP",
+                          ).length
+                        }
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            )}
+          </div>
+        </div>
+        {/* Thanh cuộn ngang luôn hiển thị */}
       </div>
 
       <div className="mt-4 flex justify-end">

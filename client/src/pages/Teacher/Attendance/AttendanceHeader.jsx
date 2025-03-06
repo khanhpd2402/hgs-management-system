@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -16,6 +16,13 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  addDays,
+  startOfWeek,
+  startOfMonth,
+  eachDayOfInterval,
+  isValid,
+} from "date-fns";
 
 export default function AttendanceHeader({
   date,
@@ -28,16 +35,53 @@ export default function AttendanceHeader({
   setSession,
   selectAll,
   toggleSelectAll,
+  viewMode,
+  setViewMode,
 }) {
+  const getDateRange = () => {
+    if (!isValid(date)) return [new Date()];
+
+    if (viewMode === "week") {
+      const start = startOfWeek(date, { weekStartsOn: 1 });
+      return eachDayOfInterval({ start, end: addDays(start, 6) });
+    }
+
+    if (viewMode === "month") {
+      const start = startOfMonth(date);
+      const daysInMonth = new Date(
+        date.getFullYear(),
+        date.getMonth() + 1,
+        0,
+      ).getDate();
+      return eachDayOfInterval({ start, end: addDays(start, daysInMonth - 1) });
+    }
+
+    return [date]; // Mặc định là ngày được chọn
+  };
+
+  const dateRange = getDateRange();
+  const formattedDateRange =
+    dateRange.length > 1
+      ? `${isValid(dateRange[0]) ? dateRange[0].toLocaleDateString("vi-VN") : "--"} - ${isValid(dateRange[dateRange.length - 1]) ? dateRange[dateRange.length - 1].toLocaleDateString("vi-VN") : "--"}`
+      : isValid(date)
+        ? date.toLocaleDateString("vi-VN")
+        : "--";
+
+  useEffect(() => {
+    if (viewMode === "week") {
+      setDate(startOfWeek(new Date(), { weekStartsOn: 1 })); // Thứ 2 đầu tuần
+    } else if (viewMode === "month") {
+      setDate(startOfMonth(new Date())); // Ngày 1 đầu tháng
+    }
+  }, [viewMode]); // Chạy khi `viewMode` thay đổi
+
   return (
     <Card className="mb-4 p-4">
       <div className="flex flex-wrap items-center gap-4">
         {/* Chọn ngày */}
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline">
-              {date.toLocaleDateString("vi-VN")}
-            </Button>
+            <Button variant="outline">{formattedDateRange}</Button>
           </PopoverTrigger>
           <PopoverContent>
             <Calendar
