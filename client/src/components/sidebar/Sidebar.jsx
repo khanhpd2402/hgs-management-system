@@ -38,6 +38,10 @@ const menuItems = [
         label: "Điểm danh",
         path: "/teacher/take-attendance",
       },
+      {
+        label: "Báo cáo điểm",
+        path: "/teacher/mark-report",
+      },
     ],
   },
   {

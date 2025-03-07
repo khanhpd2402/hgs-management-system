@@ -28,9 +28,6 @@ export default function AttendanceTable() {
   const [selectAll, setSelectAll] = useState(false);
   const [viewMode, setViewMode] = useState("day"); // State để chọn chế độ xem
 
-  const updateStatus = (id, status) => {
-    setStudents(students.map((s) => (s.id === id ? { ...s, status } : s)));
-  };
   const daysInMonth = new Date(
     date.getFullYear(),
     date.getMonth() + 1,
@@ -40,9 +37,13 @@ export default function AttendanceTable() {
   const [students, setStudents] = useState(
     data.map((s) => ({
       ...s,
-      attendance: Array(daysInMonth).fill("C"), // Mặc định "Có mặt"
+      attendance: Array(daysInMonth).fill("-"), // Mặc định "Có mặt"
     })),
   );
+
+  const updateStatus = (id, status) => {
+    setStudents(students.map((s) => (s.id === id ? { ...s, status } : s)));
+  };
 
   const toggleSelectAll = () => {
     setSelectAll(!selectAll);
