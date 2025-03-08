@@ -294,6 +294,7 @@ const ScheduleTable = () => {
 
 
             <div className="table-container">
+
                 <table className="schedule-table">
                     <thead>
                         <tr>
@@ -358,7 +359,7 @@ const ScheduleTable = () => {
 
                                             return (
                                                 <tr key={`${day}-${session}-${periodIndex}`} className={rowClass}>
-                                                    {sessionIndex === 0 && periodIndex === 0 && (
+                                                    {periodIndex === 0 && (
                                                         <td className="sticky-col col-1" rowSpan={maxPeriodsInDay}>{day}</td>
                                                     )}
                                                     {periodIndex === 0 && <td className="sticky-col col-2" rowSpan={maxPeriods}>{session}</td>}
