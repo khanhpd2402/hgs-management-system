@@ -1,6 +1,7 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
 using AutoMapper;
+using Common.Constants;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -29,7 +30,18 @@ namespace Application.Features.Students.Services
             var students = await _studentRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<StudentDto>>(students);
         }
-
+        public IQueryable<StudentDto> GetAllStudents()
+        {
+            return _studentRepository.GetAll().Select(s => new StudentDto
+            {
+                StudentId = s.StudentId,
+                FullName = s.FullName,
+                Gender = s.Gender,
+                Dob = s.Dob,
+                ClassId = s.ClassId,
+                Status = s.Status
+            });
+        }
         public async Task<StudentDto?> GetStudentByIdAsync(int id)
         {
             var student = await _studentRepository.GetByIdAsync(id);
@@ -74,7 +86,7 @@ namespace Application.Features.Students.Services
             {
                 worksheet.Cells[row, 1].Value = student.StudentId;
                 worksheet.Cells[row, 2].Value = student.FullName;
-                worksheet.Cells[row, 3].Value = student.Dob.ToString("yyyy-MM-dd");
+                worksheet.Cells[row, 3].Value = student.Dob.ToString(AppConstants.DATE_FORMAT);
                 worksheet.Cells[row, 4].Value = student.Gender;
                 worksheet.Cells[row, 5].Value = student.ClassId;
                 worksheet.Cells[row, 6].Value = student.Status;

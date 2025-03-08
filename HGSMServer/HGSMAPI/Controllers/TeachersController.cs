@@ -74,12 +74,24 @@ namespace HGSMAPI.Controllers
             await _teacherService.DeleteTeacherAsync(id);
             return NoContent();
         }
-        [HttpGet("export")]
-        public async Task<IActionResult> ExportTeachersToExcel()
+        [HttpGet("export-full-excel")]
+        public async Task<IActionResult> ExportTeachersFullToExcel()
         {
-            var fileData = await _teacherService.ExportTeachersToExcelAsync();
-            return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Teachers.xlsx");
+            var fileBytes = await _teacherService.ExportTeachersToExcelAsync();
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Teachers_Import.xlsx");
         }
+        [HttpPost("export-selected-excel")]
+        public async Task<IActionResult> ExportTeachersSelectedToExcel([FromBody] List<string> selectedColumns)
+        {
+            if (selectedColumns == null || selectedColumns.Count == 0)
+            {
+                return BadRequest("Vui lòng chọn ít nhất một cột để xuất.");
+            }
+
+            var fileBytes = await _teacherService.ExportTeachersSelectedToExcelAsync(selectedColumns);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Teachers_Selected.xlsx");
+        }
+
 
         [HttpPost("import")]
         public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
