@@ -8,21 +8,16 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Upload, XCircle, FileText, Download } from "lucide-react";
-import { axiosInstance } from "@/services/axios";
+import { useImportTeachers } from "@/services/teacher/mutation";
 
-export default function ExcelImportModal({ type }) {
+export default function TeacherImportExcel({ type }) {
   const [file, setFile] = useState(null);
-  const [importType, setImportType] = useState("update");
   const [dragging, setDragging] = useState(false);
+  const [isUploading, setIsUploading] = useState(false);
+  const { mutate, isPending, error } = useImportTeachers();
 
-  const submitFile = async (file) => {
-    const response = await axiosInstance.post(`/${type}/import`, file);
-    console.log(response);
-  };
-
-  // Fake danh sách file mẫu theo từng trang
+  // Danh sách file mẫu
   const sampleFiles = {
     employees:
       "https://docs.google.com/spreadsheets/d/1ULLJxX-ocO0y3zO2B8HCTq4_gdqBtenA/export?format=xlsx",
@@ -32,6 +27,7 @@ export default function ExcelImportModal({ type }) {
 
   const sampleFileUrl = sampleFiles[type] || "#";
 
+  // Khi chọn file từ input
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
     if (selectedFile) {
@@ -39,6 +35,7 @@ export default function ExcelImportModal({ type }) {
     }
   };
 
+  // Khi kéo thả file vào vùng upload
   const handleDrop = (event) => {
     event.preventDefault();
     setDragging(false);
@@ -48,16 +45,31 @@ export default function ExcelImportModal({ type }) {
     }
   };
 
+  // Gửi file lên backend
   const handleUpload = () => {
-    if (file) {
-      console.log("Uploading:", file);
-      const formData = new FormData();
-      formData.append("file", file);
-      submitFile(formData);
-      // TODO: Xử lý upload file lên server
-    } else {
+    if (!file) {
       alert("Vui lòng chọn file Excel!");
+      return;
     }
+
+    setIsUploading(true);
+
+    // Tạo FormData để gửi file lên backend
+    const formData = new FormData();
+    formData.append("file", file);
+
+    mutate(formData, {
+      onSuccess: () => {
+        alert("Tải lên thành công!");
+        setFile(null);
+      },
+      onError: (err) => {
+        alert(`Lỗi: ${err.message || "Không thể tải lên file!"}`);
+      },
+      onSettled: () => {
+        setIsUploading(false);
+      },
+    });
   };
 
   return (
@@ -83,7 +95,7 @@ export default function ExcelImportModal({ type }) {
         </div>
 
         {file ? (
-          // Nếu đã chọn file, chỉ hiển thị tên file
+          // Hiển thị tên file khi đã chọn
           <div className="flex items-center justify-between rounded-md border border-gray-300 p-3 text-gray-700">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
@@ -95,7 +107,7 @@ export default function ExcelImportModal({ type }) {
             />
           </div>
         ) : (
-          // Nếu chưa chọn file, hiển thị vùng kéo thả
+          // Vùng kéo thả file
           <div
             className={`flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-gray-600 transition ${
               dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
@@ -122,27 +134,16 @@ export default function ExcelImportModal({ type }) {
           </div>
         )}
 
-        {/* Chọn loại import */}
-        <RadioGroup
-          value={importType}
-          onValueChange={setImportType}
-          className="space-y-2"
-        >
-          <Label className="flex items-center gap-2">
-            <RadioGroupItem value="new" /> Thêm dữ liệu mới
-          </Label>
-          <Label className="flex items-center gap-2">
-            <RadioGroupItem value="update" /> Cập nhật dữ liệu
-          </Label>
-        </RadioGroup>
-
         {/* Nút hành động */}
         <div className="flex justify-end gap-2">
           <Button variant="outline">Đóng</Button>
-          <Button onClick={handleUpload} disabled={!file}>
-            Tải lên
+          <Button onClick={handleUpload} disabled={!file || isUploading}>
+            {isUploading ? "Đang tải lên..." : "Tải lên"}
           </Button>
         </div>
+
+        {/* Hiển thị lỗi nếu có */}
+        {error && <p className="text-sm text-red-500">{error.message}</p>}
       </DialogContent>
     </Dialog>
   );

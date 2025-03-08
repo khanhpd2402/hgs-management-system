@@ -1,36 +1,73 @@
-import { useState } from "react";
-import { Link, useLocation } from "react-router-dom";
-import { Menu, ChevronDown, ChevronRight, Home, Users, Settings, ComputerIcon } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router";
+import {
+  Menu,
+  ChevronDown,
+  ChevronRight,
+  Home,
+  Users,
+  Settings,
+} from "lucide-react";
 
 const menuItems = [
-  { label: "Trang chủ", icon: Home, path: "/" },
-  { label: "Quản trị", icon: Settings, path: "/admin" },
   {
-    label: "Hệ thống",
-    icon: ComputerIcon,
-    children: [
-      { label: "Khai báo dữ liệu", path: "/system/data" },
-      { label: "Khai báo mẫu nhận xét", path: "/system/review" },
-      { label: "Thời khóa biểu", path: "/system/schedule" },
-    ],
+    label: "Trang chủ",
+    icon: Home,
+    path: "/home",
+  },
+  {
+    label: "Quản trị",
+    icon: Settings,
+    path: "/admin",
   },
   {
     label: "Cán bộ",
     icon: Users,
+    path: "/teacher",
     children: [
-      { label: "Hồ sơ cán bộ", path: "/staff/profile" },
-      { label: "Phân công giảng dạy", path: "/staff/teaching" },
-      { label: "Phân công giáo vụ", path: "/staff/academic" },
-      { label: "Công việc kiêm nhiệm", path: "/staff/tasks" },
-      { label: "Phân công chủ nhiệm", path: "/staff/homeroom" },
-      { label: "Khen thưởng - Kỷ luật", path: "/staff/awards" },
+      { label: "Hồ sơ cán bộ", path: "/teacher/profile" },
+      {
+        label: "Phân công giảng dạy",
+        path: "/teacher/teaching-assignment",
+      },
+      {
+        label: "Phân công chủ nhiệm",
+        path: "/teacher/head-teacher-assignment",
+      },
+      {
+        label: "Điểm danh",
+        path: "/teacher/take-attendance",
+      },
+      {
+        label: "Báo cáo điểm",
+        path: "/teacher/mark-report",
+      },
     ],
+  },
+  {
+    label: "Học Sinh",
+    icon: Users,
+    path: "/student",
+    children: [{ label: "Hồ sơ học sinh", path: "/student/profile" }],
   },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
   const [openMenus, setOpenMenus] = useState({});
+  const navigate = useNavigate();
   const location = useLocation();
+  const currentPath = location.pathname;
+
+  useEffect(() => {
+    menuItems.forEach((item) => {
+      if (
+        currentPath === item.path ||
+        item.children?.some((child) => child.path === currentPath)
+      ) {
+        setOpenMenus((prev) => ({ ...prev, [item.label]: true }));
+      }
+    });
+  }, [currentPath]);
 
   const toggleMenu = (label) => {
     if (isOpen) {
@@ -38,66 +75,89 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     }
   };
 
+  const isMenuActive = (item) => {
+    return (
+      currentPath === item.path ||
+      item.children?.some((child) => child.path === currentPath)
+    );
+  };
+
+  const isSubmenuActive = (path) => {
+    return currentPath === path;
+  };
+
   return (
-    <div className={`fixed top-0 left-0 h-full bg-teal-700 text-white transition-all duration-300 ${isOpen ? "w-64" : "w-16"}`}>
-      {/* Toggle Sidebar Button */}
-      <button className="p-4 text-white focus:outline-none" onClick={() => setIsOpen(!isOpen)}>
-        <Menu className="h-6 w-6" />
-      </button>
+    <div
+      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${
+        isOpen ? "w-64" : "w-16"
+      }`}
+    >
+      {/* Button đóng/mở menu */}
+      <div
+        onClick={() => setIsOpen(!isOpen)}
+        className={`flex h-12 cursor-pointer items-center p-2 hover:bg-sky-500 ${isOpen ? "pl-3" : "justify-center"}`}
+      >
+        <button className="p-2 text-white focus:outline-none">
+          <Menu className="h-6 w-6" />
+        </button>
+      </div>
 
-      {/* Sidebar Menu */}
-      <nav className="space-y-2 p-2">
-        {menuItems.map((item) => {
-          const isActive = item.path === location.pathname;
-          return (
-            <div key={item.label}>
-              {item.path ? (
-                <Link
-                  to={item.path}
-                  className={`flex items-center space-x-3 w-full rounded-md p-2 transition-all ${isActive ? "bg-teal-500 font-semibold" : "hover:bg-teal-600"
-                    }`}
-                >
+      {/* Danh sách menu */}
+      <nav className="space-y-1 p-2">
+        {menuItems.map((item) => (
+          <div key={item.label}>
+            {/* Menu chính */}
+            <button
+              className={`flex h-12 w-full cursor-pointer items-center justify-between rounded-md px-2 hover:bg-sky-600 ${
+                isMenuActive(item) ? "bg-sky-500" : ""
+              }`}
+              onClick={() =>
+                item.children ? toggleMenu(item.label) : navigate(item.path)
+              }
+            >
+              <div className="flex min-w-0 items-center">
+                <div className="flex w-8 shrink-0 justify-center">
                   <item.icon className="h-5 w-5" />
-                  <span className={`truncate transition-all duration-200 ${isOpen ? "opacity-100" : "opacity-0 w-0 hidden"}`}>
-                    {item.label}
-                  </span>
-                </Link>
-              ) : (
-                <button
-                  className="flex items-center space-x-3 w-full rounded-md p-2 hover:bg-teal-600 transition-all"
-                  onClick={() => toggleMenu(item.label)}
+                </div>
+                <span
+                  className={`truncate ${isOpen ? "inline-block" : "hidden"}`}
                 >
-                  <item.icon className="h-5 w-5" />
-                  <span className={`truncate transition-all duration-200 ${isOpen ? "opacity-100" : "opacity-0 w-0 hidden"}`}>
-                    {item.label}
-                  </span>
-                  {item.children && isOpen && (
-                    <div>{openMenus[item.label] ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}</div>
+                  {item.label}
+                </span>
+              </div>
+              {item.children && isOpen && (
+                <div className="w-8 shrink-0">
+                  {openMenus[item.label] ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
                   )}
-                </button>
-              )}
-
-              {/* Submenu */}
-              {item.children && (
-                <div className={`overflow-hidden transition-all ${openMenus[item.label] && isOpen ? "mt-2 ml-6 opacity-100" : "h-0 opacity-0 hidden"}`}>
-                  {item.children.map((child) => {
-                    const isChildActive = child.path === location.pathname;
-                    return (
-                      <Link
-                        key={child.label}
-                        to={child.path}
-                        className={`block w-full rounded-md p-2 text-left transition-all ${isChildActive ? "bg-teal-500 font-semibold" : "hover:bg-teal-500"
-                          }`}
-                      >
-                        {child.label}
-                      </Link>
-                    );
-                  })}
                 </div>
               )}
+            </button>
+
+            {/* Submenu */}
+            <div
+              className={`${
+                openMenus[item.label] && isOpen ? "block" : "hidden"
+              }`}
+            >
+              {item.children?.map((child) => (
+                <button
+                  key={child.label}
+                  className={`mt-1 flex h-12 w-full cursor-pointer items-center rounded-md text-left hover:bg-sky-500 ${
+                    isSubmenuActive(child.path) ? "bg-sky-500" : ""
+                  }`}
+                  onClick={() => navigate(child.path)}
+                >
+                  <div className="ml-2 w-8 shrink-0" />
+                  {/* Khoảng cách để thẳng hàng với icon cha */}
+                  <span className="truncate">{child.label}</span>
+                </button>
+              ))}
             </div>
-          );
-        })}
+          </div>
+        ))}
       </nav>
     </div>
   );
