@@ -3,8 +3,17 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import "./ExportSchedule.scss";
 
-const ExportSchedule = ({ selectedGrade, selectedClass, filteredClasses, scheduleData, days, sessions, getSubjectName, getTeacherName }) => {
-
+const ExportSchedule = ({
+  selectedGrade,
+  selectedClass,
+  filteredClasses,
+  scheduleData,
+  days,
+  sessions,
+  getSubjectName,
+  getTeacherName,
+  showTeacherName // Nhận prop showTeacherName
+}) => {
   const exportToExcel = () => {
     const worksheetData = [];
 
@@ -47,7 +56,13 @@ const ExportSchedule = ({ selectedGrade, selectedClass, filteredClasses, schedul
 
           filteredClasses.forEach(({ grade, className }) => {
             const period = scheduleData[grade]?.[className]?.[day]?.[session]?.[periodIndex];
-            row.push(period ? `${getSubjectName(period.subject_Id)} - ${getTeacherName(period.teacher_id)}` : "");
+            if (period) {
+              const subjectName = getSubjectName(period.subject_Id);
+              const teacherName = showTeacherName ? ` - ${getTeacherName(period.teacher_id)}` : "";
+              row.push(`${subjectName}${teacherName}`);
+            } else {
+              row.push("");
+            }
           });
 
           worksheetData.push(row);
@@ -65,7 +80,7 @@ const ExportSchedule = ({ selectedGrade, selectedClass, filteredClasses, schedul
       { width: 10 }, // "Thứ" giữ nguyên
       { width: 10 }, // "Buổi" giữ nguyên
       { width: 10 }, // "Tiết" giữ nguyên
-      ...filteredClasses.map(() => ({ width: 20 })) // Các lớp có độ rộng gấp đôi
+      ...filteredClasses.map(() => ({ width: 25 })) // Các lớp có độ rộng lớn hơn
     ];
 
     // Xuất file
@@ -73,8 +88,6 @@ const ExportSchedule = ({ selectedGrade, selectedClass, filteredClasses, schedul
     const data = new Blob([excelBuffer], { type: "application/octet-stream" });
     saveAs(data, "Thoi_Khoa_Bieu.xlsx");
   };
-
-
 
   return (
     <button onClick={exportToExcel} className="export-button">
