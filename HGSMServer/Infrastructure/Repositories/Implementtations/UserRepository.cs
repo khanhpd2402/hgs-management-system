@@ -82,5 +82,10 @@ namespace Infrastructure.Repositories.Implementtations
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
         }
+
+        public IQueryable<Student> GetAll()
+        {
+            throw new NotImplementedException();
+        }
     }
 }
