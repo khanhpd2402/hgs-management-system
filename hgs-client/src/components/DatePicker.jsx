@@ -10,8 +10,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import PropTypes from "prop-types";
+import { vi } from "date-fns/locale";
 
-const DatePicker = ({ value, onSelect }) => {
+const DatePicker = ({ value, onSelect, locale = vi }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>
@@ -33,6 +34,7 @@ const DatePicker = ({ value, onSelect }) => {
           selected={value}
           onSelect={onSelect}
           initialFocus
+          locale={locale}
         />
       </PopoverContent>
     </Popover>
@@ -42,6 +44,7 @@ const DatePicker = ({ value, onSelect }) => {
 DatePicker.propTypes = {
   value: PropTypes.instanceOf(Date),
   onSelect: PropTypes.func,
+  locale: PropTypes.object,
 };
 
 export default DatePicker;
