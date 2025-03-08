@@ -3,6 +3,7 @@ import { scheduleData, teacherData, subjectData } from "./data";
 import "./Schedule.scss";
 import ExportSchedule from "./ExportSchedule";
 import { Calendar, Save, Trash2 } from "lucide-react";
+import ImportSchedule from "./ImportSchedule";
 
 const getTeacherName = (teacher_id) => {
     const teacher = teacherData.find((t) => t.teacher_id === parseInt(teacher_id));
@@ -49,6 +50,9 @@ const ScheduleTable = () => {
 
     const [showTeacherName, setShowTeacherName] = useState(true);
     const [originalScheduleData, setOriginalScheduleData] = useState(scheduleData);
+
+
+
 
 
     const allClasses = useMemo(() => {
@@ -309,6 +313,7 @@ const ScheduleTable = () => {
                         getTeacherName={getTeacherName}
                         showTeacherName={showTeacherName}
                     />
+                    <ImportSchedule />
 
                     {/* Nút Lưu */}
                     <button className="btn-save">

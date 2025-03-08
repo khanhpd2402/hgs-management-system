@@ -4,30 +4,28 @@ import { saveAs } from "file-saver";
 import "./ExportSchedule.scss";
 
 const dayMap = {
-  "Monday": "Thứ 2",
-  "Tuesday": "Thứ 3",
-  "Wednesday": "Thứ 4",
-  "Thursday": "Thứ 5",
-  "Friday": "Thứ 6",
-  "Saturday": "Thứ 7",
-  "Sunday": "Chủ Nhật"
+  Monday: "Thứ 2",
+  Tuesday: "Thứ 3",
+  Wednesday: "Thứ 4",
+  Thursday: "Thứ 5",
+  Friday: "Thứ 6",
+  Saturday: "Thứ 7",
+  Sunday: "Chủ Nhật",
 };
 
 const sessionMap = {
-  "Morning": "Sáng",
-  "Afternoon": "Chiều"
+  Morning: "Sáng",
+  Afternoon: "Chiều",
 };
 
 const ExportSchedule = ({
-  selectedGrade,
-  selectedClass,
   filteredClasses,
   scheduleData,
   days,
   sessions,
   getSubjectName,
   getTeacherName,
-  showTeacherName
+  showTeacherName,
 }) => {
   const exportToExcel = () => {
     const worksheetData = [];
@@ -35,12 +33,15 @@ const ExportSchedule = ({
     // Tiêu đề chính
     worksheetData.push(["Trường THCS Hải Giang"]);
     worksheetData.push([]);
+    worksheetData.push(["THỜI KHÓA BIỂU"]);
+    worksheetData.push([]);
 
     // Hàng tiêu đề
     const headerRow = ["Thứ", "Buổi", "Tiết"];
     filteredClasses.forEach(({ grade, className }) => {
       headerRow.push(`Khối ${grade} - ${className}`);
     });
+
     worksheetData.push(headerRow);
 
     // Dữ liệu của bảng
@@ -94,12 +95,18 @@ const ExportSchedule = ({
     const workbook = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(workbook, worksheet, "Thoi_Khoa_Bieu");
 
+    // Gộp ô tiêu đề
+    worksheet["!merges"] = [
+      { s: { r: 0, c: 0 }, e: { r: 0, c: headerRow.length - 1 } }, // "Trường THCS Hải Giang"
+      { s: { r: 2, c: 0 }, e: { r: 2, c: headerRow.length - 1 } }, // "THỜI KHÓA BIỂU"
+    ];
+
     // Thiết lập độ rộng cho từng cột
     worksheet["!cols"] = [
-      { width: 10 },
-      { width: 10 },
-      { width: 10 },
-      ...filteredClasses.map(() => ({ width: 25 }))
+      { width: 15 }, // Thứ
+      { width: 12 }, // Buổi
+      { width: 10 }, // Tiết
+      ...filteredClasses.map(() => ({ width: 25 })), // Các lớp học
     ];
 
     // Xuất file
