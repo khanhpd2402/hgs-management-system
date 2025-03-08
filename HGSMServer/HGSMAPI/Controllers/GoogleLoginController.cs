@@ -37,14 +37,14 @@ namespace HGSMAPI.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> Callback()
         {
-            // Xác thực với scheme "Google"
+            // Authen with scheme "Google"
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
             {
                 return BadRequest(new { message = "Google authentication failed." });
             }
 
-            // Lấy thông tin người dùng từ Google
+            // Calaim user infor from Google
             var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
             var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
@@ -54,31 +54,23 @@ namespace HGSMAPI.Controllers
                 return BadRequest(new { message = "Unable to retrieve email from Google." });
             }
 
-            // Tìm người dùng trong database bằng email
+            // Find user in database
             var existingUser = (await _userService.GetAllUsersAsync())
                 .FirstOrDefault(u => u.Email == email);
 
-            UserDTO userDto;
+            // if user not exist
             if (existingUser == null)
             {
-                // Nếu người dùng chưa tồn tại, tạo mới
-                userDto = new UserDTO
-                {
-                    Email = email,
-                    Username = name ?? email.Split('@')[0],
-                    PasswordHash = "GoogleOAuth",
-                };
-                await _userService.AddUserAsync(userDto);
-            }
-            else
-            {
-                userDto = existingUser;
+                return Unauthorized(new { message = "Email not found in the system. Please register first." });
             }
 
-            // Tạo JWT token
+            // if user exist, cont
+            UserDTO userDto = existingUser;
+
+            // Create JWT token
             var (tokenString, tokenPayload) = GenerateJwtToken(userDto);
 
-            // Đăng nhập bằng cookie để lưu phiên (nếu cần)
+            // Login by cookie 
             var claimsIdentity = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, userDto.Username),
@@ -87,11 +79,12 @@ namespace HGSMAPI.Controllers
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            // Trả về token dưới dạng JSON đã giải mã
+            
+            // Return token as JSON
             return Ok(new
             {
-                token = tokenString, // Chuỗi token gốc
-                decodedToken = tokenPayload // Phần payload đã giải mã
+                token = tokenString, // Origin token
+                decodedToken = tokenPayload // Decoded token
             });
         }
 
@@ -116,12 +109,13 @@ namespace HGSMAPI.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // Giải mã phần payload của token để trả về dưới dạng JSON
+            // decode token
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
 
-            // Chuyển payload thành một dictionary để trả về dưới dạng JSON
+           
+            // change payload to dictionary to return as JSON
             var payloadDict = payload.ToDictionary(
                 claim => claim.Key,
                 claim => claim.Value?.ToString()
