@@ -3,6 +3,21 @@ import * as XLSX from "xlsx";
 import { saveAs } from "file-saver";
 import "./ExportSchedule.scss";
 
+const dayMap = {
+  "Monday": "Thứ 2",
+  "Tuesday": "Thứ 3",
+  "Wednesday": "Thứ 4",
+  "Thursday": "Thứ 5",
+  "Friday": "Thứ 6",
+  "Saturday": "Thứ 7",
+  "Sunday": "Chủ Nhật"
+};
+
+const sessionMap = {
+  "Morning": "Sáng",
+  "Afternoon": "Chiều"
+};
+
 const ExportSchedule = ({
   selectedGrade,
   selectedClass,
@@ -12,14 +27,14 @@ const ExportSchedule = ({
   sessions,
   getSubjectName,
   getTeacherName,
-  showTeacherName // Nhận prop showTeacherName
+  showTeacherName
 }) => {
   const exportToExcel = () => {
     const worksheetData = [];
 
     // Tiêu đề chính
-    worksheetData.push(["Thời Khóa Biểu"]);
-    worksheetData.push([]); // Dòng trống
+    worksheetData.push(["Trường THCS Hải Giang"]);
+    worksheetData.push([]);
 
     // Hàng tiêu đề
     const headerRow = ["Thứ", "Buổi", "Tiết"];
@@ -30,6 +45,7 @@ const ExportSchedule = ({
 
     // Dữ liệu của bảng
     days.forEach((day) => {
+      let firstRowOfDay = true;
       sessions.forEach((session) => {
         const maxPeriods = Math.max(
           ...filteredClasses.map(({ grade, className }) =>
@@ -37,17 +53,20 @@ const ExportSchedule = ({
           )
         );
 
+        let firstRowOfSession = true;
         for (let periodIndex = 0; periodIndex < maxPeriods; periodIndex++) {
           const row = [];
 
-          if (periodIndex === 0) {
-            row.push(day);
+          if (firstRowOfDay) {
+            row.push(dayMap[day]);
+            firstRowOfDay = false;
           } else {
             row.push("");
           }
 
-          if (periodIndex === 0) {
-            row.push(session);
+          if (firstRowOfSession) {
+            row.push(sessionMap[session]);
+            firstRowOfSession = false;
           } else {
             row.push("");
           }
@@ -77,10 +96,10 @@ const ExportSchedule = ({
 
     // Thiết lập độ rộng cho từng cột
     worksheet["!cols"] = [
-      { width: 10 }, // "Thứ" giữ nguyên
-      { width: 10 }, // "Buổi" giữ nguyên
-      { width: 10 }, // "Tiết" giữ nguyên
-      ...filteredClasses.map(() => ({ width: 25 })) // Các lớp có độ rộng lớn hơn
+      { width: 10 },
+      { width: 10 },
+      { width: 10 },
+      ...filteredClasses.map(() => ({ width: 25 }))
     ];
 
     // Xuất file

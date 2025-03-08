@@ -17,6 +17,21 @@ const getSubjectName = (subject_Id) => {
 const ScheduleTable = () => {
     const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
     const sessions = ["Morning", "Afternoon"];
+    const dayMap = {
+        "Monday": "Thứ 2",
+        "Tuesday": "Thứ 3",
+        "Wednesday": "Thứ 4",
+        "Thursday": "Thứ 5",
+        "Friday": "Thứ 6",
+        "Saturday": "Thứ 7",
+        "Sunday": "Chủ Nhật"
+    };
+
+    const sessionMap = {
+        "Morning": "Sáng",
+        "Afternoon": "Chiều"
+    };
+
     const grades = Object.keys(scheduleData);
 
     const [selectedGrade, setSelectedGrade] = useState("");
@@ -387,9 +402,10 @@ const ScheduleTable = () => {
                                             return (
                                                 <tr key={`${day}-${session}-${periodIndex}`} className={rowClass}>
                                                     {sessionIndex === 0 && periodIndex === 0 && (
-                                                        <td className="sticky-col col-1" rowSpan={totalDisplayedPeriods}>{day}</td>
-                                                    )}
-                                                    {periodIndex === 0 && <td className="sticky-col col-2" rowSpan={maxPeriods}>{session}</td>}
+                                                        <td className="sticky-col col-1" rowSpan={totalDisplayedPeriods}>
+                                                            {dayMap[day] || day}
+                                                        </td>)}
+                                                    {periodIndex === 0 && <td className="sticky-col col-2" rowSpan={maxPeriods}>  {sessionMap[session] || session}</td>}
                                                     <td className="sticky-col col-3">Tiết {periodIndex + 1}</td>
                                                     {filteredClasses.map(({ grade, className }) => {
                                                         const period = filteredScheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
