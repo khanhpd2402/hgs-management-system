@@ -1,7 +1,8 @@
 using Domain.Models;
 using HGSMAPI.AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Cookies; // Thêm namespace này
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authorization; // Thêm namespace này
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
@@ -33,7 +34,6 @@ builder.Services.AddDbContext<HgsdbContext>();
 // Service 
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
-
 builder.Services.AddScoped<IUserService, UserService>();
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
@@ -47,10 +47,10 @@ builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().C
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = "Google"; // Sử dụng Google khi challenge
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Dùng Cookies để lưu phiên
+    options.DefaultChallengeScheme = "Google";
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme) // Thêm Cookie Authentication
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
@@ -74,6 +74,13 @@ builder.Services.AddAuthentication(options =>
     options.SaveTokens = true;
     options.Scope.Add("profile");
     options.Scope.Add("email");
+});
+
+// Configure Authorization (Thêm chính sách phân quyền)
+builder.Services.AddAuthorization(options =>
+{
+    options.AddPolicy("AdminOfficerOnly", policy =>
+        policy.RequireClaim("RoleID", "5")); // Chỉ cho phép RoleID = 5 (AdministrativeOfficer)
 });
 
 // Configure Swagger
@@ -168,7 +175,6 @@ if (!app.Environment.IsDevelopment())
 }
 
 app.UseAuthentication();
-
 app.UseAuthorization();
 
 app.MapControllers();

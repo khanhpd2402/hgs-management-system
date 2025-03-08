@@ -62,16 +62,12 @@ namespace Infrastructure.Repositories.Implementtations
             if (existingUser == null)
                 throw new ArgumentException($"User with ID {user.UserId} not found.");
 
+            // Cập nhật thủ công từng thuộc tính thay vì Attach()
             _context.Entry(existingUser).CurrentValues.SetValues(user);
-
-            existingUser.Role = user.Role;
-            existingUser.LeaveRequests = user.LeaveRequests;
-            existingUser.Notifications = user.Notifications;
-            existingUser.Parent = user.Parent;
-            existingUser.Teacher = user.Teacher;
 
             await _context.SaveChangesAsync();
         }
+
 
         public async Task DeleteAsync(int id)
         {
@@ -86,6 +82,10 @@ namespace Infrastructure.Repositories.Implementtations
         public IQueryable<Student> GetAll()
         {
             throw new NotImplementedException();
+        }
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

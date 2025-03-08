@@ -74,12 +74,14 @@ namespace HGSMAPI.Controllers
             var claimsIdentity = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, userDto.Username),
-                new Claim(ClaimTypes.Email, userDto.Email)
+                new Claim(ClaimTypes.Email, userDto.Email),
+                new Claim(ClaimTypes.Role, userDto.RoleId.ToString()),
+
             }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            
+
             // Return token as JSON
             return Ok(new
             {
@@ -91,11 +93,12 @@ namespace HGSMAPI.Controllers
         private (string tokenString, object tokenPayload) GenerateJwtToken(UserDTO user)
         {
             var claims = new List<Claim>
-            {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Username)
-            };
+    {
+        new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
+        new Claim(ClaimTypes.Email, user.Email),
+        new Claim(ClaimTypes.Name, user.Username),
+        new Claim("RoleID", user.RoleId.ToString())
+    };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
@@ -109,13 +112,12 @@ namespace HGSMAPI.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // decode token
+            // Decode token
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
 
-           
-            // change payload to dictionary to return as JSON
+            // Chuyển payload thành dictionary để trả về dưới dạng JSON
             var payloadDict = payload.ToDictionary(
                 claim => claim.Key,
                 claim => claim.Value?.ToString()
@@ -123,5 +125,6 @@ namespace HGSMAPI.Controllers
 
             return (tokenString, payloadDict);
         }
+
     }
 }
