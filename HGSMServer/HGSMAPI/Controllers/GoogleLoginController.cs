@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json; // Thêm namespace này để xử lý JSON
+using System.Text.Json;
 
 namespace HGSMAPI.Controllers
 {
@@ -43,48 +43,41 @@ namespace HGSMAPI.Controllers
             {
                 return BadRequest(new { message = "Google authentication failed." });
             }
-
-            // Calaim user infor from Google
-            var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
+            // Lấy thông tin người dùng từ Google
+            var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
             if (string.IsNullOrEmpty(email))
             {
                 return BadRequest(new { message = "Unable to retrieve email from Google." });
             }
 
-            // Find user in database
+            // Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
             var existingUser = (await _userService.GetAllUsersAsync())
                 .FirstOrDefault(u => u.Email == email);
 
-            // if user not exist
             if (existingUser == null)
             {
-                return Unauthorized(new { message = "Email not found in the system. Please register first." });
+                return StatusCode(403, new { message = "Access denied. Please contact your admin before logging in." });
             }
 
-            // if user exist, cont
-            UserDTO userDto = existingUser;
+            // Tạo JWT token
+            var (tokenString, tokenPayload) = GenerateJwtToken(existingUser);
 
-            // Create JWT token
-            var (tokenString, tokenPayload) = GenerateJwtToken(userDto);
-
-            // Login by cookie 
+            // Đăng nhập bằng cookie nếu cần
             var claimsIdentity = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Name, userDto.Username),
-                new Claim(ClaimTypes.Email, userDto.Email)
+                new Claim(ClaimTypes.Name, existingUser.Username),
+                new Claim(ClaimTypes.Email, existingUser.Email)
             }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            
-            // Return token as JSON
+            // Trả về token JSON
             return Ok(new
             {
-                token = tokenString, // Origin token
-                decodedToken = tokenPayload // Decoded token
+                token = tokenString,
+                decodedToken = tokenPayload
             });
         }
 
@@ -109,17 +102,13 @@ namespace HGSMAPI.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // decode token
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
 
-           
-            // change payload to dictionary to return as JSON
-            var payloadDict = payload.ToDictionary(
-                claim => claim.Key,
-                claim => claim.Value?.ToString()
-            );
+
+            var payloadDict = payload.ToDictionary(claim => claim.Key, claim => claim.Value?.ToString());
+
 
             return (tokenString, payloadDict);
         }
