@@ -5,6 +5,7 @@ import { Outlet } from "react-router";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
+
   return (
     <div className="flex h-screen overflow-hidden">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
