@@ -86,14 +86,11 @@ CREATE TABLE Students (
     FOREIGN KEY (ClassID) REFERENCES Classes(ClassID),
 );
 
-
-
-
-
 -- Bảng 6: Subjects (Môn học)
 CREATE TABLE Subjects (
     SubjectID INT IDENTITY(1,1) PRIMARY KEY,
-    SubjectName NVARCHAR(100) UNIQUE NOT NULL
+    SubjectName NVARCHAR(100) UNIQUE NOT NULL,
+	SubjectCategory NVARCHAR(50) CHECK (SubjectCategory IN ('KHTN', 'KHXH')) NOT NULL DEFAULT 'KHTN'
 );
 
 -- Bảng 7: TeacherSubjects (Quan hệ giáo viên - môn học)
@@ -104,6 +101,18 @@ CREATE TABLE TeacherSubjects (
 	IsMainSubject BIT DEFAULT 0,
     FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
     FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID)
+);
+CREATE TABLE TeachingAssignments (
+    AssignmentID INT IDENTITY(1,1) PRIMARY KEY,
+    TeacherID INT NOT NULL,
+    SubjectID INT NOT NULL,
+    ClassID INT NOT NULL,
+    Semester TINYINT NOT NULL CHECK (Semester IN (1, 2)), -- 1: Kỳ 1, 2: Kỳ 2
+    AcademicYear VARCHAR(9) NOT NULL, -- Ví dụ: "2024-2025"
+    
+    FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
+    FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID),
+    FOREIGN KEY (ClassID) REFERENCES Classes(ClassID)
 );
 
 -- Bảng 8: Exams (Đề thi)
