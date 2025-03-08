@@ -294,7 +294,6 @@ const ScheduleTable = () => {
 
 
             <div className="table-container">
-
                 <table className="schedule-table">
                     <thead>
                         <tr>
@@ -311,23 +310,31 @@ const ScheduleTable = () => {
                     </thead>
                     <tbody>
                         {days.map((day, dayIndex) => {
-                            let maxPeriodsInDay = 0;
+                            let displayedSessions = sessions.filter(session => {
+                                if (selectedSession) {
+                                    return session === selectedSession;
+                                }
+                                return true;
+                            });
 
-                            sessions.forEach((session) => {
-                                const maxPeriods = Math.max(
+                            let totalDisplayedPeriods = 0;
+                            displayedSessions.forEach(session => {
+                                let maxPeriods = Math.max(
                                     ...filteredClasses.map(({ grade, className }) =>
                                         filteredScheduleData[grade][className]?.[day]?.[session]?.length || 0
                                     )
                                 );
-                                maxPeriodsInDay += maxPeriods;
+                                totalDisplayedPeriods += maxPeriods;
                             });
 
                             const rowClass = dayIndex % 2 === 0 ? "even-day" : "odd-day";
 
+                            let periodCounter = 0;
+
                             return (
                                 <React.Fragment key={day}>
-                                    {sessions.map((session, sessionIndex) => {
-                                        const maxPeriods = Math.max(
+                                    {displayedSessions.map((session, sessionIndex) => {
+                                        let maxPeriods = Math.max(
                                             ...filteredClasses.map(({ grade, className }) =>
                                                 filteredScheduleData[grade][className]?.[day]?.[session]?.length || 0
                                             )
@@ -345,10 +352,6 @@ const ScheduleTable = () => {
                                                 shouldDisplay = false;
                                             }
 
-                                            if (selectedSession && selectedSession !== session) {
-                                                shouldDisplay = false;
-                                            }
-
                                             if (selectedGrade && selectedClass && !period) {
                                                 shouldDisplay = false;
                                             }
@@ -357,10 +360,12 @@ const ScheduleTable = () => {
                                                 return null;
                                             }
 
+                                            periodCounter++;
+
                                             return (
                                                 <tr key={`${day}-${session}-${periodIndex}`} className={rowClass}>
-                                                    {periodIndex === 0 && (
-                                                        <td className="sticky-col col-1" rowSpan={maxPeriodsInDay}>{day}</td>
+                                                    {sessionIndex === 0 && periodIndex === 0 && (
+                                                        <td className="sticky-col col-1" rowSpan={totalDisplayedPeriods}>{day}</td>
                                                     )}
                                                     {periodIndex === 0 && <td className="sticky-col col-2" rowSpan={maxPeriods}>{session}</td>}
                                                     <td className="sticky-col col-3">Tiết {periodIndex + 1}</td>
@@ -382,7 +387,6 @@ const ScheduleTable = () => {
                             );
                         })}
                     </tbody>
-
                 </table>
             </div>
         </div>
