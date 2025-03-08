@@ -13,6 +13,7 @@ namespace Application.Features.Students.Interfaces
     {
 
         Task<IEnumerable<StudentDto>> GetAllStudentsAsync();
+        IQueryable<StudentDto> GetAllStudents();
         Task<StudentDto?> GetStudentByIdAsync(int id);
         Task AddStudentAsync(StudentDto studentDto);
         Task UpdateStudentAsync(StudentDto studentDto);
