@@ -37,13 +37,12 @@ namespace HGSMAPI.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> Callback()
         {
-            // Xác thực với scheme "Google"
+            // Authen with scheme "Google"
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
             {
                 return BadRequest(new { message = "Google authentication failed." });
             }
-
             // Lấy thông tin người dùng từ Google
             var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
@@ -103,12 +102,13 @@ namespace HGSMAPI.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
-            // Giải mã payload để trả về JSON
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
 
+
             var payloadDict = payload.ToDictionary(claim => claim.Key, claim => claim.Value?.ToString());
+
 
             return (tokenString, payloadDict);
         }
