@@ -2,6 +2,7 @@
 using Application.Features.Students.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace HGSMAPI.Controllers
 {
@@ -16,12 +17,12 @@ namespace HGSMAPI.Controllers
             _studentService = studentService;
         }
 
-        // GET: api/Student
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<StudentDto>>> GetStudents()
+        [EnableQuery]
+        public ActionResult<IQueryable<StudentDto>> GetStudents()
         {
-            var students = await _studentService.GetAllStudentsAsync();
-            return Ok(students);
+            var students = _studentService.GetAllStudents();
+            return Ok(students.AsQueryable());
         }
 
         // GET: api/Student/5
