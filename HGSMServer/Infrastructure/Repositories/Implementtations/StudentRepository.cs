@@ -25,7 +25,10 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(s => s.Parents)
                 .ToListAsync();
         }
-
+        public IQueryable<Student> GetAll()
+        {
+            return _context.Students.AsQueryable();
+        }
         public async Task<Student?> GetByIdAsync(int id)
         {
             return await _context.Students

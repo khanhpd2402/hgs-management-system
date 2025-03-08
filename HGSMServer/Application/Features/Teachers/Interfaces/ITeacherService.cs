@@ -13,7 +13,8 @@ namespace Application.Features.Teachers.Interfaces
         Task AddTeacherAsync(TeacherDetailDto teacherDto);
         Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto);
         Task DeleteTeacherAsync(int id);
-        Task<byte[]> ExportTeachersToExcelAsync();
+        Task<byte[]> ExportTeachersToExcelAsync(); // API xuất full
+        Task<byte[]> ExportTeachersSelectedToExcelAsync(List<string> selectedColumns);
         Task ImportTeachersFromExcelAsync(IFormFile file);
     }
 
