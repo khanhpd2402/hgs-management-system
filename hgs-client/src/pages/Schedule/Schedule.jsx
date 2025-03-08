@@ -5,12 +5,12 @@ import ExportSchedule from "./ExportSchedule";
 
 const getTeacherName = (teacher_id) => {
     const teacher = teacherData.find((t) => t.teacher_id === parseInt(teacher_id));
-    return teacher ? teacher.teacher_name : "Unknown";
+    return teacher ? teacher.teacher_name : "";
 };
 
 const getSubjectName = (subject_Id) => {
     const subject = subjectData.find((s) => s.subject_Id === parseInt(subject_Id));
-    return subject ? subject.subject_name : "Unknown";
+    return subject ? subject.subject_name : "";
 };
 
 const ScheduleTable = () => {
@@ -129,7 +129,12 @@ const ScheduleTable = () => {
                                     Object.fromEntries(
                                         Object.entries(sessions).map(([session, periods]) => [
                                             session,
-                                            session === selectedSession ? periods : [],
+                                            session === selectedSession
+                                                ? periods.length > 0
+                                                    ? periods
+                                                    : [{ subject_Id: "", teacher_id: "" }]
+                                                : [],
+
                                         ])
                                     ),
                                 ])
@@ -139,6 +144,7 @@ const ScheduleTable = () => {
                 ])
             );
         }
+
 
 
         return filteredData;
@@ -278,8 +284,10 @@ const ScheduleTable = () => {
                     sessions={sessions}
                     getSubjectName={getSubjectName}
                     getTeacherName={getTeacherName}
+                    showTeacherName={showTeacherName} // Truyền prop vào
                 />
             </div>
+
 
 
 
