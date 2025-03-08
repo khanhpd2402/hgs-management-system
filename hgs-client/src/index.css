@@ -1,8 +1,12 @@
-/* @import "tailwindcss";
+@import "tailwindcss";
 
 @plugin "tailwindcss-animate";
 
 @custom-variant dark (&:is(.dark *));
+
+* {
+  box-sizing: border-box;
+}
 
 :root {
   --background: hsl(0 0% 100%);
@@ -97,4 +101,4 @@
   body {
     @apply bg-background text-foreground;
   }
-} */
+}
