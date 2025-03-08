@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json; // Thêm namespace này để xử lý JSON
+using System.Text.Json;
 
 namespace HGSMAPI.Controllers
 {
@@ -46,13 +46,14 @@ namespace HGSMAPI.Controllers
 
             // Calaim user infor from Google
             var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
+
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
             if (string.IsNullOrEmpty(email))
             {
                 return BadRequest(new { message = "Unable to retrieve email from Google." });
             }
+
 
             // Find user in database
             var existingUser = (await _userService.GetAllUsersAsync())
@@ -77,9 +78,11 @@ namespace HGSMAPI.Controllers
                 new Claim(ClaimTypes.Email, userDto.Email),
                 new Claim(ClaimTypes.Role, userDto.RoleId.ToString()),
 
+
             }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
 
 
             // Return token as JSON
@@ -87,6 +90,7 @@ namespace HGSMAPI.Controllers
             {
                 token = tokenString, // Origin token
                 decodedToken = tokenPayload // Decoded token
+
             });
         }
 
@@ -112,16 +116,20 @@ namespace HGSMAPI.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
+
             // Decode token
+
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
+
 
             // Chuyển payload thành dictionary để trả về dưới dạng JSON
             var payloadDict = payload.ToDictionary(
                 claim => claim.Key,
                 claim => claim.Value?.ToString()
             );
+
 
             return (tokenString, payloadDict);
         }
