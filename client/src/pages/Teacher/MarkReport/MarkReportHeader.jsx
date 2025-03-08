@@ -1,9 +1,9 @@
 import { ToggleGroup, ToggleGroupItem } from "@/components/ui/toggle-group";
 import { useState } from "react";
 
-export default function MarkReportHeader({ semester, setSemester }) {
+export default function MarkReportHeader({ setSemester, HK1, HK2, setData }) {
   // Nếu `semester` chưa có giá trị, đặt mặc định là "1"
-  const [selectedSemester, setSelectedSemester] = useState(semester || 1);
+  const [selectedSemester, setSelectedSemester] = useState(1);
 
   return (
     <div className="mb-4 flex items-center justify-between">
@@ -17,6 +17,7 @@ export default function MarkReportHeader({ semester, setSemester }) {
           if (value) {
             setSelectedSemester(value);
             setSemester(value);
+            setData(value === 1 ? HK1 : HK2);
           }
         }}
         className="rounded-lg bg-gray-100 p-1"
@@ -32,6 +33,12 @@ export default function MarkReportHeader({ semester, setSemester }) {
           className="rounded-md px-4 py-2 data-[state=on]:bg-blue-500 data-[state=on]:text-white"
         >
           Học kỳ 2
+        </ToggleGroupItem>
+        <ToggleGroupItem
+          value={3}
+          className="rounded-md px-4 py-2 data-[state=on]:bg-blue-500 data-[state=on]:text-white"
+        >
+          Cả năm
         </ToggleGroupItem>
       </ToggleGroup>
     </div>
