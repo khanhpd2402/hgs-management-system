@@ -9,15 +9,13 @@ public partial class Student
 
     public string FullName { get; set; } = null!;
 
-    public DateTime Dob { get; set; }
+    public DateOnly Dob { get; set; }
 
     public string Gender { get; set; } = null!;
 
-    public int GradeLevel { get; set; }
-
     public int ClassId { get; set; }
 
-    public DateTime AdmissionDate { get; set; }
+    public DateOnly AdmissionDate { get; set; }
 
     public string? EnrollmentType { get; set; }
 
