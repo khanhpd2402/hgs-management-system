@@ -2,6 +2,7 @@ import React, { useState, useMemo } from "react";
 import { scheduleData, teacherData, subjectData } from "./data";
 import "./Schedule.scss";
 import ExportSchedule from "./ExportSchedule";
+import { Calendar, Save, Trash2 } from "lucide-react";
 
 const getTeacherName = (teacher_id) => {
     const teacher = teacherData.find((t) => t.teacher_id === parseInt(teacher_id));
@@ -268,25 +269,46 @@ const ScheduleTable = () => {
 
 
 
-            <div className="filter-row" style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'center' }}>
-                <div className="filter-column" style={{ marginRight: '10px' }}>
-                    <button onClick={() => setShowTeacherName(!showTeacherName)}>
-                        {showTeacherName ? "Ẩn tên giáo viên" : "Hiển thị tên giáo viên"}
-                    </button>
-                </div>
 
-                <ExportSchedule
-                    selectedGrade={selectedGrade}
-                    selectedClass={selectedClass}
-                    filteredClasses={filteredClasses}
-                    scheduleData={filteredScheduleData}
-                    days={days}
-                    sessions={sessions}
-                    getSubjectName={getSubjectName}
-                    getTeacherName={getTeacherName}
-                    showTeacherName={showTeacherName} // Truyền prop vào
-                />
+
+            <div className="filter-row-table" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <Calendar size={20} />
+                    <span>Thời khóa biểu</span>
+                </div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <div className="filter-column-table">
+                        <button onClick={() => setShowTeacherName(!showTeacherName)}>
+                            {showTeacherName ? "Ẩn tên giáo viên" : "Hiển thị tên giáo viên"}
+                        </button>
+                    </div>
+
+                    <ExportSchedule
+                        selectedGrade={selectedGrade}
+                        selectedClass={selectedClass}
+                        filteredClasses={filteredClasses}
+                        scheduleData={filteredScheduleData}
+                        days={days}
+                        sessions={sessions}
+                        getSubjectName={getSubjectName}
+                        getTeacherName={getTeacherName}
+                        showTeacherName={showTeacherName}
+                    />
+
+                    {/* Nút Lưu */}
+                    <button className="btn-save">
+                        <Save size={16} /> Lưu
+                    </button>
+
+                    <button className="btn-delete">
+                        <Trash2 size={16} /> Xóa
+                    </button>
+
+                </div>
             </div>
+
+
+
 
 
 

@@ -7,6 +7,7 @@
     padding: 0;
     background-color: #fff;
     position: relative; /* Tránh phần thừa do sticky */
+    margin-top: 50px;
 }
 
 /* Bảng chính */
@@ -218,3 +219,53 @@
     }
   }
   
+
+
+  .filter-row-table {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #f8f9fa;
+    padding: 12px 16px;
+    border-radius: 6px;
+    border: 1px solid #ddd;
+    margin-top: 50px;
+
+   // Style chung cho nút
+button {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background 0.3s ease;
+
+  &:hover {
+      background: rgba(0, 0, 0, 0.1); // Màu nền khi hover chung
+  }
+}
+
+// Style riêng cho nút Lưu
+.btn-save {
+  background: #4CAF50; // Màu xanh
+  color: white;
+
+  &:hover {
+      background: #45a049; // Màu xanh đậm hơn khi hover
+  }
+}
+
+// Style riêng cho nút Xóa
+.btn-delete {
+  background: #f44336; // Màu đỏ
+  color: white;
+
+  &:hover {
+      background: #d32f2f; // Màu đỏ đậm hơn khi hover
+  }
+}
+
+    
+}
