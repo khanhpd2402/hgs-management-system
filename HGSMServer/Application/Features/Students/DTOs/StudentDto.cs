@@ -24,5 +24,10 @@ namespace Application.Features.Students.DTOs
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
     }
+<<<<<<< HEAD
 
 }
+=======
+}
+
+>>>>>>> 2112ff594d710e8d847d5f91b3d85c2d65da695f
