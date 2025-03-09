@@ -22,7 +22,7 @@ CREATE TABLE Teachers (
 	UserID INT UNIQUE,
     FullName NVARCHAR(100) NOT NULL, -- Họ và tên
     DOB DATE NOT NULL, -- Ngày sinh
-    Gender NVARCHAR(10) CHECK (Gender IN ('Nam', 'Nữ', 'Khác')) NOT NULL, -- Giới tính
+    Gender NVARCHAR(10) NOT NULL, -- Giới tính
     Ethnicity NVARCHAR(50), -- Dân tộc
     Religion NVARCHAR(50), -- Tôn giáo
     MaritalStatus NVARCHAR(50), -- Tình trạng hôn nhân
@@ -64,7 +64,7 @@ CREATE TABLE Parents (
     FullName NVARCHAR(100) NOT NULL,  -- Họ và tên
     DOB DATE,  -- Ngày sinh
     Occupation NVARCHAR(100),  -- Nghề nghiệp
-    Relationship NVARCHAR(50) CHECK (Relationship IN ('Bố', 'Mẹ', 'Người bảo hộ')) NOT NULL,  -- Quan hệ với học sinh
+    Relationship NVARCHAR(50) CHECK (Relationship IN (N'Bố', N'Mẹ', N'Người bảo hộ')) NOT NULL,  -- Quan hệ với học sinh
 	CONSTRAINT FK_Parents_Users FOREIGN KEY (UserID) REFERENCES Users(UserID) ON DELETE SET NULL
 );
 
@@ -82,7 +82,7 @@ CREATE TABLE Students (
     Religion NVARCHAR(50),  -- Tôn giáo
     RepeatingYear BIT DEFAULT 0,  -- Lưu ban năm trước (0: Không, 1: Có)
     IDCardNumber NVARCHAR(20) UNIQUE,  -- Số CMND/CCCD
-    Status NVARCHAR(50) DEFAULT 'Đang học',  -- Trạng thái (Đang học, Bảo lưu, Nghỉ học, etc.)
+    Status NVARCHAR(50) DEFAULT N'Đang học',  -- Trạng thái (Đang học, Bảo lưu, Nghỉ học, etc.)
     FOREIGN KEY (ClassID) REFERENCES Classes(ClassID),
 );
 
@@ -168,18 +168,22 @@ CREATE TABLE LessonPlans (
     FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID)
 );
 
--- Bảng 14: Timetables (Thời khóa biểu)
 CREATE TABLE Timetables (
     TimetableID INT IDENTITY(1,1) PRIMARY KEY,
     ClassID INT NOT NULL,
     SubjectID INT NOT NULL,
     TeacherID INT NOT NULL,
-    DayOfWeek NVARCHAR(20) NOT NULL,
-    Period INT NOT NULL,
+    [DayOfWeek] NVARCHAR(20) NOT NULL, -- Thứ trong tuần
+    [Shift] NVARCHAR(20) NOT NULL, -- Sáng / Chiều
+    [Period] INT NOT NULL, -- Tiết học
+    SchoolYear NVARCHAR(10) NOT NULL, -- Năm học (VD: 2024-2025)
+    Semester INT NOT NULL, -- Học kỳ (1 hoặc 2),
+	EffectiveDate DATE NOT NULL, -- Ngày bắt đầu áp dụng
     FOREIGN KEY (ClassID) REFERENCES Classes(ClassID),
     FOREIGN KEY (SubjectID) REFERENCES Subjects(SubjectID),
-    FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID)
+    FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
 );
+
 
 -- Bảng 15: Attendances (Điểm danh học sinh)
 CREATE TABLE Attendances (
@@ -212,3 +216,94 @@ CREATE TABLE LeaveRequests (
     FOREIGN KEY (TeacherID) REFERENCES Teachers(TeacherID),
     FOREIGN KEY (ApprovedBy) REFERENCES Users(UserID)
 );
+-- Thêm dữ liệu vào bảng Roles
+INSERT INTO Roles (RoleName) VALUES ('Admin'), (N'Giáo viên'), (N'Tổ Trưởng'), (N'Phụ huynh');
+
+-- Thêm dữ liệu vào bảng Users (đảm bảo UserID tồn tại trước khi thêm giáo viên)
+INSERT INTO Users (Username, PasswordHash, Email, PhoneNumber, RoleID)
+VALUES 
+('teacher2', 'hashedpassword5', 'teacher2@example.com', '0356789012', 1),
+('teacher3', 'hashedpassword6', 'teacher3@example.com', '0367890123', 2),
+('teacher4', 'hashedpassword7', 'teacher4@example.com', '0378901234', 2),
+('teacher5', 'hashedpassword8', 'teacher5@example.com', '0389012345', 3),
+('parent', 'hashedpassword9', 'parent@example.com', '032424244', 4);
+-- Thêm giáo viên vào bảng Teachers
+INSERT INTO Teachers (
+    UserID, FullName, DOB, Gender, Ethnicity, Religion, MaritalStatus, 
+    IDCardNumber, InsuranceNumber, EmploymentType, Position, Department, 
+    AdditionalDuties, IsHeadOfDepartment, EmploymentStatus, RecruitmentAgency, 
+    HiringDate, PermanentEmploymentDate, SchoolJoinDate, PermanentAddress, Hometown
+) 
+VALUES 
+-- Giáo viên Toán
+(1, N'Lê Văn B', '1985-07-15', N'Nam', N'Kinh', N'Không', N'Đã kết hôn', '111222333', '444555666', 
+N'Biên chế', N'Giáo viên Toán', N'Tổ Toán', NULL, 0, N'Đang công tác', N'Sở GD&ĐT Hà Nội', 
+'2010-09-01', '2015-09-01', '2010-09-01', N'123 Đường ABC, Hà Nội', N'Hải Phòng'),
+
+-- Giáo viên Văn
+(2, N'Nguyễn Thị C', '1990-08-20', N'Nữ', N'Kinh', N'Không', N'Độc thân', '222333444', '555666777', 
+N'Biên chế', N'Giáo viên Văn', N'Tổ Ngữ Văn', N'Chủ nhiệm lớp 7A', 0, N'Đang công tác', N'Sở GD&ĐT Hà Nội', 
+'2012-09-01', '2014-08-20', '2012-09-01', N'456 Đường XYZ, Hà Nội', N'Ninh Bình'),
+
+-- Giáo viên Vật Lý
+(3, N'Trần Văn D', '1988-06-10', N'Nam', N'Kinh', N'Không', N'Đã kết hôn', '333444555', '666777888', 
+N'Biên chế', N'Giáo viên Vật Lý', N'Tổ Khoa học Tự nhiên', NULL, 0, N'Đang công tác', N'Sở GD&ĐT Hà Nội', 
+'2015-09-01', '2017-08-20', '2015-09-01', N'789 Đường LMN, Hà Nội', N'Bắc Giang'),
+
+-- Giáo viên Tiếng Anh
+(4, N'Hoàng Thị E', '1992-03-05', N'Nữ', N'Kinh', N'Không', N'Độc thân', '444555666', '777888999', 
+N'Biên chế', N'Giáo viên Tiếng Anh', N'Tổ Ngoại ngữ', NULL, 0, N'Đang công tác', N'Sở GD&ĐT Hà Nội', 
+'2018-09-01', '2020-08-20', '2018-09-01', N'101 Đường DEF, Hà Nội', N'Nam Định');
+
+-- Thêm dữ liệu vào bảng Classes
+INSERT INTO Classes (ClassName, Grade) VALUES ('6A', 6), ('7B', 7);
+
+-- Thêm dữ liệu vào bảng TeacherClasses
+INSERT INTO TeacherClasses (TeacherID, ClassID, IsHomeroomTeacher)
+VALUES (1, 1, 1);
+INSERT INTO Students (FullName, DOB, Gender, ClassID, AdmissionDate, EnrollmentType, Ethnicity, PermanentAddress, BirthPlace, Religion, RepeatingYear, IDCardNumber, Status)
+VALUES 
+(N'Nguyễn Văn A', '2010-05-15', 'Nam', 1, '2022-09-01', N'Trúng Tuyển', N'Kinh', N'123 Đường ABC, Hà Nội', N'Hà Nội', 'Không', NULL, '123456789', 'Active'),
+(N'Trần Thị B', '2011-08-20', N'Nữ', 2, '2022-09-01', N'Trúng Tuyển', N'Kinh', N'456 Đường XYZ, TP.HCM', N'TP.HCM', 'Không', NULL, '987654321', 'Active'),
+(N'Lê Văn C', '2010-12-10', 'Nam', 2, '2023-09-01', N'Tuyển Thẳng', N'Tày', N'789 Đường DEF, Đà Nẵng', N'Đà Nẵng', N'Phật giáo', 1, '112233445', 'Active');
+
+-- Thêm dữ liệu vào bảng Parents
+INSERT INTO Parents (UserID, FullName, DOB, Occupation, Relationship)
+VALUES (4, N'Trần Văn C', '1980-02-20', N'Nhân viên văn phòng', N'Bố');
+
+-- Liên kết học sinh với phụ huynh
+INSERT INTO StudentParents (StudentID, ParentID) VALUES (1, 1);
+
+-- Thêm dữ liệu vào bảng Subjects
+INSERT INTO Subjects (SubjectName, SubjectCategory) VALUES (N'Toán', 'KHTN'), (N'Văn', 'KHXH');
+
+-- Thêm dữ liệu vào bảng TeacherSubjects
+INSERT INTO TeacherSubjects (TeacherID, SubjectID, IsMainSubject) VALUES (1, 1, 1);
+
+-- Thêm dữ liệu vào bảng TeachingAssignments
+INSERT INTO TeachingAssignments (TeacherID, SubjectID, ClassID, Semester, AcademicYear)
+VALUES (1, 1, 1, 1, '2024-2025');
+
+-- Thêm dữ liệu vào bảng Exams
+INSERT INTO Exams (SubjectID, CreatedBy, ExamContent, CreatedDate)
+VALUES (1, 1, N'Đề thi toán lớp 6 học kỳ 1', GETDATE());
+
+-- Thêm dữ liệu vào bảng Grades
+INSERT INTO Grades (StudentID, SubjectID, Score, ExamID)
+VALUES (1, 1, 8.5, 1);
+
+-- Thêm dữ liệu vào bảng Timetables
+INSERT INTO Timetables (ClassID, SubjectID, TeacherID, DayOfWeek, Period)
+VALUES (1, 1, 1, N'Thứ Hai', 1);
+
+-- Thêm dữ liệu vào bảng Attendances
+INSERT INTO Attendances (StudentID, Date, Status)
+VALUES (1, '2024-03-06', 'Present');
+
+-- Thêm dữ liệu vào bảng Notifications
+INSERT INTO Notifications (UserID, Message, SentDate)
+VALUES (2, N'Họp giáo viên vào thứ 6 tuần này', GETDATE());
+
+-- Thêm dữ liệu vào bảng LeaveRequests
+INSERT INTO LeaveRequests (TeacherID, RequestDate, LeaveFromDate, LeaveToDate, Reason, Status, ApprovedBy)
+VALUES (1, GETDATE(), '2024-03-10', '2024-03-12', N'Nghỉ phép cá nhân', 'Pending', NULL);
