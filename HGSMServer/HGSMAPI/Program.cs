@@ -17,10 +17,16 @@ using Application.Features.Users.Interfaces;
 using Application.Features.Users.Services;
 using Application.Features.Teachers.Interfaces;
 using Application.Features.Teachers.Services;
+using Application.Features.Role.Interfaces;
+using Application.Features.Role.Services;
+using Common.Utils;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
-
+// Đọc khóa từ appsettings.json
+var encryptionKey = builder.Configuration["SecuritySettings:EncryptionKey"];
+// Đăng ký SecurityHelper vào DI container
+builder.Services.AddSingleton(new SecurityHelper(encryptionKey));
 // Add services to the container.
 builder.Services.AddCors();
 builder.Services.AddControllers();
@@ -33,12 +39,13 @@ builder.Services.AddDbContext<HgsdbContext>();
 // Service 
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
-
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
 builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
