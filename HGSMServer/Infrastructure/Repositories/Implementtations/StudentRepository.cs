@@ -65,7 +65,7 @@ namespace Infrastructure.Repositories.Implementtations
         }
         public async Task<bool> ExistsAsync(string idCard)
         {
-            return await _context.Students.AnyAsync(s => s.IdcardNumber.Equals(idCard));
+            return await _context.Students.AnyAsync(s => s.IdcardNumber == idCard);
         }
     }
 }

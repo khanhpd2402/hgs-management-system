@@ -6,6 +6,7 @@ using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Common.Utils;
+using System.Globalization;
 
 namespace Application.Features.Teachers.Services
 {
@@ -124,42 +125,72 @@ namespace Application.Features.Teachers.Services
         }
         public async Task ImportTeachersFromExcelAsync(IFormFile file)
         {
-            //var data = ExcelImportHelper.ReadExcelData(file);
-            //var teachers = new List<Teacher>();
+            var data = ExcelImportHelper.ReadExcelData(file);
+            var teachers = new List<Teacher>();
 
-            //foreach (var row in data)
-            //{
-            //    // Kiểm tra dữ liệu hợp lệ
-            //    if (string.IsNullOrEmpty(row["Họ và tên"]) || string.IsNullOrEmpty(row["Ngày sinh"]))
-            //        continue;
+            foreach (var row in data)
+            {
+                // Kiểm tra các trường NOT NULL không được để trống
+                if (string.IsNullOrEmpty(row["Họ và tên"]) ||
+                    string.IsNullOrEmpty(row["Ngày sinh"]) ||
+                    string.IsNullOrEmpty(row["Giới tính"]) ||
+                    string.IsNullOrEmpty(row["CMND/CCCD"]) ||
+                    string.IsNullOrEmpty(row["Số sổ bảo hiểm"]) ||
+                    string.IsNullOrEmpty(row["Tổ bộ môn"]) ||
+                    string.IsNullOrEmpty(row["Ngày vào trường"]))
+                {
+                    throw new Exception("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
+                }
 
-            //    // Kiểm tra trùng lặp bằng IDCardNumber
-            //    if (await _teacherRepository.ExistsAsync(t => t.IDCardNumber == row["CMND/CCCD"]))
-            //        continue;
+                // Chuẩn hóa dữ liệu
+                string idCardNumber = row["CMND/CCCD"].Trim();
+                string insuranceNumber = row["Số sổ bảo hiểm"].Trim();
 
-            //    var user = new User
-            //    {
-            //        Email = row["Email"],
-            //        PhoneNumber = row["Số điện thoại"],
-            //        RoleId = int.Parse(row["RoleID"]), // Giờ không fix cứng là 2 nữa
-            //        Username = GenerateUsername(row["Họ và tên"]),
-            //        PasswordHash = HashPassword("DefaultPassword@123")
-            //    };
+                // Kiểm tra trùng lặp IDCardNumber hoặc InsuranceNumber
+                if (await _teacherRepository.ExistsAsync(idCardNumber, insuranceNumber))
+                {
+                    throw new Exception($"Giáo viên với CMND/CCCD {idCardNumber} hoặc Sổ bảo hiểm {insuranceNumber} đã tồn tại.");
+                }
 
-            //    var teacher = new Teacher
-            //    {
-            //        FullName = row["Họ và tên"],
-            //        Dob = DateOnly.Parse(row["Ngày sinh"]),
-            //        Gender = row["Giới tính"],
-            //        IDCardNumber = row["CMND/CCCD"],
-            //        Department = row["Tổ bộ môn"],
-            //        User = user
-            //    };
+                var user = new User
+                {
+                    Email = row["Email"],
+                    PhoneNumber = row["Số điện thoại"],
+                    RoleId = 2,  // Không fix cứng là 2 nữa
+                    Username = FormatUserName.GenerateUsername(row["Họ và tên"], 1),
+                    PasswordHash = PasswordHasher.HashPassword("DefaultPassword@123")
+                };
 
-            //    teachers.Add(teacher);
-            //}
+                var teacher = new Teacher
+                {
+                    FullName = row["Họ và tên"],
+                    Dob = DateHelper.ParseDate(row["Ngày sinh"]),
+                    Gender = row["Giới tính"],
+                    Ethnicity = row["Dân tộc"],
+                    Religion = row["Tôn giáo"],
+                    MaritalStatus = row["Tình trạng hôn nhân"],
+                    IdcardNumber = idCardNumber,
+                    InsuranceNumber = insuranceNumber,
+                    EmploymentType = row["Hình thức hợp đồng"],
+                    Position = row["Vị trí việc làm"],
+                    Department = row["Tổ bộ môn"],
+                    AdditionalDuties = row["Nhiệm vụ kiêm nhiệm"],
+                    IsHeadOfDepartment = row["Là tổ trưởng"] == "1",
+                    EmploymentStatus = row["Trạng thái cán bộ"],
+                    RecruitmentAgency = row["Cơ quan tuyển dụng"],
+                    HiringDate = DateHelper.ParseDate(row["Ngày tuyển dụng"]),
+                    PermanentEmploymentDate = DateHelper.ParseDate(row["Ngày vào biên chế"]),
+                    SchoolJoinDate = DateHelper.ParseDate(row["Ngày vào trường"]),
+                    PermanentAddress = row["Địa chỉ thường trú"],
+                    Hometown = row["Quê quán"],
+                    User = user
+                };
 
-            //await _teacherRepository.AddRangeAsync(teachers);
+                teachers.Add(teacher);
+            }
+
+            await _teacherRepository.AddRangeAsync(teachers);
         }
+
     }
 }
