@@ -1,16 +1,11 @@
 using Application.Features.Teachers.DTOs;
 using Application.Features.Teachers.Interfaces;
 using AutoMapper;
-using DocumentFormat.OpenXml.Math;
+using Common.Constants;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
-using OfficeOpenXml;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Common.Utils;
 
 namespace Application.Features.Teachers.Services
 {
@@ -57,155 +52,114 @@ namespace Application.Features.Teachers.Services
         public async Task<byte[]> ExportTeachersToExcelAsync()
         {
             var teachers = await _teacherRepository.GetAllAsync();
-
-            using var package = new ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("Teachers");
-
-            // Header
-            string[] headers = new string[]
-            {
-        "ID", "Họ và Tên", "Ngày sinh", "Giới tính", "Dân tộc", "Tôn giáo",
-        "Tình trạng hôn nhân", "CMND/CCCD", "Số sổ bảo hiểm", "Hình thức hợp đồng",
-        "Vị trí việc làm", "Tổ bộ môn", "Nhiệm vụ kiêm nhiệm", "Là tổ trưởng",
-        "Trạng thái cán bộ", "Cơ quan tuyển dụng", "Ngày tuyển dụng",
-        "Ngày vào biên chế", "Ngày vào trường", "Địa chỉ thường trú", "Quê quán"
-            };
-
-            for (int i = 0; i < headers.Length; i++)
-            {
-                worksheet.Cells[1, i + 1].Value = headers[i];
-            }
-
-            // Dữ liệu
-            int row = 2;
-            foreach (var teacher in teachers)
-            {
-                worksheet.Cells[row, 1].Value = teacher.TeacherId;
-                worksheet.Cells[row, 2].Value = teacher.FullName;
-                worksheet.Cells[row, 3].Value = teacher.Dob.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 4].Value = teacher.Gender;
-                worksheet.Cells[row, 5].Value = teacher.Ethnicity;
-                worksheet.Cells[row, 6].Value = teacher.Religion;
-                worksheet.Cells[row, 7].Value = teacher.MaritalStatus;
-                worksheet.Cells[row, 8].Value = teacher.IdcardNumber;
-                worksheet.Cells[row, 9].Value = teacher.InsuranceNumber;
-                worksheet.Cells[row, 10].Value = teacher.EmploymentType;
-                worksheet.Cells[row, 11].Value = teacher.Position;
-                worksheet.Cells[row, 12].Value = teacher.Department;
-                worksheet.Cells[row, 13].Value = teacher.AdditionalDuties;
-                worksheet.Cells[row, 14].Value = (bool)teacher.IsHeadOfDepartment ? "Có" : "Không";
-                worksheet.Cells[row, 15].Value = teacher.EmploymentStatus;
-                worksheet.Cells[row, 16].Value = teacher.RecruitmentAgency;
-                worksheet.Cells[row, 17].Value = teacher.HiringDate?.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 18].Value = teacher.PermanentEmploymentDate?.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 19].Value = teacher.SchoolJoinDate.ToString("yyyy-MM-dd");
-                worksheet.Cells[row, 20].Value = teacher.PermanentAddress;
-                worksheet.Cells[row, 21].Value = teacher.Hometown;
-                row++;
-            }
-
-            return package.GetAsByteArray();
+            var teacherDtos = teachers.Select(TeacherToTeacherExportDto).ToList();
+            return ExcelExporter.ExportToExcel(teacherDtos, GetTeacherColumnMappings(), "Danh sách giáo viên", "Năm học 2024-2025", null, false);
         }
 
         public async Task<byte[]> ExportTeachersSelectedToExcelAsync(List<string> selectedColumns)
         {
             var teachers = await _teacherRepository.GetAllAsync();
-
-            using var package = new ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("Teachers");
-
-            // Danh sách cột có thể chọn
-            var columnMappings = new Dictionary<string, Func<Teacher, object>>
-    {
-        { "ID", t => t.TeacherId },
-        { "Họ và Tên", t => t.FullName },
-        { "Ngày sinh", t => t.Dob.ToString("yyyy-MM-dd") },
-        { "Giới tính", t => t.Gender },
-        { "Dân tộc", t => t.Ethnicity },
-        { "Tôn giáo", t => t.Religion },
-        { "Tình trạng hôn nhân", t => t.MaritalStatus },
-        { "CMND/CCCD", t => t.IdcardNumber },
-        { "Số sổ bảo hiểm", t => t.InsuranceNumber },
-        { "Hình thức hợp đồng", t => t.EmploymentType },
-        { "Vị trí việc làm", t => t.Position },
-        { "Tổ bộ môn", t => t.Department },
-        { "Nhiệm vụ kiêm nhiệm", t => t.AdditionalDuties },
-        { "Là tổ trưởng", t => (bool)t.IsHeadOfDepartment ? "Có" : "Không" },
-        { "Trạng thái cán bộ", t => t.EmploymentStatus },
-        { "Cơ quan tuyển dụng", t => t.RecruitmentAgency },
-        { "Ngày tuyển dụng", t => t.HiringDate?.ToString("yyyy-MM-dd") },
-        { "Ngày vào biên chế", t => t.PermanentEmploymentDate?.ToString("yyyy-MM-dd") },
-        { "Ngày vào trường", t => t.SchoolJoinDate.ToString("yyyy-MM-dd") },
-        { "Địa chỉ thường trú", t => t.PermanentAddress },
-        { "Quê quán", t => t.Hometown },
-        { "Email", t => t.User?.Email },
-        { "Số điện thoại", t => t.User?.PhoneNumber }
-    };
-
-            // Ghi tiêu đề
-            for (int i = 0; i < selectedColumns.Count; i++)
-            {
-                worksheet.Cells[1, i + 1].Value = selectedColumns[i];
-            }
-
-            // Ghi dữ liệu
-            int row = 2;
-            foreach (var teacher in teachers)
-            {
-                for (int col = 0; col < selectedColumns.Count; col++)
-                {
-                    if (columnMappings.TryGetValue(selectedColumns[col], out var valueFunc))
-                    {
-                        worksheet.Cells[row, col + 1].Value = valueFunc(teacher);
-                    }
-                }
-                row++;
-            }
-
-            return package.GetAsByteArray();
+            var teacherDtos = teachers.Select(TeacherToTeacherExportDto).ToList();
+            return ExcelExporter.ExportToExcel(teacherDtos, GetTeacherColumnMappings(), "Danh sách cán bộ", "Năm học 2024-2025", selectedColumns, true);
         }
 
+        private static Dictionary<string, string> GetTeacherColumnMappings()
+        {
+            return new()
+    {
+        { "TeacherId", "Mã giáo viên" },
+        { "FullName", "Họ và tên" },
+        { "Dob", "Ngày sinh" },
+        { "Gender", "Giới tính" },
+        { "Ethnicity", "Dân tộc" },
+        { "Religion", "Tôn giáo" },
+        { "MaritalStatus", "Tình trạng hôn nhân" },
+        { "IdcardNumber", "CMND/CCCD" },
+        { "InsuranceNumber", "Số sổ bảo hiểm" },
+        { "EmploymentType", "Hình thức hợp đồng" },
+        { "Position", "Vị trí việc làm" },
+        { "Department", "Tổ bộ môn" },
+        { "AdditionalDuties", "Nhiệm vụ kiêm nhiệm" },
+        { "IsHeadOfDepartment", "Là tổ trưởng" },
+        { "EmploymentStatus", "Trạng thái cán bộ" },
+        { "RecruitmentAgency", "Cơ quan tuyển dụng" },
+        { "HiringDate", "Ngày tuyển dụng" },
+        { "PermanentEmploymentDate", "Ngày vào biên chế" },
+        { "SchoolJoinDate", "Ngày vào trường" },
+        { "PermanentAddress", "Địa chỉ thường trú" },
+        { "Hometown", "Quê quán" },
+        { "Email", "Email" },
+        { "PhoneNumber", "Số điện thoại" }
+    };
+        }
+
+        private TeacherExportDto TeacherToTeacherExportDto(Teacher t)
+        {
+            return new TeacherExportDto
+            {
+                TeacherId = t.TeacherId,
+                FullName = t.FullName,
+                Dob = t.Dob.ToString(AppConstants.DATE_FORMAT),
+                Gender = t.Gender,
+                Ethnicity = t.Ethnicity,
+                Religion = t.Religion,
+                MaritalStatus = t.MaritalStatus,
+                IdcardNumber = t.IdcardNumber,
+                InsuranceNumber = t.InsuranceNumber,
+                EmploymentType = t.EmploymentType,
+                Position = t.Position,
+                Department = t.Department,
+                AdditionalDuties = t.AdditionalDuties,
+                IsHeadOfDepartment = (bool)t.IsHeadOfDepartment ? "Có" : "Không",
+                EmploymentStatus = t.EmploymentStatus,
+                RecruitmentAgency = t.RecruitmentAgency,
+                HiringDate = t.HiringDate?.ToString(AppConstants.DATE_FORMAT) ?? "Không rõ",
+                PermanentEmploymentDate = t.PermanentEmploymentDate?.ToString(AppConstants.DATE_FORMAT) ?? "Không rõ",
+                SchoolJoinDate = t.SchoolJoinDate.ToString(AppConstants.DATE_FORMAT),
+                PermanentAddress = t.PermanentAddress,
+                Hometown = t.Hometown,
+                Email = t.User?.Email ?? "Không có",
+                PhoneNumber = t.User?.PhoneNumber ?? "Không có"
+            };
+        }
         public async Task ImportTeachersFromExcelAsync(IFormFile file)
         {
-            using var stream = new MemoryStream();
-            await file.CopyToAsync(stream);
-            using var package = new ExcelPackage(stream);
+            //var data = ExcelImportHelper.ReadExcelData(file);
+            //var teachers = new List<Teacher>();
 
-            var worksheet = package.Workbook.Worksheets[0]; // Lấy sheet đầu tiên
-            int rowCount = worksheet.Dimension.Rows;
+            //foreach (var row in data)
+            //{
+            //    // Kiểm tra dữ liệu hợp lệ
+            //    if (string.IsNullOrEmpty(row["Họ và tên"]) || string.IsNullOrEmpty(row["Ngày sinh"]))
+            //        continue;
 
-            var teachers = new List<Teacher>();
+            //    // Kiểm tra trùng lặp bằng IDCardNumber
+            //    if (await _teacherRepository.ExistsAsync(t => t.IDCardNumber == row["CMND/CCCD"]))
+            //        continue;
 
-            for (int row = 2; row <= rowCount; row++)
-            {
-                var email = worksheet.Cells[row, 5].Value?.ToString();
-                var phoneNumber = worksheet.Cells[row, 6].Value?.ToString();
+            //    var user = new User
+            //    {
+            //        Email = row["Email"],
+            //        PhoneNumber = row["Số điện thoại"],
+            //        RoleId = int.Parse(row["RoleID"]), // Giờ không fix cứng là 2 nữa
+            //        Username = GenerateUsername(row["Họ và tên"]),
+            //        PasswordHash = HashPassword("DefaultPassword@123")
+            //    };
 
-                var user = new User
-                {
-                    Email = email,
-                    PhoneNumber = phoneNumber,
-                    RoleId = 2, // Mặc định giáo viên
-                    Username = "",
-                    PasswordHash = ("DefaultPassword@123") // Hash mật khẩu mặc định
-                };
+            //    var teacher = new Teacher
+            //    {
+            //        FullName = row["Họ và tên"],
+            //        Dob = DateOnly.Parse(row["Ngày sinh"]),
+            //        Gender = row["Giới tính"],
+            //        IDCardNumber = row["CMND/CCCD"],
+            //        Department = row["Tổ bộ môn"],
+            //        User = user
+            //    };
 
-                var teacher = new Teacher
-                {
-                    FullName = worksheet.Cells[row, 2].Value?.ToString(),
-                    Dob = DateOnly.Parse(worksheet.Cells[row, 3].Value.ToString()),
-                    Gender = worksheet.Cells[row, 4].Value?.ToString(),
-                    User = user
-                };
+            //    teachers.Add(teacher);
+            //}
 
-                teachers.Add(teacher);
-            }
-
-            foreach (var teacher in teachers)
-            {
-                await _teacherRepository.AddAsync(teacher);
-            }
+            //await _teacherRepository.AddRangeAsync(teachers);
         }
-
     }
 }

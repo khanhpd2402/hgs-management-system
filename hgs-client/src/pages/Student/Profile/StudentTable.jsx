@@ -28,6 +28,8 @@ export default function StudentTable() {
 
   const { data, isPending, error, isError, isFetching } = useStudents(filter);
 
+  console.log(error);
+
   const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;

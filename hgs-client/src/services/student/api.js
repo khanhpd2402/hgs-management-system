@@ -12,16 +12,5 @@ export const getStudents = async (
   if (grade) filterParams.push(`grade=${grade}`);
   if (classname) filterParams.push(`class=${classname}`);
 
-  const formattedSearchValue = searchValue;
-
-  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
-  console.log(
-    `students?_limit=${limit}&_page=${page}&q=${formattedSearchValue}${queryString}`,
-  );
-
-  return (
-    await axiosInstance.get(
-      `students?_limit=${limit}&_page=${page}&q=${formattedSearchValue}${queryString}`,
-    )
-  ).data;
+  return (await axiosInstance.get("student")).data;
 };
