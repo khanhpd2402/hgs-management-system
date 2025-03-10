@@ -18,7 +18,7 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<IEnumerable<Student>> GetAllAsync()
+        public async Task<List<Student>> GetAllStudentsAsync()
         {
             return await _context.Students
                 .Include(s => s.Class)
@@ -57,6 +57,15 @@ namespace Infrastructure.Repositories.Implementtations
                 _context.Students.Remove(student);
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task AddRangeAsync(IEnumerable<Student> students)
+        {
+            await _context.Students.AddRangeAsync(students);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<bool> ExistsAsync(string idCard)
+        {
+            return await _context.Students.AnyAsync(s => s.IdcardNumber.Equals(idCard));
         }
     }
 }
