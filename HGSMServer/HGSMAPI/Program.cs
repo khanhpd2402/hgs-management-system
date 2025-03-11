@@ -17,10 +17,26 @@ using Application.Features.Users.Interfaces;
 using Application.Features.Users.Services;
 using Application.Features.Teachers.Interfaces;
 using Application.Features.Teachers.Services;
+using Application.Features.Role.Interfaces;
+using Application.Features.Role.Services;
+using Common.Utils;
+using Application.Features.Timetables.Interfaces;
+using Application.Features.Timetables.Services;
+using Application.Features.Classes.Interfaces;
+using Application.Features.Classes.Services;
+using Microsoft.EntityFrameworkCore;
+using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
+using Application.Features.Attendances.Interfaces;
+using Application.Features.Attendances.Services;
+using Application.Features.Attendances.DTOs;
+using Microsoft.Extensions.Configuration;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
-
+// Đọc khóa từ appsettings.json
+var encryptionKey = builder.Configuration["SecuritySettings:EncryptionKey"];
+// Đăng ký SecurityHelper vào DI container
+builder.Services.AddSingleton(new SecurityHelper(encryptionKey));
 // Add services to the container.
 builder.Services.AddCors();
 builder.Services.AddControllers();
@@ -33,16 +49,26 @@ builder.Services.AddDbContext<HgsdbContext>();
 // Service 
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
-
+builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
-
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+//builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<ISmsService, TwilioSmsService>();
+builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio")); // Sử dụng builder.Configuration
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
 builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
-
+builder.Services.AddDbContext<HgsdbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddScoped<TimetableService>();
 // Configure Authentication
 builder.Services.AddAuthentication(options =>
 {
@@ -75,6 +101,7 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Add("profile");
     options.Scope.Add("email");
 });
+builder.Services.AddHttpContextAccessor();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();

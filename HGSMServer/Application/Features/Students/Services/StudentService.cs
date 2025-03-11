@@ -1,16 +1,12 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
 using AutoMapper;
+using AutoMapper.QueryableExtensions;
 using Common.Constants;
+using Common.Utils;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
-using OfficeOpenXml;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Features.Students.Services
 {
@@ -27,20 +23,13 @@ namespace Application.Features.Students.Services
 
         public async Task<IEnumerable<StudentDto>> GetAllStudentsAsync()
         {
-            var students = await _studentRepository.GetAllAsync();
+            var students = await _studentRepository.GetAllStudentsAsync();
             return _mapper.Map<IEnumerable<StudentDto>>(students);
         }
         public IQueryable<StudentDto> GetAllStudents()
         {
-            return _studentRepository.GetAll().Select(s => new StudentDto
-            {
-                StudentId = s.StudentId,
-                FullName = s.FullName,
-                Gender = s.Gender,
-                Dob = s.Dob,
-                ClassId = s.ClassId,
-                Status = s.Status
-            });
+            return _studentRepository.GetAll()
+                .ProjectTo<StudentDto>(_mapper.ConfigurationProvider);
         }
         public async Task<StudentDto?> GetStudentByIdAsync(int id)
         {
@@ -66,67 +55,112 @@ namespace Application.Features.Students.Services
         {
             await _studentRepository.DeleteAsync(id);
         }
-        public async Task<byte[]> ExportStudentsToExcelAsync()
+        public async Task<byte[]> ExportStudentsFullToExcelAsync()
         {
-            var students = await _studentRepository.GetAllAsync();
-
-            using var package = new ExcelPackage();
-            var worksheet = package.Workbook.Worksheets.Add("Students");
-
-            // Tiêu đề cột
-            worksheet.Cells[1, 1].Value = "ID";
-            worksheet.Cells[1, 2].Value = "Họ và Tên";
-            worksheet.Cells[1, 3].Value = "Ngày sinh";
-            worksheet.Cells[1, 4].Value = "Giới tính";
-            worksheet.Cells[1, 5].Value = "Lớp";
-            worksheet.Cells[1, 6].Value = "Trạng thái";
-
-            int row = 2;
-            foreach (var student in students)
-            {
-                worksheet.Cells[row, 1].Value = student.StudentId;
-                worksheet.Cells[row, 2].Value = student.FullName;
-                worksheet.Cells[row, 3].Value = student.Dob.ToString(AppConstants.DATE_FORMAT);
-                worksheet.Cells[row, 4].Value = student.Gender;
-                worksheet.Cells[row, 5].Value = student.ClassId;
-                worksheet.Cells[row, 6].Value = student.Status;
-                row++;
-            }
-
-            return package.GetAsByteArray();
+            return await ExportStudentsToExcelAsync(null, false); // Xuất toàn bộ cột
         }
 
-        /// <summary>
-        /// Nhập danh sách học sinh từ file Excel
-        /// </summary>
+        public async Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns)
+        {
+            return await ExportStudentsToExcelAsync(selectedColumns, true); // Xuất cột được chọn
+        }
+
+        private async Task<byte[]> ExportStudentsToExcelAsync(List<string>? selectedColumns, bool isReport)
+        {
+            var students = await _studentRepository.GetAllStudentsAsync();
+            var studentDtos = students.Select(StudentToStudentExportDto).ToList();
+
+            return ExcelExporter.ExportToExcel(studentDtos, StudentColumnMappings, "DANH SÁCH HỌC SINH", "Năm học 2024", selectedColumns, isReport);
+        }
+        private static readonly Dictionary<string, string> StudentColumnMappings = new()
+{
+    { "StudentId", "Mã học sinh" },
+    { "FullName", "Họ và tên" },
+    { "Dob", "Ngày sinh" },
+    { "Gender", "Giới tính" },
+    { "ClassName", "Lớp" },
+    { "AdmissionDate", "Ngày nhập học" },
+    { "EnrollmentType", "Hình thức nhập học" },
+    { "Ethnicity", "Dân tộc" },
+    { "PermanentAddress", "Địa chỉ thường trú" },
+    { "BirthPlace", "Nơi sinh" },
+    { "Religion", "Tôn giáo" },
+    { "RepeatingYear", "Lưu ban" },
+    { "IdcardNumber", "Số CMND/CCCD" },
+    { "Status", "Trạng thái" }
+};
+        private StudentExportDto StudentToStudentExportDto(Student s)
+        {
+            // Lấy lớp hiện tại (giả sử dựa trên năm học hiện tại)
+            var currentClass = s.StudentClasses
+                .FirstOrDefault(sc => sc.AcademicYear.YearName == "2024-2025")?.Class;
+
+            return new StudentExportDto
+            {
+                StudentId = s.StudentId,
+                FullName = s.FullName,
+                Dob = s.Dob.ToString(AppConstants.DATE_FORMAT),
+                Gender = s.Gender,
+                ClassName = currentClass?.ClassName ?? "Không rõ",
+                AdmissionDate = s.AdmissionDate.ToString(AppConstants.DATE_FORMAT),
+                EnrollmentType = s.EnrollmentType,
+                Ethnicity = s.Ethnicity,
+                PermanentAddress = s.PermanentAddress,
+                BirthPlace = s.BirthPlace,
+                Religion = s.Religion,
+                RepeatingYear = s.RepeatingYear.HasValue ? (s.RepeatingYear.Value ? "Có" : "Không") : "Không rõ",
+                IdcardNumber = s.IdcardNumber,
+                Status = s.Status
+            };
+        }
+
         public async Task ImportStudentsFromExcelAsync(IFormFile file)
         {
-            using var stream = new MemoryStream();
-            await file.CopyToAsync(stream);
-            using var package = new ExcelPackage(stream);
-
-            var worksheet = package.Workbook.Worksheets[0]; // Lấy sheet đầu tiên
-            int rowCount = worksheet.Dimension.Rows;
-
+            var data = ExcelImportHelper.ReadExcelData(file);
             var students = new List<Student>();
 
-            for (int row = 2; row <= rowCount; row++)
+            foreach (var row in data)
             {
+                string idCardNumber = row["Số CMND/CCCD"]?.ToString().Trim();
+                if (string.IsNullOrWhiteSpace(idCardNumber))
+                {
+                    throw new Exception("Số CMND/CCCD không được để trống.");
+                }
+
+                // Kiểm tra trùng lặp trước khi insert
+                bool exists = await _studentRepository.ExistsAsync(idCardNumber);
+                if (exists)
+                {
+                    throw new Exception($"Số CMND/CCCD {idCardNumber} đã tồn tại.");
+                }
+
                 var student = new Student
                 {
-                    FullName = worksheet.Cells[row, 2].Value?.ToString() ?? "",
-                    Dob = DateOnly.Parse(worksheet.Cells[row, 3].Value?.ToString() ?? "2000-01-01"),
-                    Gender = worksheet.Cells[row, 4].Value?.ToString() ?? "Unknown",
-                    ClassId = int.Parse(worksheet.Cells[row, 5].Value?.ToString() ?? "0"),
-                    Status = worksheet.Cells[row, 6].Value?.ToString()
+                    FullName = row["Họ và tên"]?.ToString().Trim() ?? throw new Exception("Họ và tên không được để trống."),
+                    Dob = DateHelper.ParseDate(row["Ngày sinh"]?.ToString()),
+                    Gender = row["Giới tính"]?.ToString().Trim() ?? throw new Exception("Giới tính không được để trống."),
+                    AdmissionDate = DateHelper.ParseDate(row["Ngày nhập học"]?.ToString()),
+                    EnrollmentType = row["Hình thức nhập học"]?.ToString().Trim(),
+                    Ethnicity = row["Dân tộc"]?.ToString().Trim(),
+                    PermanentAddress = row["Địa chỉ thường trú"]?.ToString().Trim(),
+                    BirthPlace = row["Nơi sinh"]?.ToString().Trim(),
+                    Religion = row["Tôn giáo"]?.ToString().Trim(),
+                    RepeatingYear = !string.IsNullOrWhiteSpace(row["Lưu ban"]?.ToString()) && row["Lưu ban"].ToString().Trim() == "Có",
+                    IdcardNumber = idCardNumber, // Đã kiểm tra trùng lặp và null trước khi gán
+                    Status = row["Trạng thái"]?.ToString().Trim() ?? "Đang học",
+                    StudentClasses = new List<StudentClass>
+    {
+        new StudentClass
+        {
+            ClassId = 1, // Lớp cố định, có thể thay bằng logic động
+            AcademicYearId = 1 // Năm học cố định, cần thay bằng giá trị thực tế
+        }
+    }
                 };
                 students.Add(student);
             }
 
-            foreach (var student in students)
-            {
-                await _studentRepository.AddAsync(student);
-            }
+            await _studentRepository.AddRangeAsync(students);
         }
     }
 }

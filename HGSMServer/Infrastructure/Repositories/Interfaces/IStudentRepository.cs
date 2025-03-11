@@ -9,11 +9,13 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IStudentRepository
     {
-        Task<IEnumerable<Student>> GetAllAsync();
+        Task<List<Student>> GetAllStudentsAsync();
         IQueryable<Student> GetAll();
         Task<Student?> GetByIdAsync(int id);
         Task AddAsync(Student student);
         Task UpdateAsync(Student student);
         Task DeleteAsync(int id);
+        Task<bool> ExistsAsync(string idCard); // Kiểm tra xem học sinh có tồn tại không
+        Task AddRangeAsync(IEnumerable<Student> students); // Thêm danh sách học sinh
     }
 }

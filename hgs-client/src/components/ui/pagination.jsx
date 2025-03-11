@@ -16,10 +16,7 @@ function Pagination({ className, ...props }) {
       role="navigation"
       aria-label="pagination"
       data-slot="pagination"
-      className={cn(
-        "mx-auto flex w-full justify-center justify-end",
-        className,
-      )}
+      className={cn("ml-auto flex justify-center justify-end", className)}
       {...props}
     />
   );

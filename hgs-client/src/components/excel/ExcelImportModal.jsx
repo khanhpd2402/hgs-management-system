@@ -10,11 +10,17 @@ import {
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Upload, XCircle, FileText, Download } from "lucide-react";
+import { axiosInstance } from "@/services/axios";
 
 export default function ExcelImportModal({ type }) {
   const [file, setFile] = useState(null);
   const [importType, setImportType] = useState("update");
   const [dragging, setDragging] = useState(false);
+
+  const submitFile = async (file) => {
+    const response = await axiosInstance.post(`/${type}/import`, file);
+    console.log(response);
+  };
 
   // Fake danh sách file mẫu theo từng trang
   const sampleFiles = {
@@ -45,6 +51,9 @@ export default function ExcelImportModal({ type }) {
   const handleUpload = () => {
     if (file) {
       console.log("Uploading:", file);
+      const formData = new FormData();
+      formData.append("file", file);
+      submitFile(formData);
       // TODO: Xử lý upload file lên server
     } else {
       alert("Vui lòng chọn file Excel!");
