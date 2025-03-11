@@ -13,8 +13,6 @@ public partial class Student
 
     public string Gender { get; set; } = null!;
 
-    public int ClassId { get; set; }
-
     public DateOnly AdmissionDate { get; set; }
 
     public string? EnrollmentType { get; set; }
@@ -35,9 +33,9 @@ public partial class Student
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
-    public virtual Class Class { get; set; } = null!;
-
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+
+    public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
 
     public virtual ICollection<Parent> Parents { get; set; } = new List<Parent>();
 }

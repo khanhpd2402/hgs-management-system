@@ -15,7 +15,11 @@ public partial class Grade
 
     public int ExamId { get; set; }
 
+    public int SemesterId { get; set; }
+
     public virtual Exam Exam { get; set; } = null!;
+
+    public virtual Semester Semester { get; set; } = null!;
 
     public virtual Student Student { get; set; } = null!;
 

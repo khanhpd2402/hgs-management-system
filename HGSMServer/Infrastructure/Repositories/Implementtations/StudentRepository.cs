@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.Implementtations
@@ -21,19 +20,27 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<List<Student>> GetAllStudentsAsync()
         {
             return await _context.Students
-                .Include(s => s.Class)
-                .Include(s => s.Parents)
+                .Include(s => s.StudentClasses) // Lấy thông tin lớp qua StudentClasses
+                    .ThenInclude(sc => sc.Class) // Lấy chi tiết lớp
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.AcademicYear) // Lấy thông tin năm học
+                .Include(s => s.Parents) // Lấy thông tin phụ huynh trực tiếp
                 .ToListAsync();
         }
+
         public IQueryable<Student> GetAll()
         {
             return _context.Students.AsQueryable();
         }
+
         public async Task<Student?> GetByIdAsync(int id)
         {
             return await _context.Students
-                .Include(s => s.Class)
-                .Include(s => s.Parents)
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.Class)
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.AcademicYear)
+                .Include(s => s.Parents) // Lấy thông tin phụ huynh trực tiếp
                 .FirstOrDefaultAsync(s => s.StudentId == id);
         }
 
@@ -58,11 +65,13 @@ namespace Infrastructure.Repositories.Implementtations
                 await _context.SaveChangesAsync();
             }
         }
+
         public async Task AddRangeAsync(IEnumerable<Student> students)
         {
             await _context.Students.AddRangeAsync(students);
             await _context.SaveChangesAsync();
         }
+
         public async Task<bool> ExistsAsync(string idCard)
         {
             return await _context.Students.AnyAsync(s => s.IdcardNumber == idCard);

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Application.Features.Classes.DTOs;
 using Application.Features.Students.DTOs;
 using Application.Features.Teachers.DTOs;
 using AutoMapper;
@@ -19,6 +20,8 @@ namespace HGSMAPI.AutoMapper
             CreateMap<Teacher, TeacherDetailDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User != null ? src.User.UserId : (int?)null));
             CreateMap<Student, StudentDto>().ReverseMap();
+            CreateMap<Class, ClassDto>();
+            CreateMap<ClassDto, Class>();
         }
     }
 }
