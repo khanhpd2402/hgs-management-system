@@ -13,7 +13,7 @@ import { summaryStudentScore2 } from "./data2";
 
 // Sample data - replace with actual API data in production
 
-export default function SummaryStudentScore() {
+export default function StudentListScore() {
   const [data, setData] = useState(summaryStudentScore);
 
   // Hàm để xác định màu nền dựa trên học lực
