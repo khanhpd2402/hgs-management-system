@@ -24,6 +24,8 @@ const menuItems = [
       { label: "Công việc kiêm nhiệm", path: "/staff/tasks" },
       { label: "Phân công chủ nhiệm", path: "/staff/homeroom" },
       { label: "Khen thưởng - Kỷ luật", path: "/staff/awards" },
+      { label: "Lịch giảng dạy", path: "/staff/schedule" },
+
     ],
   },
 ];
