@@ -18,7 +18,9 @@ namespace Application.Features.Students.Interfaces
         Task AddStudentAsync(StudentDto studentDto);
         Task UpdateStudentAsync(StudentDto studentDto);
         Task DeleteStudentAsync(int id);
-        Task<byte[]> ExportStudentsToExcelAsync();
+        Task<byte[]> ExportStudentsFullToExcelAsync();
+        Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns);
+
         Task ImportStudentsFromExcelAsync(IFormFile file);
     }
 }

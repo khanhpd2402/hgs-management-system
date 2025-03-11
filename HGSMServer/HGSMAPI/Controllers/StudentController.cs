@@ -1,6 +1,5 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
@@ -62,12 +61,21 @@ namespace HGSMAPI.Controllers
             await _studentService.DeleteStudentAsync(id);
             return NoContent();
         }
-        [HttpGet("export")]
-        public async Task<IActionResult> ExportStudentsToExcel()
+        [HttpGet("export-full-excel")]
+        public async Task<IActionResult> ExportStudentsFullToExcel()
         {
-            var fileData = await _studentService.ExportStudentsToExcelAsync();
-            return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students.xlsx");
+            var fileBytes = await _studentService.ExportStudentsFullToExcelAsync();
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students_Full.xlsx");
         }
+
+        [HttpPost("export-selected-excel")]
+        public async Task<IActionResult> ExportStudentsSelectedToExcel([FromBody] List<string> selectedColumns)
+        {
+            var fileBytes = await _studentService.ExportStudentsSelectedToExcelAsync(selectedColumns);
+            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students_Selected.xlsx");
+        }
+
+
 
         [HttpPost("import")]
         public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)
