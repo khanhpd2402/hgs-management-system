@@ -13,11 +13,11 @@ public partial class TeachingAssignment
 
     public int ClassId { get; set; }
 
-    public byte Semester { get; set; }
-
-    public string AcademicYear { get; set; } = null!;
+    public int SemesterId { get; set; }
 
     public virtual Class Class { get; set; } = null!;
+
+    public virtual Semester Semester { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;
 
