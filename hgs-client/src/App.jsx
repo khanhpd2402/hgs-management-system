@@ -7,12 +7,14 @@ import StudentScore from "./pages/Student/SummaryScore/StudentScore";
 
 const App = () => {
   return (
-    // <AppRouter />
+    <>
+      <AppRouter />
+    </>
     // <AddStudentForm />
     // // <StudentProfile />
     // <MarkReportTable />
     // <StudentListScore />
-    <StudentScore />
+    // <StudentScore />
   );
 };
 

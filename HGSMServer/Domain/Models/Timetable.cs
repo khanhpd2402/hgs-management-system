@@ -1,4 +1,7 @@
-﻿namespace Domain.Models;
+﻿using System;
+using System.Collections.Generic;
+
+namespace Domain.Models;
 
 public partial class Timetable
 {
@@ -16,13 +19,13 @@ public partial class Timetable
 
     public int Period { get; set; }
 
-    public string SchoolYear { get; set; } = null!;
-
-    public int Semester { get; set; }
-
     public DateOnly EffectiveDate { get; set; }
 
+    public int SemesterId { get; set; }
+
     public virtual Class Class { get; set; } = null!;
+
+    public virtual Semester Semester { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;
 

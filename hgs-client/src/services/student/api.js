@@ -12,5 +12,5 @@ export const getStudents = async (
   if (grade) filterParams.push(`grade=${grade}`);
   if (classname) filterParams.push(`class=${classname}`);
 
-  return (await axiosInstance.get("student")).data;
+  return (await axiosInstance.get(`student?page=${page}`)).data;
 };

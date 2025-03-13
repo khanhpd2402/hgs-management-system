@@ -35,6 +35,9 @@ const DatePicker = ({ value, onSelect, locale = vi }) => {
           onSelect={onSelect}
           initialFocus
           locale={locale}
+          disabled={(date) =>
+            date > new Date() || date < new Date("1900-01-01")
+          }
         />
       </PopoverContent>
     </Popover>

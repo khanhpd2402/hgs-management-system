@@ -1,6 +1,5 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 

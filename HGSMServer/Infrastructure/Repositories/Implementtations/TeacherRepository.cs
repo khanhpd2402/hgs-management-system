@@ -52,5 +52,15 @@ namespace Infrastructure.Repositories.Implementtations
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<bool> ExistsAsync(string idCard, string insuranceNumber)
+        {
+            return await _context.Teachers.AnyAsync(t => t.IdcardNumber == idCard || t.InsuranceNumber == insuranceNumber);
+        }
+
+        public async Task AddRangeAsync(IEnumerable<Teacher> teachers)
+        {
+            await _context.Teachers.AddRangeAsync(teachers);
+            await _context.SaveChangesAsync();
+        }
     }
 }

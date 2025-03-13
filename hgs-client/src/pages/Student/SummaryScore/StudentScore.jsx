@@ -12,7 +12,7 @@ import { studentData } from "./studentData";
 import StudentScoreHeader from "./StudentScoreHeader";
 
 export default function StudentScore() {
-  const [semester, setSemester] = useState(2);
+  const [semester, setSemester] = useState(1);
   const [studentDada, setStudentDada] = useState(studentData);
 
   // Hàm để xác định màu nền dựa trên học lực
@@ -31,22 +31,22 @@ export default function StudentScore() {
   return (
     <Card className="relative mt-6 p-4 shadow-md">
       <StudentScoreHeader setSemester={setSemester} />
-      <div className="max-h-[400px] overflow-auto rounded-md border border-gray-200">
+      <div className="h-fit overflow-auto rounded-md border border-gray-200">
         {/* Container cho bảng với overflow-x-auto */}
         <div className="min-w-max">
-          <Table className="w-full border-collapse text-center">
-            <TableHeader className="sticky top-0 z-10 bg-gray-100">
+          <Table className="w-full border-collapse text-center [&_td]:border [&_td]:border-gray-300 [&_th]:border [&_th]:border-gray-300">
+            <TableHeader className="bg-gray-100">
               {/* Hàng đầu tiên: Gộp tiêu đề "ĐGDTX" */}
-              <TableRow className="h-[0px]">
+              <TableRow className="h-10">
                 <TableHead
                   rowSpan={2}
-                  className="h-5 w-5 border border-gray-300 text-center font-semibold"
+                  className="h-5 w-5 text-center font-semibold"
                 >
                   STT
                 </TableHead>
                 <TableHead
                   rowSpan={2}
-                  className="h-5 w-60 border border-gray-300 text-center font-semibold"
+                  className="h-5 w-60 text-center font-semibold"
                 >
                   Họ và tên
                 </TableHead>
@@ -54,7 +54,7 @@ export default function StudentScore() {
                 {/* Gộp cột tiêu đề DGDTX */}
                 <TableHead
                   colSpan={scoreCol.length}
-                  className="h-5 w-40 border border-gray-300 text-center font-semibold"
+                  className="h-5 w-40 text-center font-semibold"
                 >
                   ĐGDTX
                 </TableHead>
@@ -62,40 +62,40 @@ export default function StudentScore() {
                 {/* Các cột khác */}
                 <TableHead
                   rowSpan={2}
-                  className="h-5 border border-gray-300 text-center font-semibold"
+                  className="h-5 text-center font-semibold"
                 >
                   DDGGK
                 </TableHead>
                 <TableHead
                   rowSpan={2}
-                  className="h-5 border border-gray-300 text-center font-semibold"
+                  className="h-5 text-center font-semibold"
                 >
                   DDGCK
                 </TableHead>
                 <TableHead
                   rowSpan={2}
-                  className="h-5 border border-gray-300 text-center font-semibold"
+                  className="h-5 text-center font-semibold"
                 >
                   TBM
                 </TableHead>
                 {semester == 2 && (
                   <TableHead
                     rowSpan={2}
-                    className="h-5 border border-gray-300 text-center font-semibold"
+                    className="h-5 text-center font-semibold"
                   >
                     TBMCN
                   </TableHead>
                 )}
                 <TableHead
                   rowSpan={2}
-                  className="h-5 border border-gray-300 text-center font-semibold"
+                  className="h-5 text-center font-semibold"
                 >
                   Nhận xét
                 </TableHead>
                 {semester == 2 && (
                   <TableHead
                     rowSpan={2}
-                    className="h-5 border border-gray-300 text-center font-semibold"
+                    className="h-5 text-center font-semibold"
                   >
                     Nhận xét cả năm
                   </TableHead>
@@ -107,7 +107,7 @@ export default function StudentScore() {
                 {scoreCol.map((_, index) => (
                   <TableHead
                     key={index}
-                    className="h-5 w-10 border border-gray-300 text-center font-semibold"
+                    className="h-10 w-10 text-center font-semibold"
                   >
                     {index + 1}
                   </TableHead>
@@ -121,7 +121,7 @@ export default function StudentScore() {
                     key={index}
                     className="divide-x divide-gray-300 transition-colors hover:bg-gray-50"
                   >
-                    <TableCell className="border border-gray-300 text-center font-medium">
+                    <TableCell className="text-center font-medium">
                       {index + 1}
                     </TableCell>
                     <TableCell className="border border-gray-300 pl-2 text-left font-medium">

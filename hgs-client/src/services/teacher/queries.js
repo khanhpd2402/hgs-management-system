@@ -1,18 +1,29 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
 import {
-  getEmployees,
+  getTeachers,
   getHeadTeacherAssignments,
   getTeachingAssignments,
+  getTeacher,
 } from "./api";
 
-export function useEmployees({ page, pageSize, department, contract, search }) {
+export function useTeachers({ page, pageSize, department, contract, search }) {
   return useQuery({
-    queryKey: ["employees", { page, pageSize, department, contract, search }],
+    queryKey: ["teachers", { page, pageSize, department, contract, search }],
     queryFn: () => {
-      return getEmployees(page, pageSize, department, contract, search);
+      return getTeachers(page, pageSize, department, contract, search);
     },
     placeholderData: keepPreviousData,
     // throwOnError: true,
+  });
+}
+
+export function useTeacher(id) {
+  return useQuery({
+    queryKey: ["teacher", id],
+    queryFn: () => {
+      return getTeacher(id);
+    },
+    enabled: !!id,
   });
 }
 

@@ -2,6 +2,7 @@
 using Application.Features.Teachers.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace HGSMAPI.Controllers
 {
@@ -20,6 +21,7 @@ namespace HGSMAPI.Controllers
         /// Lấy danh sách giáo viên (chỉ thông tin quan trọng)
         /// </summary>
         [HttpGet]
+        [EnableQuery]
         public async Task<ActionResult<IEnumerable<TeacherDetailDto>>> GetAllTeachers()
         {
             var teachers = await _teacherService.GetAllTeachersAsync();

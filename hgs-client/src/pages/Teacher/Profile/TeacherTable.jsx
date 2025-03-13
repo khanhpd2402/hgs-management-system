@@ -12,12 +12,11 @@ import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import MyPagination from "@/components/MyPagination";
-import { useEmployees } from "@/services/teacher/queries";
+import { useTeachers } from "@/services/teacher/queries";
 import TeacherTableHeader from "./TeacherTableHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
@@ -30,16 +29,7 @@ export default function TeacherTable() {
     search: "",
   });
 
-  // const { data, isPending, error, isError, isFetching } = useEmployees(filter);
-  const { data, isPending, error, isError, isFetching } = useQuery({
-    queryKey: ["employees", filter],
-    queryFn: async () => {
-      const res = await axios.get(
-        `http://localhost:8080/Employees?_page=${filter.page}&_limit=${filter.pageSize}`,
-      );
-      return res.data;
-    },
-  });
+  const { data, isPending, error, isError, isFetching } = useTeachers(filter);
 
   console.log(data);
 
@@ -77,7 +67,7 @@ export default function TeacherTable() {
 
   return (
     <Card className="relative mt-6 p-4">
-      <TeacherTableHeader setFilter={setFilter} />
+      <TeacherTableHeader setFilter={setFilter} type="teachers" />
 
       {/* Container chính không có overflow-x-auto */}
       <div className="max-h-[400px] overflow-auto">
@@ -142,9 +132,9 @@ export default function TeacherTable() {
             </TableHeader>
             <TableBody>
               {data.length > 0 ? (
-                data.map((employee) => (
+                data.map((teacher) => (
                   <TableRow
-                    key={employee.id}
+                    key={teacher.id}
                     className="divide-x divide-gray-300"
                   >
                     <TableCell className="h-16 border border-gray-300 p-0 text-center whitespace-nowrap">
@@ -156,40 +146,40 @@ export default function TeacherTable() {
                       </Button>
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      {employee.id}
+                      {teacher.id}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.name}
+                      {teacher.name}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.phone}
+                      {teacher.phone}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.email}
+                      {teacher.email}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      {employee.status}
+                      {teacher.status}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.dob}
+                      {teacher.dob}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.gender}
+                      {teacher.gender}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.ethnicity}
+                      {teacher.ethnicity}
                     </TableCell>
                     <TableCell className="h-16border border-gray-300 text-left whitespace-nowrap">
-                      {employee.position}
+                      {teacher.position}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.department}
+                      {teacher.department}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.contract}
+                      {teacher.employmentType}
                     </TableCell>
                     <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.workLocation}
+                      {teacher.additionalDuties}
                     </TableCell>
                   </TableRow>
                 ))
