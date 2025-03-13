@@ -28,8 +28,6 @@ export default function StudentTable() {
 
   const { data, isPending, error, isError, isFetching } = useStudents(filter);
 
-  console.log(error);
-
   const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;
@@ -41,7 +39,7 @@ export default function StudentTable() {
   return (
     <>
       <Card className="relative mt-6 p-4">
-        <StudentTableHeader type="students" setFilter={setFilter} />
+        <StudentTableHeader type="student" setFilter={setFilter} />
         <div className="overflow-x-auto">
           {isFetching && <Spinner />}
 

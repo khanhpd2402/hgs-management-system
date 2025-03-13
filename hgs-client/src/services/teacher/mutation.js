@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { importTeachers } from "./api";
+import { importTeachers, updateTeacher } from "./api";
 
 export function useImportTeachers() {
   return useMutation({
@@ -10,6 +10,16 @@ export function useImportTeachers() {
       } else {
         console.log(data);
       }
+    },
+  });
+}
+
+export function useUpdateTeacher() {
+  return useMutation({
+    mutationFn: (data) => updateTeacher(data.id, data),
+    onSuccess: () => {},
+    onError: (error) => {
+      console.log(error);
     },
   });
 }

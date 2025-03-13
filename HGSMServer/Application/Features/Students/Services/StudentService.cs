@@ -89,16 +89,19 @@ namespace Application.Features.Students.Services
     { "IdcardNumber", "Số CMND/CCCD" },
     { "Status", "Trạng thái" }
 };
-
         private StudentExportDto StudentToStudentExportDto(Student s)
         {
+            // Lấy lớp hiện tại (giả sử dựa trên năm học hiện tại)
+            var currentClass = s.StudentClasses
+                .FirstOrDefault(sc => sc.AcademicYear.YearName == "2024-2025")?.Class;
+
             return new StudentExportDto
             {
                 StudentId = s.StudentId,
                 FullName = s.FullName,
                 Dob = s.Dob.ToString(AppConstants.DATE_FORMAT),
                 Gender = s.Gender,
-                ClassName = s.Class?.ClassName ?? "Không rõ",
+                ClassName = currentClass?.ClassName ?? "Không rõ",
                 AdmissionDate = s.AdmissionDate.ToString(AppConstants.DATE_FORMAT),
                 EnrollmentType = s.EnrollmentType,
                 Ethnicity = s.Ethnicity,
@@ -136,7 +139,6 @@ namespace Application.Features.Students.Services
                     FullName = row["Họ và tên"]?.ToString().Trim() ?? throw new Exception("Họ và tên không được để trống."),
                     Dob = DateHelper.ParseDate(row["Ngày sinh"]?.ToString()),
                     Gender = row["Giới tính"]?.ToString().Trim() ?? throw new Exception("Giới tính không được để trống."),
-                    ClassId = 1,
                     AdmissionDate = DateHelper.ParseDate(row["Ngày nhập học"]?.ToString()),
                     EnrollmentType = row["Hình thức nhập học"]?.ToString().Trim(),
                     Ethnicity = row["Dân tộc"]?.ToString().Trim(),
@@ -145,9 +147,16 @@ namespace Application.Features.Students.Services
                     Religion = row["Tôn giáo"]?.ToString().Trim(),
                     RepeatingYear = !string.IsNullOrWhiteSpace(row["Lưu ban"]?.ToString()) && row["Lưu ban"].ToString().Trim() == "Có",
                     IdcardNumber = idCardNumber, // Đã kiểm tra trùng lặp và null trước khi gán
-                    Status = row["Trạng thái"]?.ToString().Trim() ?? "Đang học"
+                    Status = row["Trạng thái"]?.ToString().Trim() ?? "Đang học",
+                    StudentClasses = new List<StudentClass>
+    {
+        new StudentClass
+        {
+            ClassId = 1, // Lớp cố định, có thể thay bằng logic động
+            AcademicYearId = 1 // Năm học cố định, cần thay bằng giá trị thực tế
+        }
+    }
                 };
-
                 students.Add(student);
             }
 

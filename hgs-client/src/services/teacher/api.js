@@ -1,6 +1,6 @@
 import { axiosInstance } from "../axios";
 
-export const getEmployees = async (
+export const getTeachers = async (
   page = 1,
   limit = 5,
   department = "",
@@ -15,13 +15,15 @@ export const getEmployees = async (
 
   const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
 
-  console.log(queryString);
+  return (await axiosInstance.get(`teachers`)).data;
+};
 
-  return (
-    await axiosInstance.get(
-      `teachers?_limit=${limit}&_page=${page}&q=${encodeURIComponent(searchValue)}${queryString}`,
-    )
-  ).data;
+export const getTeacher = async (id) => {
+  return (await axiosInstance.get(`teachers/${id}`)).data;
+};
+
+export const updateTeacher = async (id, data) => {
+  return (await axiosInstance.put(`teachers/${id}`, data)).data;
 };
 
 export const getTeachingAssignments = async (

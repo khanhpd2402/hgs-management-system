@@ -9,11 +9,18 @@ import { createBrowserRouter, RouterProvider } from "react-router";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
+const TeacherProfile = lazy(
+  () => import("@/pages/Teacher/Profile/TeacherProfile"),
+);
 const TATable = lazy(
   () => import("@/pages/Teacher/TeachingAssignment/TATable"),
 );
 const HTATable = lazy(
   () => import("@/pages/Teacher/HeadTeacherAssignment/HTATable"),
+);
+
+const StudentScore = lazy(
+  () => import("@/pages/Student/SummaryScore/StudentScore"),
 );
 
 const AppRouter = () => {
@@ -39,6 +46,17 @@ const privateRouter = [
           <ErrorBoundary fallback={<FallbackErrorBoundary />}>
             <Suspense fallback={<div>Loading...</div>}>
               <TeacherTable />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+        // errorElement: <ErrorRouteComponent />,
+      },
+      {
+        path: "/teacher/profile/:id",
+        element: (
+          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <TeacherProfile />
             </Suspense>
           </ErrorBoundary>
         ),
@@ -81,6 +99,14 @@ const privateRouter = [
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <StudentTable />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/student/score",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentScore />
           </Suspense>
         ),
       },
