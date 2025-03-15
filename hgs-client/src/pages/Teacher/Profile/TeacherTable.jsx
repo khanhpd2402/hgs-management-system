@@ -17,9 +17,17 @@ import TeacherTableHeader from "./TeacherTableHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
 import { useQueryClient } from "@tanstack/react-query";
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenu } from "@radix-ui/react-dropdown-menu";
+import { useNavigate } from "react-router";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const [filter, setFilter] = useState({
     page: 1,
@@ -30,7 +38,6 @@ export default function TeacherTable() {
   });
 
   const { data, isPending, error, isError, isFetching } = useTeachers(filter);
-
   console.log(data);
 
   const { page, pageSize } = filter;
@@ -41,7 +48,6 @@ export default function TeacherTable() {
     startIndex + pageSize - 1,
   );
 
-  // Tính toán hàng hiển thị
   if (isPending) {
     return (
       <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
@@ -66,66 +72,54 @@ export default function TeacherTable() {
   }
 
   return (
-    <Card className="relative mt-6 p-4">
+    <Card className="p-4">
       <TeacherTableHeader setFilter={setFilter} type="teachers" />
 
-      {/* Container chính không có overflow-x-auto */}
-      <div className="max-h-[400px] overflow-auto">
-        {isFetching && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
-            <Spinner />
-          </div>
-        )}
-
-        {/* Container cho bảng với overflow-x-auto */}
-        <div className="min-w-max">
-          <Table
-            className="w-full border border-gray-300"
-            style={{ minWidth: "1500px" }}
-          >
+      {/* Container chính với overflow-auto để cuộn ngang */}
+      <div className="max-h-[400px] overflow-auto border border-gray-200">
+        {/* Bảng sẽ có chiều rộng cố định lớn để hiển thị đầy đủ nội dung */}
+        <div>
+          <Table className="w-full border-collapse">
             <TableHeader className="bg-gray-100">
               <TableRow>
-                <TableHead className="w-12 border border-gray-300 p-0 text-center whitespace-nowrap">
+                <TableHead className="w-[100px] border border-gray-300 p-0 text-center">
                   <Checkbox />
                 </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="w-[100px] border border-gray-300 text-center">
                   Thao tác
                 </TableHead>
-                <TableHead className="w-12 border border-gray-300 text-center whitespace-nowrap">
-                  ID
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+
+                <TableHead className="w-[200px] border border-gray-300 text-center">
                   Họ tên cán bộ
                 </TableHead>
-
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[150px] border border-gray-300 text-center">
                   Số ĐTDD
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[200px] border border-gray-300 text-center">
                   Địa chỉ Email
                 </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                <TableHead className="w-[120px] border border-gray-300 text-center">
                   Trạng thái
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[150px] border border-gray-300 text-center">
                   Ngày sinh
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[120px] border border-gray-300 text-center">
                   Giới tính
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[120px] border border-gray-300 text-center">
                   Dân tộc
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[150px] border border-gray-300 text-center">
                   Chức vụ
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[150px] border border-gray-300 text-center">
                   Tổ bộ môn
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[180px] border border-gray-300 text-center">
                   Hình thức hợp đồng
                 </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
+                <TableHead className="w-[180px] border border-gray-300 text-center">
                   Vị trí làm việc
                 </TableHead>
               </TableRow>
@@ -134,58 +128,69 @@ export default function TeacherTable() {
               {data.length > 0 ? (
                 data.map((teacher) => (
                   <TableRow
-                    key={teacher.id}
+                    key={teacher.teacherId}
                     className="divide-x divide-gray-300"
                   >
-                    <TableCell className="h-16 border border-gray-300 p-0 text-center whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 p-0 text-center">
                       <Checkbox />
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      <Button variant="outline" size="icon">
-                        <Settings className="h-4 w-4" />
-                      </Button>
+                    <TableCell className="h-16 border border-gray-300 text-center">
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="outline" size="icon">
+                            <Settings className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem
+                            onClick={() =>
+                              navigate(`/teacher/profile/${teacher.teacherId}`)
+                            }
+                          >
+                            Xem hồ sơ
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      {teacher.id}
+
+                    <TableCell className="h-16 border border-gray-300 text-center">
+                      {teacher.fullName}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {teacher.name}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.phone}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.email}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.status}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.dob}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.gender}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.ethnicity}
                     </TableCell>
-                    <TableCell className="h-16border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.position}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.department}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-left">
                       {teacher.employmentType}
                     </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                    <TableCell className="h-16 border border-gray-300 text-center">
                       {teacher.additionalDuties}
                     </TableCell>
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={14} className="text-xl">
+                  <TableCell colSpan={14} className="p-4 text-center">
                     Không có dữ liệu
                   </TableCell>
                 </TableRow>
@@ -194,7 +199,7 @@ export default function TeacherTable() {
           </Table>
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
           setFilter={setFilter}
