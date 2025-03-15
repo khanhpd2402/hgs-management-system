@@ -1,7 +1,7 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import { useParams } from "react-router";
+import { data, useParams } from "react-router";
 import { useTeacher } from "@/services/teacher/queries";
 import { Spinner } from "@/components/Spinner";
 import { useUpdateTeacher } from "@/services/teacher/mutation";
@@ -19,12 +19,76 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 
 export default function TeacherProfile() {
   const { id } = useParams();
   const teacherQuery = useTeacher(id);
   const { mutate, isPending: isUpdating } = useUpdateTeacher();
-  console.log(teacherQuery.data);
+
+  const teacherSchema = z.object({
+    // Basic info
+    fullName: z
+      .string()
+      .min(1, "Họ và tên không được để trống")
+      .regex(
+        /^[\p{L}\s]+$/u,
+        "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+      ),
+    position: z.string().optional(),
+    department: z.string().optional(),
+
+    // Personal information
+    gender: z.enum(["Nam", "Nữ", "Khác"]).optional(),
+    dob: z.date().nullable(),
+    idcardNumber: z
+      .string()
+      .length(12, "Số CMND/CCCD phải có đúng 13 chữ số")
+      .regex(/^\d{12}$/, "Số CMND/CCCD chỉ được chứa chữ số"),
+    hometown: z
+      .string()
+      .min(1, "Quê quán không được để trống")
+      .regex(
+        /^[\p{L}\s]+$/u,
+        "Quê quán không được chứa số hoặc ký tự đặc biệt",
+      ),
+    ethnicity: z
+      .string()
+      .min(1, "Dân tộc không được để trống")
+      .regex(/^[\p{L}\s]+$/u, "Dân tộc không được chứa số hoặc ký tự đặc biệt"),
+    religion: z
+      .string()
+      .min(1, "Tôn giáo không được để trống")
+      .regex(
+        /^[\p{L}\s]+$/u,
+        "Tôn giáo không được chứa số hoặc ký tự đặc biệt",
+      ),
+    maritalStatus: z
+      .enum(["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"])
+      .optional(),
+    permanentAddress: z
+      .string()
+      .min(1, "Địa chỉ không được để trống")
+      .regex(/^[\p{L}\d\s,]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
+
+    // Employment information
+    additionalDuties: z.string().optional(),
+    isHeadOfDepartment: z.boolean().optional().default(false),
+    employmentType: z
+      .enum(["Biên chế", "Hợp đồng dài hạn", "Hợp đồng ngắn hạn", "Cơ hữu"])
+      .optional(),
+    employmentStatus: z
+      .enum(["Đang làm việc", "Nghỉ phép", "Đã nghỉ việc"])
+      .optional(),
+    recruitmentAgency: z.string().optional(),
+    insuranceNumber: z.string().optional(),
+
+    // Employment dates
+    hiringDate: z.date().nullable(),
+    schoolJoinDate: z.date().nullable(),
+    permanentEmploymentDate: z.date().nullable(),
+  });
 
   const {
     register,
@@ -34,7 +98,9 @@ export default function TeacherProfile() {
     control,
     reset,
     formState: { errors },
-  } = useForm();
+  } = useForm({
+    resolver: zodResolver(teacherSchema),
+  });
 
   // Initialize form when teacherQuery.data is loaded
   useEffect(() => {
@@ -68,22 +134,28 @@ export default function TeacherProfile() {
 
   // Submit handler
   const onSubmit = (formData) => {
-    // Convert Date objects to ISO strings for API
-    const processedData = { ...formData };
-    ["dob", "hiringDate", "schoolJoinDate", "permanentEmploymentDate"].forEach(
-      (field) => {
-        if (processedData[field] instanceof Date) {
-          processedData[field] = processedData[field].toISOString();
-        }
-      },
-    );
+    const processedData = {
+      ...formData,
+      dob: formData.dob ? formData.dob.toISOString().split("T")[0] : null,
+      hiringDate: formData.hiringDate
+        ? formData.hiringDate.toISOString().split("T")[0]
+        : null,
+      schoolJoinDate: formData.schoolJoinDate
+        ? formData.schoolJoinDate.toISOString().split("T")[0]
+        : null,
+      permanentEmploymentDate: formData.permanentEmploymentDate
+        ? formData.permanentEmploymentDate.toISOString().split("T")[0]
+        : null,
+    };
 
-    mutate({ id, ...processedData }, {});
+    mutate({ id, data: processedData });
   };
 
   // Form field component
-  const FormField = ({ name, label, defaultValue, type = "text", options }) => {
-    // For select fields
+  const FormField = ({ name, label, type = "text", options }) => {
+    const error = errors[name]; // Lấy lỗi của field
+
+    // Select field
     if (type === "select" && Array.isArray(options)) {
       return (
         <div className="space-y-2">
@@ -91,7 +163,7 @@ export default function TeacherProfile() {
           <Controller
             name={name}
             control={control}
-            defaultValue={watch(name) || defaultValue || ""}
+            defaultValue={watch(name) || ""}
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
@@ -107,11 +179,12 @@ export default function TeacherProfile() {
               </Select>
             )}
           />
+          {error && <p className="text-sm text-red-500">{error.message}</p>}
         </div>
       );
     }
 
-    // For boolean fields
+    // Boolean field (Switch)
     if (type === "boolean") {
       return (
         <div className="flex items-center justify-between">
@@ -128,11 +201,12 @@ export default function TeacherProfile() {
               />
             )}
           />
+          {error && <p className="text-sm text-red-500">{error.message}</p>}
         </div>
       );
     }
 
-    // For date fields
+    // Date field
     if (type === "date") {
       return (
         <div className="space-y-2">
@@ -144,6 +218,7 @@ export default function TeacherProfile() {
               <DatePicker value={field.value} onSelect={field.onChange} />
             )}
           />
+          {error && <p className="text-sm text-red-500">{error.message}</p>}
         </div>
       );
     }
@@ -152,7 +227,8 @@ export default function TeacherProfile() {
     return (
       <div className="space-y-2">
         <Label htmlFor={name}>{label}</Label>
-        <Input id={name} {...register(name)} defaultValue={defaultValue} />
+        <Input id={name} {...register(name)} />
+        {error && <p className="text-sm text-red-500">{error.message}</p>}
       </div>
     );
   };
@@ -246,7 +322,8 @@ export default function TeacherProfile() {
             name="maritalStatus"
             label="Tình trạng hôn nhân"
             type="select"
-            defaultValue={["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"]}
+            options={["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"]}
+            defaultValue={teacherQuery.data?.maritalStatus}
           />
           <FormField
             name="permanentAddress"
@@ -276,7 +353,13 @@ export default function TeacherProfile() {
             name="employmentType"
             label="Loại hợp đồng"
             type="select"
-            defaultValue={["Biên chế", "Hợp đồng dài hạn", "Hợp đồng ngắn hạn"]}
+            options={[
+              "Biên chế",
+              "Hợp đồng dài hạn",
+              "Hợp đồng ngắn hạn",
+              "Cơ hữu",
+            ]}
+            defaultValue={teacherQuery.data?.employmentType}
           />
           <FormField
             name="employmentStatus"

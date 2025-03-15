@@ -7,9 +7,9 @@ import StudentScore from "./pages/Student/SummaryScore/StudentScore";
 
 const App = () => {
   return (
-    <>
+    <div>
       <AppRouter />
-    </>
+    </div>
     // <AddStudentForm />
     // // <StudentProfile />
     // <MarkReportTable />

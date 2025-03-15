@@ -16,10 +16,16 @@ export function useImportTeachers() {
 
 export function useUpdateTeacher() {
   return useMutation({
-    mutationFn: (data) => updateTeacher(data.id, data),
-    onSuccess: () => {},
-    onError: (error) => {
-      console.log(error);
+    mutationFn: ({ id, data }) => updateTeacher(id, data),
+
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        console.log("đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        console.log("cập nhật thành công");
+      }
     },
   });
 }
