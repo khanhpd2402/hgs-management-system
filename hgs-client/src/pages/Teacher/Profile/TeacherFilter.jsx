@@ -32,8 +32,8 @@ const fields = [
 //   { value: "whole_school", label: "Toàn trường" },
 // ];
 const departments = [
-  { value: "Physics", label: "Vật Lý" },
-  { value: "Math", label: "Toán" },
+  { value: "Vật lý", label: "Vật Lý" },
+  { value: "Toán", label: "Toán" },
 ];
 
 // const contracts = [
