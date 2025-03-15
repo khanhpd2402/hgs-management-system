@@ -7,15 +7,38 @@ export const getTeachers = async (
   contract = "",
   searchValue = "",
 ) => {
-  // Tạo query string cho bộ lọc
+  // Tạo mảng chứa các tham số OData
   const filterParams = [];
-  if (department)
-    filterParams.push(`department=${encodeURIComponent(department)}`);
-  if (contract) filterParams.push(`contract=${encodeURIComponent(contract)}`);
 
-  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
+  if (department) {
+    filterParams.push(`Department eq '${encodeURIComponent(department)}'`);
+  }
+  if (contract) {
+    filterParams.push(`ContractType eq '${encodeURIComponent(contract)}'`);
+  }
+  if (searchValue) {
+    filterParams.push(`contains(Name, '${encodeURIComponent(searchValue)}')`);
+  }
 
-  return (await axiosInstance.get(`teachers`)).data;
+  // Gộp các điều kiện lọc lại thành một chuỗi OData
+  const filterQuery =
+    filterParams.length > 0 ? `$filter=${filterParams.join(" and ")}` : "";
+
+  // Tính toán `$skip` để phân trang
+  const skip = (page - 1) * limit;
+
+  // Tạo URL với OData query
+  const queryString = [
+    filterQuery,
+    `$top=${limit}`,
+    `$skip=${skip}`,
+    `$orderby=fullName asc`, // Sắp xếp theo tên
+  ]
+    .filter(Boolean) // Loại bỏ giá trị rỗng
+    .join("&");
+
+  // Gọi API với axiosInstance
+  return (await axiosInstance.get(`teachers?${queryString}`)).data;
 };
 
 export const getTeacher = async (id) => {
