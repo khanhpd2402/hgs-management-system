@@ -1,44 +1,8 @@
 import { axiosInstance } from "../axios";
 
-export const getTeachers = async (
-  page = 1,
-  limit = 5,
-  department = "",
-  contract = "",
-  searchValue = "",
-) => {
-  // Tạo mảng chứa các tham số OData
-  const filterParams = [];
-
-  if (department) {
-    filterParams.push(`Department eq '${encodeURIComponent(department)}'`);
-  }
-  if (contract) {
-    filterParams.push(`ContractType eq '${encodeURIComponent(contract)}'`);
-  }
-  if (searchValue) {
-    filterParams.push(`contains(Name, '${encodeURIComponent(searchValue)}')`);
-  }
-
-  // Gộp các điều kiện lọc lại thành một chuỗi OData
-  const filterQuery =
-    filterParams.length > 0 ? `$filter=${filterParams.join(" and ")}` : "";
-
-  // Tính toán `$skip` để phân trang
-  const skip = (page - 1) * limit;
-
-  // Tạo URL với OData query
-  const queryString = [
-    filterQuery,
-    `$top=${limit}`,
-    `$skip=${skip}`,
-    `$orderby=fullName asc`, // Sắp xếp theo tên
-  ]
-    .filter(Boolean) // Loại bỏ giá trị rỗng
-    .join("&");
-
+export const getTeachers = async () => {
   // Gọi API với axiosInstance
-  return (await axiosInstance.get(`teachers?${queryString}`)).data;
+  return (await axiosInstance.get(`teachers`)).data;
 };
 
 export const getTeacher = async (id) => {
@@ -52,6 +16,10 @@ export const updateTeacher = async (id, data) => {
 export const createTeacher = async (data) => {
   console.log(data);
   return (await axiosInstance.post(`teachers`, data)).data;
+};
+
+export const deleteTeacher = async (id) => {
+  return (await axiosInstance.delete(`teachers/${id}`)).data;
 };
 
 export const getTeachingAssignments = async (

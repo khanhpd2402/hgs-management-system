@@ -6,11 +6,11 @@ import {
   getTeacher,
 } from "./api";
 
-export function useTeachers({ page, pageSize, department, contract, search }) {
+export function useTeachers() {
   return useQuery({
-    queryKey: ["teachers", { page, pageSize, department, contract, search }],
+    queryKey: ["teachers"],
     queryFn: () => {
-      return getTeachers(page, pageSize, department, contract, search);
+      return getTeachers();
     },
     placeholderData: keepPreviousData,
     // throwOnError: true,
