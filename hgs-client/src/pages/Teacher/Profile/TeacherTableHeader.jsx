@@ -5,7 +5,9 @@ import PropTypes from "prop-types";
 import TeacherFilter from "./TeacherFilter";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-import ColumnConfigModal from "./ColumnConfigModal";
+import ColumnConfigModal from "../../../components/ColumnConfigModal";
+import { use } from "react";
+import { useNavigate } from "react-router";
 
 const TeacherTableHeader = ({
   type = "teachers",
@@ -14,6 +16,7 @@ const TeacherTableHeader = ({
   visibleColumns,
   columns,
 }) => {
+  const navigate = useNavigate();
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
 
   return (
@@ -23,6 +26,13 @@ const TeacherTableHeader = ({
         <TeacherFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
         <ExportExcel type={type} />
+        <Button
+          variant="outline"
+          onClick={() => navigate("/teacher/profile/create-teacher")}
+        >
+          Thêm mới
+        </Button>
+
         <Button
           variant="outline"
           onClick={() => setIsColumnConfigOpen(true)}

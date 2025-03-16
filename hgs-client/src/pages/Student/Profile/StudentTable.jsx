@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card } from "@/components/ui/card";
 import {
   Table,
@@ -10,142 +10,243 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import MyPagination from "@/components/MyPagination";
 import { useStudents } from "@/services/student/queries";
 import StudentTableHeader from "./StudentTableHeader";
-import PaginationControls from "@/components/PaginationControls"; // Import component mới
+import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router";
 
 export default function StudentTable() {
+  const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
-    grade: "",
-    class: "asc",
-    searchValue: "",
-  }); // Chọn số lượng hiển thị mặt trang
+    sort: "",
+    order: "asc",
+    search: "",
+  });
 
-  const { data, isPending, error, isError, isFetching } = useStudents(filter);
-  console.log(data);
+  // Define all available columns
+  const allColumns = [
+    { id: "actions", label: "Thao tác", width: "100px" },
+    { id: "id", label: "ID", width: "80px" },
+    { id: "fullName", label: "Họ và tên", width: "200px" },
+    { id: "gender", label: "Giới tính", width: "120px" },
+    { id: "ethnicity", label: "Dân tộc", width: "120px" },
+    { id: "grade", label: "Khối", width: "100px" },
+    { id: "class", label: "Lớp", width: "100px" },
+    { id: "status", label: "Trạng thái", width: "150px" },
+    { id: "dob", label: "Ngày sinh", width: "150px" },
+  ];
+
+  // Initialize with all columns visible
+  const [visibleColumns, setVisibleColumns] = useState(
+    allColumns.map((col) => col.id),
+  );
+
+  const { data, isPending, error, isError } = useStudents(filter);
 
   const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;
-  const endIndex = (page - 1) * pageSize + data?.length;
+  const endIndex = Math.min(
+    (page - 1) * pageSize + (data?.length || 0),
+    startIndex + pageSize - 1,
+  );
 
-  if (isPending) return <Spinner size="medium" />;
-  if (isError) return "Error";
+  // Save visible columns to localStorage
+  useEffect(() => {
+    localStorage.setItem(
+      "studentTableVisibleColumns",
+      JSON.stringify(visibleColumns),
+    );
+  }, [visibleColumns]);
+
+  // Load visible columns from localStorage on component mount
+  useEffect(() => {
+    const savedColumns = localStorage.getItem("studentTableVisibleColumns");
+    if (savedColumns) {
+      setVisibleColumns(JSON.parse(savedColumns));
+    }
+  }, []);
+
+  console.log(data);
+
+  if (isPending) {
+    return (
+      <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
+        <Spinner size="medium" />
+      </Card>
+    );
+  }
+
+  if (isError) {
+    return (
+      <div className="rounded border border-red-300 bg-red-50 p-4 text-red-500">
+        <h3 className="font-bold">Đã xảy ra lỗi:</h3>
+        <p>{error.message || "Không thể tải dữ liệu học sinh"}</p>
+        <button
+          onClick={() => queryClient.invalidateQueries(["students"])}
+          className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+        >
+          Thử lại
+        </button>
+      </div>
+    );
+  }
 
   return (
-    <>
-      <Card className="relative mt-6 p-4">
-        <StudentTableHeader type="student" setFilter={setFilter} />
-        <div className="max-h-[500px] overflow-x-auto">
-          <div className="min-w-max">
-            <Table className="w-full border border-gray-300">
+    <Card className="p-4">
+      <StudentTableHeader
+        setFilter={setFilter}
+        type="student"
+        setVisibleColumns={setVisibleColumns}
+        visibleColumns={visibleColumns}
+        columns={allColumns}
+      />
+
+      <div className="max-h-[400px] overflow-auto border border-gray-200">
+        <div className="min-w-max">
+          <div>
+            <Table className="w-full border-collapse">
               <TableHeader className="bg-gray-100">
                 <TableRow>
-                  <TableHead className="w-10 border border-gray-300 p-0 text-center">
-                    <Checkbox />
-                  </TableHead>
-                  <TableHead className="w-10 border border-gray-300 text-center">
-                    Thao tác
-                  </TableHead>
-                  <TableHead className="w-12 border border-gray-300 text-center">
-                    ID
-                  </TableHead>
-                  <TableHead className="w-40 border border-gray-300 text-center">
-                    Họ và tên
-                  </TableHead>
-                  <TableHead className="w-20 border border-gray-300 text-center">
-                    GIới tính
-                  </TableHead>
-                  <TableHead className="w-16 border border-gray-300 text-center">
-                    Dân tộc
-                  </TableHead>
-                  <TableHead className="w-16 border border-gray-300 text-center">
-                    Khối
-                  </TableHead>
-                  <TableHead className="w-16 border border-gray-300 text-center">
-                    Lớp
-                  </TableHead>
-                  <TableHead className="w-28 border border-gray-300 text-center">
-                    Trạng thái
-                  </TableHead>
-                  <TableHead className="w-28 border border-gray-300 text-center">
-                    Ngày sinh
-                  </TableHead>
-                  <TableHead className="w-32 border border-gray-300 text-center">
-                    Cấp học
-                  </TableHead>
+                  {allColumns.map(
+                    (column) =>
+                      visibleColumns.includes(column.id) && (
+                        <TableHead
+                          key={column.id}
+                          className={`w-[${column.width}] border border-gray-300 text-center`}
+                        >
+                          {column.label}
+                        </TableHead>
+                      ),
+                  )}
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data &&
-                  data?.map((student) => (
+                {data && data.length > 0 ? (
+                  data.map((student) => (
                     <TableRow
                       key={student.id}
                       className="divide-x divide-gray-300"
                     >
-                      <TableCell className="h-16 border border-gray-300 p-0 text-center">
-                        <Checkbox />
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        <Button variant="outline" size="icon">
-                          <Settings className="h-4 w-4" />
-                        </Button>
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.id}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.fullName}
-                      </TableCell>
+                      {visibleColumns.includes("actions") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                              <Button variant="outline" size="icon">
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                              <DropdownMenuItem
+                                onClick={() =>
+                                  navigate(`/student/profile/${student.id}`)
+                                }
+                              >
+                                Xem hồ sơ
+                              </DropdownMenuItem>
+                            </DropdownMenuContent>
+                          </DropdownMenu>
+                        </TableCell>
+                      )}
 
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.gender}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.ethnicity}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.grade}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.class}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.status}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.dob}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center">
-                        {student.educationLevel}
-                      </TableCell>
+                      {visibleColumns.includes("id") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.id}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("fullName") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.fullName}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("gender") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.gender}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("ethnicity") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.ethnicity}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("grade") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.grade}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("class") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.class}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("status") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.status}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("dob") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.dob}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.includes("educationLevel") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.educationLevel}
+                        </TableCell>
+                      )}
                     </TableRow>
-                  ))}
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell
+                      colSpan={visibleColumns.length}
+                      className="p-4 text-center"
+                    >
+                      Không có dữ liệu
+                    </TableCell>
+                  </TableRow>
+                )}
               </TableBody>
             </Table>
           </div>
-          <div className="mt-4 flex items-center justify-between">
-            <PaginationControls
-              pageSize={pageSize}
-              setFilter={setFilter}
-              totalItems={data.length}
-              startIndex={startIndex}
-              endIndex={endIndex}
-            />
-
-            <MyPagination
-              totalPages={6}
-              currentPage={page}
-              onPageChange={setFilter}
-            />
-          </div>
         </div>
-      </Card>
-    </>
+      </div>
+      <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <PaginationControls
+          pageSize={pageSize}
+          setFilter={setFilter}
+          totalItems={data?.length || 0}
+          startIndex={startIndex}
+          endIndex={endIndex}
+        />
+
+        <MyPagination
+          totalPages={6}
+          currentPage={page}
+          onPageChange={setFilter}
+        />
+      </div>
+    </Card>
   );
 }

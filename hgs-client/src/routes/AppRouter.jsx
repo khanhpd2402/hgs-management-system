@@ -1,8 +1,8 @@
-import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
+import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router";
@@ -58,6 +58,15 @@ const privateRouter = [
             <Suspense fallback={<div>Loading...</div>}>
               <TeacherProfile />
             </Suspense>
+          </ErrorBoundary>
+        ),
+        // errorElement: <ErrorRouteComponent />,
+      },
+      {
+        path: "/teacher/profile/create-teacher",
+        element: (
+          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+            <AddTeacher />
           </ErrorBoundary>
         ),
         // errorElement: <ErrorRouteComponent />,

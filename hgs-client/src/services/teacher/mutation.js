@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { importTeachers, updateTeacher } from "./api";
+import { createTeacher, importTeachers, updateTeacher } from "./api";
 
 export function useImportTeachers() {
   return useMutation({
@@ -25,6 +25,21 @@ export function useUpdateTeacher() {
       } else {
         console.log(data);
         console.log("cập nhật thành công");
+      }
+    },
+  });
+}
+
+export function useCreateTeacher() {
+  return useMutation({
+    mutationFn: (data) => createTeacher(data),
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        console.log("đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        console.log("tạo mới thành công");
       }
     },
   });
