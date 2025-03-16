@@ -11,8 +11,6 @@ namespace Application.Features.Students.Interfaces
 {
     public interface IStudentService
     {
-
-        Task<IEnumerable<StudentDto>> GetAllStudentsAsync();
         IQueryable<StudentDto> GetAllStudents();
         Task<StudentDto?> GetStudentByIdAsync(int id);
         Task AddStudentAsync(StudentDto studentDto);

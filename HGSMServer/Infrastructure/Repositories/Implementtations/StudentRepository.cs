@@ -1,12 +1,8 @@
 ﻿using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Repositories.Implementtations
+namespace Infrastructure.Repositories.Implementations
 {
     public class StudentRepository : IStudentRepository
     {
@@ -15,17 +11,6 @@ namespace Infrastructure.Repositories.Implementtations
         public StudentRepository(HgsdbContext context)
         {
             _context = context;
-        }
-
-        public async Task<List<Student>> GetAllStudentsAsync()
-        {
-            return await _context.Students
-                .Include(s => s.StudentClasses) // Lấy thông tin lớp qua StudentClasses
-                    .ThenInclude(sc => sc.Class) // Lấy chi tiết lớp
-                .Include(s => s.StudentClasses)
-                    .ThenInclude(sc => sc.AcademicYear) // Lấy thông tin năm học
-                .Include(s => s.Parents) // Lấy thông tin phụ huynh trực tiếp
-                .ToListAsync();
         }
 
         public IQueryable<Student> GetAll()
@@ -40,7 +25,8 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(sc => sc.Class)
                 .Include(s => s.StudentClasses)
                     .ThenInclude(sc => sc.AcademicYear)
-                .Include(s => s.Parents) // Lấy thông tin phụ huynh trực tiếp
+                .Include(s => s.StudentParents) // Sử dụng bảng trung gian
+                    .ThenInclude(sp => sp.Parent) // Lấy thông tin phụ huynh
                 .FirstOrDefaultAsync(s => s.StudentId == id);
         }
 
