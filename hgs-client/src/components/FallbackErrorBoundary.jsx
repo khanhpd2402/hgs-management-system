@@ -3,7 +3,6 @@ import { Button } from "./ui/button";
 import GradientText from "./GradientText";
 
 export function FallbackErrorBoundary({ error, resetErrorBoundary }) {
-  console.log(error);
   const errorMessage = error?.message || "Something went wrong";
 
   return (
