@@ -57,8 +57,6 @@ public partial class Teacher
 
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
 
-    public virtual ICollection<Reward> Rewards { get; set; } = new List<Reward>();
-
     public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();

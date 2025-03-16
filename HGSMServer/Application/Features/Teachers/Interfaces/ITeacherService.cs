@@ -7,14 +7,11 @@ namespace Application.Features.Teachers.Interfaces
 {
     public interface ITeacherService
     {
-
-        Task<IEnumerable<TeacherDetailDto>> GetAllTeachersAsync();
-        Task<TeacherDetailDto?> GetTeacherByIdAsync(int id);
-        Task AddTeacherAsync(TeacherDetailDto teacherDto);
+        Task<TeacherListResponseDto> GetAllTeachersAsync(bool exportToExcel = false, List<string> selectedColumns = null);
+        Task<TeacherDetailDto?> GetTeacherByIdAsync(int id); // Phải có dòng này
+        Task AddTeacherAsync(TeacherListDto teacherDto);
         Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto);
         Task DeleteTeacherAsync(int id);
-        Task<byte[]> ExportTeachersToExcelAsync(); // API xuất full
-        Task<byte[]> ExportTeachersSelectedToExcelAsync(List<string> selectedColumns);
         Task ImportTeachersFromExcelAsync(IFormFile file);
     }
 

@@ -11,6 +11,8 @@ public partial class Subject
 
     public string SubjectCategory { get; set; } = null!;
 
+    public string TypeOfGrade { get; set; } = null!;
+
     public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();

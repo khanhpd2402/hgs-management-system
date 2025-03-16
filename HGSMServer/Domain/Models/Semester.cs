@@ -25,8 +25,6 @@ public partial class Semester
 
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
 
-    public virtual ICollection<Reward> Rewards { get; set; } = new List<Reward>();
-
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 
     public virtual ICollection<Timetable> Timetables { get; set; } = new List<Timetable>();
