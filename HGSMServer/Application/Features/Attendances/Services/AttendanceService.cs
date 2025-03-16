@@ -82,13 +82,13 @@ namespace Application.Features.Attendances.Services
 
         private async Task SendSmsIfAbsent(int studentId, DateOnly date, string status, string shift, string note)
         {
-            var phoneNumber = await _attendanceRepository.GetParentPhoneNumber(studentId);
-            if (!string.IsNullOrEmpty(phoneNumber))
-            {
-                var student = await _context.Students.FindAsync(studentId);
-                var message = $"Học sinh {student.FullName} vắng mặt ngày {date:yyyy-MM-dd} (Ca: {shift}). Trạng thái: {(status == "P" ? "Nghỉ có phép" : "Nghỉ không phép")}. Ghi chú: {note ?? "Không có"}";
-                await _smsService.SendSmsAsync(phoneNumber, message);
-            }
+            //var phoneNumber = await _attendanceRepository.GetParentPhoneNumbers(studentId);
+            //if (!string.IsNullOrEmpty(phoneNumber))
+            //{
+            //    var student = await _context.Students.FindAsync(studentId);
+            //    var message = $"Học sinh {student.FullName} vắng mặt ngày {date:yyyy-MM-dd} (Ca: {shift}). Trạng thái: {(status == "P" ? "Nghỉ có phép" : "Nghỉ không phép")}. Ghi chú: {note ?? "Không có"}";
+            //    await _smsService.SendSmsAsync(phoneNumber, message);
+            //}
         }
 
         private int GetCurrentTeacherId()

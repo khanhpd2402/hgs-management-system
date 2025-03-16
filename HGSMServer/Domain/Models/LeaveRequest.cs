@@ -19,9 +19,5 @@ public partial class LeaveRequest
 
     public string? Status { get; set; }
 
-    public int? ApprovedBy { get; set; }
-
-    public virtual User? ApprovedByNavigation { get; set; }
-
     public virtual Teacher Teacher { get; set; } = null!;
 }
