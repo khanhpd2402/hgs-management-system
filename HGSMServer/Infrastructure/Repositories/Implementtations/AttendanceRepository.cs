@@ -41,13 +41,20 @@ namespace Infrastructure.Repositories.Implementtations
                 .ToListAsync();
         }
 
-        public async Task<string> GetParentPhoneNumber(int studentId)
+        public async Task<List<string>> GetParentPhoneNumbers(int studentId)
         {
-            return await _context.Students
+            var phoneNumbers = await _context.Students
                 .Where(s => s.StudentId == studentId)
-                .SelectMany(s => s.Parents)
-                .Select(p => p.User.PhoneNumber)
-                .FirstOrDefaultAsync();
+                .SelectMany(s => s.StudentParents)
+                .Select(sp => sp.Parent.User.PhoneNumber)
+                .ToListAsync();
+
+            if (phoneNumbers == null || !phoneNumbers.Any())
+            {
+                throw new Exception($"Không tìm thấy phụ huynh cho học sinh với ID {studentId}.");
+            }
+
+            return phoneNumbers;
         }
     }
 }

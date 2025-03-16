@@ -15,9 +15,7 @@ public partial class Parent
 
     public string? Occupation { get; set; }
 
-    public string Relationship { get; set; } = null!;
+    public virtual ICollection<StudentParent> StudentParents { get; set; } = new List<StudentParent>();
 
     public virtual User? User { get; set; }
-
-    public virtual ICollection<Student> Students { get; set; } = new List<Student>();
 }

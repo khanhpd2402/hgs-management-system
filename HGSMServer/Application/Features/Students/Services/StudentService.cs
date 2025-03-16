@@ -20,12 +20,6 @@ namespace Application.Features.Students.Services
             _studentRepository = studentRepository;
             _mapper = mapper;
         }
-
-        public async Task<IEnumerable<StudentDto>> GetAllStudentsAsync()
-        {
-            var students = await _studentRepository.GetAllStudentsAsync();
-            return _mapper.Map<IEnumerable<StudentDto>>(students);
-        }
         public IQueryable<StudentDto> GetAllStudents()
         {
             return _studentRepository.GetAll()
@@ -67,7 +61,7 @@ namespace Application.Features.Students.Services
 
         private async Task<byte[]> ExportStudentsToExcelAsync(List<string>? selectedColumns, bool isReport)
         {
-            var students = await _studentRepository.GetAllStudentsAsync();
+            var students =  _studentRepository.GetAll();
             var studentDtos = students.Select(StudentToStudentExportDto).ToList();
 
             return ExcelExporter.ExportToExcel(studentDtos, StudentColumnMappings, "DANH SÁCH HỌC SINH", "Năm học 2024", selectedColumns, isReport);
