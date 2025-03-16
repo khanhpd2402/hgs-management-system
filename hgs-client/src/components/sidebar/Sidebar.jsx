@@ -51,6 +51,11 @@ const menuItems = [
     path: "/student",
     children: [{ label: "Hồ sơ học sinh", path: "/student/profile" }],
   },
+  {
+    label: "Xem điểm",
+    icon: Users,
+    path: "/student/score",
+  },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
