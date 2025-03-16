@@ -15,6 +15,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<Role> AddRoleAsync(Role role);
         Task<Role> UpdateRoleAsync(Role role);
         Task<bool> DeleteRoleAsync(int roleId);
+        Task<Role> GetByIdAsync(int roleId);
     }
 
 }
