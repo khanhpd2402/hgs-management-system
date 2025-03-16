@@ -9,7 +9,6 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IStudentRepository
     {
-        Task<List<Student>> GetAllStudentsAsync();
         IQueryable<Student> GetAll();
         Task<Student?> GetByIdAsync(int id);
         Task AddAsync(Student student);

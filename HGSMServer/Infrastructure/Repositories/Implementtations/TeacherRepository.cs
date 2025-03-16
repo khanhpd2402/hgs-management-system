@@ -18,10 +18,9 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<IEnumerable<Teacher>> GetAllAsync()
+        public IQueryable<Teacher> GetAll()
         {
-
-            return await _context.Teachers.Include(t => t.User).ToListAsync();
+            return _context.Teachers.Include(t => t.User).AsQueryable();
         }
 
         public async Task<Teacher?> GetByIdAsync(int id)

@@ -8,6 +8,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<Attendance> UpdateAttendance(Attendance attendance);
         Task<Attendance> GetAttendanceById(int attendanceId);
         Task<List<Attendance>> GetAttendancesByClass(int classId, DateOnly date, string shift);
-        Task<string> GetParentPhoneNumber(int studentId);
+        Task<List<string>> GetParentPhoneNumbers(int studentId);
     }
 }

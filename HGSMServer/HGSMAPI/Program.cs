@@ -20,16 +20,14 @@ using Application.Features.Teachers.Services;
 using Application.Features.Role.Interfaces;
 using Application.Features.Role.Services;
 using Common.Utils;
-using Application.Features.Timetables.Interfaces;
 using Application.Features.Timetables.Services;
 using Application.Features.Classes.Interfaces;
 using Application.Features.Classes.Services;
 using Microsoft.EntityFrameworkCore;
-using DocumentFormat.OpenXml.Office2016.Drawing.ChartDrawing;
 using Application.Features.Attendances.Interfaces;
 using Application.Features.Attendances.Services;
 using Application.Features.Attendances.DTOs;
-using Microsoft.Extensions.Configuration;
+using Infrastructure.Repositories.Implementations;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
