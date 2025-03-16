@@ -23,10 +23,14 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router";
+import ConfirmDeleteModal from "@/components/modal/ConfirmDeleteModal";
+import { useDeleteTeacher } from "@/services/teacher/mutation";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
   const navigate = useNavigate();
+
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const [filter, setFilter] = useState({
     page: 1,
@@ -58,6 +62,7 @@ export default function TeacherTable() {
   );
 
   const { data, isPending, error, isError } = useTeachers(filter);
+  const teacherMutation = useDeleteTeacher();
 
   const { page, pageSize } = filter;
 
@@ -160,8 +165,26 @@ export default function TeacherTable() {
                               >
                                 Xem hồ sơ
                               </DropdownMenuItem>
+                              <DropdownMenuItem
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  setModalOpen(true);
+                                }}
+                              >
+                                Xóa
+                              </DropdownMenuItem>
                             </DropdownMenuContent>
                           </DropdownMenu>
+                          <ConfirmDeleteModal
+                            open={isModalOpen}
+                            onClose={() => setModalOpen(false)}
+                            onConfirm={() => {
+                              teacherMutation.mutate(teacher.teacherId);
+                              setModalOpen(false);
+                            }}
+                            title="Xác nhận xóa"
+                            description={`Bạn có chắc chắn muốn xóa giáo viên ${teacher.fullName}?`}
+                          />
                         </TableCell>
                       )}
 

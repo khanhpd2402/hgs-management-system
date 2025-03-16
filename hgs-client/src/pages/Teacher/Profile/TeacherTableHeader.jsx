@@ -8,6 +8,7 @@ import { Settings } from "lucide-react";
 import ColumnConfigModal from "../../../components/ColumnConfigModal";
 import { use } from "react";
 import { useNavigate } from "react-router";
+import { useDeleteTeacher } from "@/services/teacher/mutation";
 
 const TeacherTableHeader = ({
   type = "teachers",

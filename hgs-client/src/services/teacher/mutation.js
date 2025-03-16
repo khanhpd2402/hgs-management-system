@@ -1,5 +1,12 @@
-import { useMutation } from "@tanstack/react-query";
-import { createTeacher, importTeachers, updateTeacher } from "./api";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import {
+  createTeacher,
+  deleteTeacher,
+  importTeachers,
+  updateTeacher,
+} from "./api";
+
+import toast from "react-hot-toast";
 
 export function useImportTeachers() {
   return useMutation({
@@ -40,6 +47,25 @@ export function useCreateTeacher() {
       } else {
         console.log(data);
         console.log("tạo mới thành công");
+      }
+    },
+  });
+}
+
+export function useDeleteTeacher() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id) => deleteTeacher(id),
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        console.log("đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        console.log("xóa thành công");
+        toast.success("Xóa thành công");
+        queryClient.invalidateQueries("teachers");
       }
     },
   });

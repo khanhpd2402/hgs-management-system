@@ -4,10 +4,12 @@ import AppRouter from "./routes/AppRouter";
 import StudentListScore from "./pages/Student/SummaryScore/StudentListScore";
 import MarkReportTable from "./pages/Teacher/MarkReport/MarkReportTable";
 import StudentScore from "./pages/Student/SummaryScore/StudentScore";
+import { Toaster } from "react-hot-toast";
 
 const App = () => {
   return (
     <div>
+      <Toaster position="top-center" reverseOrder={false} />
       <AppRouter />
     </div>
     // <AddStudentForm />
