@@ -109,7 +109,7 @@ export default function HTATable() {
               </TableHeader>
               <TableBody>
                 {data.length > 0 ? (
-                  data?.map((classItem) => (
+                  teachers?.map((classItem) => (
                     <TableRow key={classItem.id}>
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {classItem.id}

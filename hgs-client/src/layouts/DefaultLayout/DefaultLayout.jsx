@@ -7,12 +7,12 @@ const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
-    <div className="flex h-screen overflow-hidden">
+    <div className="flex h-screen overflow-x-clip">
       <Sidebar isOpen={sidebarOpen} setIsOpen={setSidebarOpen} />
       <div
-        className={`flex-1 ${sidebarOpen ? "ml-64" : "ml-16"} overflow-hidden`}
+        className={`flex-1 ${sidebarOpen ? "ml-64" : "ml-16"} relative overflow-hidden`}
       >
-        <div className="h-full overflow-auto">
+        <div className="h-full overflow-x-clip overflow-y-scroll">
           <div className="container mx-auto px-4 py-4">
             <Outlet />
           </div>
