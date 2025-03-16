@@ -4,7 +4,7 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITeacherRepository
     {
-        Task<IEnumerable<Teacher>> GetAllAsync();
+        IQueryable<Teacher> GetAll();
         Task<Teacher?> GetByIdAsync(int id);
         Task AddAsync(Teacher teacher);
         Task UpdateAsync(Teacher teacher);

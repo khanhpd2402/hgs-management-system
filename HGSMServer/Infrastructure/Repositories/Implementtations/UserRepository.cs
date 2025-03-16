@@ -65,8 +65,6 @@ namespace Infrastructure.Repositories.Implementtations
             _context.Entry(existingUser).CurrentValues.SetValues(user);
 
             existingUser.Role = user.Role;
-            existingUser.LeaveRequests = user.LeaveRequests;
-            existingUser.Notifications = user.Notifications;
             existingUser.Parent = user.Parent;
             existingUser.Teacher = user.Teacher;
 

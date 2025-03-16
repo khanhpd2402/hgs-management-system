@@ -9,15 +9,19 @@ public partial class Grade
 
     public int StudentId { get; set; }
 
+    public int ClassId { get; set; }
+
     public int SubjectId { get; set; }
 
-    public decimal Score { get; set; }
+    public string Score { get; set; } = null!;
 
-    public int ExamId { get; set; }
+    public string AssessmentsTypeName { get; set; } = null!;
+
+    public string? TeacherComment { get; set; }
 
     public int SemesterId { get; set; }
 
-    public virtual Exam Exam { get; set; } = null!;
+    public virtual Class Class { get; set; } = null!;
 
     public virtual Semester Semester { get; set; } = null!;
 
