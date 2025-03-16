@@ -28,6 +28,8 @@ using Application.Features.Attendances.Interfaces;
 using Application.Features.Attendances.Services;
 using Application.Features.Attendances.DTOs;
 using Infrastructure.Repositories.Implementations;
+using Application.Features.TeachingAssignment.Interfaces;
+using Application.Features.TeachingAssignment.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -52,6 +54,8 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
+builder.Services.AddScoped<ITokenService, TokenService>();
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();

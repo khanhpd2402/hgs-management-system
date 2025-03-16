@@ -3,11 +3,8 @@ using Application.Features.Users.Interfaces;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using System.IdentityModel.Tokens.Jwt;
+using System.Threading.Tasks;
 using System.Security.Claims;
-using System.Text;
-using System.Text.Json;
 
 namespace HGSMAPI.Controllers
 {
@@ -16,11 +13,13 @@ namespace HGSMAPI.Controllers
     public class GoogleLoginController : ControllerBase
     {
         private readonly IUserService _userService;
+        private readonly ITokenService _tokenService;
         private readonly IConfiguration _configuration;
 
-        public GoogleLoginController(IUserService userService, IConfiguration configuration)
+        public GoogleLoginController(IUserService userService, ITokenService tokenService, IConfiguration configuration)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
+            _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
@@ -37,13 +36,12 @@ namespace HGSMAPI.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> Callback()
         {
-            // Authen with scheme "Google"
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
             {
                 return BadRequest(new { message = "Google authentication failed." });
             }
-            // Lấy thông tin người dùng từ Google
+
             var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
 
@@ -52,7 +50,6 @@ namespace HGSMAPI.Controllers
                 return BadRequest(new { message = "Unable to retrieve email from Google." });
             }
 
-            // Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
             var existingUser = (await _userService.GetAllUsersAsync())
                 .FirstOrDefault(u => u.Email == email);
 
@@ -61,19 +58,26 @@ namespace HGSMAPI.Controllers
                 return StatusCode(403, new { message = "Access denied. Please contact your admin before logging in." });
             }
 
-            // Tạo JWT token
-            var (tokenString, tokenPayload) = GenerateJwtToken(existingUser);
+            // Lấy và kiểm tra role
+            var userRole = await GetAndValidateUserRole(existingUser.RoleId);
+            if (userRole == null)
+            {
+                return StatusCode(403, new { message = "Access denied. Insufficient permissions." });
+            }
 
-            // Đăng nhập bằng cookie nếu cần
+            // Tạo token
+            var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(existingUser, userRole);
+
+            // Đăng nhập bằng cookie
             var claimsIdentity = new ClaimsIdentity(new[]
             {
                 new Claim(ClaimTypes.Name, existingUser.Username),
-                new Claim(ClaimTypes.Email, existingUser.Email)
+                new Claim(ClaimTypes.Email, existingUser.Email ?? ""),
+                new Claim(ClaimTypes.Role, userRole)
             }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            // Trả về token JSON
             return Ok(new
             {
                 token = tokenString,
@@ -81,36 +85,16 @@ namespace HGSMAPI.Controllers
             });
         }
 
-        private (string tokenString, object tokenPayload) GenerateJwtToken(UserDTO user)
+        private async Task<string> GetAndValidateUserRole(int roleId)
         {
-            var claims = new List<Claim>
+            var userRole = await _userService.GetRoleNameByRoleIdAsync(roleId);
+            if (string.IsNullOrEmpty(userRole))
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email),
-                new Claim(ClaimTypes.Name, user.Username)
-            };
+                return null;
+            }
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
-            var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
-
-            var token = new JwtSecurityToken(
-                issuer: _configuration["JWT:Issuer"],
-                audience: _configuration["JWT:Audience"],
-                claims: claims,
-                expires: DateTime.Now.AddDays(1),
-                signingCredentials: creds);
-
-            var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
-
-            var handler = new JwtSecurityTokenHandler();
-            var jwtToken = handler.ReadJwtToken(tokenString);
-            var payload = jwtToken.Payload;
-
-
-            var payloadDict = payload.ToDictionary(claim => claim.Key, claim => claim.Value?.ToString());
-
-
-            return (tokenString, payloadDict);
+            var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
+            return allowedRoles.Contains(userRole) ? userRole : null;
         }
     }
 }
