@@ -1,27 +1,25 @@
 import { axiosInstance } from "../axios";
 
-export const getEmployees = async (
-  page = 1,
-  limit = 5,
-  department = "",
-  contract = "",
-  searchValue = "",
-) => {
-  // Tạo query string cho bộ lọc
-  const filterParams = [];
-  if (department)
-    filterParams.push(`department=${encodeURIComponent(department)}`);
-  if (contract) filterParams.push(`contract=${encodeURIComponent(contract)}`);
+export const getTeachers = async () => {
+  // Gọi API với axiosInstance
+  return (await axiosInstance.get(`teachers`)).data;
+};
 
-  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
+export const getTeacher = async (id) => {
+  return (await axiosInstance.get(`teachers/${id}`)).data;
+};
 
-  console.log(queryString);
+export const updateTeacher = async (id, data) => {
+  return (await axiosInstance.put(`teachers/${id}`, data)).data;
+};
 
-  return (
-    await axiosInstance.get(
-      `teachers?_limit=${limit}&_page=${page}&q=${encodeURIComponent(searchValue)}${queryString}`,
-    )
-  ).data;
+export const createTeacher = async (data) => {
+  console.log(data);
+  return (await axiosInstance.post(`teachers`, data)).data;
+};
+
+export const deleteTeacher = async (id) => {
+  return (await axiosInstance.delete(`teachers/${id}`)).data;
 };
 
 export const getTeachingAssignments = async (

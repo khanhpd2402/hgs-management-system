@@ -7,7 +7,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
+using System.Text.Json; // Thêm namespace này để xử lý JSON
 
 namespace HGSMAPI.Controllers
 {
@@ -37,47 +37,61 @@ namespace HGSMAPI.Controllers
         [HttpGet("callback")]
         public async Task<IActionResult> Callback()
         {
-            // Authen with scheme "Google"
+            // Xác thực với scheme "Google"
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
             {
                 return BadRequest(new { message = "Google authentication failed." });
             }
+
             // Lấy thông tin người dùng từ Google
-            var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
+            var claims = authenticateResult.Principal.Identities.FirstOrDefault()?.Claims;
             var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
+            var name = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Name)?.Value;
 
             if (string.IsNullOrEmpty(email))
             {
                 return BadRequest(new { message = "Unable to retrieve email from Google." });
             }
 
-            // Kiểm tra xem người dùng đã tồn tại trong hệ thống chưa
+            // Tìm người dùng trong database bằng email
             var existingUser = (await _userService.GetAllUsersAsync())
                 .FirstOrDefault(u => u.Email == email);
 
+            UserDTO userDto;
             if (existingUser == null)
             {
-                return StatusCode(403, new { message = "Access denied. Please contact your admin before logging in." });
+                // Nếu người dùng chưa tồn tại, tạo mới
+                userDto = new UserDTO
+                {
+                    Email = email,
+                    Username = name ?? email.Split('@')[0],
+                    PasswordHash = "GoogleOAuth",
+                };
+                await _userService.AddUserAsync(userDto);
+            }
+            else
+            {
+                userDto = existingUser;
             }
 
             // Tạo JWT token
-            var (tokenString, tokenPayload) = GenerateJwtToken(existingUser);
+            var (tokenString, tokenPayload) = GenerateJwtToken(userDto);
 
-            // Đăng nhập bằng cookie nếu cần
+            // Đăng nhập bằng cookie để lưu phiên (nếu cần)
             var claimsIdentity = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Name, existingUser.Username),
-                new Claim(ClaimTypes.Email, existingUser.Email)
+                new Claim(ClaimTypes.Name, userDto.Username),
+                new Claim(ClaimTypes.Email, userDto.Email)
             }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            // Trả về token JSON
+            // Trả về token dưới dạng JSON đã giải mã
             return Ok(new
             {
-                token = tokenString,
-                decodedToken = tokenPayload
+                token = tokenString, // Chuỗi token gốc
+                decodedToken = tokenPayload // Phần payload đã giải mã
             });
         }
 
@@ -102,13 +116,16 @@ namespace HGSMAPI.Controllers
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
 
+            // Giải mã phần payload của token để trả về dưới dạng JSON
             var handler = new JwtSecurityTokenHandler();
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
 
-
-            var payloadDict = payload.ToDictionary(claim => claim.Key, claim => claim.Value?.ToString());
-
+            // Chuyển payload thành một dictionary để trả về dưới dạng JSON
+            var payloadDict = payload.ToDictionary(
+                claim => claim.Key,
+                claim => claim.Value?.ToString()
+            );
 
             return (tokenString, payloadDict);
         }
