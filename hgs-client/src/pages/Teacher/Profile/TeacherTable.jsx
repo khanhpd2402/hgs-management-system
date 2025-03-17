@@ -44,9 +44,9 @@ export default function TeacherTable() {
   const allColumns = [
     { id: "actions", label: "Thao tác", width: "100px" },
     { id: "fullName", label: "Họ tên cán bộ", width: "200px" },
-    { id: "phone", label: "Số ĐTDD", width: "150px" },
+    { id: "phoneNumber", label: "Số ĐTDD", width: "150px" },
     { id: "email", label: "Địa chỉ Email", width: "200px" },
-    { id: "status", label: "Trạng thái", width: "120px" },
+    { id: "employmentStatus", label: "Trạng thái", width: "120px" },
     { id: "dob", label: "Ngày sinh", width: "150px" },
     { id: "gender", label: "Giới tính", width: "120px" },
     { id: "ethnicity", label: "Dân tộc", width: "120px" },
@@ -57,13 +57,12 @@ export default function TeacherTable() {
 
   // Initialize with all columns visible
   const [visibleColumns, setVisibleColumns] = useState(
-    allColumns.map((col) => col.id),
+    allColumns.map((col) => ({ id: col.id, label: col.label })),
   );
 
   const { data, isPending, error, isError } = useTeachers();
   const teacherMutation = useDeleteTeacher();
 
-  console.log(data);
   //phan trang
   const { page, pageSize } = filter;
 
@@ -123,6 +122,7 @@ export default function TeacherTable() {
         setVisibleColumns={setVisibleColumns}
         visibleColumns={visibleColumns}
         columns={allColumns}
+        data={data?.teachers}
       />
 
       <div className="max-h-[400px] overflow-auto border border-gray-200">
@@ -132,7 +132,7 @@ export default function TeacherTable() {
               <TableRow>
                 {allColumns.map(
                   (column) =>
-                    visibleColumns.includes(column.id) && (
+                    visibleColumns.some((col) => col.id === column.id) && (
                       <TableHead
                         key={column.id}
                         className={`border border-gray-300 text-center`}
@@ -151,7 +151,7 @@ export default function TeacherTable() {
                     key={teacher.teacherId}
                     className="divide-x divide-gray-300"
                   >
-                    {visibleColumns.includes("actions") && (
+                    {visibleColumns.some((col) => col.id === "actions") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
@@ -192,61 +192,65 @@ export default function TeacherTable() {
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("fullName") && (
+                    {visibleColumns.some((col) => col.id === "fullName") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.fullName}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("phone") && (
+                    {visibleColumns.some((col) => col.id === "phoneNumber") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.phoneNumber}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("email") && (
+                    {visibleColumns.some((col) => col.id === "email") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.email}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("status") && (
+                    {visibleColumns.some(
+                      (col) => col.id === "employmentStatus",
+                    ) && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.employmentStatus}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("dob") && (
+                    {visibleColumns.some((col) => col.id === "dob") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.dob}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("gender") && (
+                    {visibleColumns.some((col) => col.id === "gender") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.gender}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("ethnicity") && (
+                    {visibleColumns.some((col) => col.id === "ethnicity") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.ethnicity}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("position") && (
+                    {visibleColumns.some((col) => col.id === "position") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.position}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("department") && (
+                    {visibleColumns.some((col) => col.id === "department") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.department}
                       </TableCell>
                     )}
 
-                    {visibleColumns.includes("employmentType") && (
+                    {visibleColumns.some(
+                      (col) => col.id === "employmentType",
+                    ) && (
                       <TableCell className="h-16 border border-gray-300 text-center">
                         {teacher.employmentType}
                       </TableCell>
