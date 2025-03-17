@@ -1,7 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useForm, Controller } from "react-hook-form";
-import { useEffect } from "react";
 import DatePicker from "@/components/DatePicker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -36,7 +35,17 @@ export default function AddTeacher() {
 
     // Personal information
     gender: z.enum(["Nam", "Nữ", "Khác"]).optional(),
-    dob: z.date().nullable(),
+    dob: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày sinh",
+          });
+        }
+      }),
     idcardNumber: z
       .string()
       .length(12, "Số CMND/CCCD phải có đúng 12 chữ số")
@@ -80,15 +89,55 @@ export default function AddTeacher() {
     insuranceNumber: z.string().optional(),
 
     // Employment dates
-    hiringDate: z.date().nullable(),
-    schoolJoinDate: z.date().nullable(),
-    permanentEmploymentDate: z.date().nullable(),
+    hiringDate: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày tuyển dụng",
+          });
+        }
+      }),
+    schoolJoinDate: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày vào trường",
+          });
+        }
+      }),
+    permanentEmploymentDate: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày vào biên chế",
+          });
+        }
+      }),
+    phoneNumber: z
+      .string()
+      .min(10, "Số điện thoại phải có ít nhất 10 chữ số")
+      .max(11, "Số điện thoại không được quá 11 chữ số")
+      .regex(
+        /^(0[2-9]|84[2-9])\d{8}$/,
+        "Số điện thoại không hợp lệ. Phải bắt đầu bằng 0 hoặc +84 và có 10-11 chữ số",
+      ),
+    email: z.string().email("Email không hợp lệ"),
   });
 
   const {
     register,
     handleSubmit,
     control,
+    reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(teacherSchema),
@@ -113,6 +162,8 @@ export default function AddTeacher() {
       hiringDate: null,
       schoolJoinDate: null,
       permanentEmploymentDate: null,
+      phoneNumber: "",
+      email: "",
     },
   });
 
@@ -131,8 +182,11 @@ export default function AddTeacher() {
         ? formData.permanentEmploymentDate.toISOString().split("T")[0]
         : null,
     };
-
-    mutate(processedData);
+    const data = mutate(processedData, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   // Form field component
@@ -227,7 +281,7 @@ export default function AddTeacher() {
           <Button
             type="button"
             variant="outline"
-            onClick={() => navigate("/teachers")}
+            onClick={() => navigate("/teacher/profile")}
           >
             Hủy
           </Button>
@@ -264,6 +318,8 @@ export default function AddTeacher() {
             options={["Nam", "Nữ", "Khác"]}
           />
           <FormField name="dob" label="Ngày sinh" type="date" />
+          <FormField name="phoneNumber" label="Số điện thoại" />{" "}
+          <FormField name="email" label="Email" />
           <FormField name="idcardNumber" label="Số CMND/CCCD" />
           <FormField name="hometown" label="Quê quán" />
           <FormField name="ethnicity" label="Dân tộc" />

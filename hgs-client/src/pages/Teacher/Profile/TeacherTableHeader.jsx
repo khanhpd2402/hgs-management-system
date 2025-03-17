@@ -6,9 +6,7 @@ import TeacherFilter from "./TeacherFilter";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import ColumnConfigModal from "../../../components/ColumnConfigModal";
-import { use } from "react";
 import { useNavigate } from "react-router";
-import { useDeleteTeacher } from "@/services/teacher/mutation";
 
 const TeacherTableHeader = ({
   type = "teachers",
@@ -16,6 +14,7 @@ const TeacherTableHeader = ({
   setVisibleColumns,
   visibleColumns,
   columns,
+  data,
 }) => {
   const navigate = useNavigate();
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
@@ -26,7 +25,12 @@ const TeacherTableHeader = ({
       <div className="flex gap-2">
         <TeacherFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
-        <ExportExcel type={type} />
+        <ExportExcel
+          fileName="Danh sách giáo viên.xlsx"
+          allData={data} // Truyền toàn bộ dữ liệu
+          visibleColumns={columns}
+        />
+
         <Button
           variant="outline"
           onClick={() => navigate("/teacher/profile/create-teacher")}
@@ -61,6 +65,7 @@ TeacherTableHeader.propTypes = {
   setVisibleColumns: PropTypes.func.isRequired,
   visibleColumns: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
+  data: PropTypes.array.isRequired,
 };
 
 export default TeacherTableHeader;
