@@ -28,7 +28,7 @@ const TeacherTableHeader = ({
         <ExportExcel
           fileName="Danh sách giáo viên.xlsx"
           allData={data} // Truyền toàn bộ dữ liệu
-          visibleColumns={visibleColumns}
+          visibleColumns={columns}
         />
 
         <Button
