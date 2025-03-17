@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ExcelImportModal from "@/components/excel/ExcelImportModal";
-import ExportExcel from "@/components/excel/ExportExcel";
+import ExportExcelByColumn from "@/components/excel/ExportExcelByColumn";
 import PropTypes from "prop-types";
 import TeacherFilter from "./TeacherFilter";
 import { Button } from "@/components/ui/button";
@@ -25,7 +25,7 @@ const TeacherTableHeader = ({
       <div className="flex gap-2">
         <TeacherFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
-        <ExportExcel
+        <ExportExcelByColumn
           fileName="Danh sách giáo viên.xlsx"
           allData={data} // Truyền toàn bộ dữ liệu
           visibleColumns={columns}
