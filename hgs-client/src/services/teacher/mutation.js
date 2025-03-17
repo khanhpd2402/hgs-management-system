@@ -43,10 +43,11 @@ export function useCreateTeacher() {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        console.log("đã có lỗi xảy ra");
+        toast.error("Đã có lỗi xảy ra");
       } else {
         console.log(data);
         console.log("tạo mới thành công");
+        toast.success("Thêm giáo viên thành công");
       }
     },
   });

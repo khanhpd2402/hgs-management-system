@@ -53,7 +53,6 @@ export default function TeacherTable() {
     { id: "position", label: "Chức vụ", width: "150px" },
     { id: "department", label: "Tổ bộ môn", width: "150px" },
     { id: "employmentType", label: "Hình thức hợp đồng", width: "180px" },
-    { id: "additionalDuties", label: "Vị trí làm việc", width: "180px" },
   ];
 
   // Initialize with all columns visible
@@ -61,16 +60,21 @@ export default function TeacherTable() {
     allColumns.map((col) => col.id),
   );
 
-  const { data, isPending, error, isError } = useTeachers(filter);
+  const { data, isPending, error, isError } = useTeachers();
   const teacherMutation = useDeleteTeacher();
 
+  console.log(data);
+  //phan trang
   const { page, pageSize } = filter;
 
-  const startIndex = (page - 1) * pageSize + 1;
-  const endIndex = Math.min(
-    (page - 1) * pageSize + (data?.length || 0),
-    startIndex + pageSize - 1,
+  const totalPages = Math.ceil(data?.totalCount / pageSize);
+  const currentData = data?.teachers.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
   );
+
+  const startIndex = data?.totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, data?.totalCount);
 
   // Save visible columns to localStorage
   useEffect(() => {
@@ -123,164 +127,157 @@ export default function TeacherTable() {
 
       <div className="max-h-[400px] overflow-auto border border-gray-200">
         <div className="min-w-max">
-          <div>
-            <Table className="w-full border-collapse">
-              <TableHeader className="bg-gray-100">
-                <TableRow>
-                  {allColumns.map(
-                    (column) =>
-                      visibleColumns.includes(column.id) && (
-                        <TableHead
-                          key={column.id}
-                          className={`w-[${column.width}] border border-gray-300 text-center`}
-                        >
-                          {column.label}
-                        </TableHead>
-                      ),
-                  )}
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {data && data.length > 0 ? (
-                  data.map((teacher) => (
-                    <TableRow
-                      key={teacher.teacherId}
-                      className="divide-x divide-gray-300"
-                    >
-                      {visibleColumns.includes("actions") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                              <Button variant="outline" size="icon">
-                                <Settings className="h-4 w-4" />
-                              </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                              <DropdownMenuItem
-                                onClick={() =>
-                                  navigate(
-                                    `/teacher/profile/${teacher.teacherId}`,
-                                  )
-                                }
-                              >
-                                Xem hồ sơ
-                              </DropdownMenuItem>
-                              <DropdownMenuItem
-                                onClick={(e) => {
-                                  e.stopPropagation();
-                                  setModalOpen(true);
-                                }}
-                              >
-                                Xóa
-                              </DropdownMenuItem>
-                            </DropdownMenuContent>
-                          </DropdownMenu>
-                          <ConfirmDeleteModal
-                            open={isModalOpen}
-                            onClose={() => setModalOpen(false)}
-                            onConfirm={() => {
-                              teacherMutation.mutate(teacher.teacherId);
-                              setModalOpen(false);
-                            }}
-                            title="Xác nhận xóa"
-                            description={`Bạn có chắc chắn muốn xóa giáo viên ${teacher.fullName}?`}
-                          />
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("fullName") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.fullName}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("phone") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.phone}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("email") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.email}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("status") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.status}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("dob") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.dob}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("gender") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.gender}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("ethnicity") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.ethnicity}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("position") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.position}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("department") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.department}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("employmentType") && (
-                        <TableCell className="h-16 border border-gray-300 text-left">
-                          {teacher.employmentType}
-                        </TableCell>
-                      )}
-
-                      {visibleColumns.includes("additionalDuties") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {teacher.additionalDuties}
-                        </TableCell>
-                      )}
-                    </TableRow>
-                  ))
-                ) : (
-                  <TableRow>
-                    <TableCell
-                      colSpan={visibleColumns.length}
-                      className="p-4 text-center"
-                    >
-                      Không có dữ liệu
-                    </TableCell>
-                  </TableRow>
+          <Table className="w-full border-collapse">
+            <TableHeader className="bg-gray-100">
+              <TableRow>
+                {allColumns.map(
+                  (column) =>
+                    visibleColumns.includes(column.id) && (
+                      <TableHead
+                        key={column.id}
+                        className={`border border-gray-300 text-center`}
+                        style={{ width: column.width }}
+                      >
+                        {column.label}
+                      </TableHead>
+                    ),
                 )}
-              </TableBody>
-            </Table>
-          </div>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {data && data.teachers.length > 0 ? (
+                currentData.map((teacher) => (
+                  <TableRow
+                    key={teacher.teacherId}
+                    className="divide-x divide-gray-300"
+                  >
+                    {visibleColumns.includes("actions") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate(
+                                  `/teacher/profile/${teacher.teacherId}`,
+                                )
+                              }
+                            >
+                              Xem hồ sơ
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setModalOpen(true);
+                              }}
+                            >
+                              Xóa
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <ConfirmDeleteModal
+                          open={isModalOpen}
+                          onClose={() => setModalOpen(false)}
+                          onConfirm={() => {
+                            teacherMutation.mutate(teacher.teacherId);
+                            setModalOpen(false);
+                          }}
+                          title="Xác nhận xóa"
+                          description={`Bạn có chắc chắn muốn xóa giáo viên ${teacher.fullName}?`}
+                        />
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("fullName") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.fullName}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("phone") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.phoneNumber}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("email") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.email}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("status") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.employmentStatus}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("dob") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.dob}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("gender") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.gender}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("ethnicity") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.ethnicity}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("position") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.position}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("department") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.department}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.includes("employmentType") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.employmentType}
+                      </TableCell>
+                    )}
+                  </TableRow>
+                ))
+              ) : (
+                <TableRow>
+                  <TableCell
+                    colSpan={visibleColumns.length}
+                    className="p-4 text-center"
+                  >
+                    Không có dữ liệu
+                  </TableCell>
+                </TableRow>
+              )}
+            </TableBody>
+          </Table>
         </div>
       </div>
       <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
           setFilter={setFilter}
-          totalItems={data?.length || 0}
+          totalItems={data?.totalCount || 0}
           startIndex={startIndex}
           endIndex={endIndex}
         />
 
         <MyPagination
-          totalPages={6}
+          totalPages={totalPages}
           currentPage={page}
           onPageChange={setFilter}
         />
