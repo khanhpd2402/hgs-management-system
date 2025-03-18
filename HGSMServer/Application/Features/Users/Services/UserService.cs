@@ -98,12 +98,11 @@ namespace Application.Features.Users.Services
             var user = await _userRepository.GetByIdAsync(userDto.UserId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userDto.UserId} not found.");
-
             user.Username = userDto.Username;
-            user.PasswordHash = userDto.PasswordHash;
+            user.PasswordHash = userDto.PasswordHash; 
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
-            user.RoleId = userDto.RoleId;
+            user.RoleId = userDto.RoleId; 
             user.Status = userDto.Status;
 
             await _userRepository.UpdateAsync(user);
