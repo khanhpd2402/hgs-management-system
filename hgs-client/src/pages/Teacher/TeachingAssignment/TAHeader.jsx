@@ -1,5 +1,5 @@
 import ExcelImportModal from "@/components/excel/ExcelImportModal";
-import ExportExcel from "@/components/excel/ExportExcelByColumn";
+import ExportExcel from "@/components/excel/ExportExcel";
 import PropTypes from "prop-types";
 import TAFilter from "./TAFilter";
 

@@ -39,7 +39,7 @@ export default function StudentTable() {
   // Define all available columns
   const allColumns = [
     { id: "actions", label: "Thao tác", width: "100px" },
-    { id: "id", label: "ID", width: "80px" },
+    { id: "studentId", label: "ID", width: "80px" },
     { id: "fullName", label: "Họ và tên", width: "200px" },
     { id: "gender", label: "Giới tính", width: "120px" },
     { id: "ethnicity", label: "Dân tộc", width: "120px" },
@@ -51,11 +51,13 @@ export default function StudentTable() {
 
   // Initialize with all columns visible
   const [visibleColumns, setVisibleColumns] = useState(
-    allColumns.map((col) => col.id),
+    allColumns.map((col) => ({ id: col.id, label: col.label })),
   );
 
   const { data, isPending, error, isError } = useStudents(filter);
+  console.log(data);
 
+  //phan trang
   const { page, pageSize } = filter;
 
   const startIndex = (page - 1) * pageSize + 1;
@@ -123,7 +125,7 @@ export default function StudentTable() {
                 <TableRow>
                   {allColumns.map(
                     (column) =>
-                      visibleColumns.includes(column.id) && (
+                      visibleColumns.some((col) => col.id === column.id) && (
                         <TableHead
                           key={column.id}
                           className={`w-[${column.width}] border border-gray-300 text-center`}
@@ -141,7 +143,7 @@ export default function StudentTable() {
                       key={student.id}
                       className="divide-x divide-gray-300"
                     >
-                      {visibleColumns.includes("actions") && (
+                      {visibleColumns.some((col) => col.id === "actions") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -152,7 +154,9 @@ export default function StudentTable() {
                             <DropdownMenuContent align="end">
                               <DropdownMenuItem
                                 onClick={() =>
-                                  navigate(`/student/profile/${student.id}`)
+                                  navigate(
+                                    `/student/profile/${student.studentId}`,
+                                  )
                                 }
                               >
                                 Xem hồ sơ
@@ -162,55 +166,57 @@ export default function StudentTable() {
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("id") && (
+                      {visibleColumns.some((col) => col.id === "studentId") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
-                          {student.id}
+                          {student.studentId}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("fullName") && (
+                      {visibleColumns.some((col) => col.id === "fullName") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.fullName}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("gender") && (
+                      {visibleColumns.some((col) => col.id === "gender") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.gender}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("ethnicity") && (
+                      {visibleColumns.some((col) => col.id === "ethnicity") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.ethnicity}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("grade") && (
+                      {visibleColumns.some((col) => col.id === "grade") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.grade}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("class") && (
+                      {visibleColumns.some((col) => col.id === "class") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.class}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("status") && (
+                      {visibleColumns.some((col) => col.id === "status") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.status}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("dob") && (
+                      {visibleColumns.some((col) => col.id === "dob") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.dob}
                         </TableCell>
                       )}
 
-                      {visibleColumns.includes("educationLevel") && (
+                      {visibleColumns.some(
+                        (col) => col.id === "educationLevel",
+                      ) && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.educationLevel}
                         </TableCell>
