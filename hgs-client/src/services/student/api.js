@@ -14,3 +14,11 @@ export const getStudents = async (
 
   return (await axiosInstance.get(`student?page=${page}`)).data;
 };
+
+export const getStudent = async (id) => {
+  return (await axiosInstance.get(`student/${id}`)).data;
+};
+
+export const updateStudent = async (id, data) => {
+  return (await axiosInstance.put(`student/${id}`, data)).data;
+};

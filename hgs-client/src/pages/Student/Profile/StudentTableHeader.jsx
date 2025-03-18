@@ -21,7 +21,7 @@ const StudentTableHeader = ({
       <div className="flex gap-2">
         <StudentFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
-        <ExportExcelByColumn type={type} />
+        <ExportExcelByColumn type={type} visibleColumns={columns} />
         <Button
           variant="outline"
           onClick={() => setIsColumnConfigOpen(true)}
