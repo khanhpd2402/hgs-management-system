@@ -7,6 +7,7 @@ using Common.Utils;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Students.Services
 {
@@ -23,7 +24,14 @@ namespace Application.Features.Students.Services
         public IQueryable<StudentDto> GetAllStudents()
         {
             return _studentRepository.GetAll()
-                .ProjectTo<StudentDto>(_mapper.ConfigurationProvider);
+                                    .Include(x => x.StudentClasses)
+                                    .ThenInclude(sc => sc.Class)
+                                    .ProjectTo<StudentDto>(_mapper.ConfigurationProvider);
+        }
+        public async Task<List<StudentDto>> GetStudentsByAcademicYearAsync(int academicYearId)
+        {
+            var students = await _studentRepository.GetStudentsByAcademicYearAsync(academicYearId);
+            return _mapper.Map<List<StudentDto>>(students);
         }
         public async Task<StudentDto?> GetStudentByIdAsync(int id)
         {
@@ -61,7 +69,7 @@ namespace Application.Features.Students.Services
 
         private async Task<byte[]> ExportStudentsToExcelAsync(List<string>? selectedColumns, bool isReport)
         {
-            var students =  _studentRepository.GetAll();
+            var students = _studentRepository.GetAll();
             var studentDtos = students.Select(StudentToStudentExportDto).ToList();
 
             return ExcelExporter.ExportToExcel(studentDtos, StudentColumnMappings, "DANH SÁCH HỌC SINH", "Năm học 2024", selectedColumns, isReport);
