@@ -17,6 +17,23 @@ namespace Infrastructure.Repositories.Implementations
         {
             return _context.Students.AsQueryable();
         }
+        public async Task<List<Student>> GetStudentsByAcademicYearAsync(int academicYearId)
+        {
+            if (academicYearId == 0)
+                return new List<Student>();
+
+            // Lọc học sinh theo AcademicYearId
+            return await _context.Students.Include(s => s.StudentClasses)
+                .Where(s => s.StudentClasses.Any(sc => sc.AcademicYearId == academicYearId))
+                .ToListAsync();
+        }
+        public async Task<int> GetAcademicYearIdAsync(int semesterId)
+        {
+            return await _context.Semesters
+                .Where(s => s.SemesterId == semesterId)
+                .Select(s => s.AcademicYearId)
+                .FirstOrDefaultAsync();
+        }
 
         public async Task<Student?> GetByIdAsync(int id)
         {
@@ -29,7 +46,12 @@ namespace Infrastructure.Repositories.Implementations
                     .ThenInclude(sp => sp.Parent) // Lấy thông tin phụ huynh
                 .FirstOrDefaultAsync(s => s.StudentId == id);
         }
-
+        //public async Task<List<Student>> GetStudentsByIdsAsync(List<int> studentIds)
+        //{
+        //    return await _context.Students
+        //        .Where(s => studentIds.Contains(s.StudentId))
+        //        .ToListAsync();
+        //}
         public async Task AddAsync(Student student)
         {
             _context.Students.Add(student);

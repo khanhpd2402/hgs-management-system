@@ -28,6 +28,11 @@ using Application.Features.Attendances.Interfaces;
 using Application.Features.Attendances.Services;
 using Application.Features.Attendances.DTOs;
 using Infrastructure.Repositories.Implementations;
+using Application.Features.GradeBatchs.Interfaces;
+using Application.Services;
+using Infrastructure.Repositories;
+using Application.Features.Grades.Interfaces;
+using Application.Features.Grades.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -52,11 +57,17 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
+builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
+builder.Services.AddScoped<IGradeService, GradeService>();
+
+
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IGradeRepository, GradeRepository>();
 //builder.Services.AddScoped<ITimetableService, TimetableService>();
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();

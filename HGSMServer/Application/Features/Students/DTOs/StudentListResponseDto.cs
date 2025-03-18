@@ -1,11 +1,10 @@
-﻿using Application.Features.Students.DTOs;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Features.Students.Services
+namespace Application.Features.Students.DTOs
 {
     public class StudentListResponseDto
     {
