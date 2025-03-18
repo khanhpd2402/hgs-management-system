@@ -5,6 +5,7 @@ using Application.Features.Students.DTOs;
 using Application.Features.Teachers.DTOs;
 using AutoMapper;
 using Domain.Models;
+using Application.Features.Subjects.DTOs;
 namespace HGSMAPI.AutoMapper
 {
     public class MappingProfile : Profile
@@ -35,13 +36,21 @@ namespace HGSMAPI.AutoMapper
             .FirstOrDefault()));
 
             CreateMap<Teacher, TeacherExportDto>();
+
             CreateMap<Class, ClassDto>();
             CreateMap<ClassDto, Class>();
             CreateMap<GradeBatch, GradeBatchDto>().ReverseMap();
+
             CreateMap<GradeDto, Grade>().ReverseMap();
             CreateMap<Grade, GradeRespondDto>()
             .ForMember(dest => dest.FullName, opt => opt.MapFrom(src => src.Student.FullName))
             .ForMember(dest => dest.DateOfBirth, opt => opt.MapFrom(src => src.Student.Dob));
+
+            CreateMap<Subject, SubjectDto>();
+            CreateMap<CreateSubjectDto, Subject>();
+            CreateMap<UpdateSubjectDto, Subject>()
+                .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
         }
     }
 }
+
