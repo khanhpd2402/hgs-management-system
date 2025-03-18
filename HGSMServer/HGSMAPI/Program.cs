@@ -61,6 +61,7 @@ builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
 //builder.Services.AddScoped<ITimetableService, TimetableService>();
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();

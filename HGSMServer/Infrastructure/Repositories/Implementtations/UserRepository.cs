@@ -61,12 +61,8 @@ namespace Infrastructure.Repositories.Implementtations
             var existingUser = await _context.Users.FindAsync(user.UserId);
             if (existingUser == null)
                 throw new ArgumentException($"User with ID {user.UserId} not found.");
-
             _context.Entry(existingUser).CurrentValues.SetValues(user);
-
-            existingUser.Role = user.Role;
-            existingUser.Parent = user.Parent;
-            existingUser.Teacher = user.Teacher;
+            existingUser.RoleId = user.RoleId;
 
             await _context.SaveChangesAsync();
         }
