@@ -11,5 +11,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(string idCard, string insuranceNumber); // Kiểm tra giáo viên có tồn tại không
         Task AddRangeAsync(IEnumerable<Teacher> teachers); // Thêm danh sách giáo viên
+        Task<Teacher> GetByUserIdAsync(int userId);
     }
 }

@@ -56,12 +56,14 @@ namespace HGSMAPI.Controllers
 
             var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(user, userRole);
 
+            // Sử dụng claims khớp với token JWT
             var claimsIdentity = new ClaimsIdentity(new[]
             {
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.Role, userRole)
-            }, CookieAuthenticationDefaults.AuthenticationScheme);
+        new Claim("sub", user.UserId.ToString()),
+        new Claim("email", user.Email ?? ""),
+        new Claim("name", user.Username),
+        new Claim("role", userRole)
+    }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
@@ -71,6 +73,13 @@ namespace HGSMAPI.Controllers
                 decodedToken = tokenPayload
             });
         }
+
+        //[HttpPost("logout")]
+        //public async Task<IActionResult> Logout()
+        //{
+        //    await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
+        //    return Ok(new { message = "Logged out successfully." });
+        //}
 
         [HttpPost("assign-role")]
         [Authorize(Roles = "Principal,AdministrativeOfficer")] // Chỉ Principal và AdministrativeOfficer được phép
@@ -124,7 +133,7 @@ namespace HGSMAPI.Controllers
         private async Task<string> GetAndValidateUserRole(int roleId)
         {
             var userRole = await _userService.GetRoleNameByRoleIdAsync(roleId);
-            return userRole; // Trả về role mà không kiểm tra, bao gồm tất cả role
+            return userRole; 
         }
 
         [HttpPost("assign-homeroom")]
