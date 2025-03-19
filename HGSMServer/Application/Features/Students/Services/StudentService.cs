@@ -4,9 +4,11 @@ using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Common.Constants;
 using Common.Utils;
+using DocumentFormat.OpenXml.Bibliography;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Students.Services
 {
@@ -20,28 +22,41 @@ namespace Application.Features.Students.Services
             _studentRepository = studentRepository;
             _mapper = mapper;
         }
-        public IQueryable<StudentDto> GetAllStudents()
+        public async Task<StudentListResponseDto> GetAllStudentsWithParentsAsync(int academicYearId)
         {
-            return _studentRepository.GetAll()
-                .ProjectTo<StudentDto>(_mapper.ConfigurationProvider);
+            var students = await _studentRepository.GetAllWithParentsAsync(academicYearId);
+            var studentDtos = _mapper.Map<List<StudentDto>>(students);
+
+            return new StudentListResponseDto
+            {
+                Students = studentDtos,
+                TotalCount = studentDtos.Count
+            };
         }
-        public async Task<StudentDto?> GetStudentByIdAsync(int id)
+
+        public async Task<StudentDto?> GetStudentByIdAsync(int id, int academicYearId)
         {
-            var student = await _studentRepository.GetByIdAsync(id);
+            var student = await _studentRepository.GetByIdWithParentsAsync(id, academicYearId);
             return student == null ? null : _mapper.Map<StudentDto>(student);
         }
 
-        public async Task AddStudentAsync(StudentDto studentDto)
-
+        public async Task<int> AddStudentAsync(CreateStudentDto createStudentDto)
         {
-            var student = _mapper.Map<Student>(studentDto);
+            var student = _mapper.Map<Student>(createStudentDto);
             await _studentRepository.AddAsync(student);
+            return student.StudentId; // Trả về ID sau khi thêm
         }
 
 
-        public async Task UpdateStudentAsync(StudentDto studentDto)
+        public async Task UpdateStudentAsync(UpdateStudentDto updateStudentDto)
         {
-            var student = _mapper.Map<Student>(studentDto);
+            var student = await _studentRepository.GetByIdAsync(updateStudentDto.StudentId);
+            if (student == null)
+            {
+                throw new KeyNotFoundException("Student not found");
+            }
+
+            _mapper.Map(updateStudentDto, student); // Cập nhật từ DTO vào entity
             await _studentRepository.UpdateAsync(student);
         }
 
@@ -49,64 +64,65 @@ namespace Application.Features.Students.Services
         {
             await _studentRepository.DeleteAsync(id);
         }
-        public async Task<byte[]> ExportStudentsFullToExcelAsync()
-        {
-            return await ExportStudentsToExcelAsync(null, false); // Xuất toàn bộ cột
-        }
 
-        public async Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns)
-        {
-            return await ExportStudentsToExcelAsync(selectedColumns, true); // Xuất cột được chọn
-        }
+        //public async Task<byte[]> ExportStudentsFullToExcelAsync()
+        //{
+        //    return await ExportStudentsToExcelAsync(null, false); // Xuất toàn bộ cột
+        //}
 
-        private async Task<byte[]> ExportStudentsToExcelAsync(List<string>? selectedColumns, bool isReport)
-        {
-            var students =  _studentRepository.GetAll();
-            var studentDtos = students.Select(StudentToStudentExportDto).ToList();
+        //public async Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns)
+        //{
+        //    return await ExportStudentsToExcelAsync(selectedColumns, true); // Xuất cột được chọn
+        //}
 
-            return ExcelExporter.ExportToExcel(studentDtos, StudentColumnMappings, "DANH SÁCH HỌC SINH", "Năm học 2024", selectedColumns, isReport);
-        }
-        private static readonly Dictionary<string, string> StudentColumnMappings = new()
-{
-    { "StudentId", "Mã học sinh" },
-    { "FullName", "Họ và tên" },
-    { "Dob", "Ngày sinh" },
-    { "Gender", "Giới tính" },
-    { "ClassName", "Lớp" },
-    { "AdmissionDate", "Ngày nhập học" },
-    { "EnrollmentType", "Hình thức nhập học" },
-    { "Ethnicity", "Dân tộc" },
-    { "PermanentAddress", "Địa chỉ thường trú" },
-    { "BirthPlace", "Nơi sinh" },
-    { "Religion", "Tôn giáo" },
-    { "RepeatingYear", "Lưu ban" },
-    { "IdcardNumber", "Số CMND/CCCD" },
-    { "Status", "Trạng thái" }
-};
-        private StudentExportDto StudentToStudentExportDto(Student s)
-        {
-            // Lấy lớp hiện tại (giả sử dựa trên năm học hiện tại)
-            var currentClass = s.StudentClasses
-                .FirstOrDefault(sc => sc.AcademicYear.YearName == "2024-2025")?.Class;
+        //        private async Task<byte[]> ExportStudentsToExcelAsync(List<string>? selectedColumns, bool isReport)
+        //        {
+        //            var students = _studentRepository.GetAllStudentsWithParentsAsync();
+        //            var studentDtos = students.Select(StudentToStudentExportDto).ToList();
 
-            return new StudentExportDto
-            {
-                StudentId = s.StudentId,
-                FullName = s.FullName,
-                Dob = s.Dob.ToString(AppConstants.DATE_FORMAT),
-                Gender = s.Gender,
-                ClassName = currentClass?.ClassName ?? "Không rõ",
-                AdmissionDate = s.AdmissionDate.ToString(AppConstants.DATE_FORMAT),
-                EnrollmentType = s.EnrollmentType,
-                Ethnicity = s.Ethnicity,
-                PermanentAddress = s.PermanentAddress,
-                BirthPlace = s.BirthPlace,
-                Religion = s.Religion,
-                RepeatingYear = s.RepeatingYear.HasValue ? (s.RepeatingYear.Value ? "Có" : "Không") : "Không rõ",
-                IdcardNumber = s.IdcardNumber,
-                Status = s.Status
-            };
-        }
+        //            return ExcelExporter.ExportToExcel(studentDtos, StudentColumnMappings, "DANH SÁCH HỌC SINH", "Năm học 2024", selectedColumns, isReport);
+        //        }
+        //        private static readonly Dictionary<string, string> StudentColumnMappings = new()
+        //{
+        //    { "StudentId", "Mã học sinh" },
+        //    { "FullName", "Họ và tên" },
+        //    { "Dob", "Ngày sinh" },
+        //    { "Gender", "Giới tính" },
+        //    { "ClassName", "Lớp" },
+        //    { "AdmissionDate", "Ngày nhập học" },
+        //    { "EnrollmentType", "Hình thức nhập học" },
+        //    { "Ethnicity", "Dân tộc" },
+        //    { "PermanentAddress", "Địa chỉ thường trú" },
+        //    { "BirthPlace", "Nơi sinh" },
+        //    { "Religion", "Tôn giáo" },
+        //    { "RepeatingYear", "Lưu ban" },
+        //    { "IdcardNumber", "Số CMND/CCCD" },
+        //    { "Status", "Trạng thái" }
+        //};
+        //        private StudentExportDto StudentToStudentExportDto(Student s)
+        //        {
+        //            // Lấy lớp hiện tại (giả sử dựa trên năm học hiện tại)
+        //            var currentClass = s.StudentClasses
+        //                .FirstOrDefault(sc => sc.AcademicYear.YearName == "2024-2025")?.Class;
+
+        //            return new StudentExportDto
+        //            {
+        //                StudentId = s.StudentId,
+        //                FullName = s.FullName,
+        //                Dob = s.Dob.ToString(AppConstants.DATE_FORMAT),
+        //                Gender = s.Gender,
+        //                ClassName = currentClass?.ClassName ?? "Không rõ",
+        //                AdmissionDate = s.AdmissionDate.ToString(AppConstants.DATE_FORMAT),
+        //                EnrollmentType = s.EnrollmentType,
+        //                Ethnicity = s.Ethnicity,
+        //                PermanentAddress = s.PermanentAddress,
+        //                BirthPlace = s.BirthPlace,
+        //                Religion = s.Religion,
+        //                RepeatingYear = s.RepeatingYear.HasValue ? (s.RepeatingYear.Value ? "Có" : "Không") : "Không rõ",
+        //                IdcardNumber = s.IdcardNumber,
+        //                Status = s.Status
+        //            };
+        //        }
 
         public async Task ImportStudentsFromExcelAsync(IFormFile file)
         {

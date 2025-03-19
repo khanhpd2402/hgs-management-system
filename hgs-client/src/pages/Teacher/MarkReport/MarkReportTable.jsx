@@ -1,5 +1,3 @@
-import MyPagination from "@/components/MyPagination";
-import PaginationControls from "@/components/PaginationControls";
 import {
   Table,
   TableBody,

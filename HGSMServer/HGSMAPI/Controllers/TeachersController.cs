@@ -17,29 +17,15 @@ namespace HGSMAPI.Controllers
             _teacherService = teacherService;
         }
 
-        /// <summary>
-        /// Lấy danh sách giáo viên (chỉ thông tin quan trọng)
-        /// </summary>
-        // Controller
+     
         [HttpGet]
         [EnableQuery]
-        public async Task<IActionResult> GetAllTeachers([FromQuery] bool exportToExcel = false, [FromQuery] string[] selectedColumns = null)
-        {
-            try
-            {
-                var result = await _teacherService.GetAllTeachersAsync(exportToExcel, selectedColumns?.ToList());
-                return Ok(result);
-            }
-            catch (CustomExportException ex)
-            {
-                return File(ex.ExcelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "teachers.xlsx");
-            }
+        public async Task<IActionResult> GetAllTeachers()
+        {        
+                var result = await _teacherService.GetAllTeachersAsync();
+                return Ok(result);   
         }
 
-
-        /// <summary>
-        /// Lấy thông tin chi tiết của giáo viên theo ID
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<TeacherDetailDto>> GetTeacherById(int id)
         {
@@ -50,9 +36,6 @@ namespace HGSMAPI.Controllers
             return Ok(teacher);
         }
 
-        /// <summary>
-        /// Thêm mới một giáo viên
-        /// </summary>
         [HttpPost]
         public async Task<ActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
         {

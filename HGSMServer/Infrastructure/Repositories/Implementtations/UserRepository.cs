@@ -71,8 +71,12 @@ namespace Infrastructure.Repositories.Implementtations
             var existingUser = await _context.Users.FindAsync(user.UserId);
             if (existingUser == null)
                 throw new ArgumentException($"User with ID {user.UserId} not found.");
+
             _context.Entry(existingUser).CurrentValues.SetValues(user);
-            existingUser.RoleId = user.RoleId;
+
+            existingUser.Role = user.Role;
+            existingUser.Parent = user.Parent;
+            existingUser.Teacher = user.Teacher;
 
             await _context.SaveChangesAsync();
         }
@@ -85,11 +89,6 @@ namespace Infrastructure.Repositories.Implementtations
 
             _context.Users.Remove(user);
             await _context.SaveChangesAsync();
-        }
-
-        public IQueryable<Student> GetAll()
-        {
-            throw new NotImplementedException();
         }
     }
 }
