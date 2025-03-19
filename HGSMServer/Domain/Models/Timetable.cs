@@ -15,9 +15,17 @@ public partial class Timetable
 
     public string DayOfWeek { get; set; } = null!;
 
+    public string Shift { get; set; } = null!;
+
     public int Period { get; set; }
 
+    public DateOnly EffectiveDate { get; set; }
+
+    public int SemesterId { get; set; }
+
     public virtual Class Class { get; set; } = null!;
+
+    public virtual Semester Semester { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;
 

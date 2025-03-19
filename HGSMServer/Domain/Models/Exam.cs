@@ -15,9 +15,11 @@ public partial class Exam
 
     public DateTime? CreatedDate { get; set; }
 
+    public int SemesterId { get; set; }
+
     public virtual Teacher CreatedByNavigation { get; set; } = null!;
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    public virtual Semester Semester { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;
 }

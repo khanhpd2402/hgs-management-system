@@ -18,10 +18,9 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<IEnumerable<Teacher>> GetAllAsync()
+        public IQueryable<Teacher> GetAll()
         {
-
-            return await _context.Teachers.Include(t => t.User).ToListAsync();
+            return _context.Teachers.Include(t => t.User).AsQueryable();
         }
 
         public async Task<Teacher?> GetByIdAsync(int id)
@@ -51,6 +50,16 @@ namespace Infrastructure.Repositories.Implementtations
                 _context.Teachers.Remove(teacher);
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task<bool> ExistsAsync(string idCard, string insuranceNumber)
+        {
+            return await _context.Teachers.AnyAsync(t => t.IdcardNumber == idCard || t.InsuranceNumber == insuranceNumber);
+        }
+
+        public async Task AddRangeAsync(IEnumerable<Teacher> teachers)
+        {
+            await _context.Teachers.AddRangeAsync(teachers);
+            await _context.SaveChangesAsync();
         }
     }
 }

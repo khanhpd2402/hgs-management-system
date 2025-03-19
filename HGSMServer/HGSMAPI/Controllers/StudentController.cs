@@ -1,6 +1,5 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
@@ -17,41 +16,43 @@ namespace HGSMAPI.Controllers
             _studentService = studentService;
         }
 
-        [HttpGet]
-        [EnableQuery]
-        public ActionResult<IQueryable<StudentDto>> GetStudents()
+        // Lấy danh sách học sinh theo năm học
+        [HttpGet("{academicYearId}")]
+        public async Task<IActionResult> GetAllStudentsWithParents(int academicYearId)
         {
-            var students = _studentService.GetAllStudents();
-            return Ok(students.AsQueryable());
+            var students = await _studentService.GetAllStudentsWithParentsAsync(academicYearId);
+            return Ok(students);
         }
 
-        // GET: api/Student/5
-        [HttpGet("{id}")]
-        public async Task<ActionResult<StudentDto>> GetStudent(int id)
+        // Lấy chi tiết một học sinh theo ID và năm học
+        [HttpGet("{id}/{academicYearId}")]
+        public async Task<ActionResult<StudentDto>> GetStudent(int id, int academicYearId)
         {
-            var student = await _studentService.GetStudentByIdAsync(id);
+            var student = await _studentService.GetStudentByIdAsync(id, academicYearId);
             if (student == null) return NotFound();
 
             return Ok(student);
         }
 
+
         // POST: api/Student
         [HttpPost]
-        public async Task<IActionResult> CreateStudent([FromBody] StudentDto studentDto)
+        public async Task<IActionResult> CreateStudent([FromBody] CreateStudentDto createStudentDto)
         {
-            if (studentDto == null) return BadRequest();
+            if (createStudentDto == null) return BadRequest();
 
-            await _studentService.AddStudentAsync(studentDto);
-            return CreatedAtAction(nameof(GetStudent), new { id = studentDto.StudentId }, studentDto);
+            var studentId = await _studentService.AddStudentAsync(createStudentDto);
+
+            return CreatedAtAction(nameof(GetStudent), new { id = studentId }, createStudentDto);
         }
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateStudent(int id, [FromBody] StudentDto studentDto)
+        public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDto updateStudentDto)
         {
-            if (id != studentDto.StudentId) return BadRequest();
+            if (id != updateStudentDto.StudentId) return BadRequest();
 
-            await _studentService.UpdateStudentAsync(studentDto);
+            await _studentService.UpdateStudentAsync(updateStudentDto);
             return NoContent();
         }
 
@@ -62,12 +63,21 @@ namespace HGSMAPI.Controllers
             await _studentService.DeleteStudentAsync(id);
             return NoContent();
         }
-        [HttpGet("export")]
-        public async Task<IActionResult> ExportStudentsToExcel()
-        {
-            var fileData = await _studentService.ExportStudentsToExcelAsync();
-            return File(fileData, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students.xlsx");
-        }
+        //[HttpGet("export-full-excel")]
+        //public async Task<IActionResult> ExportStudentsFullToExcel()
+        //{
+        //    var fileBytes = await _studentService.ExportStudentsFullToExcelAsync();
+        //    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students_Full.xlsx");
+        //}
+
+        //[HttpPost("export-selected-excel")]
+        //public async Task<IActionResult> ExportStudentsSelectedToExcel([FromBody] List<string> selectedColumns)
+        //{
+        //    var fileBytes = await _studentService.ExportStudentsSelectedToExcelAsync(selectedColumns);
+        //    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students_Selected.xlsx");
+        //}
+
+
 
         [HttpPost("import")]
         public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)

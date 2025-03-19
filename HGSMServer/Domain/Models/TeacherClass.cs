@@ -13,6 +13,10 @@ public partial class TeacherClass
 
     public bool? IsHomeroomTeacher { get; set; }
 
+    public int AcademicYearId { get; set; }
+
+    public virtual AcademicYear AcademicYear { get; set; } = null!;
+
     public virtual Class Class { get; set; } = null!;
 
     public virtual Teacher Teacher { get; set; } = null!;

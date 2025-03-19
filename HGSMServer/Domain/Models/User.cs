@@ -19,10 +19,6 @@ public partial class User
 
     public string? Status { get; set; }
 
-    public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
-
-    public virtual ICollection<Notification> Notifications { get; set; } = new List<Notification>();
-
     public virtual Parent? Parent { get; set; }
 
     public virtual Role Role { get; set; } = null!;

@@ -2,6 +2,7 @@
 using Application.Features.Teachers.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 
 namespace HGSMAPI.Controllers
 {
@@ -16,19 +17,15 @@ namespace HGSMAPI.Controllers
             _teacherService = teacherService;
         }
 
-        /// <summary>
-        /// Lấy danh sách giáo viên (chỉ thông tin quan trọng)
-        /// </summary>
+     
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<TeacherDetailDto>>> GetAllTeachers()
-        {
-            var teachers = await _teacherService.GetAllTeachersAsync();
-            return Ok(teachers);
+        [EnableQuery]
+        public async Task<IActionResult> GetAllTeachers()
+        {        
+                var result = await _teacherService.GetAllTeachersAsync();
+                return Ok(result);   
         }
 
-        /// <summary>
-        /// Lấy thông tin chi tiết của giáo viên theo ID
-        /// </summary>
         [HttpGet("{id}")]
         public async Task<ActionResult<TeacherDetailDto>> GetTeacherById(int id)
         {
@@ -39,11 +36,8 @@ namespace HGSMAPI.Controllers
             return Ok(teacher);
         }
 
-        /// <summary>
-        /// Thêm mới một giáo viên
-        /// </summary>
         [HttpPost]
-        public async Task<ActionResult> AddTeacher([FromBody] TeacherDetailDto teacherDto)
+        public async Task<ActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
         {
             if (teacherDto == null)
                 return BadRequest("Dữ liệu không hợp lệ");
@@ -74,24 +68,6 @@ namespace HGSMAPI.Controllers
             await _teacherService.DeleteTeacherAsync(id);
             return NoContent();
         }
-        [HttpGet("export-full-excel")]
-        public async Task<IActionResult> ExportTeachersFullToExcel()
-        {
-            var fileBytes = await _teacherService.ExportTeachersToExcelAsync();
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Teachers_Import.xlsx");
-        }
-        [HttpPost("export-selected-excel")]
-        public async Task<IActionResult> ExportTeachersSelectedToExcel([FromBody] List<string> selectedColumns)
-        {
-            if (selectedColumns == null || selectedColumns.Count == 0)
-            {
-                return BadRequest("Vui lòng chọn ít nhất một cột để xuất.");
-            }
-
-            var fileBytes = await _teacherService.ExportTeachersSelectedToExcelAsync(selectedColumns);
-            return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Teachers_Selected.xlsx");
-        }
-
 
         [HttpPost("import")]
         public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)

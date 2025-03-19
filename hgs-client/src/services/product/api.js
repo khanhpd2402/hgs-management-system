@@ -10,7 +10,8 @@ export const createTodo = async (data) => {
 };
 
 export const updateTodo = async (data) => {
-  await axiosInstance.put(`todos/${data.id}`, data);
+  const response = await axiosInstance.put(`todos/${data.id}`, data);
+  return response.data;
 };
 
 export const deleteTodo = async (id) => {
