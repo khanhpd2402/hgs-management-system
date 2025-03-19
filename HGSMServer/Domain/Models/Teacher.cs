@@ -49,13 +49,13 @@ public partial class Teacher
 
     public string? Hometown { get; set; }
 
+    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+
     public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
 
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
-
-    public virtual ICollection<Reward> Rewards { get; set; } = new List<Reward>();
 
     public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 

@@ -8,8 +8,12 @@ import { ReactQueryDevtools } from "@tanstack/react-query-devtools";
 const queryClient = new QueryClient({
   defaultOptions: {
     queries: {
-      retry: 5,
-      retryDelay: 1000,
+      // retry: 5,
+      retry: false,
+      // retryDelay: 1000,
+      refetchOnWindowFocus: false,
+      gcTime: 600000,
+      refetchOnReconnect: false,
     },
   },
 });

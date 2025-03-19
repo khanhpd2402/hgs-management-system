@@ -1,18 +1,15 @@
 ﻿using Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITeacherRepository
     {
-        Task<IEnumerable<Teacher>> GetAllAsync();
+        IQueryable<Teacher> GetAll();
         Task<Teacher?> GetByIdAsync(int id);
         Task AddAsync(Teacher teacher);
         Task UpdateAsync(Teacher teacher);
         Task DeleteAsync(int id);
+        Task<bool> ExistsAsync(string idCard, string insuranceNumber); // Kiểm tra giáo viên có tồn tại không
+        Task AddRangeAsync(IEnumerable<Teacher> teachers); // Thêm danh sách giáo viên
     }
 }
