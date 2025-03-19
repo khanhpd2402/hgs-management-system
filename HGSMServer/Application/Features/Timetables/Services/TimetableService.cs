@@ -378,7 +378,7 @@ namespace Application.Features.Timetables.Services
                 .ToListAsync();
         }
 
-        private bool CanAssign(Domain.Models.TeachingAssignment assignment, List<Timetable> timetable, string day, int period, Dictionary<int, int> teacherWeeklyPeriods, int grade, ExternalConstraints constraints)
+        private bool CanAssign(TeachingAssignment assignment, List<Timetable> timetable, string day, int period, Dictionary<int, int> teacherWeeklyPeriods, int grade, ExternalConstraints constraints)
         {
             var teacher = _context.Teachers.First(t => t.TeacherId == assignment.TeacherId);
             var subject = _context.Subjects.First(s => s.SubjectId == assignment.SubjectId);

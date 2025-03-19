@@ -13,36 +13,22 @@ namespace Application.Features.Teachers.Services
     public class TeacherService : ITeacherService
     {
         private readonly ITeacherRepository _teacherRepository;
-        private readonly ITeacherClassRepository _teacherClassRepository; // Thêm repository mới
         private readonly IMapper _mapper;
 
-        public TeacherService(ITeacherRepository teacherRepository, ITeacherClassRepository teacherClassRepository, IMapper mapper)
+        public TeacherService(ITeacherRepository teacherRepository, IMapper mapper)
         {
             _teacherRepository = teacherRepository;
-            _teacherClassRepository = teacherClassRepository;
             _mapper = mapper;
         }
-        public async Task<TeacherListResponseDto> GetAllTeachersAsync(bool exportToExcel = false, List<string> selectedColumns = null)
+        public async Task<TeacherListResponseDto> GetAllTeachersAsync()
         {
             var query = _teacherRepository.GetAll();
-
-            var teachers = await Task.Run(() => _mapper.ProjectTo<TeacherListDto>(query).ToList());
-
-            if (exportToExcel)
-            {
-                var exportDtos = query.Select(TeacherToTeacherExportDto).ToList();
-                string sheetName = selectedColumns != null ? "Danh sách cán bộ" : "Danh sách giáo viên";
-                string title = "Năm học 2024-2025";
-                bool isCustomColumns = selectedColumns != null;
-
-                var excelBytes = ExcelExporter.ExportToExcel(exportDtos, GetTeacherColumnMappings(), sheetName, title, selectedColumns, isCustomColumns);
-                throw new CustomExportException(excelBytes);
-            }
+            var teacherList = await Task.Run(() => _mapper.ProjectTo<TeacherListDto>(query).ToList());
 
             return new TeacherListResponseDto
             {
-                Teachers = teachers,
-                TotalCount = teachers.Count
+                Teachers = teacherList,
+                TotalCount = teacherList.Count
             };
         }
         public async Task<TeacherDetailDto?> GetTeacherByIdAsync(int id)
@@ -130,36 +116,6 @@ namespace Application.Features.Teachers.Services
             };
         }
 
-        private TeacherExportDto TeacherToTeacherExportDto(Teacher t)
-        {
-            return new TeacherExportDto
-            {
-                TeacherId = t.TeacherId,
-                FullName = t.FullName,
-                Dob = t.Dob.ToString(AppConstants.DATE_FORMAT),
-                Gender = t.Gender,
-                Ethnicity = t.Ethnicity,
-                Religion = t.Religion,
-                MaritalStatus = t.MaritalStatus,
-                IdcardNumber = t.IdcardNumber,
-                InsuranceNumber = t.InsuranceNumber,
-                EmploymentType = t.EmploymentType,
-                Position = t.Position,
-                Department = t.Department,
-                AdditionalDuties = t.AdditionalDuties,
-                IsHeadOfDepartment = (bool)t.IsHeadOfDepartment ? "Có" : "Không",
-                EmploymentStatus = t.EmploymentStatus,
-                RecruitmentAgency = t.RecruitmentAgency,
-                HiringDate = t.HiringDate?.ToString(AppConstants.DATE_FORMAT) ?? "Không rõ",
-                PermanentEmploymentDate = t.PermanentEmploymentDate?.ToString(AppConstants.DATE_FORMAT) ?? "Không rõ",
-                SchoolJoinDate = t.SchoolJoinDate.ToString(AppConstants.DATE_FORMAT),
-                PermanentAddress = t.PermanentAddress,
-                Hometown = t.Hometown,
-                Email = t.User?.Email ?? "Không có",
-                PhoneNumber = t.User?.PhoneNumber ?? "Không có"
-            };
-        }
-
         public async Task ImportTeachersFromExcelAsync(IFormFile file)
         {
             var data = ExcelImportHelper.ReadExcelData(file);
@@ -229,44 +185,6 @@ namespace Application.Features.Teachers.Services
             await _teacherRepository.AddRangeAsync(teachers);
         }
 
-        public async Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto)
-        {
-            if (assignHomeroomDto == null)
-                throw new ArgumentNullException(nameof(assignHomeroomDto));
-
-            if (assignHomeroomDto.TeacherId <= 0 || assignHomeroomDto.ClassId <= 0 ||
-                assignHomeroomDto.AcademicYearId <= 0 || assignHomeroomDto.SemesterId <= 0)
-            {
-                throw new ArgumentException("All IDs (TeacherId, ClassId, AcademicYearId, SemesterId) must be positive.");
-            }
-
-            // Kiểm tra xem giáo viên đã được phân công làm chủ nhiệm lớp này chưa
-            var isAssigned = await _teacherClassRepository.IsHomeroomAssignedAsync(
-                assignHomeroomDto.TeacherId,
-                assignHomeroomDto.ClassId,
-                assignHomeroomDto.AcademicYearId);
-
-            if (isAssigned)
-            {
-                throw new InvalidOperationException("This teacher is already assigned as homeroom teacher for this class in the specified academic year.");
-            }
-
-            await _teacherClassRepository.AssignHomeroomAsync(
-                assignHomeroomDto.TeacherId,
-                assignHomeroomDto.ClassId,
-                assignHomeroomDto.AcademicYearId,
-                assignHomeroomDto.SemesterId);
-        }
-
-        public async Task<bool> IsHomeroomAssignedAsync(int teacherId, int classId, int academicYearId)
-        {
-            return await _teacherClassRepository.IsHomeroomAssignedAsync(teacherId, classId, academicYearId);
-        }
-
-        public async Task<bool> HasHomeroomTeacherAsync(int classId, int academicYearId)
-        {
-            return await _teacherClassRepository.HasHomeroomTeacherAsync(classId, academicYearId);
-        }
     }
 }
 public class CustomExportException : Exception

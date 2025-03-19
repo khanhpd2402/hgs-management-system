@@ -9,8 +9,8 @@ namespace Application.Features.Subjects.DTOs
     public class SubjectDto
     {
         public int SubjectId { get; set; }
-        public string SubjectName { get; set; }
-        public string SubjectCategory { get; set; }
-        public string TypeOfGrade { get; set; }
+        public string SubjectName { get; set; } = null!;
+        public string SubjectCategory { get; set; } = null!;
+        public string TypeOfGrade { get; set; } = null!;
     }
 }
