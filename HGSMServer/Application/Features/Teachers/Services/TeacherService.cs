@@ -20,27 +20,17 @@ namespace Application.Features.Teachers.Services
             _teacherRepository = teacherRepository;
             _mapper = mapper;
         }
-        public async Task<List<TeacherListDto>> GetAllTeachersAsync(bool exportToExcel = false, List<string> selectedColumns = null)
+        public async Task<TeacherListResponseDto> GetAllTeachersAsync()
         {
             var query = _teacherRepository.GetAll();
+            var teacherList = await Task.Run(() => _mapper.ProjectTo<TeacherListDto>(query).ToList());
 
-            var teachers = await Task.Run(() => _mapper.ProjectTo<TeacherListDto>(query).ToList());
-
-            if (exportToExcel)
+            return new TeacherListResponseDto
             {
-                var exportDtos = await Task.Run(() => _mapper.ProjectTo<TeacherExportDto>(query).ToList());
-
-                string sheetName = selectedColumns != null ? "Danh sách cán bộ" : "Danh sách giáo viên";
-                string title = "Năm học 2024-2025";
-                bool isCustomColumns = selectedColumns != null;
-
-                var excelBytes = ExcelExporter.ExportToExcel(exportDtos, GetTeacherColumnMappings(), sheetName, title, selectedColumns, isCustomColumns);
-                throw new CustomExportException(excelBytes);
-            }
-
-            return teachers;
+                Teachers = teacherList,
+                TotalCount = teacherList.Count
+            };
         }
-
         public async Task<TeacherDetailDto?> GetTeacherByIdAsync(int id)
         {
             var teacher = await _teacherRepository.GetByIdAsync(id);

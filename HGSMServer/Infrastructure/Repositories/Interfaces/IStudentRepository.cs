@@ -9,10 +9,10 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IStudentRepository
     {
-        Task<List<Student>> GetStudentsByAcademicYearAsync(int semesterId);
+        Task<IEnumerable<Student>> GetAllWithParentsAsync(int academicYearId);
         Task<int> GetAcademicYearIdAsync(int semesterId);
-        IQueryable<Student> GetAll();
         Task<Student?> GetByIdAsync(int id);
+        Task<Student?> GetByIdWithParentsAsync(int id, int academicYearId);
         //Task<List<Student>> GetStudentsByIdsAsync(List<int> studentIds);
         Task AddAsync(Student student);
         Task UpdateAsync(Student student);
