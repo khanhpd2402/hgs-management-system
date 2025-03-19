@@ -90,7 +90,7 @@ CREATE TABLE [dbo].[Teachers] (
     [PermanentAddress] NVARCHAR(255) NULL,
     [Hometown] NVARCHAR(255) NULL,
     PRIMARY KEY CLUSTERED ([TeacherID] ASC),
-    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE CASCADE,
     UNIQUE NONCLUSTERED ([InsuranceNumber] ASC),
     UNIQUE NONCLUSTERED ([UserID] ASC),
     UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
