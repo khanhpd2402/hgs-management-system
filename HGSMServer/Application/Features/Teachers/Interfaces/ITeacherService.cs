@@ -7,8 +7,8 @@ namespace Application.Features.Teachers.Interfaces
 {
     public interface ITeacherService
     {
-        Task<List<TeacherListDto>> GetAllTeachersAsync(bool exportToExcel = false, List<string> selectedColumns = null);
-        Task<TeacherDetailDto?> GetTeacherByIdAsync(int id); // Phải có dòng này
+        Task<TeacherListResponseDto> GetAllTeachersAsync();
+        Task<TeacherDetailDto?> GetTeacherByIdAsync(int id);
         Task AddTeacherAsync(TeacherListDto teacherDto);
         Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto);
         Task DeleteTeacherAsync(int id);

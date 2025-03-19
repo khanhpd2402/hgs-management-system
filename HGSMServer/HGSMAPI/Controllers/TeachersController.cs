@@ -20,18 +20,10 @@ namespace HGSMAPI.Controllers
      
         [HttpGet]
         [EnableQuery]
-        public async Task<IActionResult> GetAllTeachers([FromQuery] bool exportToExcel = false, [FromQuery] string[] selectedColumns = null)
-        {
-            try
-            {
-                var result = await _teacherService.GetAllTeachersAsync(exportToExcel, selectedColumns?.ToList());
-
-                return Ok(result);
-            }
-            catch (CustomExportException ex)
-            {
-                return File(ex.ExcelBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "teachers.xlsx");
-            }
+        public async Task<IActionResult> GetAllTeachers()
+        {        
+                var result = await _teacherService.GetAllTeachersAsync();
+                return Ok(result);   
         }
 
         [HttpGet("{id}")]
