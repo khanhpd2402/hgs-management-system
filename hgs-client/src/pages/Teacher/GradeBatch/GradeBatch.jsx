@@ -1,138 +1,186 @@
-import { useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import DatePicker from "@/components/DatePicker";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Separator } from "@/components/ui/separator";
+import AddGradeBatch from "./AddGradeBatch";
+import GradeBatchDetail from "./GradeBatchDetail";
 
-const schema = z.object({
-  name: z.string().min(1, "Tên đợt không được để trống"),
-  startDate: z.date({ required_error: "Vui lòng chọn ngày bắt đầu" }),
-  endDate: z
-    .date({ required_error: "Vui lòng chọn ngày kết thúc" })
-    .refine(
-      (date, ctx) => date >= ctx.parent.startDate,
-      "Ngày kết thúc phải sau ngày bắt đầu",
-    ),
-});
+export default function GradeBatch() {
+  const [gradeBatches, setGradeBatches] = useState([
+    {
+      id: 1,
+      name: "Đợt nhập điểm học kỳ 1 năm 2023-2024",
+      startDate: new Date("2023-09-01"),
+      endDate: new Date("2023-12-31"),
+      status: "active",
+      scoreTypes: {
+        frequent: { enabled: true, count: "3" },
+        midterm: { enabled: true },
+        final: { enabled: true },
+      },
+    },
+    {
+      id: 2,
+      name: "Đợt nhập điểm học kỳ 2 năm 2022-2023",
+      startDate: new Date("2023-01-01"),
+      endDate: new Date("2023-05-31"),
+      status: "completed",
+      scoreTypes: {
+        frequent: { enabled: true, count: "4" },
+        midterm: { enabled: true },
+        final: { enabled: true },
+      },
+    },
+  ]);
 
-export default function GradeEntryForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    setValue,
-  } = useForm({
-    resolver: zodResolver(schema),
-  });
+  const [selectedBatch, setSelectedBatch] = useState(null);
+  const [detailModalOpen, setDetailModalOpen] = useState(false);
 
-  const [scores, setScores] = useState(Array(8).fill(false));
-  const [scoreValues, setScoreValues] = useState(Array(8).fill(""));
+  // Check and update batch statuses based on current date
+  useEffect(() => {
+    const now = new Date();
+    const updatedBatches = gradeBatches.map((batch) => {
+      const endDate = new Date(batch.endDate);
+      if (now > endDate && batch.status === "active") {
+        return { ...batch, status: "completed" };
+      }
+      return batch;
+    });
 
-  const handleCheckboxChange = (index) => {
-    const newScores = [...scores];
-    newScores[index] = !newScores[index];
-    setScores(newScores);
+    // Only update state if there were changes
+    if (JSON.stringify(updatedBatches) !== JSON.stringify(gradeBatches)) {
+      setGradeBatches(updatedBatches);
+    }
+  }, [gradeBatches]);
+
+  const handleAddGradeBatch = (newBatch) => {
+    // Check if the new batch should be marked as completed based on end date
+    const now = new Date();
+    const status = now > new Date(newBatch.endDate) ? "completed" : "active";
+
+    setGradeBatches([
+      ...gradeBatches,
+      {
+        id: gradeBatches.length + 1,
+        ...newBatch,
+        status,
+      },
+    ]);
   };
 
-  const handleInputChange = (index, value) => {
-    const newScoreValues = [...scoreValues];
-    newScoreValues[index] = value;
-    setScoreValues(newScoreValues);
+  const handleViewDetails = (batch) => {
+    setSelectedBatch(batch);
+    setDetailModalOpen(true);
   };
 
-  const onSubmit = (data) => {
-    console.log("Form data submitted:", data, scoreValues);
+  const handleSaveBatchEdit = (editedBatch) => {
+    // Check if status needs to be updated based on end date
+    const now = new Date();
+    const endDate = new Date(editedBatch.endDate);
+
+    // Update status based on end date
+    let updatedBatch = { ...editedBatch };
+    if (now > endDate && updatedBatch.status === "active") {
+      updatedBatch.status = "completed";
+    } else if (now <= endDate && updatedBatch.status === "completed") {
+      updatedBatch.status = "active";
+    }
+
+    setGradeBatches(
+      gradeBatches.map((batch) =>
+        batch.id === updatedBatch.id ? updatedBatch : batch,
+      ),
+    );
+    setSelectedBatch(updatedBatch);
+  };
+
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("vi-VN");
+  };
+
+  const getStatusBadge = (status) => {
+    switch (status) {
+      case "active":
+        return <Badge className="bg-green-500">Đang diễn ra</Badge>;
+      case "completed":
+        return <Badge className="bg-gray-500">Đã kết thúc</Badge>;
+      case "upcoming":
+        return <Badge className="bg-blue-500">Sắp diễn ra</Badge>;
+      default:
+        return <Badge>{status}</Badge>;
+    }
   };
 
   return (
-    <div className="w-full max-w-2xl rounded-xl bg-white p-6 shadow-lg">
-      <Dialog>
-        <DialogTrigger asChild>
-          <Button>Thêm mới</Button>
-        </DialogTrigger>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Thêm mới đợt nhập điểm</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-            <div>
-              <Label className="font-medium">Tên đợt *</Label>
-              <Input {...register("name")} placeholder="Nhập tên đợt" />
-              {errors.name && (
-                <p className="text-sm text-red-500">{errors.name.message}</p>
-              )}
-            </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label className="font-medium">Từ ngày *</Label>
-                <DatePicker onSelect={(date) => setValue("startDate", date)} />
-                {errors.startDate && (
-                  <p className="text-sm text-red-500">
-                    {errors.startDate.message}
-                  </p>
-                )}
-              </div>
-              <div>
-                <Label className="font-medium">Đến ngày *</Label>
-                <DatePicker onSelect={(date) => setValue("endDate", date)} />
-                {errors.endDate && (
-                  <p className="text-sm text-red-500">
-                    {errors.endDate.message}
-                  </p>
-                )}
-              </div>
-            </div>
+    <div className="container mx-auto py-6">
+      <div className="mb-6 flex items-center justify-between">
+        <h1 className="text-2xl font-bold">Quản lý đợt nhập điểm</h1>
+        <AddGradeBatch onAddBatch={handleAddGradeBatch} />
+      </div>
 
-            <div>
-              <Label className="font-medium">Các cột điểm của đợt</Label>
-              <div className="mt-2 space-y-2">
-                <div className="flex items-center gap-2">
-                  <span>Thường Xuyên</span>
-                  {[...Array(8)].map((_, i) => (
-                    <div key={i} className="flex items-center gap-2">
-                      <Checkbox
-                        checked={scores[i]}
-                        onCheckedChange={() => handleCheckboxChange(i)}
-                      />
-                      {scores[i] && (
-                        <Input
-                          type="number"
-                          value={scoreValues[i]}
-                          onChange={(e) => handleInputChange(i, e.target.value)}
-                          className="w-16"
-                        />
-                      )}
-                    </div>
-                  ))}
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox /> <span>ĐĐG GK</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Checkbox /> <span>ĐĐG CK</span>
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        {gradeBatches.map((batch) => (
+          <Card key={batch.id} className="overflow-hidden">
+            <CardHeader className="pb-2">
+              <div className="flex justify-between">
+                <CardTitle className="line-clamp-1 text-lg font-semibold">
+                  {batch.name}
+                </CardTitle>
+                {getStatusBadge(batch.status)}
+              </div>
+            </CardHeader>
+            <Separator />
+            <CardContent className="pt-4">
+              <div className="mb-3 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-500">Thời gian:</span>
+                  <span>
+                    {formatDate(batch.startDate)} - {formatDate(batch.endDate)}
+                  </span>
                 </div>
               </div>
-            </div>
-            <div className="flex justify-end gap-2">
-              <Button type="button" variant="outline">
-                Hủy bỏ
-              </Button>
-              <Button type="submit">Lưu</Button>
-            </div>
-          </form>
-        </DialogContent>
-      </Dialog>
+
+              <div className="mb-3">
+                <p className="mb-2 text-sm text-gray-500">Cột điểm:</p>
+                <div className="flex flex-wrap gap-2">
+                  {batch.scoreTypes.frequent.enabled && (
+                    <Badge variant="outline">
+                      Thường xuyên ({batch.scoreTypes.frequent.count})
+                    </Badge>
+                  )}
+                  {batch.scoreTypes.midterm.enabled && (
+                    <Badge variant="outline">ĐĐG GK</Badge>
+                  )}
+                  {batch.scoreTypes.final.enabled && (
+                    <Badge variant="outline">ĐĐG CK</Badge>
+                  )}
+                </div>
+              </div>
+
+              <div className="mt-4 flex justify-end">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleViewDetails(batch)}
+                >
+                  Chi tiết
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+
+      {/* Detail Modal Component */}
+      {selectedBatch && (
+        <GradeBatchDetail
+          batch={selectedBatch}
+          open={detailModalOpen}
+          onOpenChange={setDetailModalOpen}
+          onSave={handleSaveBatchEdit}
+        />
+      )}
     </div>
   );
 }

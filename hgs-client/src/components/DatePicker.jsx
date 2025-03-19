@@ -20,7 +20,7 @@ import {
 } from "@/components/ui/select";
 import { useState } from "react";
 
-const DatePicker = ({ value, onSelect, locale = vi }) => {
+const DatePicker = ({ value, onSelect, locale = vi, disabled = true }) => {
   const [month, setMonth] = useState(
     value ? value.getMonth() : new Date().getMonth(),
   );
@@ -167,8 +167,9 @@ const DatePicker = ({ value, onSelect, locale = vi }) => {
             setYear(date.getFullYear());
           }}
           locale={locale}
-          disabled={(date) =>
-            date > new Date() || date < new Date("1900-01-01")
+          disabled={
+            disabled &&
+            ((date) => date > new Date() || date < new Date("1900-01-01"))
           }
           initialFocus
         />
@@ -181,6 +182,7 @@ DatePicker.propTypes = {
   value: PropTypes.instanceOf(Date),
   onSelect: PropTypes.func,
   locale: PropTypes.object,
+  disabled: PropTypes.bool,
 };
 
 export default DatePicker;
