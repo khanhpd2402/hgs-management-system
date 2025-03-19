@@ -1,8 +1,8 @@
 ﻿using Application.Features.Teachers.DTOs;
 using Microsoft.AspNetCore.Http;
-using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.Threading.Tasks;
+
 namespace Application.Features.Teachers.Interfaces
 {
     public interface ITeacherService
@@ -13,6 +13,8 @@ namespace Application.Features.Teachers.Interfaces
         Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto);
         Task DeleteTeacherAsync(int id);
         Task ImportTeachersFromExcelAsync(IFormFile file);
+        Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto);
+        Task<bool> IsHomeroomAssignedAsync(int teacherId, int classId, int academicYearId);
+        Task<bool> HasHomeroomTeacherAsync(int classId, int academicYearId);
     }
-
 }

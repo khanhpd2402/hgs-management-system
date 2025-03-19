@@ -14,6 +14,7 @@ namespace Application.Features.Role.Interfaces
         Task<RoleDto> AddRoleAsync(string roleName);
         Task<RoleDto> UpdateRoleAsync(int roleId, string roleName);
         Task<bool> DeleteRoleAsync(int roleId);
+
     }
 
 }

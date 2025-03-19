@@ -35,7 +35,6 @@ using Application.Features.Grades.Interfaces;
 using Application.Features.Grades.Services;
 using Application.Features.Subjects.Interfaces;
 using Application.Features.Subjects.Services;
-
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
 // Đọc khóa từ appsettings.json
@@ -59,12 +58,14 @@ builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+
 builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
 builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ISubjectService, SubjectService>();
+
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
