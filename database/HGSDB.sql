@@ -90,7 +90,7 @@ CREATE TABLE [dbo].[Teachers] (
     [PermanentAddress] NVARCHAR(255) NULL,
     [Hometown] NVARCHAR(255) NULL,
     PRIMARY KEY CLUSTERED ([TeacherID] ASC),
-    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE CASCADE,
     UNIQUE NONCLUSTERED ([InsuranceNumber] ASC),
     UNIQUE NONCLUSTERED ([UserID] ASC),
     UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
@@ -183,7 +183,7 @@ CREATE TABLE [dbo].[Grades] (
     [StudentID] INT NOT NULL,
     [ClassID] INT NOT NULL,
     [SubjectID] INT NOT NULL,
-    [Score] NVARCHAR(10) NOT NULL,
+    [Score] NVARCHAR(10) NULL,
     [AssessmentsTypeName] NVARCHAR(100) NOT NULL,
     [TeacherComment] NVARCHAR(max) NULL,
     PRIMARY KEY CLUSTERED ([GradeID] ASC),
@@ -192,6 +192,7 @@ CREATE TABLE [dbo].[Grades] (
     CONSTRAINT [FK_Grades_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]),
     CONSTRAINT [FK_Grades_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
 )
+
 
 CREATE TABLE [dbo].[Exams] (
     [ExamID] INT IDENTITY(1,1) NOT NULL,

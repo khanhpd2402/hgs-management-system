@@ -6,7 +6,7 @@ namespace Infrastructure.Repositories.Implementtations
 {
     public class ClassRepository : IClassRepository
     {
-        private readonly HgsdbContext _context; // Giả sử bạn dùng EF Core
+        private readonly HgsdbContext _context;
 
         public ClassRepository(HgsdbContext context)
         {

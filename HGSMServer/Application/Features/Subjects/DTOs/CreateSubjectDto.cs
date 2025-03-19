@@ -6,9 +6,8 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Subjects.DTOs
 {
-    public class SubjectDto
+    public class CreateSubjectDto
     {
-        public int SubjectId { get; set; }
         public string SubjectName { get; set; } = null!;
         public string SubjectCategory { get; set; } = null!;
         public string TypeOfGrade { get; set; } = null!;

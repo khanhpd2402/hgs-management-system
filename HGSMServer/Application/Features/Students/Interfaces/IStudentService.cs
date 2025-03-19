@@ -11,13 +11,13 @@ namespace Application.Features.Students.Interfaces
 {
     public interface IStudentService
     {
-        IQueryable<StudentDto> GetAllStudents();
-        Task<StudentDto?> GetStudentByIdAsync(int id);
-        Task AddStudentAsync(StudentDto studentDto);
-        Task UpdateStudentAsync(StudentDto studentDto);
+        Task<StudentListResponseDto> GetAllStudentsWithParentsAsync(int academicYearId);
+        Task<StudentDto?> GetStudentByIdAsync(int id, int academicYearId);
+        Task<int> AddStudentAsync(CreateStudentDto createStudentDto);
+        Task UpdateStudentAsync(UpdateStudentDto updateStudentDto);
         Task DeleteStudentAsync(int id);
-        Task<byte[]> ExportStudentsFullToExcelAsync();
-        Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns);
+        //Task<byte[]> ExportStudentsFullToExcelAsync();
+        //Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns);
 
         Task ImportStudentsFromExcelAsync(IFormFile file);
     }
