@@ -55,7 +55,9 @@ public partial class Teacher
 
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
 
-    public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
+    public virtual ICollection<LessonPlan> LessonPlanReviewers { get; set; } = new List<LessonPlan>();
+
+    public virtual ICollection<LessonPlan> LessonPlanTeachers { get; set; } = new List<LessonPlan>();
 
     public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 

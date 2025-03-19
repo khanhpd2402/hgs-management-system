@@ -30,6 +30,8 @@ using Application.Features.Attendances.DTOs;
 using Infrastructure.Repositories.Implementations;
 using Application.Features.TeachingAssignment.Interfaces;
 using Application.Features.TeachingAssignment.Services;
+using Application.Features.LessonPlans.Interfaces;
+using Application.Features.LessonPlans.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -56,12 +58,14 @@ builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 // Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
+builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
 //builder.Services.AddScoped<ITimetableService, TimetableService>();
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
@@ -76,10 +80,10 @@ builder.Services.AddScoped<TimetableService>();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = "Google"; // Sử dụng Google khi challenge
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Dùng Cookies để lưu phiên
+    options.DefaultChallengeScheme = "Google";
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme) // Thêm Cookie Authentication
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme)
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
@@ -94,6 +98,10 @@ builder.Services.AddAuthentication(options =>
         ClockSkew = TimeSpan.Zero,
         IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"])),
     };
+    // Thêm ánh xạ claim
+    options.TokenValidationParameters.RoleClaimType = "role"; // Đảm bảo role được nhận diện
+    options.TokenValidationParameters.NameClaimType = "name";
+    options.MapInboundClaims = false; // Tắt ánh xạ tự động để giữ nguyên "sub"
 })
 .AddGoogle("Google", options =>
 {
