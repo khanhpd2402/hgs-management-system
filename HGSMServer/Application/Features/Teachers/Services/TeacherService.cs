@@ -22,27 +22,15 @@ namespace Application.Features.Teachers.Services
             _teacherClassRepository = teacherClassRepository;
             _mapper = mapper;
         }
-        public async Task<TeacherListResponseDto> GetAllTeachersAsync(bool exportToExcel = false, List<string> selectedColumns = null)
+        public async Task<TeacherListResponseDto> GetAllTeachersAsync()
         {
             var query = _teacherRepository.GetAll();
-
-            var teachers = await Task.Run(() => _mapper.ProjectTo<TeacherListDto>(query).ToList());
-
-            if (exportToExcel)
-            {
-                var exportDtos = query.Select(TeacherToTeacherExportDto).ToList();
-                string sheetName = selectedColumns != null ? "Danh sách cán bộ" : "Danh sách giáo viên";
-                string title = "Năm học 2024-2025";
-                bool isCustomColumns = selectedColumns != null;
-
-                var excelBytes = ExcelExporter.ExportToExcel(exportDtos, GetTeacherColumnMappings(), sheetName, title, selectedColumns, isCustomColumns);
-                throw new CustomExportException(excelBytes);
-            }
+            var teacherList = await Task.Run(() => _mapper.ProjectTo<TeacherListDto>(query).ToList());
 
             return new TeacherListResponseDto
             {
-                Teachers = teachers,
-                TotalCount = teachers.Count
+                Teachers = teacherList,
+                TotalCount = teacherList.Count
             };
         }
         public async Task<TeacherDetailDto?> GetTeacherByIdAsync(int id)
@@ -127,36 +115,6 @@ namespace Application.Features.Teachers.Services
                 { "Hometown", "Quê quán" },
                 { "Email", "Email" },
                 { "PhoneNumber", "Số điện thoại" }
-            };
-        }
-
-        private TeacherExportDto TeacherToTeacherExportDto(Teacher t)
-        {
-            return new TeacherExportDto
-            {
-                TeacherId = t.TeacherId,
-                FullName = t.FullName,
-                Dob = t.Dob.ToString(AppConstants.DATE_FORMAT),
-                Gender = t.Gender,
-                Ethnicity = t.Ethnicity,
-                Religion = t.Religion,
-                MaritalStatus = t.MaritalStatus,
-                IdcardNumber = t.IdcardNumber,
-                InsuranceNumber = t.InsuranceNumber,
-                EmploymentType = t.EmploymentType,
-                Position = t.Position,
-                Department = t.Department,
-                AdditionalDuties = t.AdditionalDuties,
-                IsHeadOfDepartment = (bool)t.IsHeadOfDepartment ? "Có" : "Không",
-                EmploymentStatus = t.EmploymentStatus,
-                RecruitmentAgency = t.RecruitmentAgency,
-                HiringDate = t.HiringDate?.ToString(AppConstants.DATE_FORMAT) ?? "Không rõ",
-                PermanentEmploymentDate = t.PermanentEmploymentDate?.ToString(AppConstants.DATE_FORMAT) ?? "Không rõ",
-                SchoolJoinDate = t.SchoolJoinDate.ToString(AppConstants.DATE_FORMAT),
-                PermanentAddress = t.PermanentAddress,
-                Hometown = t.Hometown,
-                Email = t.User?.Email ?? "Không có",
-                PhoneNumber = t.User?.PhoneNumber ?? "Không có"
             };
         }
 
