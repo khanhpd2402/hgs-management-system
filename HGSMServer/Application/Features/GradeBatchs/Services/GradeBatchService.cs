@@ -40,7 +40,7 @@ namespace Application.Services
             var newBatch = await _gradeBatchRepository.AddAsync(batch);
             int academicYearId = await _studentRepository.GetAcademicYearIdAsync(batch.SemesterId);
             // Lấy danh sách học sinh theo học kỳ
-            var students = await _studentRepository.GetStudentsByAcademicYearAsync(academicYearId);
+            var students = await _studentRepository.GetAllWithParentsAsync(academicYearId);
 
             var grades = new List<Grade>();
 
