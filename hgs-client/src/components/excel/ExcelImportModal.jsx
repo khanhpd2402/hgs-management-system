@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -8,21 +9,36 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Upload, XCircle, FileText, Download } from "lucide-react";
+import { RadioGroup } from "@/components/ui/radio-group";
+import { Upload, XCircle, FileText, Download, Loader } from "lucide-react";
 import { axiosInstance } from "@/services/axios";
+import toast from "react-hot-toast";
 
 export default function ExcelImportModal({ type }) {
   const [file, setFile] = useState(null);
   const [importType, setImportType] = useState("update");
   const [dragging, setDragging] = useState(false);
+  const [isOpen, setIsOpen] = useState(false); // Quản lý trạng thái modal
+  const queryClient = useQueryClient();
 
-  const submitFile = async (file) => {
-    const response = await axiosInstance.post(`/${type}/import`, file);
-    console.log(response);
-  };
+  // Mutation xử lý import file
+  const importMutation = useMutation({
+    mutationFn: async (file) => {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await axiosInstance.post(`/${type}/import`, formData);
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Import dữ liệu thành công!");
+      queryClient.invalidateQueries(["teachers"]); // Làm mới danh sách giáo viên
+      setIsOpen(false); // Đóng modal
+    },
+    onError: () => {
+      toast.error("Có lỗi xảy ra khi import dữ liệu!");
+    },
+  });
 
-  // Fake danh sách file mẫu theo từng trang
   const sampleFiles = {
     employees:
       "https://docs.google.com/spreadsheets/d/1ULLJxX-ocO0y3zO2B8HCTq4_gdqBtenA/export?format=xlsx",
@@ -50,20 +66,25 @@ export default function ExcelImportModal({ type }) {
 
   const handleUpload = () => {
     if (file) {
-      console.log("Uploading:", file);
-      const formData = new FormData();
-      formData.append("file", file);
-      submitFile(formData);
-      // TODO: Xử lý upload file lên server
+      importMutation.mutate(file);
     } else {
-      alert("Vui lòng chọn file Excel!");
+      toast.error("Vui lòng chọn file Excel!");
     }
   };
 
   return (
-    <Dialog>
+    <Dialog
+      open={isOpen}
+      onOpenChange={(open) => {
+        if (!importMutation.isPending) {
+          setIsOpen(open);
+        }
+      }}
+    >
       <DialogTrigger asChild>
-        <Button variant="outline">Nhập dữ liệu từ Excel</Button>
+        <Button variant="outline" onClick={() => setIsOpen(true)}>
+          Nhập dữ liệu từ Excel
+        </Button>
       </DialogTrigger>
       <DialogContent className="max-w-md">
         <DialogHeader>
@@ -71,7 +92,7 @@ export default function ExcelImportModal({ type }) {
         </DialogHeader>
 
         {/* Tải file mẫu */}
-        <div className="flex items-center justify-between border-b pb-2">
+        <div className="mt-2 flex items-center justify-between border-b pb-2">
           <a
             href={sampleFileUrl}
             download
@@ -83,19 +104,19 @@ export default function ExcelImportModal({ type }) {
         </div>
 
         {file ? (
-          // Nếu đã chọn file, chỉ hiển thị tên file
           <div className="flex items-center justify-between rounded-md border border-gray-300 p-3 text-gray-700">
             <div className="flex items-center gap-2">
               <FileText className="h-5 w-5 text-blue-600" />
               <span className="text-sm font-medium">{file.name}</span>
             </div>
-            <XCircle
-              className="h-5 w-5 cursor-pointer text-red-500"
-              onClick={() => setFile(null)}
-            />
+            {!importMutation.isPending && (
+              <XCircle
+                className="h-5 w-5 cursor-pointer text-red-500"
+                onClick={() => setFile(null)}
+              />
+            )}
           </div>
         ) : (
-          // Nếu chưa chọn file, hiển thị vùng kéo thả
           <div
             className={`flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-gray-600 transition ${
               dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
@@ -111,7 +132,7 @@ export default function ExcelImportModal({ type }) {
             <Label htmlFor="file-upload" className="cursor-pointer font-medium">
               Thêm File
             </Label>
-            <span className="text-sm">hoặc kéo và thả</span>
+            <span className="mt-2 text-sm">hoặc kéo và thả</span>
             <input
               id="file-upload"
               type="file"
@@ -127,20 +148,29 @@ export default function ExcelImportModal({ type }) {
           value={importType}
           onValueChange={setImportType}
           className="space-y-2"
-        >
-          <Label className="flex items-center gap-2">
-            <RadioGroupItem value="new" /> Thêm dữ liệu mới
-          </Label>
-          <Label className="flex items-center gap-2">
-            <RadioGroupItem value="update" /> Cập nhật dữ liệu
-          </Label>
-        </RadioGroup>
+        ></RadioGroup>
 
         {/* Nút hành động */}
-        <div className="flex justify-end gap-2">
-          <Button variant="outline">Đóng</Button>
-          <Button onClick={handleUpload} disabled={!file}>
-            Tải lên
+        <div className="mt-4 flex justify-end gap-2">
+          <Button
+            variant="outline"
+            onClick={() => setIsOpen(false)}
+            disabled={importMutation.isPending}
+          >
+            Đóng
+          </Button>
+          <Button
+            onClick={handleUpload}
+            disabled={!file || importMutation.isPending}
+          >
+            {importMutation.isPending ? (
+              <>
+                <Loader className="h-4 w-4 animate-spin" />
+                Đang tải...
+              </>
+            ) : (
+              "Tải lên"
+            )}
           </Button>
         </div>
       </DialogContent>
