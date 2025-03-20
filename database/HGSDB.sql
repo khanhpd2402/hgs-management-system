@@ -1,484 +1,358 @@
 ﻿USE [master]
 GO
 
--- Tạo cơ sở dữ liệu
 CREATE DATABASE [HGSDB]
 GO
 
 USE [HGSDB]
-GO
-
 SET QUOTED_IDENTIFIER ON
-GO
 
--- Bảng AcademicYears (Quản lý năm học)
+-- Tạo các bảng cơ bản không phụ thuộc
 CREATE TABLE [dbo].[AcademicYears] (
     [AcademicYearID] INT IDENTITY(1,1) NOT NULL,
-    [YearName]       VARCHAR(9)       NOT NULL, -- Ví dụ: '2024-2025'
-    [StartDate]      DATE             NOT NULL,
-    [EndDate]        DATE             NOT NULL,
+    [YearName] VARCHAR(9) NOT NULL,
+    [StartDate] DATE NOT NULL,
+    [EndDate] DATE NOT NULL,
     PRIMARY KEY CLUSTERED ([AcademicYearID] ASC),
     UNIQUE NONCLUSTERED ([YearName] ASC)
 )
-GO
 
--- Bảng Semesters (Quản lý kỳ học)
 CREATE TABLE [dbo].[Semesters] (
-    [SemesterID]     INT IDENTITY(1,1) NOT NULL,
-    [AcademicYearID] INT               NOT NULL,
-    [SemesterName]   NVARCHAR(20)      NOT NULL, -- Ví dụ: 'Học kỳ 1', 'Học kỳ 2'
-    [StartDate]      DATE              NOT NULL,
-    [EndDate]        DATE              NOT NULL,
+    [SemesterID] INT IDENTITY(1,1) NOT NULL,
+    [AcademicYearID] INT NOT NULL,
+    [SemesterName] NVARCHAR(20) NOT NULL,
+    [StartDate] DATE NOT NULL,
+    [EndDate] DATE NOT NULL,
     PRIMARY KEY CLUSTERED ([SemesterID] ASC),
     CONSTRAINT [FK_Semesters_AcademicYears] FOREIGN KEY ([AcademicYearID]) REFERENCES [dbo].[AcademicYears] ([AcademicYearID]),
     CONSTRAINT [UQ_Semesters] UNIQUE ([AcademicYearID], [SemesterName])
 )
-GO
 
--- Bảng Classes
 CREATE TABLE [dbo].[Classes] (
-    [ClassID]   INT IDENTITY(1,1) NOT NULL,
-    [ClassName] NVARCHAR(50)      NOT NULL,
-    [Grade]     INT               NOT NULL,
+    [ClassID] INT IDENTITY(1,1) NOT NULL,
+    [ClassName] NVARCHAR(50) NOT NULL,
+    [Grade] INT NOT NULL,
     PRIMARY KEY CLUSTERED ([ClassID] ASC),
     UNIQUE NONCLUSTERED ([ClassName] ASC)
 )
-GO
 
--- Bảng Exams
-CREATE TABLE [dbo].[Exams] (
-    [ExamID]      INT IDENTITY(1,1) NOT NULL,
-    [SubjectID]   INT               NOT NULL,
-    [CreatedBy]   INT               NOT NULL,
-    [ExamContent] NVARCHAR(1000)    NOT NULL,
-    [CreatedDate] DATETIME          NULL DEFAULT GETDATE(),
-    [SemesterID]  INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([ExamID] ASC)
-)
-GO
-
--- Bảng Grades
-CREATE TABLE [dbo].[Grades] (
-    [GradeID]   INT IDENTITY(1,1) NOT NULL,
-    [StudentID] INT               NOT NULL,
-    [SubjectID] INT               NOT NULL,
-    [Score]     DECIMAL(4, 2)     NOT NULL CHECK ([Score] >= 0 AND [Score] <= 10),
-    [ExamID]    INT               NOT NULL,
-    [SemesterID] INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([GradeID] ASC)
-)
-GO
-
--- Bảng LeaveRequests
-CREATE TABLE [dbo].[LeaveRequests] (
-    [RequestID]     INT IDENTITY(1,1) NOT NULL,
-    [TeacherID]     INT               NOT NULL,
-    [RequestDate]   DATE              NOT NULL,
-    [LeaveFromDate] DATE              NOT NULL,
-    [LeaveToDate]   DATE              NOT NULL,
-    [Reason]        NVARCHAR(1000)    NOT NULL,
-    [Status]        NVARCHAR(20)      NULL,
-    [ApprovedBy]    INT               NULL,
-    PRIMARY KEY CLUSTERED ([RequestID] ASC)
-)
-GO
-
--- Bảng LessonPlans
-CREATE TABLE [dbo].[LessonPlans] (
-    [PlanID]      INT IDENTITY(1,1) NOT NULL,
-    [TeacherID]   INT               NOT NULL,
-    [SubjectID]   INT               NOT NULL,
-    [PlanContent] NVARCHAR(1000)    NOT NULL,
-    [Status]      NVARCHAR(20)      NULL,
-    [SemesterID]  INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([PlanID] ASC)
-)
-GO
-
--- Bảng Notifications
-CREATE TABLE [dbo].[Notifications] (
-    [NotificationID] INT IDENTITY(1,1) NOT NULL,
-    [UserID]         INT               NOT NULL,
-    [Message]        NVARCHAR(1000)    NOT NULL,
-    [SentDate]       DATETIME          NULL DEFAULT GETDATE(),
-    PRIMARY KEY CLUSTERED ([NotificationID] ASC)
-)
-GO
-
--- Bảng Parents
-CREATE TABLE [dbo].[Parents] (
-    [ParentID]     INT IDENTITY(1,1) NOT NULL,
-    [UserID]       INT               NULL,
-    [FullName]     NVARCHAR(100)     NOT NULL,
-    [DOB]          DATE              NULL,
-    [Occupation]   NVARCHAR(100)     NULL,
-    [Relationship] NVARCHAR(50)      NOT NULL CHECK ([Relationship] IN (N'Bố', N'Mẹ', N'Người bảo hộ')),
-    PRIMARY KEY CLUSTERED ([ParentID] ASC),
-    UNIQUE NONCLUSTERED ([UserID] ASC)
-)
-GO
-
--- Bảng Rewards
-CREATE TABLE [dbo].[Rewards] (
-    [RewardID]     INT IDENTITY(1,1) NOT NULL,
-    [TeacherID]    INT               NOT NULL,
-    [RewardType]   NVARCHAR(50)      NULL,
-    [DateReceived] DATE              NULL,
-    [SemesterID]   INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([RewardID] ASC)
-)
-GO
-
--- Bảng Roles
-CREATE TABLE [dbo].[Roles] (
-    [RoleID]   INT IDENTITY(1,1) NOT NULL,
-    [RoleName] NVARCHAR(50)      NOT NULL,
-    PRIMARY KEY CLUSTERED ([RoleID] ASC),
-    UNIQUE NONCLUSTERED ([RoleName] ASC)
-)
-GO
-
--- Bảng StudentParents
-CREATE TABLE [dbo].[StudentParents] (
-    [StudentID] INT NOT NULL,
-    [ParentID]  INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([StudentID] ASC, [ParentID] ASC)
-)
-GO
-
--- Bảng Students
-CREATE TABLE [dbo].[Students] (
-    [StudentID]       INT IDENTITY(1,1) NOT NULL,
-    [FullName]        NVARCHAR(100)     NOT NULL,
-    [DOB]             DATE              NOT NULL,
-    [Gender]          NVARCHAR(10)      NOT NULL,
-    [AdmissionDate]   DATE              NOT NULL,
-    [EnrollmentType]  NVARCHAR(50)      NULL,
-    [Ethnicity]       NVARCHAR(50)      NULL,
-    [PermanentAddress] NVARCHAR(255)    NULL,
-    [BirthPlace]      NVARCHAR(255)     NULL,
-    [Religion]        NVARCHAR(50)      NULL,
-    [RepeatingYear]   BIT               NULL DEFAULT 0,
-    [IDCardNumber]    NVARCHAR(20)      NULL,
-    [Status]          NVARCHAR(50)      NULL DEFAULT N'Đang học',
-    PRIMARY KEY CLUSTERED ([StudentID] ASC),
-    UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
-)
-GO
-
--- Bảng StudentClasses (Quản lý lớp của học sinh theo năm học)
-CREATE TABLE [dbo].[StudentClasses] (
-    [ID]             INT IDENTITY(1,1) NOT NULL,
-    [StudentID]      INT               NOT NULL,
-    [ClassID]        INT               NOT NULL,
-    [AcademicYearID] INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([ID] ASC),
-    UNIQUE NONCLUSTERED ([StudentID], [AcademicYearID])
-)
-GO
-
--- Bảng Subjects
 CREATE TABLE [dbo].[Subjects] (
-    [SubjectID]       INT IDENTITY(1,1) NOT NULL,
-    [SubjectName]     NVARCHAR(100)     NOT NULL,
-    [SubjectCategory] NVARCHAR(50)      NOT NULL CHECK ([SubjectCategory] IN ('KHTN', 'KHXH')),
+    [SubjectID] INT IDENTITY(1,1) NOT NULL,
+    [SubjectName] NVARCHAR(100) NOT NULL,
+    [SubjectCategory] NVARCHAR(50) NOT NULL,
+    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'Numeric', N'PassFail', N'Qualitative')),
     PRIMARY KEY CLUSTERED ([SubjectID] ASC),
     UNIQUE NONCLUSTERED ([SubjectName] ASC)
 )
-GO
 
--- Bảng TeacherClasses
-CREATE TABLE [dbo].[TeacherClasses] (
-    [ID]               INT IDENTITY(1,1) NOT NULL,
-    [TeacherID]        INT               NOT NULL,
-    [ClassID]          INT               NOT NULL,
-    [IsHomeroomTeacher] BIT              NULL DEFAULT 0,
-    [AcademicYearID]   INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([ID] ASC)
+CREATE TABLE [dbo].[Roles] (
+    [RoleID] INT IDENTITY(1,1) NOT NULL,
+    [RoleName] NVARCHAR(50) NOT NULL,
+    PRIMARY KEY CLUSTERED ([RoleID] ASC),
+    UNIQUE NONCLUSTERED ([RoleName] ASC)
 )
-GO
 
--- Bảng Teachers
+CREATE TABLE [dbo].[Users] (
+    [UserID] INT IDENTITY(1,1) NOT NULL,
+    [Username] NVARCHAR(50) NOT NULL,
+    [PasswordHash] NVARCHAR(255) NOT NULL,
+    [Email] NVARCHAR(100) NULL,
+    [PhoneNumber] NVARCHAR(15) NULL,
+    [RoleID] INT NOT NULL,
+    [Status] NVARCHAR(20) NULL DEFAULT N'Hoạt Động',
+    PRIMARY KEY CLUSTERED ([UserID] ASC),
+    CONSTRAINT [FK_Users_Roles] FOREIGN KEY ([RoleID]) REFERENCES [dbo].[Roles] ([RoleID]),
+    UNIQUE NONCLUSTERED ([Username] ASC),
+    UNIQUE NONCLUSTERED ([Email] ASC)
+)
+
 CREATE TABLE [dbo].[Teachers] (
-    [TeacherID]            INT IDENTITY(1,1) NOT NULL,
-    [UserID]               INT               NULL,
-    [FullName]             NVARCHAR(100)     NOT NULL,
-    [DOB]                  DATE              NOT NULL,
-    [Gender]               NVARCHAR(10)      NOT NULL,
-    [Ethnicity]            NVARCHAR(50)      NULL,
-    [Religion]             NVARCHAR(50)      NULL,
-    [MaritalStatus]        NVARCHAR(50)      NULL,
-    [IDCardNumber]         NVARCHAR(20)      NULL,
-    [InsuranceNumber]      NVARCHAR(20)      NULL,
-    [EmploymentType]       NVARCHAR(100)     NULL,
-    [Position]             NVARCHAR(100)     NULL,
-    [Department]           NVARCHAR(100)     NULL,
-    [AdditionalDuties]     NVARCHAR(255)     NULL,
-    [IsHeadOfDepartment]   BIT               NULL DEFAULT 0,
-    [EmploymentStatus]     NVARCHAR(50)      NULL,
-    [RecruitmentAgency]    NVARCHAR(255)     NULL,
-    [HiringDate]           DATE              NULL,
-    [PermanentEmploymentDate] DATE           NULL,
-    [SchoolJoinDate]       DATE              NOT NULL,
-    [PermanentAddress]     NVARCHAR(255)     NULL,
-    [Hometown]             NVARCHAR(255)     NULL,
+    [TeacherID] INT IDENTITY(1,1) NOT NULL,
+    [UserID] INT NULL,
+    [FullName] NVARCHAR(100) NOT NULL,
+    [DOB] DATE NOT NULL,
+    [Gender] NVARCHAR(10) NOT NULL,
+    [Ethnicity] NVARCHAR(50) NULL,
+    [Religion] NVARCHAR(50) NULL,
+    [MaritalStatus] NVARCHAR(50) NULL,
+    [IDCardNumber] NVARCHAR(20) NULL,
+    [InsuranceNumber] NVARCHAR(20) NULL,
+    [EmploymentType] NVARCHAR(100) NULL,
+    [Position] NVARCHAR(100) NULL,
+    [Department] NVARCHAR(100) NULL,
+    [AdditionalDuties] NVARCHAR(255) NULL,
+    [IsHeadOfDepartment] BIT NULL DEFAULT 0,
+    [EmploymentStatus] NVARCHAR(50) NULL,
+    [RecruitmentAgency] NVARCHAR(255) NULL,
+    [HiringDate] DATE NULL,
+    [PermanentEmploymentDate] DATE NULL,
+    [SchoolJoinDate] DATE NOT NULL,
+    [PermanentAddress] NVARCHAR(255) NULL,
+    [Hometown] NVARCHAR(255) NULL,
     PRIMARY KEY CLUSTERED ([TeacherID] ASC),
+    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL,
     UNIQUE NONCLUSTERED ([InsuranceNumber] ASC),
     UNIQUE NONCLUSTERED ([UserID] ASC),
     UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
 )
-GO
 
--- Bảng TeacherSubjects
-CREATE TABLE [dbo].[TeacherSubjects] (
-    [ID]           INT IDENTITY(1,1) NOT NULL,
-    [TeacherID]    INT               NOT NULL,
-    [SubjectID]    INT               NOT NULL,
-    [IsMainSubject] BIT              NULL DEFAULT 0,
-    PRIMARY KEY CLUSTERED ([ID] ASC)
+CREATE TABLE [dbo].[Students] (
+    [StudentID] INT IDENTITY(1,1) NOT NULL,
+    [FullName] NVARCHAR(100) NOT NULL,
+    [DOB] DATE NOT NULL,
+    [Gender] NVARCHAR(10) NOT NULL,
+    [AdmissionDate] DATE NOT NULL,
+    [EnrollmentType] NVARCHAR(50) NULL,
+    [Ethnicity] NVARCHAR(50) NULL,
+    [PermanentAddress] NVARCHAR(255) NULL,
+    [BirthPlace] NVARCHAR(255) NULL,
+    [Religion] NVARCHAR(50) NULL,
+    [RepeatingYear] BIT NULL DEFAULT 0,
+    [IDCardNumber] NVARCHAR(20) NULL,
+    [Status] NVARCHAR(50) NULL DEFAULT N'Đang học',
+    PRIMARY KEY CLUSTERED ([StudentID] ASC),
+    UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
 )
-GO
 
--- Bảng TeachingAssignments
+CREATE TABLE [dbo].[Parents] (
+    [ParentID] INT IDENTITY(1,1) NOT NULL,
+    [UserID] INT NULL,
+    [FullName] NVARCHAR(100) NOT NULL,
+    [DOB] DATE NULL,
+    [Occupation] NVARCHAR(100) NULL,
+    PRIMARY KEY CLUSTERED ([ParentID] ASC),
+    CONSTRAINT [FK_Parents_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL,
+    UNIQUE NONCLUSTERED ([UserID] ASC)
+)
+
+-- Tạo các bảng phụ thuộc
+CREATE TABLE [dbo].[StudentClasses] (
+    [ID] INT IDENTITY(1,1) NOT NULL,
+    [StudentID] INT NOT NULL,
+    [ClassID] INT NOT NULL,
+    [AcademicYearID] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([ID] ASC),
+    CONSTRAINT [FK_StudentClasses_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_StudentClasses_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]),
+    CONSTRAINT [FK_StudentClasses_AcademicYears] FOREIGN KEY ([AcademicYearID]) REFERENCES [dbo].[AcademicYears] ([AcademicYearID]),
+    UNIQUE NONCLUSTERED ([StudentID], [AcademicYearID])
+)
+
+CREATE TABLE [dbo].[TeacherClasses] (
+    [ID] INT IDENTITY(1,1) NOT NULL,
+    [TeacherID] INT NOT NULL,
+    [ClassID] INT NOT NULL,
+    [IsHomeroomTeacher] BIT NULL DEFAULT 0,
+    [AcademicYearID] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([ID] ASC),
+    CONSTRAINT [FK_TeacherClasses_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_TeacherClasses_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_TeacherClasses_AcademicYears] FOREIGN KEY ([AcademicYearID]) REFERENCES [dbo].[AcademicYears] ([AcademicYearID])
+)
+
+CREATE TABLE [dbo].[TeacherSubjects] (
+    [ID] INT IDENTITY(1,1) NOT NULL,
+    [TeacherID] INT NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [IsMainSubject] BIT NULL DEFAULT 0,
+    PRIMARY KEY CLUSTERED ([ID] ASC),
+    CONSTRAINT [FK_TeacherSubjects_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]),
+    CONSTRAINT [FK_TeacherSubjects_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
+)
+
+CREATE TABLE [dbo].[StudentParents] (
+    [StudentID] INT NOT NULL,
+    [ParentID] INT NOT NULL,
+    [Relationship] NVARCHAR(50) NOT NULL,
+    PRIMARY KEY CLUSTERED ([StudentID] ASC, [ParentID] ASC),
+    CONSTRAINT [FK_StudentParents_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_StudentParents_Parents] FOREIGN KEY ([ParentID]) REFERENCES [dbo].[Parents] ([ParentID]) ON DELETE CASCADE
+)
+CREATE TABLE GradeBatches (
+    BatchID INT PRIMARY KEY IDENTITY(1,1),
+	[BatchName] NVARCHAR(255) NOT NULL,
+	[SemesterID] INT NOT NULL,
+	StartDate DATE,
+    EndDate DATE,
+	[IsActive] BIT NULL DEFAULT 1,
+	CONSTRAINT [FK_GradeBatches_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
+)
+CREATE TABLE [dbo].[Grades] (
+    [GradeID] INT IDENTITY(1,1) NOT NULL,
+	BatchID INT,
+    [StudentID] INT NOT NULL,
+    [ClassID] INT NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [Score] NVARCHAR(10) NULL,
+    [AssessmentsTypeName] NVARCHAR(100) NOT NULL,
+    [TeacherComment] NVARCHAR(max) NULL,
+    PRIMARY KEY CLUSTERED ([GradeID] ASC),
+	FOREIGN KEY (BatchID) REFERENCES GradeBatches(BatchID),
+    CONSTRAINT [FK_Grades_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]),
+    CONSTRAINT [FK_Grades_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]),
+    CONSTRAINT [FK_Grades_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+)
+
+
+CREATE TABLE [dbo].[Exams] (
+    [ExamID] INT IDENTITY(1,1) NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [CreatedBy] INT NOT NULL,
+    [ExamContent] NVARCHAR(max) NOT NULL,
+    [CreatedDate] DATETIME NULL DEFAULT GETDATE(),
+    [SemesterID] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([ExamID] ASC),
+    CONSTRAINT [FK_Exams_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+    CONSTRAINT [FK_Exams_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]),
+    CONSTRAINT [FK_Exams_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
+)
+
+CREATE TABLE [dbo].[LeaveRequests] (
+    [RequestID] INT IDENTITY(1,1) NOT NULL,
+    [TeacherID] INT NOT NULL,
+    [RequestDate] DATE NOT NULL,
+    [LeaveFromDate] DATE NOT NULL,
+    [LeaveToDate] DATE NOT NULL,
+    [Reason] NVARCHAR(max) NOT NULL,
+    [Status] NVARCHAR(20) NULL,
+    PRIMARY KEY CLUSTERED ([RequestID] ASC),
+    CONSTRAINT [FK_LeaveRequests_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
+)
+
+CREATE TABLE [dbo].[LessonPlans] (
+    [PlanID] INT IDENTITY(1,1) NOT NULL,
+    [TeacherID] INT NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [PlanContent] NVARCHAR(max) NOT NULL,
+    [Status] NVARCHAR(20) NULL,
+    [SemesterID] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([PlanID] ASC),
+    CONSTRAINT [FK_LessonPlans_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]),
+    CONSTRAINT [FK_LessonPlans_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+    CONSTRAINT [FK_LessonPlans_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
+)
+
+CREATE TABLE [dbo].[Notifications] (
+    [NotificationID] INT IDENTITY(1,1) NOT NULL,
+    [Title] NVARCHAR(1000) NOT NULL,
+    [Message] NVARCHAR(max) NOT NULL,
+    [CreateDate] DATETIME NULL DEFAULT GETDATE(),
+    [IsActive] BIT NULL DEFAULT 1,
+    PRIMARY KEY CLUSTERED ([NotificationID] ASC)
+)
+
 CREATE TABLE [dbo].[TeachingAssignments] (
     [AssignmentID] INT IDENTITY(1,1) NOT NULL,
-    [TeacherID]    INT               NOT NULL,
-    [SubjectID]    INT               NOT NULL,
-    [ClassID]      INT               NOT NULL,
-    [SemesterID]   INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([AssignmentID] ASC)
+    [TeacherID] INT NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [ClassID] INT NOT NULL,
+    [SemesterID] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([AssignmentID] ASC),
+    CONSTRAINT [FK_TeachingAssignments_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]),
+    CONSTRAINT [FK_TeachingAssignments_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+    CONSTRAINT [FK_TeachingAssignments_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]),
+    CONSTRAINT [FK_TeachingAssignments_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
 )
-GO
 
--- Bảng Timetables
 CREATE TABLE [dbo].[Timetables] (
-    [TimetableID]  INT IDENTITY(1,1) NOT NULL,
-    [ClassID]      INT               NOT NULL,
-    [SubjectID]    INT               NOT NULL,
-    [TeacherID]    INT               NOT NULL,
-    [DayOfWeek]    NVARCHAR(20)      NOT NULL,
-    [Shift]        NVARCHAR(20)      NOT NULL CHECK ([Shift] IN (N'Sáng', N'Chiều')),
-    [Period]       INT               NOT NULL,
-    [EffectiveDate] DATE             NOT NULL,
-    [SemesterID]   INT               NOT NULL,
-    PRIMARY KEY CLUSTERED ([TimetableID] ASC)
+    [TimetableID] INT IDENTITY(1,1) NOT NULL,
+    [ClassID] INT NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [TeacherID] INT NOT NULL,
+    [DayOfWeek] NVARCHAR(20) NOT NULL,
+    [Shift] NVARCHAR(20) NOT NULL CHECK ([Shift] IN (N'Sáng', N'Chiều')),
+    [Period] INT NOT NULL,
+    [EffectiveDate] DATE NOT NULL,
+    [SemesterID] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([TimetableID] ASC),
+    CONSTRAINT [FK_Timetables_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]),
+    CONSTRAINT [FK_Timetables_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+    CONSTRAINT [FK_Timetables_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]),
+    CONSTRAINT [FK_Timetables_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
 )
-GO
 
--- Bảng Users
-CREATE TABLE [dbo].[Users] (
-    [UserID]       INT IDENTITY(1,1) NOT NULL,
-    [Username]     NVARCHAR(50)      NOT NULL,
-    [PasswordHash] NVARCHAR(255)     NOT NULL,
-    [Email]        NVARCHAR(100)     NULL,
-    [PhoneNumber]  NVARCHAR(15)      NULL,
-    [RoleID]       INT               NOT NULL,
-    [Status]       NVARCHAR(20)      NULL DEFAULT N'Hoạt Động',
-    PRIMARY KEY CLUSTERED ([UserID] ASC),
-    UNIQUE NONCLUSTERED ([Username] ASC),
-    UNIQUE NONCLUSTERED ([Email] ASC)
-)
-GO
-
--- Bảng Attendances
 CREATE TABLE [dbo].[Attendances] (
     [AttendanceID] INT IDENTITY(1,1) NOT NULL,
-    [StudentID]    INT               NOT NULL,
-    [Date]         DATE              NOT NULL,
-    [Status]       NVARCHAR(1)       NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')),
-    [Note]         NVARCHAR(255)     NULL,
-    [CreatedAt]    DATETIME          DEFAULT GETDATE(),
-    [CreatedBy]    INT               NULL,
-    [Shift]        NVARCHAR(20)      NOT NULL CHECK ([Shift] IN (N'Sáng', N'Chiều')),
-    [SemesterID]   INT               NOT NULL,
+    [StudentID] INT NOT NULL,
+    [Date] DATE NOT NULL,
+    [Status] NVARCHAR(1) NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')),
+    [Note] NVARCHAR(255) NULL,
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    [CreatedBy] INT NULL,
+    [Shift] NVARCHAR(20) NOT NULL CHECK ([Shift] IN (N'Sáng', N'Chiều')),
+    [SemesterID] INT NOT NULL,
     PRIMARY KEY CLUSTERED ([AttendanceID] ASC),
+    CONSTRAINT [FK_Attendances_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_Attendances_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Attendances_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]),
     CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [Date], [Shift], [SemesterID])
 )
-GO
 
--- Thêm các ràng buộc khóa ngoại
-ALTER TABLE [dbo].[Attendances] WITH CHECK ADD CONSTRAINT [FK_Attendance_Student] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[Attendances] WITH CHECK ADD CONSTRAINT [FK_Attendance_Teacher] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE SET NULL
-GO
-ALTER TABLE [dbo].[Attendances] WITH CHECK ADD CONSTRAINT [FK_Attendances_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[Exams] WITH CHECK ADD FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[Exams] WITH CHECK ADD FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
-GO
-ALTER TABLE [dbo].[Exams] WITH CHECK ADD CONSTRAINT [FK_Exams_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[Grades] WITH CHECK ADD FOREIGN KEY ([ExamID]) REFERENCES [dbo].[Exams] ([ExamID])
-GO
-ALTER TABLE [dbo].[Grades] WITH CHECK ADD FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID])
-GO
-ALTER TABLE [dbo].[Grades] WITH CHECK ADD FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
-GO
-ALTER TABLE [dbo].[Grades] WITH CHECK ADD CONSTRAINT [FK_Grades_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[LeaveRequests] WITH CHECK ADD FOREIGN KEY ([ApprovedBy]) REFERENCES [dbo].[Users] ([UserID])
-GO
-ALTER TABLE [dbo].[LeaveRequests] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[LessonPlans] WITH CHECK ADD FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
-GO
-ALTER TABLE [dbo].[LessonPlans] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[LessonPlans] WITH CHECK ADD CONSTRAINT [FK_LessonPlans_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[Notifications] WITH CHECK ADD FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID])
-GO
-ALTER TABLE [dbo].[Parents] WITH CHECK ADD CONSTRAINT [FK_Parents_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL
-GO
-ALTER TABLE [dbo].[Rewards] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[Rewards] WITH CHECK ADD CONSTRAINT [FK_Rewards_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[StudentParents] WITH CHECK ADD FOREIGN KEY ([ParentID]) REFERENCES [dbo].[Parents] ([ParentID]) ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[StudentParents] WITH CHECK ADD FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[StudentClasses] WITH CHECK ADD CONSTRAINT [FK_StudentClasses_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[StudentClasses] WITH CHECK ADD CONSTRAINT [FK_StudentClasses_Classes] FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID])
-GO
-ALTER TABLE [dbo].[StudentClasses] WITH CHECK ADD CONSTRAINT [FK_StudentClasses_AcademicYears] FOREIGN KEY ([AcademicYearID]) REFERENCES [dbo].[AcademicYears] ([AcademicYearID])
-GO
-ALTER TABLE [dbo].[TeacherClasses] WITH CHECK ADD FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID]) ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[TeacherClasses] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE
-GO
-ALTER TABLE [dbo].[TeacherClasses] WITH CHECK ADD CONSTRAINT [FK_TeacherClasses_AcademicYears] FOREIGN KEY ([AcademicYearID]) REFERENCES [dbo].[AcademicYears] ([AcademicYearID])
-GO
-ALTER TABLE [dbo].[Teachers] WITH CHECK ADD CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL
-GO
-ALTER TABLE [dbo].[TeacherSubjects] WITH CHECK ADD FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
-GO
-ALTER TABLE [dbo].[TeacherSubjects] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[TeachingAssignments] WITH CHECK ADD FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID])
-GO
-ALTER TABLE [dbo].[TeachingAssignments] WITH CHECK ADD FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
-GO
-ALTER TABLE [dbo].[TeachingAssignments] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[TeachingAssignments] WITH CHECK ADD CONSTRAINT [FK_TeachingAssignments_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[Timetables] WITH CHECK ADD FOREIGN KEY ([ClassID]) REFERENCES [dbo].[Classes] ([ClassID])
-GO
-ALTER TABLE [dbo].[Timetables] WITH CHECK ADD FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID])
-GO
-ALTER TABLE [dbo].[Timetables] WITH CHECK ADD FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID])
-GO
-ALTER TABLE [dbo].[Timetables] WITH CHECK ADD CONSTRAINT [FK_Timetables_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID])
-GO
-ALTER TABLE [dbo].[Users] WITH CHECK ADD FOREIGN KEY ([RoleID]) REFERENCES [dbo].[Roles] ([RoleID])
-GO
-
--- Cài đặt chế độ đọc/ghi
-USE [master]
-GO
-ALTER DATABASE [HGSDB] SET READ_WRITE
-GO
-USE [HGSDB]
-GO
-
--- 1. Chèn dữ liệu vào AcademicYears
+-- Chèn dữ liệu
 INSERT INTO [dbo].[AcademicYears] ([YearName], [StartDate], [EndDate])
-VALUES 
-    ('2024-2025', '2024-08-01', '2025-07-31'),
-    ('2023-2024', '2023-08-01', '2024-07-31');
-GO
+VALUES ('2024-2025', '2024-08-01', '2025-07-31'), ('2023-2024', '2023-08-01', '2024-07-31')
 
--- 2. Chèn dữ liệu vào Semesters
 INSERT INTO [dbo].[Semesters] ([AcademicYearID], [SemesterName], [StartDate], [EndDate])
-VALUES 
-    (1, N'Học kỳ 1', '2024-08-01', '2024-12-31'),
-    (1, N'Học kỳ 2', '2025-01-01', '2025-05-31'),
-    (2, N'Học kỳ 1', '2023-08-01', '2023-12-31'),
-    (2, N'Học kỳ 2', '2024-01-01', '2024-05-31');
-GO
+VALUES (1, N'Học kỳ 1', '2024-08-01', '2024-12-31'), (1, N'Học kỳ 2', '2025-01-01', '2025-05-31'),
+       (2, N'Học kỳ 1', '2023-08-01', '2023-12-31'), (2, N'Học kỳ 2', '2024-01-01', '2024-05-31')
 
--- 3. Chèn dữ liệu vào Classes (8 lớp)
 INSERT INTO [dbo].[Classes] ([ClassName], [Grade])
-VALUES 
-    (N'6A', 6),
-    (N'6B', 6),
-    (N'7A', 7),
-    (N'7B', 7),
-    (N'8A', 8),
-    (N'8B', 8),
-    (N'9A', 9),
-    (N'9B', 9);
-GO
+VALUES (N'6A', 6), (N'6B', 6), (N'7A', 7), (N'7B', 7), (N'8A', 8), (N'8B', 8), (N'9A', 9), (N'9B', 9)
 
--- 4. Chèn dữ liệu vào Subjects (Các môn học cấp THCS Việt Nam)
-INSERT INTO [dbo].[Subjects] ([SubjectName], [SubjectCategory])
-VALUES 
-    (N'Toán', 'KHTN'),
-    (N'Ngữ văn', 'KHXH'),
-    (N'Anh văn', 'KHXH'),
-    (N'Vật lý', 'KHTN'),
-    (N'Hóa học', 'KHTN'),
-    (N'Sinh học', 'KHTN'),
-    (N'Lịch sử', 'KHXH'),
-    (N'Địa lý', 'KHXH'),
-    (N'Giáo dục công dân', 'KHXH'),
-    (N'Thể dục', 'KHTN'),
-    (N'Công nghệ', 'KHTN'),
-    (N'Tin học', 'KHTN'),
-    (N'Âm nhạc', 'KHXH'),
-    (N'Mỹ thuật', 'KHXH'),
-    (N'Hoạt động trải nghiệm', 'KHXH');
-GO
+INSERT INTO [dbo].[Subjects] ([SubjectName], [SubjectCategory], [TypeOfGrade])
+VALUES (N'Toán', N'KHTN', N'Numeric'),
+       (N'Ngữ văn', N'KHXH', N'Numeric'),
+       (N'Anh văn', N'KHXH', N'Numeric'),
+       (N'Vật lý', N'KHTN', N'Numeric'),
+       (N'Hóa học', N'KHTN', N'Numeric'),
+       (N'Sinh học', N'KHTN', N'Numeric'),
+       (N'Lịch sử', N'KHXH', N'Numeric'),
+       (N'Địa lý', N'KHXH', N'Numeric'),
+       (N'Giáo dục công dân', N'KHXH', N'Numeric'),
+       (N'Thể dục', N'KHTN', N'PassFail'),
+       (N'Công nghệ', N'KHTN', N'Numeric'),
+       (N'Tin học', N'KHTN', N'Numeric'),
+       (N'Âm nhạc', N'KHXH', N'Qualitative'),
+       (N'Mỹ thuật', N'KHXH', N'Qualitative'),
+       (N'Hoạt động trải nghiệm', N'KHXH', N'Qualitative')
 
--- 5. Chèn dữ liệu vào Roles (Không có Student)
 INSERT INTO [dbo].[Roles] ([RoleName])
-VALUES 
-    (N'Admin'),
-    (N'Teacher'),
-    (N'Parent');
-GO
+VALUES (N'Admin'), (N'Teacher'), (N'Parent')
 
--- 6. Chèn dữ liệu vào Users (1 Admin + 30 Teachers + 1 Parent mẫu)
 INSERT INTO [dbo].[Users] ([Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status])
-VALUES 
-    ('admin', 'hashedpassword123', 'admin@hgs.edu.vn', '0901234567', 1, N'Hoạt Động'),
-    ('teacher1', 'hashedpassword123', 'teacher1@hgs.edu.vn', '0901234568', 2, N'Hoạt Động'),
-    ('teacher2', 'hashedpassword123', 'teacher2@hgs.edu.vn', '0901234569', 2, N'Hoạt Động'),
-    ('teacher3', 'hashedpassword123', 'teacher3@hgs.edu.vn', '0901234570', 2, N'Hoạt Động'),
-    ('teacher4', 'hashedpassword123', 'teacher4@hgs.edu.vn', '0901234571', 2, N'Hoạt Động'),
-    ('teacher5', 'hashedpassword123', 'teacher5@hgs.edu.vn', '0901234572', 2, N'Hoạt Động'),
-    ('teacher6', 'hashedpassword123', 'teacher6@hgs.edu.vn', '0901234573', 2, N'Hoạt Động'),
-    ('teacher7', 'hashedpassword123', 'teacher7@hgs.edu.vn', '0901234574', 2, N'Hoạt Động'),
-    ('teacher8', 'hashedpassword123', 'teacher8@hgs.edu.vn', '0901234575', 2, N'Hoạt Động'),
-    ('teacher9', 'hashedpassword123', 'teacher9@hgs.edu.vn', '0901234576', 2, N'Hoạt Động'),
-    ('teacher10', 'hashedpassword123', 'teacher10@hgs.edu.vn', '0901234577', 2, N'Hoạt Động'),
-    ('teacher11', 'hashedpassword123', 'teacher11@hgs.edu.vn', '0901234578', 2, N'Hoạt Động'),
-    ('teacher12', 'hashedpassword123', 'teacher12@hgs.edu.vn', '0901234579', 2, N'Hoạt Động'),
-    ('teacher13', 'hashedpassword123', 'teacher13@hgs.edu.vn', '0901234580', 2, N'Hoạt Động'),
-    ('teacher14', 'hashedpassword123', 'teacher14@hgs.edu.vn', '0901234581', 2, N'Hoạt Động'),
-    ('teacher15', 'hashedpassword123', 'teacher15@hgs.edu.vn', '0901234582', 2, N'Hoạt Động'),
-    ('teacher16', 'hashedpassword123', 'teacher16@hgs.edu.vn', '0901234583', 2, N'Hoạt Động'),
-    ('teacher17', 'hashedpassword123', 'teacher17@hgs.edu.vn', '0901234584', 2, N'Hoạt Động'),
-    ('teacher18', 'hashedpassword123', 'teacher18@hgs.edu.vn', '0901234585', 2, N'Hoạt Động'),
-    ('teacher19', 'hashedpassword123', 'teacher19@hgs.edu.vn', '0901234586', 2, N'Hoạt Động'),
-    ('teacher20', 'hashedpassword123', 'teacher20@hgs.edu.vn', '0901234587', 2, N'Hoạt Động'),
-    ('teacher21', 'hashedpassword123', 'teacher21@hgs.edu.vn', '0901234588', 2, N'Hoạt Động'),
-    ('teacher22', 'hashedpassword123', 'teacher22@hgs.edu.vn', '0901234589', 2, N'Hoạt Động'),
-    ('teacher23', 'hashedpassword123', 'teacher23@hgs.edu.vn', '0901234590', 2, N'Hoạt Động'),
-    ('teacher24', 'hashedpassword123', 'teacher24@hgs.edu.vn', '0901234591', 2, N'Hoạt Động'),
-    ('teacher25', 'hashedpassword123', 'teacher25@hgs.edu.vn', '0901234592', 2, N'Hoạt Động'),
-    ('teacher26', 'hashedpassword123', 'teacher26@hgs.edu.vn', '0901234593', 2, N'Hoạt Động'),
-    ('teacher27', 'hashedpassword123', 'teacher27@hgs.edu.vn', '0901234594', 2, N'Hoạt Động'),
-    ('teacher28', 'hashedpassword123', 'teacher28@hgs.edu.vn', '0901234595', 2, N'Hoạt Động'),
-    ('teacher29', 'hashedpassword123', 'teacher29@hgs.edu.vn', '0901234596', 2, N'Hoạt Động'),
-    ('teacher30', 'hashedpassword123', 'teacher30@hgs.edu.vn', '0901234597', 2, N'Hoạt Động'),
-    ('parent1', 'hashedpassword123', 'parent1@hgs.edu.vn', '0901234598', 3, N'Hoạt Động');
-GO
+VALUES ('admin', 'hashedpassword123', 'admin@hgs.edu.vn', '0901234567', 1, N'Hoạt Động'),
+       ('teacher1', 'hashedpassword123', 'teacher1@hgs.edu.vn', '0901234568', 2, N'Hoạt Động'),
+       ('teacher2', 'hashedpassword123', 'teacher2@hgs.edu.vn', '0901234569', 2, N'Hoạt Động'),
+       ('teacher3', 'hashedpassword123', 'teacher3@hgs.edu.vn', '0901234570', 2, N'Hoạt Động'),
+       ('teacher4', 'hashedpassword123', 'teacher4@hgs.edu.vn', '0901234571', 2, N'Hoạt Động'),
+       ('teacher5', 'hashedpassword123', 'teacher5@hgs.edu.vn', '0901234572', 2, N'Hoạt Động'),
+       ('teacher6', 'hashedpassword123', 'teacher6@hgs.edu.vn', '0901234573', 2, N'Hoạt Động'),
+       ('teacher7', 'hashedpassword123', 'teacher7@hgs.edu.vn', '0901234574', 2, N'Hoạt Động'),
+       ('teacher8', 'hashedpassword123', 'teacher8@hgs.edu.vn', '0901234575', 2, N'Hoạt Động'),
+       ('teacher9', 'hashedpassword123', 'teacher9@hgs.edu.vn', '0901234576', 2, N'Hoạt Động'),
+       ('teacher10', 'hashedpassword123', 'teacher10@hgs.edu.vn', '0901234577', 2, N'Hoạt Động'),
+       ('teacher11', 'hashedpassword123', 'teacher11@hgs.edu.vn', '0901234578', 2, N'Hoạt Động'),
+       ('teacher12', 'hashedpassword123', 'teacher12@hgs.edu.vn', '0901234579', 2, N'Hoạt Động'),
+       ('teacher13', 'hashedpassword123', 'teacher13@hgs.edu.vn', '0901234580', 2, N'Hoạt Động'),
+       ('teacher14', 'hashedpassword123', 'teacher14@hgs.edu.vn', '0901234581', 2, N'Hoạt Động'),
+       ('teacher15', 'hashedpassword123', 'teacher15@hgs.edu.vn', '0901234582', 2, N'Hoạt Động'),
+       ('teacher16', 'hashedpassword123', 'teacher16@hgs.edu.vn', '0901234583', 2, N'Hoạt Động'),
+       ('teacher17', 'hashedpassword123', 'teacher17@hgs.edu.vn', '0901234584', 2, N'Hoạt Động'),
+       ('teacher18', 'hashedpassword123', 'teacher18@hgs.edu.vn', '0901234585', 2, N'Hoạt Động'),
+       ('teacher19', 'hashedpassword123', 'teacher19@hgs.edu.vn', '0901234586', 2, N'Hoạt Động'),
+       ('teacher20', 'hashedpassword123', 'teacher20@hgs.edu.vn', '0901234587', 2, N'Hoạt Động'),
+       ('teacher21', 'hashedpassword123', 'teacher21@hgs.edu.vn', '0901234588', 2, N'Hoạt Động'),
+       ('teacher22', 'hashedpassword123', 'teacher22@hgs.edu.vn', '0901234589', 2, N'Hoạt Động'),
+       ('teacher23', 'hashedpassword123', 'teacher23@hgs.edu.vn', '0901234590', 2, N'Hoạt Động'),
+       ('teacher24', 'hashedpassword123', 'teacher24@hgs.edu.vn', '0901234591', 2, N'Hoạt Động'),
+       ('teacher25', 'hashedpassword123', 'teacher25@hgs.edu.vn', '0901234592', 2, N'Hoạt Động'),
+       ('teacher26', 'hashedpassword123', 'teacher26@hgs.edu.vn', '0901234593', 2, N'Hoạt Động'),
+       ('teacher27', 'hashedpassword123', 'teacher27@hgs.edu.vn', '0901234594', 2, N'Hoạt Động'),
+       ('teacher28', 'hashedpassword123', 'teacher28@hgs.edu.vn', '0901234595', 2, N'Hoạt Động'),
+       ('teacher29', 'hashedpassword123', 'teacher29@hgs.edu.vn', '0901234596', 2, N'Hoạt Động'),
+       ('teacher30', 'hashedpassword123', 'teacher30@hgs.edu.vn', '0901234597', 2, N'Hoạt Động'),
+       ('parent1', 'hashedpassword123', 'parent1@hgs.edu.vn', '0901234598', 3, N'Hoạt Động')
 
--- 7. Chèn dữ liệu vào Teachers (30 giáo viên)
 INSERT INTO [dbo].[Teachers] (
     [UserID], [FullName], [DOB], [Gender], [Ethnicity], [Religion], [MaritalStatus], 
     [IDCardNumber], [InsuranceNumber], [EmploymentType], [Position], [Department], 
@@ -515,103 +389,47 @@ VALUES
     (28, N'Trần Văn CC', '1980-11-15', N'Nam', N'Kinh', N'Không', N'Đã kết hôn', '123456815', 'BH123482', N'Cơ hữu', N'Giáo viên', N'Tin học', NULL, 0, N'Đang làm việc', N'Trường THCS HGS', '2012-08-01', '2014-08-01', '2012-08-01', N'2424 Đường Láng, Hà Nội', N'Hà Nội'),
     (29, N'Phạm Thị DD', '1983-07-20', N'Nữ', N'Kinh', N'Không', N'Độc thân', '123456816', 'BH123483', N'Cơ hữu', N'Giáo viên', N'Âm nhạc', NULL, 0, N'Đang làm việc', N'Trường THCS HGS', '2013-08-01', '2015-08-01', '2013-08-01', N'2525 Đường Láng, Hà Nội', N'Hà Nội'),
     (30, N'Lê Văn EE', '1985-01-10', N'Nam', N'Kinh', N'Phật giáo', N'Đã kết hôn', '123456817', 'BH123484', N'Cơ hữu', N'Giáo viên', N'Mỹ thuật', NULL, 0, N'Đang làm việc', N'Trường THCS HGS', '2010-08-01', '2012-08-01', '2010-08-01', N'2626 Đường Láng, Hà Nội', N'Hà Nội'),
-    (31, N'Hoàng Thị FF', '1982-04-05', N'Nữ', N'Kinh', N'Không', N'Đã kết hôn', '123456818', 'BH123485', N'Cơ hữu', N'Giáo viên', N'Hoạt động trải nghiệm', N'Tổ phó', 0, N'Đang làm việc', N'Trường THCS HGS', '2011-08-01', '2013-08-01', '2011-08-01', N'2727 Đường Láng, Hà Nội', N'Hà Nội');
-GO
+    (31, N'Hoàng Thị FF', '1982-04-05', N'Nữ', N'Kinh', N'Không', N'Đã kết hôn', '123456818', 'BH123485', N'Cơ hữu', N'Giáo viên', N'Hoạt động trải nghiệm', N'Tổ phó', 0, N'Đang làm việc', N'Trường THCS HGS', '2011-08-01', '2013-08-01', '2011-08-01', N'2727 Đường Láng, Hà Nội', N'Hà Nội')
 
--- 8. Chèn dữ liệu vào TeacherSubjects (Phân bổ môn học cho 30 giáo viên)
 INSERT INTO [dbo].[TeacherSubjects] ([TeacherID], [SubjectID], [IsMainSubject])
-VALUES 
-    (1, 1, 1),   -- Nguyễn Văn A dạy Toán (chính)
-    (2, 2, 1),   -- Trần Thị B dạy Ngữ văn (chính)
-    (3, 3, 1),   -- Phạm Văn C dạy Anh văn (chính)
-    (4, 4, 1),   -- Lê Thị D dạy Vật lý (chính)
-    (5, 5, 1),   -- Hoàng Văn E dạy Hóa học (chính)
-    (6, 6, 1),   -- Nguyễn Thị F dạy Sinh học (chính)
-    (7, 7, 1),   -- Trần Văn G dạy Lịch sử (chính)
-    (8, 8, 1),   -- Phạm Thị H dạy Địa lý (chính)
-    (9, 9, 1),   -- Lê Văn I dạy Giáo dục công dân (chính)
-    (10, 10, 1), -- Hoàng Thị K dạy Thể dục (chính)
-    (11, 11, 1), -- Nguyễn Văn L dạy Công nghệ (chính)
-    (12, 12, 1), -- Trần Thị M dạy Tin học (chính)
-    (13, 13, 1), -- Phạm Văn N dạy Âm nhạc (chính)
-    (14, 14, 1), -- Lê Thị O dạy Mỹ thuật (chính)
-    (15, 15, 1), -- Hoàng Văn P dạy Hoạt động trải nghiệm (chính)
-    (16, 1, 1),  -- Nguyễn Thị Q dạy Toán (chính)
-    (17, 2, 1),  -- Trần Văn R dạy Ngữ văn (chính)
-    (18, 3, 1),  -- Phạm Thị S dạy Anh văn (chính)
-    (19, 4, 1),  -- Lê Văn T dạy Vật lý (chính)
-    (20, 5, 1),  -- Hoàng Thị U dạy Hóa học (chính)
-    (21, 6, 1),  -- Nguyễn Văn V dạy Sinh học (chính)
-    (22, 7, 1),  -- Trần Thị X dạy Lịch sử (chính)
-    (23, 8, 1),  -- Phạm Văn Y dạy Địa lý (chính)
-    (24, 9, 1),  -- Lê Thị Z dạy Giáo dục công dân (chính)
-    (25, 10, 1), -- Hoàng Văn AA dạy Thể dục (chính)
-    (26, 11, 1), -- Nguyễn Thị BB dạy Công nghệ (chính)
-    (27, 12, 1), -- Trần Văn CC dạy Tin học (chính)
-    (28, 13, 1), -- Phạm Thị DD dạy Âm nhạc (chính)
-    (29, 14, 1), -- Lê Văn EE dạy Mỹ thuật (chính)
-    (30, 15, 1); -- Hoàng Thị FF dạy Hoạt động trải nghiệm (chính)
-GO
+VALUES (1, 1, 1), (2, 2, 1), (3, 3, 1), (4, 4, 1), (5, 5, 1), (6, 6, 1), (7, 7, 1), (8, 8, 1),
+       (9, 9, 1), (10, 10, 1), (11, 11, 1), (12, 12, 1), (13, 13, 1), (14, 14, 1), (15, 15, 1),
+       (16, 1, 1), (17, 2, 1), (18, 3, 1), (19, 4, 1), (20, 5, 1), (21, 6, 1), (22, 7, 1), (23, 8, 1),
+       (24, 9, 1), (25, 10, 1), (26, 11, 1), (27, 12, 1), (28, 13, 1), (29, 14, 1), (30, 15, 1)
 
--- 9. Chèn dữ liệu vào Students (Mẫu, để có dữ liệu liên quan)
 INSERT INTO [dbo].[Students] (
     [FullName], [DOB], [Gender], [AdmissionDate], [EnrollmentType], [Ethnicity], 
     [PermanentAddress], [BirthPlace], [Religion], [RepeatingYear], [IDCardNumber], [Status]
 )
-VALUES 
-    (N'Trần Thị G', '2010-03-20', N'Nữ', '2024-08-01', N'Tuyển sinh', N'Kinh', 
-     N'456 Đường Láng, Hà Nội', N'Hà Nội', N'Không', 0, 'STU123456', N'Đang học'),
-    (N'Phạm Văn H', '2010-07-15', N'Nam', '2024-08-01', N'Tuyển sinh', N'Kinh', 
-     N'789 Đường Láng, Hà Nội', N'Hà Nội', N'Không', 0, 'STU123457', N'Đang học');
-GO
+VALUES (N'Trần Thị G', '2010-03-20', N'Nữ', '2024-08-01', N'Tuyển sinh', N'Kinh', N'456 Đường Láng, Hà Nội', N'Hà Nội', N'Không', 0, 'STU123456', N'Đang học'),
+       (N'Phạm Văn H', '2010-07-15', N'Nam', '2024-08-01', N'Tuyển sinh', N'Kinh', N'789 Đường Láng, Hà Nội', N'Hà Nội', N'Không', 0, 'STU123457', N'Đang học')
 
--- 10. Chèn dữ liệu vào StudentClasses
 INSERT INTO [dbo].[StudentClasses] ([StudentID], [ClassID], [AcademicYearID])
-VALUES 
-    (1, 1, 1), -- Trần Thị G học lớp 6A năm 2024-2025
-    (2, 1, 1); -- Phạm Văn H học lớp 6A năm 2024-2025
-GO
+VALUES (1, 1, 1), (2, 1, 1)
 
--- 11. Chèn dữ liệu vào Parents (Mẫu)
-INSERT INTO [dbo].[Parents] ([UserID], [FullName], [DOB], [Occupation], [Relationship])
-VALUES 
-    (32, N'Lê Thị I', '1985-10-10', N'Nội trợ', N'Mẹ');
-GO
+INSERT INTO [dbo].[Parents] ([UserID], [FullName], [DOB], [Occupation])
+VALUES (32, N'Lê Thị I', '1985-10-10', N'Nội trợ')
 
--- 12. Chèn dữ liệu vào StudentParents
-INSERT INTO [dbo].[StudentParents] ([StudentID], [ParentID])
-VALUES 
-    (1, 1); -- Trần Thị G là con của Lê Thị I
-GO
+-- Chèn dữ liệu vào bảng StudentParents (đã bổ sung Relationship)
+INSERT INTO [dbo].[StudentParents] ([StudentID], [ParentID], [Relationship])
+VALUES (1, 1, N'Mẹ')
+-- Thêm phụ huynh mới
+INSERT INTO [dbo].[Parents] ([UserID], [FullName], [DOB], [Occupation])
+VALUES (NULL, N'Phạm Văn K', '1980-05-15', N'Kỹ sư')
 
--- 13. Chèn dữ liệu vào TeachingAssignments (Mẫu cho 8 lớp)
+-- Thêm mối quan hệ giữa Phạm Văn H và phụ huynh mới
+INSERT INTO [dbo].[StudentParents] ([StudentID], [ParentID], [Relationship])
+VALUES (2, 2, N'Cha')
 INSERT INTO [dbo].[TeachingAssignments] ([TeacherID], [SubjectID], [ClassID], [SemesterID])
-VALUES 
-    (1, 1, 1, 1),  -- Nguyễn Văn A dạy Toán lớp 6A, HK1
-    (2, 2, 1, 1),  -- Trần Thị B dạy Ngữ văn lớp 6A, HK1
-    (3, 3, 2, 1),  -- Phạm Văn C dạy Anh văn lớp 6B, HK1
-    (4, 4, 3, 1),  -- Lê Thị D dạy Vật lý lớp 7A, HK1
-    (5, 5, 4, 1),  -- Hoàng Văn E dạy Hóa học lớp 7B, HK1
-    (6, 6, 5, 1),  -- Nguyễn Thị F dạy Sinh học lớp 8A, HK1
-    (7, 7, 6, 1),  -- Trần Văn G dạy Lịch sử lớp 8B, HK1
-    (8, 8, 7, 1),  -- Phạm Thị H dạy Địa lý lớp 9A, HK1
-    (9, 9, 8, 1);  -- Lê Văn I dạy Giáo dục công dân lớp 9B, HK1
-GO
+VALUES (1, 1, 1, 1), (2, 2, 1, 1), (3, 3, 2, 1), (4, 4, 3, 1), (5, 5, 4, 1), (6, 6, 5, 1),
+       (7, 7, 6, 1), (8, 8, 7, 1), (9, 9, 8, 1)
 
--- 14. Chèn dữ liệu vào Timetables (Mẫu cho lớp 6A)
 INSERT INTO [dbo].[Timetables] (
     [ClassID], [SubjectID], [TeacherID], [DayOfWeek], [Shift], [Period], [EffectiveDate], [SemesterID]
 )
-VALUES 
-    (1, 1, 1, N'Monday', N'Sáng', 1, '2024-09-02', 1), -- Lớp 6A học Toán tiết 1 sáng thứ 2
-    (1, 2, 2, N'Tuesday', N'Sáng', 2, '2024-09-03', 1); -- Lớp 6A học Ngữ văn tiết 2 sáng thứ 3
-GO
+VALUES (1, 1, 1, N'Monday', N'Sáng', 1, '2024-09-02', 1), (1, 2, 2, N'Tuesday', N'Sáng', 2, '2024-09-03', 1)
 
--- 15. Chèn dữ liệu vào Attendances (Mẫu)
 INSERT INTO [dbo].[Attendances] (
     [StudentID], [Date], [Status], [Note], [CreatedAt], [CreatedBy], [Shift], [SemesterID]
 )
-VALUES 
-    (1, '2024-09-02', 'C', N'Có mặt', GETDATE(), 1, N'Sáng', 1), -- Trần Thị G có mặt
-    (2, '2024-09-02', 'P', N'Nghỉ phép', GETDATE(), 1, N'Sáng', 1); -- Phạm Văn H nghỉ phép
-GO
+VALUES (1, '2024-09-02', 'C', N'Có mặt', GETDATE(), 1, N'Sáng', 1), (2, '2024-09-02', 'P', N'Nghỉ phép', GETDATE(), 1, N'Sáng', 1)

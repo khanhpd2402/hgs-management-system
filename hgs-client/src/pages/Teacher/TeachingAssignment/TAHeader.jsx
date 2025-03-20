@@ -5,7 +5,7 @@ import TAFilter from "./TAFilter";
 
 const TAHeader = ({ type, setFilter }) => {
   return (
-    <div className="mb-4 flex items-center justify-between">
+    <div className="flex items-center justify-between">
       <h2 className="text-lg font-semibold">Danh sách cán bộ</h2>
       <div className="flex gap-2">
         <TAFilter setFilter={setFilter} />

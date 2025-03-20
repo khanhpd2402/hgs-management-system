@@ -1,19 +1,32 @@
-import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
+import ScheduleTable from "@/pages/Schedule/Schedule";
+import SendMessagePHHS from "@/pages/SendMessage/SendMessagePHHS";
+import SendMessageTeacher from "@/pages/SendMessage/SendMessageTeacher";
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
+import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
+const TeacherProfile = lazy(
+  () => import("@/pages/Teacher/Profile/TeacherProfile"),
+);
+const StudentProfile = lazy(
+  () => import("@/pages/Student/Profile/StudentProfile"),
+);
 const TATable = lazy(
   () => import("@/pages/Teacher/TeachingAssignment/TATable"),
 );
 const HTATable = lazy(
   () => import("@/pages/Teacher/HeadTeacherAssignment/HTATable"),
+);
+
+const StudentScore = lazy(
+  () => import("@/pages/Student/SummaryScore/StudentScore"),
 );
 
 const AppRouter = () => {
@@ -40,6 +53,26 @@ const privateRouter = [
             <Suspense fallback={<div>Loading...</div>}>
               <TeacherTable />
             </Suspense>
+          </ErrorBoundary>
+        ),
+        // errorElement: <ErrorRouteComponent />,
+      },
+      {
+        path: "/teacher/profile/:id",
+        element: (
+          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+            <Suspense fallback={<div>Loading...</div>}>
+              <TeacherProfile />
+            </Suspense>
+          </ErrorBoundary>
+        ),
+        // errorElement: <ErrorRouteComponent />,
+      },
+      {
+        path: "/teacher/profile/create-teacher",
+        element: (
+          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+            <AddTeacher />
           </ErrorBoundary>
         ),
         // errorElement: <ErrorRouteComponent />,
@@ -84,6 +117,59 @@ const privateRouter = [
           </Suspense>
         ),
       },
+      {
+        path: "/student/profile/:id",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentProfile />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/student/score",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentScore />
+          </Suspense>
+        ),
+      },
+      {
+        path: "system/schedule",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ScheduleTable></ScheduleTable>
+          </Suspense>
+
+        ),
+      },
+      {
+        path: "system/schedule",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <ScheduleTable></ScheduleTable>
+          </Suspense>
+
+        ),
+      },
+      {
+        path: "contact/SendToParent",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <SendMessagePHHS></SendMessagePHHS>
+          </Suspense>
+
+        ),
+      },
+      {
+        path: "contact/SendToTeacher",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <SendMessageTeacher></SendMessageTeacher>
+          </Suspense>
+
+        ),
+      },
+
     ],
   },
 ];
