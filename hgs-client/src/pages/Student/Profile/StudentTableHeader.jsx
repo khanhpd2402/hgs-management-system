@@ -1,6 +1,6 @@
 import { useState } from "react";
 import ExcelImportModal from "@/components/excel/ExcelImportModal";
-import ExportExcel from "@/components/excel/ExportExcel";
+import ExportExcelByColumn from "@/components/excel/ExportExcelByColumn";
 import PropTypes from "prop-types";
 import StudentFilter from "./StudentFilter";
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,7 @@ const StudentTableHeader = ({
       <div className="flex gap-2">
         <StudentFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
-        <ExportExcel type={type} />
+        <ExportExcelByColumn type={type} visibleColumns={columns} />
         <Button
           variant="outline"
           onClick={() => setIsColumnConfigOpen(true)}

@@ -22,16 +22,18 @@ export function useImportTeachers() {
 }
 
 export function useUpdateTeacher() {
+  const queryClient = useQueryClient();
+
   return useMutation({
     mutationFn: ({ id, data }) => updateTeacher(id, data),
 
-    onSettled: (data, error) => {
+    onSettled: (data, error, inputData) => {
       if (error) {
         console.log(error);
         console.log("đã có lỗi xảy ra");
       } else {
-        console.log(data);
         console.log("cập nhật thành công");
+        queryClient.invalidateQueries("teacher", inputData.id);
       }
     },
   });

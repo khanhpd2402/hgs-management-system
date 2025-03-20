@@ -1,8 +1,4 @@
-export function formatDate(input) {
-  const date = new Date(input);
-  return date.toLocaleDateString("en-US", {
-    month: "long",
-    day: "numeric",
-    year: "numeric",
-  });
-}
+export const formatDate = (date) => {
+  if (!date) return null;
+  return date.toISOString().split("T")[0]; // Gets YYYY-MM-DD format
+};

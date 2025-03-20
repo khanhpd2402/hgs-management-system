@@ -12,6 +12,9 @@ const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
 const TeacherProfile = lazy(
   () => import("@/pages/Teacher/Profile/TeacherProfile"),
 );
+const StudentProfile = lazy(
+  () => import("@/pages/Student/Profile/StudentProfile"),
+);
 const TATable = lazy(
   () => import("@/pages/Teacher/TeachingAssignment/TATable"),
 );
@@ -108,6 +111,14 @@ const privateRouter = [
         element: (
           <Suspense fallback={<div>Loading...</div>}>
             <StudentTable />
+          </Suspense>
+        ),
+      },
+      {
+        path: "/student/profile/:id",
+        element: (
+          <Suspense fallback={<div>Loading...</div>}>
+            <StudentProfile />
           </Suspense>
         ),
       },

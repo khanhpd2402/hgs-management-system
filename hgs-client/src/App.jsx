@@ -1,22 +1,16 @@
-import StudentProfile from "./pages/Student/Profile/StudentProfile";
-import AddStudentForm from "./pages/Student/Profile/AddStudentForm";
 import AppRouter from "./routes/AppRouter";
-import StudentListScore from "./pages/Student/SummaryScore/StudentListScore";
-import MarkReportTable from "./pages/Teacher/MarkReport/MarkReportTable";
-import StudentScore from "./pages/Student/SummaryScore/StudentScore";
 import { Toaster } from "react-hot-toast";
+import AddGradeBatch from "./pages/Teacher/GradeBatch/AddGradeBatch";
+import GradeBatch from "./pages/Teacher/GradeBatch/GradeBatch";
 
 const App = () => {
   return (
     <div>
       <Toaster position="top-center" reverseOrder={false} />
-      <AppRouter />
+      {/* <AddGradeBatch /> */}
+      <GradeBatch />
+      {/* <AppRouter /> */}
     </div>
-    // <AddStudentForm />
-    // // <StudentProfile />
-    // <MarkReportTable />
-    // <StudentListScore />
-    // <StudentScore />
   );
 };
 
