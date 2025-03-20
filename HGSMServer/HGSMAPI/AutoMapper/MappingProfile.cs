@@ -7,6 +7,9 @@ using AutoMapper;
 using Domain.Models;
 using Application.Features.Subjects.DTOs;
 using Application.Features.Parents.DTOs;
+using Application.Features.AcademicYears.DTOs;
+using Application.Features.Semesters.DTOs;
+using Application.Features.LeaveRequests.DTOs;
 namespace HGSMAPI.AutoMapper
 {
     public class MappingProfile : Profile
@@ -67,6 +70,15 @@ namespace HGSMAPI.AutoMapper
             CreateMap<CreateSubjectDto, Subject>();
             CreateMap<UpdateSubjectDto, Subject>()
                 .ForAllMembers(opts => opts.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<AcademicYear, AcademicYearDto>().ReverseMap();
+            CreateMap<CreateAcademicYearDto, AcademicYear>();
+
+            CreateMap<Semester, SemesterDto>().ReverseMap();
+            CreateMap<CreateSemesterDto, Semester>();
+
+            CreateMap<LeaveRequest, LeaveRequestDto>().ReverseMap();
+            CreateMap<CreateLeaveRequestDto, LeaveRequest>();
         }
     }
 }
