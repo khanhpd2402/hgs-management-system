@@ -13,11 +13,13 @@ namespace Application.Features.Teachers.Services
     public class TeacherService : ITeacherService
     {
         private readonly ITeacherRepository _teacherRepository;
+        private readonly ITeacherClassRepository _teacherClassRepository;
         private readonly IMapper _mapper;
 
-        public TeacherService(ITeacherRepository teacherRepository, IMapper mapper)
+        public TeacherService(ITeacherRepository teacherRepository, ITeacherClassRepository teacherClassRepository, IMapper mapper)
         {
             _teacherRepository = teacherRepository;
+            _teacherClassRepository = teacherClassRepository;
             _mapper = mapper;
         }
         public async Task<TeacherListResponseDto> GetAllTeachersAsync()
@@ -184,7 +186,44 @@ namespace Application.Features.Teachers.Services
 
             await _teacherRepository.AddRangeAsync(teachers);
         }
+        public async Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto)
+        {
+            if (assignHomeroomDto == null)
+                throw new ArgumentNullException(nameof(assignHomeroomDto));
 
+            if (assignHomeroomDto.TeacherId <= 0 || assignHomeroomDto.ClassId <= 0 ||
+                assignHomeroomDto.AcademicYearId <= 0 || assignHomeroomDto.SemesterId <= 0)
+            {
+                throw new ArgumentException("All IDs (TeacherId, ClassId, AcademicYearId, SemesterId) must be positive.");
+            }
+
+            // Kiểm tra xem giáo viên đã được phân công làm chủ nhiệm lớp này chưa
+            var isAssigned = await _teacherClassRepository.IsHomeroomAssignedAsync(
+                assignHomeroomDto.TeacherId,
+                assignHomeroomDto.ClassId,
+                assignHomeroomDto.AcademicYearId);
+
+            if (isAssigned)
+            {
+                throw new InvalidOperationException("This teacher is already assigned as homeroom teacher for this class in the specified academic year.");
+            }
+
+            await _teacherClassRepository.AssignHomeroomAsync(
+                assignHomeroomDto.TeacherId,
+                assignHomeroomDto.ClassId,
+                assignHomeroomDto.AcademicYearId,
+                assignHomeroomDto.SemesterId);
+        }
+
+        public async Task<bool> IsHomeroomAssignedAsync(int teacherId, int classId, int academicYearId)
+        {
+            return await _teacherClassRepository.IsHomeroomAssignedAsync(teacherId, classId, academicYearId);
+        }
+
+        public async Task<bool> HasHomeroomTeacherAsync(int classId, int academicYearId)
+        {
+            return await _teacherClassRepository.HasHomeroomTeacherAsync(classId, academicYearId);
+        }
     }
 }
 public class CustomExportException : Exception
