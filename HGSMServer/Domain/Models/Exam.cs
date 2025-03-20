@@ -19,8 +19,6 @@ public partial class Exam
 
     public virtual Teacher CreatedByNavigation { get; set; } = null!;
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
-
     public virtual Semester Semester { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;

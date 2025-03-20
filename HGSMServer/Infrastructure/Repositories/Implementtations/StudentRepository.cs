@@ -1,12 +1,8 @@
 ﻿using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace Infrastructure.Repositories.Implementtations
+namespace Infrastructure.Repositories.Implementations
 {
     public class StudentRepository : IStudentRepository
     {
@@ -17,20 +13,24 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<List<Student>> GetAllStudentsAsync()
+        public async Task<IEnumerable<Student>> GetAllWithParentsAsync(int academicYearId)
         {
             return await _context.Students
-                .Include(s => s.StudentClasses) // Lấy thông tin lớp qua StudentClasses
-                    .ThenInclude(sc => sc.Class) // Lấy chi tiết lớp
+                .Include(s => s.StudentParents)
+                    .ThenInclude(sp => sp.Parent)
+                        .ThenInclude(p => p.User)  // Include bảng User để lấy Email & SĐT
                 .Include(s => s.StudentClasses)
-                    .ThenInclude(sc => sc.AcademicYear) // Lấy thông tin năm học
-                .Include(s => s.Parents) // Lấy thông tin phụ huynh trực tiếp
+                    .ThenInclude(sc => sc.Class)
+                .Where(s => s.StudentClasses.Any(sc => sc.AcademicYearId == academicYearId)) // Lọc theo năm học
                 .ToListAsync();
         }
 
-        public IQueryable<Student> GetAll()
+        public async Task<int> GetAcademicYearIdAsync(int semesterId)
         {
-            return _context.Students.AsQueryable();
+            return await _context.Semesters
+                .Where(s => s.SemesterId == semesterId)
+                .Select(s => s.AcademicYearId)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<Student?> GetByIdAsync(int id)
@@ -40,10 +40,20 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(sc => sc.Class)
                 .Include(s => s.StudentClasses)
                     .ThenInclude(sc => sc.AcademicYear)
-                .Include(s => s.Parents) // Lấy thông tin phụ huynh trực tiếp
+                .Include(s => s.StudentParents) // Sử dụng bảng trung gian
+                    .ThenInclude(sp => sp.Parent) // Lấy thông tin phụ huynh
                 .FirstOrDefaultAsync(s => s.StudentId == id);
         }
-
+        public async Task<Student?> GetByIdWithParentsAsync(int id, int academicYearId)
+        {
+            return await _context.Students
+                .Include(s => s.StudentParents)
+                    .ThenInclude(sp => sp.Parent)
+                .Include(s => s.StudentClasses)
+                    .ThenInclude(sc => sc.Class)
+                .Where(s => s.StudentId == id && s.StudentClasses.Any(sc => sc.AcademicYearId == academicYearId)) // Lọc theo năm học
+                .FirstOrDefaultAsync();
+        }
         public async Task AddAsync(Student student)
         {
             _context.Students.Add(student);

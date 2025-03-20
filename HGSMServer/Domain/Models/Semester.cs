@@ -21,11 +21,9 @@ public partial class Semester
 
     public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    public virtual ICollection<GradeBatch> GradeBatches { get; set; } = new List<GradeBatch>();
 
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
-
-    public virtual ICollection<Reward> Rewards { get; set; } = new List<Reward>();
 
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 

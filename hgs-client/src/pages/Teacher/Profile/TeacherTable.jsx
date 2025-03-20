@@ -10,17 +10,27 @@ import {
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import MyPagination from "@/components/MyPagination";
-import { useEmployees } from "@/services/teacher/queries";
+import { useTeachers } from "@/services/teacher/queries";
 import TeacherTableHeader from "./TeacherTableHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
+import { useQueryClient } from "@tanstack/react-query";
+import {
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import { DropdownMenu } from "@/components/ui/dropdown-menu";
+import { useNavigate } from "react-router";
+import ConfirmDeleteModal from "@/components/modal/ConfirmDeleteModal";
+import { useDeleteTeacher } from "@/services/teacher/mutation";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
+
+  const [isModalOpen, setModalOpen] = useState(false);
 
   const [filter, setFilter] = useState({
     page: 1,
@@ -30,28 +40,57 @@ export default function TeacherTable() {
     search: "",
   });
 
-  // const { data, isPending, error, isError, isFetching } = useEmployees(filter);
-  const { data, isPending, error, isError, isFetching } = useQuery({
-    queryKey: ["employees", filter],
-    queryFn: async () => {
-      const res = await axios.get(
-        `http://localhost:8080/Employees?_page=${filter.page}&_limit=${filter.pageSize}`,
-      );
-      return res.data;
-    },
-  });
+  // Define all available columns
+  const allColumns = [
+    { id: "actions", label: "Thao tác", width: "100px" },
+    { id: "fullName", label: "Họ tên cán bộ", width: "200px" },
+    { id: "phoneNumber", label: "Số ĐTDD", width: "150px" },
+    { id: "email", label: "Địa chỉ Email", width: "200px" },
+    { id: "employmentStatus", label: "Trạng thái", width: "120px" },
+    { id: "dob", label: "Ngày sinh", width: "150px" },
+    { id: "gender", label: "Giới tính", width: "120px" },
+    { id: "ethnicity", label: "Dân tộc", width: "120px" },
+    { id: "position", label: "Chức vụ", width: "150px" },
+    { id: "department", label: "Tổ bộ môn", width: "150px" },
+    { id: "employmentType", label: "Hình thức hợp đồng", width: "180px" },
+  ];
 
-  console.log(data);
-
-  const { page, pageSize } = filter;
-
-  const startIndex = (page - 1) * pageSize + 1;
-  const endIndex = Math.min(
-    (page - 1) * pageSize + (data?.length || 0),
-    startIndex + pageSize - 1,
+  // Initialize with all columns visible
+  const [visibleColumns, setVisibleColumns] = useState(
+    allColumns.map((col) => ({ id: col.id, label: col.label })),
   );
 
-  // Tính toán hàng hiển thị
+  const { data, isPending, error, isError } = useTeachers();
+  const teacherMutation = useDeleteTeacher();
+
+  //phan trang
+  const { page, pageSize } = filter;
+
+  const totalPages = Math.ceil(data?.totalCount / pageSize);
+  const currentData = data?.teachers.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
+  );
+
+  const startIndex = data?.totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, data?.totalCount);
+
+  // Save visible columns to localStorage
+  useEffect(() => {
+    localStorage.setItem(
+      "teacherTableVisibleColumns",
+      JSON.stringify(visibleColumns),
+    );
+  }, [visibleColumns]);
+
+  // Load visible columns from localStorage on component mount
+  useEffect(() => {
+    const savedColumns = localStorage.getItem("teacherTableVisibleColumns");
+    if (savedColumns) {
+      setVisibleColumns(JSON.parse(savedColumns));
+    }
+  }, []);
+
   if (isPending) {
     return (
       <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
@@ -76,126 +115,154 @@ export default function TeacherTable() {
   }
 
   return (
-    <Card className="relative mt-6 p-4">
-      <TeacherTableHeader setFilter={setFilter} />
+    <Card className="p-4">
+      <TeacherTableHeader
+        setFilter={setFilter}
+        type="teachers"
+        setVisibleColumns={setVisibleColumns}
+        visibleColumns={visibleColumns}
+        columns={allColumns}
+        data={data?.teachers}
+      />
 
-      {/* Container chính không có overflow-x-auto */}
-      <div className="max-h-[400px] overflow-auto">
-        {isFetching && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
-            <Spinner />
-          </div>
-        )}
-
-        {/* Container cho bảng với overflow-x-auto */}
+      <div className="max-h-[400px] overflow-auto border border-gray-200">
         <div className="min-w-max">
-          <Table
-            className="w-full border border-gray-300"
-            style={{ minWidth: "1500px" }}
-          >
+          <Table className="w-full border-collapse">
             <TableHeader className="bg-gray-100">
               <TableRow>
-                <TableHead className="w-12 border border-gray-300 p-0 text-center whitespace-nowrap">
-                  <Checkbox />
-                </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                  Thao tác
-                </TableHead>
-                <TableHead className="w-12 border border-gray-300 text-center whitespace-nowrap">
-                  ID
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Họ tên cán bộ
-                </TableHead>
-
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Số ĐTDD
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Địa chỉ Email
-                </TableHead>
-                <TableHead className="border border-gray-300 text-center whitespace-nowrap">
-                  Trạng thái
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Ngày sinh
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Giới tính
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Dân tộc
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Chức vụ
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Tổ bộ môn
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Hình thức hợp đồng
-                </TableHead>
-                <TableHead className="border border-gray-300 text-left whitespace-nowrap">
-                  Vị trí làm việc
-                </TableHead>
+                {allColumns.map(
+                  (column) =>
+                    visibleColumns.some((col) => col.id === column.id) && (
+                      <TableHead
+                        key={column.id}
+                        className={`border border-gray-300 text-center`}
+                        style={{ width: column.width }}
+                      >
+                        {column.label}
+                      </TableHead>
+                    ),
+                )}
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data.length > 0 ? (
-                data.map((employee) => (
+              {data && data.teachers.length > 0 ? (
+                currentData.map((teacher) => (
                   <TableRow
-                    key={employee.id}
+                    key={teacher.teacherId}
                     className="divide-x divide-gray-300"
                   >
-                    <TableCell className="h-16 border border-gray-300 p-0 text-center whitespace-nowrap">
-                      <Checkbox />
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      <Button variant="outline" size="icon">
-                        <Settings className="h-4 w-4" />
-                      </Button>
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      {employee.id}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.name}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.phone}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.email}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                      {employee.status}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.dob}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.gender}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.ethnicity}
-                    </TableCell>
-                    <TableCell className="h-16border border-gray-300 text-left whitespace-nowrap">
-                      {employee.position}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.department}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.contract}
-                    </TableCell>
-                    <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                      {employee.workLocation}
-                    </TableCell>
+                    {visibleColumns.some((col) => col.id === "actions") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button variant="outline" size="icon">
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate(
+                                  `/teacher/profile/${teacher.teacherId}`,
+                                )
+                              }
+                            >
+                              Xem hồ sơ
+                            </DropdownMenuItem>
+                            <DropdownMenuItem
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setModalOpen(true);
+                              }}
+                            >
+                              Xóa
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                        <ConfirmDeleteModal
+                          open={isModalOpen}
+                          onClose={() => setModalOpen(false)}
+                          onConfirm={() => {
+                            teacherMutation.mutate(teacher.teacherId);
+                            setModalOpen(false);
+                          }}
+                          title="Xác nhận xóa"
+                          description={`Bạn có chắc chắn muốn xóa giáo viên ${teacher.fullName}?`}
+                        />
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "fullName") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.fullName}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "phoneNumber") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.phoneNumber}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "email") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.email}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "employmentStatus",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.employmentStatus}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "dob") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.dob}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "gender") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.gender}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "ethnicity") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.ethnicity}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "position") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.position}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some((col) => col.id === "department") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.department}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "employmentType",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.employmentType}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell colSpan={14} className="text-xl">
+                  <TableCell
+                    colSpan={visibleColumns.length}
+                    className="p-4 text-center"
+                  >
                     Không có dữ liệu
                   </TableCell>
                 </TableRow>
@@ -204,17 +271,17 @@ export default function TeacherTable() {
           </Table>
         </div>
       </div>
-      <div className="mt-4 flex items-center justify-between">
+      <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
           setFilter={setFilter}
-          totalItems={data?.length || 0}
+          totalItems={data?.totalCount || 0}
           startIndex={startIndex}
           endIndex={endIndex}
         />
 
         <MyPagination
-          totalPages={6}
+          totalPages={totalPages}
           currentPage={page}
           onPageChange={setFilter}
         />

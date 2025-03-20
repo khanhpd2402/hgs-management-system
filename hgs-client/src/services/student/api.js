@@ -12,16 +12,13 @@ export const getStudents = async (
   if (grade) filterParams.push(`grade=${grade}`);
   if (classname) filterParams.push(`class=${classname}`);
 
-  const formattedSearchValue = searchValue;
+  return (await axiosInstance.get(`student?page=${page}`)).data;
+};
 
-  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
-  console.log(
-    `students?_limit=${limit}&_page=${page}&q=${formattedSearchValue}${queryString}`,
-  );
+export const getStudent = async (id) => {
+  return (await axiosInstance.get(`student/${id}`)).data;
+};
 
-  return (
-    await axiosInstance.get(
-      `students?_limit=${limit}&_page=${page}&q=${formattedSearchValue}${queryString}`,
-    )
-  ).data;
+export const updateStudent = async (id, data) => {
+  return (await axiosInstance.put(`student/${id}`, data)).data;
 };

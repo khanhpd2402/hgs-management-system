@@ -13,9 +13,5 @@ public partial class Reward
 
     public DateOnly? DateReceived { get; set; }
 
-    public int SemesterId { get; set; }
-
-    public virtual Semester Semester { get; set; } = null!;
-
     public virtual Teacher Teacher { get; set; } = null!;
 }
