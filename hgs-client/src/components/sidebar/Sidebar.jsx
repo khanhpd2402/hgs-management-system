@@ -42,7 +42,10 @@ const menuItems = [
         label: "Báo cáo điểm",
         path: "/teacher/mark-report",
       },
-
+      {
+        label: "Quản lý đợt nhập điểm",
+        path: "/teacher/grade-batch",
+      },
     ],
   },
   {

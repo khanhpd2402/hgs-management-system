@@ -8,8 +8,8 @@ const App = () => {
     <div>
       <Toaster position="top-center" reverseOrder={false} />
       {/* <AddGradeBatch /> */}
-      <GradeBatch />
-      {/* <AppRouter /> */}
+      {/* <GradeBatch /> */}
+      <AppRouter />
     </div>
   );
 };
