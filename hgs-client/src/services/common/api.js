@@ -11,6 +11,8 @@ export const getAcademicYears = async () => {
 };
 
 export const getSemestersByAcademicYear = async (academicYearId) => {
-  const response = await axiosInstance.get(`/semester/${academicYearId}`);
+  const response = await axiosInstance.get(
+    `/semester/by-academic-year/${academicYearId}`,
+  );
   return response.data;
 };
