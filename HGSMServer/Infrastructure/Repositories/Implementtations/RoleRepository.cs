@@ -56,6 +56,10 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.SaveChangesAsync();
             return true;
         }
+        public async Task<Role> GetByIdAsync(int roleId)
+        {
+            return await _context.Roles.FindAsync(roleId);
+        }
     }
 
 }

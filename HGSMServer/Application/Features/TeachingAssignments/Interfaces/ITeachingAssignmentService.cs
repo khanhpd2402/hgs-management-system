@@ -1,11 +1,6 @@
-﻿using Application.Features.TeachingAssignment.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using Application.Features.TeachingAssignments.DTOs;
 
-namespace Application.Features.TeachingAssignment.Interfaces
+namespace Application.Features.TeachingAssignments.Interfaces
 {
     public interface ITeachingAssignmentService
     {

@@ -1,8 +1,8 @@
 ﻿using Application.Features.Classes.DTOs;
 using Application.Features.Subjects.DTOs;
 using Application.Features.Teachers.DTOs;
-using Application.Features.TeachingAssignment.DTOs;
-using Application.Features.TeachingAssignment.Interfaces;
+using Application.Features.TeachingAssignments.DTOs;
+using Application.Features.TeachingAssignments.Interfaces;
 using Domain.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
@@ -13,7 +13,7 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Features.TeachingAssignment.Services
+namespace Application.Features.TeachingAssignments.Services
 {
     public class TeachingAssignmentService : ITeachingAssignmentService
     {

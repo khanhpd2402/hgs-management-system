@@ -25,10 +25,10 @@ namespace Application.Features.Users.Services
         {
             var claims = new List<Claim>
             {
-                new Claim(ClaimTypes.NameIdentifier, user.UserId.ToString()),
-                new Claim(ClaimTypes.Email, user.Email ?? ""),
-                new Claim(ClaimTypes.Name, user.Username),
-                new Claim(ClaimTypes.Role, userRole)
+                new Claim("sub", user.UserId.ToString()), // Sử dụng "sub" thay vì NameIdentifier
+                new Claim("email", user.Email ?? ""),
+                new Claim("name", user.Username),
+                new Claim("role", userRole) // Sử dụng "role" thay vì ClaimTypes.Role
             };
 
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));

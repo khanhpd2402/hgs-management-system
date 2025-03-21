@@ -13,6 +13,9 @@ namespace Application.Features.Teachers.Interfaces
         Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto);
         Task DeleteTeacherAsync(int id);
         Task ImportTeachersFromExcelAsync(IFormFile file);
+        Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto);
+        Task<bool> IsHomeroomAssignedAsync(int teacherId, int classId, int academicYearId);
+        Task<bool> HasHomeroomTeacherAsync(int classId, int academicYearId);
     }
 
 }
