@@ -3,101 +3,27 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
-import AddGradeBatch from "./AddGradeBatch";
+import AddGradeBatch from "./addgradebatch";
 import GradeBatchDetail from "./GradeBatchDetail";
+import { cn } from "@/lib/utils";
+import { useSemestersByAcademicYear } from "@/services/common/queries";
+import { useGradeBatchs } from "@/services/principal/queries";
 
 export default function GradeBatch() {
-  const [gradeBatches, setGradeBatches] = useState([
-    {
-      id: 1,
-      name: "Đợt nhập điểm học kỳ 1 năm 2023-2024",
-      startDate: new Date("2023-09-01"),
-      endDate: new Date("2023-12-31"),
-      status: "active",
-      scoreTypes: {
-        frequent: { enabled: true, count: "3" },
-        midterm: { enabled: true },
-        final: { enabled: true },
-      },
-    },
-    {
-      id: 2,
-      name: "Đợt nhập điểm học kỳ 2 năm 2022-2023",
-      startDate: new Date("2023-01-01"),
-      endDate: new Date("2023-05-31"),
-      status: "completed",
-      scoreTypes: {
-        frequent: { enabled: true, count: "4" },
-        midterm: { enabled: true },
-        final: { enabled: true },
-      },
-    },
-  ]);
+  const gradeBatchs = useGradeBatchs();
+  console.log(gradeBatchs.data);
 
+  const academicYearId = JSON.parse(
+    sessionStorage.getItem("currentAcademicYear"),
+  ).academicYearID;
+  const semesterQuery = useSemestersByAcademicYear(academicYearId);
+  const semesters = semesterQuery.data || [];
+  const [semester, setSemester] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
+  const gradeBatchQuery = useGradeBatchs();
 
   // Check and update batch statuses based on current date
-  useEffect(() => {
-    const now = new Date();
-    const updatedBatches = gradeBatches.map((batch) => {
-      const endDate = new Date(batch.endDate);
-      if (now > endDate && batch.status === "active") {
-        return { ...batch, status: "completed" };
-      }
-      return batch;
-    });
-
-    // Only update state if there were changes
-    if (JSON.stringify(updatedBatches) !== JSON.stringify(gradeBatches)) {
-      setGradeBatches(updatedBatches);
-    }
-  }, [gradeBatches]);
-
-  const handleAddGradeBatch = (newBatch) => {
-    // Check if the new batch should be marked as completed based on end date
-    const now = new Date();
-    const status = now > new Date(newBatch.endDate) ? "completed" : "active";
-
-    setGradeBatches([
-      ...gradeBatches,
-      {
-        id: gradeBatches.length + 1,
-        ...newBatch,
-        status,
-      },
-    ]);
-  };
-
-  const handleViewDetails = (batch) => {
-    setSelectedBatch(batch);
-    setDetailModalOpen(true);
-  };
-
-  const handleSaveBatchEdit = (editedBatch) => {
-    // Check if status needs to be updated based on end date
-    const now = new Date();
-    const endDate = new Date(editedBatch.endDate);
-
-    // Update status based on end date
-    let updatedBatch = { ...editedBatch };
-    if (now > endDate && updatedBatch.status === "active") {
-      updatedBatch.status = "completed";
-    } else if (now <= endDate && updatedBatch.status === "completed") {
-      updatedBatch.status = "active";
-    }
-
-    setGradeBatches(
-      gradeBatches.map((batch) =>
-        batch.id === updatedBatch.id ? updatedBatch : batch,
-      ),
-    );
-    setSelectedBatch(updatedBatch);
-  };
-
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("vi-VN");
-  };
 
   const getStatusBadge = (status) => {
     switch (status) {
@@ -112,15 +38,46 @@ export default function GradeBatch() {
     }
   };
 
+  useEffect(() => {
+    if (semesters?.length > 0 && !semester) {
+      setSemester(semesters[0].semesterID);
+    }
+  }, [semesters, semester]);
+
   return (
     <div className="container mx-auto py-6">
-      <div className="mb-6 flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Quản lý đợt nhập điểm</h1>
-        <AddGradeBatch onAddBatch={handleAddGradeBatch} />
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b pb-4">
+          <div>
+            <h1 className="text-2xl font-bold">Quản lý đợt nhập điểm</h1>
+            <p className="text-muted-foreground text-sm">
+              Quản lý các đợt nhập điểm trong học kỳ
+            </p>
+          </div>
+          <div>
+            <AddGradeBatch semester={semester} />
+          </div>
+        </div>
+        <div className="bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-lg p-1">
+          {semesters?.map((sem) => (
+            <button
+              key={sem.semesterID}
+              className={cn(
+                "ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center rounded-md px-8 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
+                semester === sem.semesterID
+                  ? "bg-background text-foreground shadow-sm"
+                  : "hover:bg-background/50",
+              )}
+              onClick={() => setSemester(sem.semesterID)}
+            >
+              {sem.semesterName}
+            </button>
+          ))}
+        </div>
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {gradeBatches.map((batch) => (
+        {/* {gradeBatches?.map((batch) => (
           <Card key={batch.id} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex justify-between">
@@ -169,7 +126,7 @@ export default function GradeBatch() {
               </div>
             </CardContent>
           </Card>
-        ))}
+        ))} */}
       </div>
 
       {/* Detail Modal Component */}
@@ -178,7 +135,7 @@ export default function GradeBatch() {
           batch={selectedBatch}
           open={detailModalOpen}
           onOpenChange={setDetailModalOpen}
-          onSave={handleSaveBatchEdit}
+          // onSave={handleSaveBatchEdit}
         />
       )}
     </div>

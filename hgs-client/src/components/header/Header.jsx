@@ -26,10 +26,6 @@ const Header = () => {
         "currentAcademicYear",
         JSON.stringify(currentYear),
       );
-      sessionStorage.setItem(
-        "currentAcademicYearId",
-        currentYear.academicYearID,
-      );
     }
   }, [academicYears.data]);
 

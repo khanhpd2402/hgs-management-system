@@ -1,377 +1,440 @@
-import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
+import { useState } from "react";
+import { useSubjects } from "@/services/common/queries";
 import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import {
-  Select,
-  SelectItem,
-  SelectTrigger,
-  SelectContent,
-  SelectValue,
-} from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import DatePicker from "@/components/DatePicker";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
   DialogFooter,
 } from "@/components/ui/dialog";
-import DatePicker from "@/components/DatePicker";
-import { Card, CardContent } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
-import { useSubjects } from "@/services/common/queries";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Controller } from "react-hook-form";
-import { formatDate } from "@/helpers/formatDate";
 import { useAddGradeBatch } from "@/services/principal/mutation";
+import { formatDate } from "@/helpers/formatDate";
 
-const schema = z
-  .object({
-    batchName: z.string().min(1, "Tên đợt không được để trống"),
-    startDate: z.date({ required_error: "Vui lòng chọn ngày bắt đầu" }),
-    endDate: z.date({ required_error: "Vui lòng chọn ngày kết thúc" }),
-    subjectIds: z.array(z.string()).min(1, "Vui lòng chọn ít nhất một môn học"),
-  })
-  .refine(
-    (data) =>
-      !data.startDate || !data.endDate || data.endDate >= data.startDate,
-    {
-      message: "Ngày kết thúc phải sau ngày bắt đầu",
-      path: ["endDate"],
+export default function AddGradeBatch({ semester }) {
+  const subjectsQuery = useSubjects();
+  const gradeBatchMutation = useAddGradeBatch();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    name: "",
+    startDate: null,
+    endDate: null,
+    isLocked: false,
+    gradeColumns: {
+      regular: false,
+      midterm: false,
+      final: false,
     },
-  );
-export default function GradeEntryForm() {
-  const {
-    register,
-    handleSubmit,
-    formState: { errors },
-    control,
-    setValue, // Add setValue here
-    reset,
-  } = useForm({
-    resolver: zodResolver(schema),
+    regularColumnCount: 2,
+    subjects: {},
   });
+  const [errors, setErrors] = useState({});
 
-  const { data, isPending } = useSubjects();
-  const addGradeBatchMutation = useAddGradeBatch();
+  // Initialize subjects from the query data
+  useState(() => {
+    if (subjectsQuery.data) {
+      const subjectsState = {};
+      subjectsQuery.data.forEach((subject) => {
+        subjectsState[subject.subjectId] = false;
+      });
+      setFormData((prev) => ({
+        ...prev,
+        subjects: subjectsState,
+      }));
+    }
+  }, [subjectsQuery.data]);
 
-  const [open, setOpen] = useState(false);
-  const [assessmentTypes, setAssessmentTypes] = useState({
-    frequent: { enabled: false, count: "" },
-    midterm: { enabled: false },
-    final: { enabled: false },
-  });
-
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-
-  const handleScoreTypeChange = (type, value) => {
-    setAssessmentTypes((prev) => ({
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({
       ...prev,
-      [type]: { ...prev[type], enabled: value },
+      [name]: value,
     }));
+
+    // Clear error when user types
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: null,
+      }));
+    }
   };
 
-  const handleFrequentCountChange = (value) => {
-    setAssessmentTypes((prev) => ({
+  const handleCheckboxChange = (category, name) => {
+    setFormData((prev) => ({
       ...prev,
-      frequent: { ...prev.frequent, count: value },
-    }));
-  };
-
-  const handleSubjectToggle = (subjectId) => {
-    const stringId = String(subjectId); // Ensure ID is a string
-    setSelectedSubjects((prev) => {
-      const newSelection = prev.includes(stringId)
-        ? prev.filter((id) => id !== stringId)
-        : [...prev, stringId];
-
-      // Update the form value when selection changes
-      setValue("subjectIds", newSelection, { shouldValidate: true });
-      return newSelection;
-    });
-  };
-
-  // In your useEffect, add a dependency array with setValue
-  useEffect(() => {
-    setValue("subjectIds", []);
-  }, [setValue]);
-
-  const onSubmit = (formData) => {
-    // Transform assessmentTypes from object to array format
-    const transformedAssessmentTypes = [];
-
-    // Add frequent assessments based on count
-    if (assessmentTypes.frequent.enabled && assessmentTypes.frequent.count) {
-      const count = parseInt(assessmentTypes.frequent.count, 10);
-      for (let i = 1; i <= count; i++) {
-        transformedAssessmentTypes.push(`DDGTX${i}`);
-      }
-    }
-
-    // Add midterm if enabled
-    if (assessmentTypes.midterm.enabled) {
-      transformedAssessmentTypes.push("DDGGK");
-    }
-
-    // Add final if enabled
-    if (assessmentTypes.final.enabled) {
-      transformedAssessmentTypes.push("DDGCK");
-    }
-
-    // Convert subjectIds from strings to numbers
-    const numericSubjectIds = formData.subjectIds.map((id) => Number(id));
-
-    // Create a complete batch object with all required data
-    const newBatch = {
-      gradeBatch: {
-        batchName: formData.batchName,
-        startDate: formatDate(formData.startDate),
-        endDate: formatDate(formData.endDate),
+      [category]: {
+        ...prev[category],
+        [name]: !prev[category][name],
       },
-      assessmentTypes: transformedAssessmentTypes,
-      subjectIds: numericSubjectIds,
-    };
-    console.log(newBatch);
-    addGradeBatchMutation.mutate(newBatch);
+    }));
 
-    // Reset form and close dialog
-    // reset();
-    // setAssessmentTypes({
-    //   frequent: { enabled: false, count: "" },
-    //   midterm: { enabled: false },
-    //   final: { enabled: false },
-    // });
-    // setSelectedSubjects([]);
-    // setOpen(false);
+    // Clear category error when user selects an option
+    if (errors[category]) {
+      setErrors((prev) => ({
+        ...prev,
+        [category]: null,
+      }));
+    }
   };
+
+  const handleDateChange = (name, date) => {
+    setFormData((prev) => ({
+      ...prev,
+      [name]: date,
+    }));
+
+    // Clear error when user selects a date
+    if (errors[name]) {
+      setErrors((prev) => ({
+        ...prev,
+        [name]: null,
+      }));
+    }
+  };
+
+  const validateForm = () => {
+    const newErrors = {};
+
+    // Validate name
+    if (!formData.name.trim()) {
+      newErrors.name = "Tên đợt không được để trống";
+    }
+
+    // Validate dates
+    if (!formData.startDate) {
+      newErrors.startDate = "Ngày bắt đầu không được để trống";
+    }
+
+    if (!formData.endDate) {
+      newErrors.endDate = "Ngày kết thúc không được để trống";
+    }
+
+    if (
+      formData.startDate &&
+      formData.endDate &&
+      formData.startDate > formData.endDate
+    ) {
+      newErrors.dateRange = "Ngày bắt đầu phải trước ngày kết thúc";
+    }
+
+    // Validate at least one grade column is selected
+    const hasGradeColumn = Object.values(formData.gradeColumns).some(
+      (value) => value,
+    );
+    if (!hasGradeColumn) {
+      newErrors.gradeColumns = "Phải chọn ít nhất một cột điểm";
+    }
+
+    // Validate at least one subject is selected
+    const hasSubject = Object.values(formData.subjects).some((value) => value);
+    if (!hasSubject) {
+      newErrors.subjects = "Phải chọn ít nhất một môn học";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
+  const handleSubmit = () => {
+    if (validateForm()) {
+      // Transform the form data to match the required API structure
+      const selectedSubjectIds = Object.entries(formData.subjects)
+        .filter(([_, isSelected]) => isSelected)
+        .map(([subjectId]) => parseInt(subjectId));
+
+      const gradeTypes = [];
+
+      // Add grade types based on selections
+      if (formData.gradeColumns.regular) {
+        // For regular grades, add the count of columns
+        for (let i = 1; i <= formData.regularColumnCount; i++) {
+          gradeTypes.push(`DDGTX${i}`);
+        }
+      }
+
+      if (formData.gradeColumns.midterm) {
+        gradeTypes.push("DDGGK");
+      }
+
+      if (formData.gradeColumns.final) {
+        gradeTypes.push("DDGCK");
+      }
+      console.log(formData.startDate, formData.endDate);
+
+      const payload = {
+        gradeBatch: {
+          batchName: formData.name,
+          semesterId: semester, // You might need to get this from somewhere
+          startDate: formatDate(formData.startDate),
+          endDate: formatDate(formData.endDate),
+          isActive: !formData.isLocked,
+        },
+        subjectIds: selectedSubjectIds,
+        assessmentTypes: gradeTypes,
+      };
+
+      console.log("Form data submitted:", payload);
+      // Here you would typically call an API to save the data
+      // Example: createGradeBatch(payload);
+      gradeBatchMutation.mutate(payload);
+
+      setIsModalOpen(false);
+    }
+  };
+
+  const resetForm = () => {
+    setFormData({
+      name: "",
+      startDate: null,
+      endDate: null,
+      isLocked: false,
+      gradeColumns: {
+        regular: false,
+        midterm: false,
+        final: false,
+      },
+      regularColumnCount: 2, // Ensure this is set to 2 by default
+      subjects: subjectsQuery.data
+        ? subjectsQuery.data.reduce((acc, subject) => {
+            acc[subject.subjectId] = false;
+            return acc;
+          }, {})
+        : {},
+    });
+    setErrors({});
+  };
+
+  const openModal = () => {
+    resetForm();
+    setIsModalOpen(true);
+  };
+
+  // Map Vietnamese grade column names
+  const gradeColumnLabels = {
+    regular: "Thường xuyên",
+    midterm: "Giữa học kỳ",
+    final: "Cuối học kỳ",
+  };
+  const regularColumnOptions = [2, 3, 4];
 
   return (
-    <div className="w-full max-w-2xl">
-      <Dialog open={open} onOpenChange={setOpen}>
-        <DialogTrigger asChild>
-          <Button className="mb-4" size="sm">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="16"
-              height="16"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              className="mr-2"
-            >
-              <path d="M12 5v14M5 12h14" />
-            </svg>
-            Thêm mới đợt nhập điểm
-          </Button>
-        </DialogTrigger>
-        <DialogContent className="sm:max-w-[500px]">
+    <div className="p-4">
+      <Button onClick={openModal}>Thêm đợt nhập điểm</Button>
+
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
           <DialogHeader>
-            <DialogTitle className="text-xl font-semibold">
+            <DialogTitle className="text-xl font-bold">
               Thêm mới đợt nhập điểm
             </DialogTitle>
-            <Separator className="my-2" />
+            <Button
+              variant="ghost"
+              className="ring-offset-background absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100"
+              onClick={() => setIsModalOpen(false)}
+            ></Button>
           </DialogHeader>
-          <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-            <div className="space-y-1">
-              <Label htmlFor="name" className="font-medium">
-                Tên đợt <span className="text-red-500">*</span>
-              </Label>
-              <Input
-                id="batchName"
-                {...register("batchName")}
-                placeholder="Nhập tên đợt"
-                className={errors.name ? "border-red-500" : ""}
-              />
-              {errors.batchName && (
-                <p className="text-xs text-red-500">
-                  {errors.batchName.message}
-                </p>
-              )}
+
+          <div className="grid gap-4 py-4">
+            {/* Tên đợt */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label htmlFor="name" className="text-right font-medium">
+                Tên đợt
+              </label>
+              <div className="col-span-3">
+                <Input
+                  id="name"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleInputChange}
+                  className={errors.name ? "border-red-500" : ""}
+                />
+                {errors.name && (
+                  <p className="mt-1 text-sm text-red-500">{errors.name}</p>
+                )}
+              </div>
             </div>
 
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-1">
-                <Label htmlFor="startDate" className="font-medium">
-                  Từ ngày <span className="text-red-500">*</span>
-                </Label>
-                <Controller
-                  name="startDate"
-                  control={control}
-                  render={({ field }) => (
-                    <DatePicker
-                      id="startDate"
-                      value={field.value}
-                      onSelect={field.onChange}
-                      className={errors.startDate ? "border-red-500" : ""}
-                      disabled={false}
-                    />
-                  )}
+            {/* Thời gian */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right font-medium">Từ ngày</label>
+              <div className="col-span-3">
+                <DatePicker
+                  value={formData.startDate}
+                  onSelect={(date) => handleDateChange("startDate", date)}
+                  disabled={false}
                 />
                 {errors.startDate && (
-                  <p className="text-xs text-red-500">
-                    {errors.startDate.message}
-                  </p>
-                )}
-              </div>
-              <div className="space-y-1">
-                <Label htmlFor="endDate" className="font-medium">
-                  Đến ngày <span className="text-red-500">*</span>
-                </Label>
-                <Controller
-                  name="endDate"
-                  control={control}
-                  render={({ field }) => (
-                    <DatePicker
-                      id="endDate"
-                      value={field.value}
-                      onSelect={field.onChange}
-                      className={errors.endDate ? "border-red-500" : ""}
-                      disabled={false}
-                    />
-                  )}
-                />
-                {errors.endDate && (
-                  <p className="text-xs text-red-500">
-                    {errors.endDate.message}
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.startDate}
                   </p>
                 )}
               </div>
             </div>
 
-            <Card>
-              <CardContent className="p-4">
-                <Label className="mb-3 block font-medium">
-                  Các cột điểm của đợt
-                </Label>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="frequent"
-                      checked={assessmentTypes.frequent.enabled} // Changed from scoreTypes
-                      onCheckedChange={(checked) =>
-                        handleScoreTypeChange("frequent", checked)
-                      }
-                    />
-                    <Label
-                      htmlFor="frequent"
-                      className="cursor-pointer font-normal"
-                    >
-                      Thường Xuyên
-                    </Label>
-                    <Select
-                      value={assessmentTypes.frequent.count} // Changed from scoreTypes
-                      onValueChange={handleFrequentCountChange}
-                      disabled={!assessmentTypes.frequent.enabled} // Changed from scoreTypes
-                      className="ml-auto"
-                    >
-                      <SelectTrigger className="w-[140px]">
-                        <SelectValue placeholder="Số đầu điểm" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="2">2 đầu điểm</SelectItem>
-                        <SelectItem value="3">3 đầu điểm</SelectItem>
-                        <SelectItem value="4">4 đầu điểm</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <label className="text-right font-medium">Đến ngày</label>
+              <div className="col-span-3">
+                <DatePicker
+                  value={formData.endDate}
+                  onSelect={(date) => handleDateChange("endDate", date)}
+                  disabled={false}
+                />
+                {errors.endDate && (
+                  <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>
+                )}
+                {errors.dateRange && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.dateRange}
+                  </p>
+                )}
+              </div>
+            </div>
 
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="midterm"
-                      checked={assessmentTypes.midterm.enabled} // Changed from scoreTypes
-                      onCheckedChange={(checked) =>
-                        handleScoreTypeChange("midterm", checked)
-                      }
-                    />
-                    <Label
-                      htmlFor="midterm"
-                      className="cursor-pointer font-normal"
-                    >
-                      Đánh giá giữa kỳ (ĐĐG GK)
-                    </Label>
-                  </div>
-
-                  <div className="flex items-center gap-3">
-                    <Checkbox
-                      id="final"
-                      checked={assessmentTypes.final.enabled} // Changed from scoreTypes
-                      onCheckedChange={(checked) =>
-                        handleScoreTypeChange("final", checked)
-                      }
-                    />
-                    <Label
-                      htmlFor="final"
-                      className="cursor-pointer font-normal"
-                    >
-                      Đánh giá cuối kỳ (ĐĐG CK)
-                    </Label>
-                  </div>
+            {/* Khóa đợt */}
+            <div className="grid grid-cols-4 items-center gap-4">
+              <div className="col-span-4">
+                <div className="flex items-center space-x-2">
+                  <Checkbox
+                    id="isLocked"
+                    checked={formData.isLocked}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({ ...prev, isLocked: checked }))
+                    }
+                  />
+                  <label
+                    htmlFor="isLocked"
+                    className="text-sm leading-none font-medium peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                  >
+                    Khóa đợt
+                  </label>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <Card>
-              <CardContent className="p-4">
-                <Label className="mb-3 block font-medium">
-                  Môn học áp dụng <span className="text-red-500">*</span>
-                </Label>
-                {isPending ? (
-                  <div className="py-2 text-center">Đang tải...</div>
-                ) : (
-                  <ScrollArea className="h-[150px] pr-4">
-                    <div className="space-y-2">
-                      {data?.map((subject) => (
+            {/* Các cột điểm */}
+            <div className="grid grid-cols-4 gap-4">
+              <label className="text-right font-medium">
+                Các cột điểm của đợt
+              </label>
+              <div className="col-span-3">
+                <div className="grid grid-cols-3 gap-4">
+                  {Object.entries(gradeColumnLabels).map(([key, label]) => (
+                    <div key={key} className="flex items-center space-x-2">
+                      <Checkbox
+                        id={`grade-${key}`}
+                        checked={formData.gradeColumns[key]}
+                        onCheckedChange={() =>
+                          handleCheckboxChange("gradeColumns", key)
+                        }
+                      />
+                      <label
+                        htmlFor={`grade-${key}`}
+                        className="text-sm leading-none font-medium"
+                      >
+                        {label}
+                      </label>
+                    </div>
+                  ))}
+                </div>
+                {formData.gradeColumns.regular && (
+                  <div className="mt-3 pl-6">
+                    <label className="mb-2 block text-sm font-medium">
+                      Số đầu điểm thường xuyên:
+                    </label>
+                    <div className="flex space-x-4">
+                      {regularColumnOptions.map((count) => (
                         <div
-                          key={subject.subjectId}
-                          className="flex items-center gap-2"
+                          key={count}
+                          className="flex items-center space-x-2"
                         >
-                          <Checkbox
-                            id={`subject-${subject.subjectId}`}
-                            checked={selectedSubjects.includes(
-                              String(subject.subjectId),
-                            )}
-                            onCheckedChange={() =>
-                              handleSubjectToggle(subject.subjectId)
+                          <input
+                            type="radio"
+                            id={`regular-count-${count}`}
+                            name="regularColumnCount"
+                            value={count}
+                            checked={formData.regularColumnCount === count}
+                            onChange={() =>
+                              setFormData((prev) => ({
+                                ...prev,
+                                regularColumnCount: count,
+                              }))
                             }
+                            className="h-4 w-4"
                           />
-                          <Label
-                            htmlFor={`subject-${subject.subjectId}`}
-                            className="cursor-pointer font-normal"
+                          <label
+                            htmlFor={`regular-count-${count}`}
+                            className="text-sm leading-none"
                           >
-                            {subject.subjectName}
-                          </Label>
+                            {count} đầu điểm
+                          </label>
                         </div>
                       ))}
                     </div>
-                  </ScrollArea>
+                  </div>
                 )}
-                {errors.subjectIds && (
-                  <p className="mt-1 text-xs text-red-500">
-                    {errors.subjectIds.message}
+                {errors.gradeColumns && (
+                  <p className="mt-1 text-sm text-red-500">
+                    {errors.gradeColumns}
                   </p>
                 )}
-              </CardContent>
-            </Card>
+              </div>
+            </div>
 
-            <DialogFooter className="mt-6 flex justify-end gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                Hủy bỏ
-              </Button>
-              <Button type="submit">Lưu</Button>
-            </DialogFooter>
-          </form>
+            {/* Môn học áp dụng */}
+            <div className="grid grid-cols-4 gap-4">
+              <label className="text-right font-medium">Môn học áp dụng</label>
+              <div className="col-span-3">
+                <div className="grid grid-cols-3 gap-2">
+                  {subjectsQuery.isLoading ? (
+                    <p>Đang tải danh sách môn học...</p>
+                  ) : subjectsQuery.isError ? (
+                    <p>Lỗi khi tải danh sách môn học</p>
+                  ) : (
+                    subjectsQuery.data?.map((subject) => (
+                      <div
+                        key={subject.subjectId}
+                        className="flex items-center space-x-2"
+                      >
+                        <Checkbox
+                          id={`subject-${subject.subjectId}`}
+                          checked={
+                            formData.subjects[subject.subjectId] || false
+                          }
+                          onCheckedChange={() =>
+                            handleCheckboxChange("subjects", subject.subjectId)
+                          }
+                        />
+                        <label
+                          htmlFor={`subject-${subject.subjectId}`}
+                          className="text-sm leading-none font-medium"
+                        >
+                          {subject.subjectName}
+                        </label>
+                      </div>
+                    ))
+                  )}
+                </div>
+                {errors.subjects && (
+                  <p className="mt-1 text-sm text-red-500">{errors.subjects}</p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsModalOpen(false)}
+              className="mr-2"
+            >
+              Hủy bỏ
+            </Button>
+            <Button onClick={handleSubmit}>Lưu</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
