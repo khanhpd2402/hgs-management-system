@@ -35,6 +35,16 @@ using Application.Features.Grades.Interfaces;
 using Application.Features.Grades.Services;
 using Application.Features.Subjects.Interfaces;
 using Application.Features.Subjects.Services;
+using Application.Features.Semesters.Interfaces;
+using Application.Features.Semesters.Services;
+using Application.Features.AcademicYears.Interfaces;
+using Application.Features.AcademicYears.Services;
+using Application.Features.LeaveRequests.Interfaces;
+using Application.Features.LeaveRequests.Services;
+using Application.Features.LessonPlans.Interfaces;
+using Application.Features.LessonPlans.Services;
+using Application.Features.TeachingAssignments.Interfaces;
+using Application.Features.TeachingAssignments.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
@@ -51,31 +61,53 @@ builder.Services.AddControllers().AddJsonOptions(options =>
 });
 builder.Services.AddAutoMapper(typeof(MappingProfile));
 builder.Services.AddDbContext<HgsdbContext>();
-// Service 
+// Student Management
 builder.Services.AddScoped<IStudentService, StudentService>();
-builder.Services.AddScoped<ITeacherService, TeacherService>();
-builder.Services.AddScoped<IRoleService, RoleService>();
-builder.Services.AddScoped<IUserService, UserService>();
-builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
-builder.Services.AddScoped<IClassRepository, ClassRepository>();
-builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
-builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
-builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
-builder.Services.AddScoped<IGradeService, GradeService>();
-
-builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
-builder.Services.AddScoped<ISubjectService, SubjectService>();
-// Repository
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
-builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
-//builder.Services.AddScoped<ITimetableService, TimetableService>();
+builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
+builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
+
+// Teacher Management
+builder.Services.AddScoped<ITeacherService, TeacherService>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
+builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
+builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
+builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
+
+// Class & Timetable Management
 builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+
+// Academic Year & Semester Management
+builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
+builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
+builder.Services.AddScoped<ISemesterService, SemesterService>();
+builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
+
+// Attendance & Leave Management
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+
+// User & Role Management
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
+// System & Utility Services
+builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ISmsService, TwilioSmsService>();
+
 builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio")); // Sử dụng builder.Configuration
+
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
 builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
 builder.Services.AddDbContext<HgsdbContext>(options =>

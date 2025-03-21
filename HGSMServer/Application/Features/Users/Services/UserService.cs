@@ -1,6 +1,7 @@
 ﻿using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
 using Domain.Models;
+using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -12,10 +13,12 @@ namespace Application.Features.Users.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository; // Thêm repository cho Role
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IRoleRepository roleRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
         }
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
@@ -112,6 +115,11 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"User with ID {id} not found.");
 
             await _userRepository.DeleteAsync(id);
+        }
+        public async Task<string?> GetRoleNameByRoleIdAsync(int roleId)
+        {
+            var role = await _roleRepository.GetByIdAsync(roleId);
+            return role?.RoleName; // Trả về tên role (ví dụ: "Principal")
         }
     }
 }

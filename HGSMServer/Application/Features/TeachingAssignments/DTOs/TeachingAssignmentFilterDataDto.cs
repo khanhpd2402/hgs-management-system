@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Features.TeachingAssignment.DTOs
+namespace Application.Features.TeachingAssignments.DTOs
 {
     public class TeachingAssignmentFilterDataDto
     {

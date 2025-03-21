@@ -43,7 +43,16 @@ namespace Infrastructure.Repositories.Implementtations
                 .AsNoTracking()
                 .FirstOrDefaultAsync(u => u.Email == email);
         }
+        public async Task<User?> GetByUsernameAsync(string username)
+        {
+            if (string.IsNullOrEmpty(username))
+                throw new ArgumentException("Username cannot be null or empty.", nameof(username));
 
+            return await _context.Users
+                .Include(u => u.Role)
+                .AsNoTracking()
+                .FirstOrDefaultAsync(u => u.Username == username);
+        }
         public async Task AddAsync(User user)
         {
             if (user == null)

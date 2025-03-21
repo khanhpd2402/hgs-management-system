@@ -1,5 +1,5 @@
-﻿using Application.Features.TeachingAssignment.DTOs;
-using Application.Features.TeachingAssignment.Interfaces;
+﻿using Application.Features.TeachingAssignments.DTOs;
+using Application.Features.TeachingAssignments.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
