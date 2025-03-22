@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dialog";
 import { useAddGradeBatch } from "@/services/principal/mutation";
 import { formatDate } from "@/helpers/formatDate";
+import { PlusCircle } from "lucide-react";
 
 export default function AddGradeBatch({ semester }) {
   const subjectsQuery = useSubjects();
@@ -223,12 +224,18 @@ export default function AddGradeBatch({ semester }) {
 
   return (
     <div className="p-4">
-      <Button onClick={openModal}>Thêm đợt nhập điểm</Button>
+      <Button
+        onClick={openModal}
+        className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+      >
+        <PlusCircle size={18} />
+        <span>Thêm đợt nhập điểm</span>
+      </Button>
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto sm:max-w-[600px]">
-          <DialogHeader>
-            <DialogTitle className="text-xl font-bold">
+        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg border-0 shadow-lg sm:max-w-[600px]">
+          <DialogHeader className="rounded-t-lg bg-blue-50 p-4">
+            <DialogTitle className="text-xl font-bold text-blue-700">
               Thêm mới đợt nhập điểm
             </DialogTitle>
             <Button
@@ -238,10 +245,13 @@ export default function AddGradeBatch({ semester }) {
             ></Button>
           </DialogHeader>
 
-          <div className="grid gap-4 py-4">
+          <div className="grid gap-5 px-4 py-6">
             {/* Tên đợt */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <label htmlFor="name" className="text-right font-medium">
+              <label
+                htmlFor="name"
+                className="text-right font-medium text-gray-700"
+              >
                 Tên đợt
               </label>
               <div className="col-span-3">
@@ -250,7 +260,8 @@ export default function AddGradeBatch({ semester }) {
                   name="name"
                   value={formData.name}
                   onChange={handleInputChange}
-                  className={errors.name ? "border-red-500" : ""}
+                  className={`focus:ring-opacity-50 rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 ${errors.name ? "border-red-500" : ""}`}
+                  placeholder="Nhập tên đợt nhập điểm"
                 />
                 {errors.name && (
                   <p className="mt-1 text-sm text-red-500">{errors.name}</p>
@@ -260,12 +271,15 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Thời gian */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right font-medium">Từ ngày</label>
+              <label className="text-right font-medium text-gray-700">
+                Từ ngày
+              </label>
               <div className="col-span-3">
                 <DatePicker
                   value={formData.startDate}
                   onSelect={(date) => handleDateChange("startDate", date)}
                   disabled={false}
+                  className="w-full"
                 />
                 {errors.startDate && (
                   <p className="mt-1 text-sm text-red-500">
@@ -276,12 +290,15 @@ export default function AddGradeBatch({ semester }) {
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right font-medium">Đến ngày</label>
+              <label className="text-right font-medium text-gray-700">
+                Đến ngày
+              </label>
               <div className="col-span-3">
                 <DatePicker
                   value={formData.endDate}
                   onSelect={(date) => handleDateChange("endDate", date)}
                   disabled={false}
+                  className="w-full"
                 />
                 {errors.endDate && (
                   <p className="mt-1 text-sm text-red-500">{errors.endDate}</p>
@@ -297,13 +314,14 @@ export default function AddGradeBatch({ semester }) {
             {/* Khóa đợt */}
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-4">
-                <div className="flex items-center space-x-2">
+                <div className="flex items-center space-x-2 rounded-md bg-gray-50 p-3">
                   <Checkbox
                     id="isLocked"
                     checked={formData.isLocked}
                     onCheckedChange={(checked) =>
                       setFormData((prev) => ({ ...prev, isLocked: checked }))
                     }
+                    className="h-5 w-5 text-blue-600"
                   />
                   <label
                     htmlFor="isLocked"
@@ -317,11 +335,11 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Các cột điểm */}
             <div className="grid grid-cols-4 gap-4">
-              <label className="text-right font-medium">
+              <label className="text-right font-medium text-gray-700">
                 Các cột điểm của đợt
               </label>
               <div className="col-span-3">
-                <div className="grid grid-cols-3 gap-4">
+                <div className="grid grid-cols-3 gap-4 rounded-md bg-gray-50 p-3">
                   {Object.entries(gradeColumnLabels).map(([key, label]) => (
                     <div key={key} className="flex items-center space-x-2">
                       <Checkbox
@@ -330,6 +348,7 @@ export default function AddGradeBatch({ semester }) {
                         onCheckedChange={() =>
                           handleCheckboxChange("gradeColumns", key)
                         }
+                        className="h-5 w-5 text-blue-600"
                       />
                       <label
                         htmlFor={`grade-${key}`}
@@ -341,8 +360,8 @@ export default function AddGradeBatch({ semester }) {
                   ))}
                 </div>
                 {formData.gradeColumns.regular && (
-                  <div className="mt-3 pl-6">
-                    <label className="mb-2 block text-sm font-medium">
+                  <div className="mt-3 rounded-md bg-blue-50 p-3 pl-6">
+                    <label className="mb-2 block text-sm font-medium text-gray-700">
                       Số đầu điểm thường xuyên:
                     </label>
                     <div className="flex space-x-4">
@@ -363,7 +382,7 @@ export default function AddGradeBatch({ semester }) {
                                 regularColumnCount: count,
                               }))
                             }
-                            className="h-4 w-4"
+                            className="h-4 w-4 text-blue-600"
                           />
                           <label
                             htmlFor={`regular-count-${count}`}
@@ -386,18 +405,24 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Môn học áp dụng */}
             <div className="grid grid-cols-4 gap-4">
-              <label className="text-right font-medium">Môn học áp dụng</label>
+              <label className="text-right font-medium text-gray-700">
+                Môn học áp dụng
+              </label>
               <div className="col-span-3">
-                <div className="grid grid-cols-3 gap-2">
+                <div className="grid max-h-[200px] grid-cols-3 gap-2 overflow-y-auto rounded-md bg-gray-50 p-3">
                   {subjectsQuery.isLoading ? (
-                    <p>Đang tải danh sách môn học...</p>
+                    <p className="text-gray-500">
+                      Đang tải danh sách môn học...
+                    </p>
                   ) : subjectsQuery.isError ? (
-                    <p>Lỗi khi tải danh sách môn học</p>
+                    <p className="text-red-500">
+                      Lỗi khi tải danh sách môn học
+                    </p>
                   ) : (
                     subjectsQuery.data?.map((subject) => (
                       <div
                         key={subject.subjectId}
-                        className="flex items-center space-x-2"
+                        className="flex items-center space-x-2 rounded p-1 transition-colors hover:bg-blue-50"
                       >
                         <Checkbox
                           id={`subject-${subject.subjectId}`}
@@ -407,6 +432,7 @@ export default function AddGradeBatch({ semester }) {
                           onCheckedChange={() =>
                             handleCheckboxChange("subjects", subject.subjectId)
                           }
+                          className="h-5 w-5 text-blue-600"
                         />
                         <label
                           htmlFor={`subject-${subject.subjectId}`}
@@ -425,15 +451,20 @@ export default function AddGradeBatch({ semester }) {
             </div>
           </div>
 
-          <DialogFooter>
+          <DialogFooter className="flex justify-end gap-2 rounded-b-lg bg-gray-50 p-4">
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
-              className="mr-2"
+              className="border-gray-300 text-gray-700 hover:bg-gray-100"
             >
               Hủy bỏ
             </Button>
-            <Button onClick={handleSubmit}>Lưu</Button>
+            <Button
+              onClick={handleSubmit}
+              className="bg-blue-600 text-white hover:bg-blue-700"
+            >
+              Lưu
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

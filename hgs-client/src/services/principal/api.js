@@ -7,3 +7,7 @@ export const addGradeBatch = async (data) => {
 export const getGradeBatches = async () => {
   return (await axiosInstance.get(`GradeBatch`)).data;
 };
+
+export const getGradeBatch = async (id) => {
+  return (await axiosInstance.get(`GradeBatch/${id}`)).data;
+};

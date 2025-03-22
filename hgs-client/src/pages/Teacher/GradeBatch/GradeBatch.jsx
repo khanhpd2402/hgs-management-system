@@ -8,10 +8,10 @@ import GradeBatchDetail from "./GradeBatchDetail";
 import { cn } from "@/lib/utils";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
 import { useGradeBatchs } from "@/services/principal/queries";
+import { formatDate } from "@/helpers/formatDate";
 
 export default function GradeBatch() {
   const gradeBatchs = useGradeBatchs();
-  console.log(gradeBatchs.data);
 
   const academicYearId = JSON.parse(
     sessionStorage.getItem("currentAcademicYear"),
@@ -21,18 +21,19 @@ export default function GradeBatch() {
   const [semester, setSemester] = useState(null);
   const [selectedBatch, setSelectedBatch] = useState(null);
   const [detailModalOpen, setDetailModalOpen] = useState(false);
-  const gradeBatchQuery = useGradeBatchs();
+  const currentGradeBatchs = gradeBatchs?.data?.filter(
+    (batch) => batch.semesterId === semester,
+  );
 
   // Check and update batch statuses based on current date
 
   const getStatusBadge = (status) => {
     switch (status) {
-      case "active":
-        return <Badge className="bg-green-500">Đang diễn ra</Badge>;
-      case "completed":
-        return <Badge className="bg-gray-500">Đã kết thúc</Badge>;
-      case "upcoming":
-        return <Badge className="bg-blue-500">Sắp diễn ra</Badge>;
+      case true:
+        return <Badge className="bg-green-500">Đang mở</Badge>;
+      case false:
+        return <Badge className="bg-gray-500">Đã đóng</Badge>;
+
       default:
         return <Badge>{status}</Badge>;
     }
@@ -77,14 +78,14 @@ export default function GradeBatch() {
       </div>
 
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {/* {gradeBatches?.map((batch) => (
+        {currentGradeBatchs?.map((batch) => (
           <Card key={batch.id} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex justify-between">
                 <CardTitle className="line-clamp-1 text-lg font-semibold">
-                  {batch.name}
+                  {batch.batchName}
                 </CardTitle>
-                {getStatusBadge(batch.status)}
+                {getStatusBadge(batch.isActive)}
               </div>
             </CardHeader>
             <Separator />
@@ -98,7 +99,7 @@ export default function GradeBatch() {
                 </div>
               </div>
 
-              <div className="mb-3">
+              {/* <div className="mb-3">
                 <p className="mb-2 text-sm text-gray-500">Cột điểm:</p>
                 <div className="flex flex-wrap gap-2">
                   {batch.scoreTypes.frequent.enabled && (
@@ -113,20 +114,14 @@ export default function GradeBatch() {
                     <Badge variant="outline">ĐĐG CK</Badge>
                   )}
                 </div>
-              </div>
+              </div> */}
 
               <div className="mt-4 flex justify-end">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleViewDetails(batch)}
-                >
-                  Chi tiết
-                </Button>
+                <GradeBatchDetail gradeBatchId={batch.batchId} />
               </div>
             </CardContent>
           </Card>
-        ))} */}
+        ))}
       </div>
 
       {/* Detail Modal Component */}
