@@ -1,8 +1,8 @@
 import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
 import ScheduleTable from "@/pages/Schedule/Schedule";
-import SendMessagePHHS from "@/pages/SendMessage/SendMessagePHHS";
-import SendMessageTeacher from "@/pages/SendMessage/SendMessageTeacher";
+import SendMessagePHHS from "@/pages/SendMessage/PHHS/SendMessagePHHS";
+import SendMessageTeacher from "@/pages/SendMessage/Teacher/SendMessageTeacher";
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
 import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
