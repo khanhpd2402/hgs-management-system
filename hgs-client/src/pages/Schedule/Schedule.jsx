@@ -51,9 +51,12 @@ const ScheduleTable = () => {
     const [showTeacherName, setShowTeacherName] = useState(true);
     const [originalScheduleData, setOriginalScheduleData] = useState(scheduleData);
 
+    // Thêm state để theo dõi việc kéo thả
+    const [draggedItem, setDraggedItem] = useState(null);
+    const [draggedOverItem, setDraggedOverItem] = useState(null);
 
-
-
+    // Thêm state để theo dõi việc chỉnh sửa
+    const [editingCell, setEditingCell] = useState(null);
 
     const allClasses = useMemo(() => {
         return grades.flatMap((grade) =>
@@ -200,6 +203,96 @@ const ScheduleTable = () => {
         setOriginalScheduleData(scheduleData);
     };
 
+    // Hàm xử lý khi bắt đầu kéo
+    const handleDragStart = (day, session, periodIndex, grade, className, period) => {
+        if (!period) return; // Không cho phép kéo ô trống
+        setDraggedItem({
+            day,
+            session,
+            periodIndex,
+            grade,
+            className,
+            period
+        });
+    };
+
+    // Hàm xử lý khi kéo qua một ô khác
+    const handleDragOver = (e, day, session, periodIndex, grade, className) => {
+        e.preventDefault();
+        if (draggedItem && draggedItem.grade === grade && draggedItem.className === className) {
+            setDraggedOverItem({ day, session, periodIndex });
+        }
+    };
+
+    // Hàm xử lý khi thả
+    const handleDrop = (e, day, session, periodIndex, grade, className) => {
+        e.preventDefault();
+
+        if (!draggedItem || draggedItem.grade !== grade || draggedItem.className !== className) {
+            return;
+        }
+
+        // Tạo bản sao của dữ liệu
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        // Lấy tiết học ở vị trí đích
+        const targetPeriod = newScheduleData[grade][className][day][session][periodIndex];
+
+        // Hoán đổi vị trí giữa hai tiết học
+        newScheduleData[grade][className][draggedItem.day][draggedItem.session][draggedItem.periodIndex] = targetPeriod;
+        newScheduleData[grade][className][day][session][periodIndex] = draggedItem.period;
+
+        // Cập nhật state
+        setOriginalScheduleData(newScheduleData);
+        setDraggedItem(null);
+        setDraggedOverItem(null);
+    };
+
+    // Thêm hàm xử lý khi thay đổi môn học và giáo viên
+    const handleSubjectChange = (day, session, periodIndex, grade, className, subjectId) => {
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        if (!newScheduleData[grade][className][day][session]) {
+            newScheduleData[grade][className][day][session] = [];
+        }
+
+        // Lấy thông tin giáo viên hiện tại (nếu có)
+        const currentTeacherId = newScheduleData[grade][className][day][session][periodIndex]?.teacher_id || "";
+
+        // Tạo hoặc cập nhật period, giữ nguyên teacher_id
+        if (!newScheduleData[grade][className][day][session][periodIndex]) {
+            newScheduleData[grade][className][day][session][periodIndex] = {
+                subject_Id: subjectId,
+                teacher_id: currentTeacherId
+            };
+        } else {
+            newScheduleData[grade][className][day][session][periodIndex] = {
+                ...newScheduleData[grade][className][day][session][periodIndex],
+                subject_Id: subjectId
+            };
+        }
+
+        setOriginalScheduleData(newScheduleData);
+    };
+
+    const handleTeacherChange = (day, session, periodIndex, grade, className, teacherId) => {
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        if (!newScheduleData[grade][className][day][session]) {
+            newScheduleData[grade][className][day][session] = [];
+        }
+
+        if (!newScheduleData[grade][className][day][session][periodIndex]) {
+            newScheduleData[grade][className][day][session][periodIndex] = {
+                subject_Id: "",
+                teacher_id: teacherId
+            };
+        } else {
+            newScheduleData[grade][className][day][session][periodIndex].teacher_id = teacherId;
+        }
+
+        setOriginalScheduleData(newScheduleData);
+    };
 
     return (
         <div>
@@ -415,10 +508,51 @@ const ScheduleTable = () => {
                                                     {filteredClasses.map(({ grade, className }) => {
                                                         const period = filteredScheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
                                                         return (
-                                                            <td key={`${grade}-${className}-${day}-${session}-${periodIndex}`}>
-                                                                {period
-                                                                    ? `${getSubjectName(period.subject_Id)}${showTeacherName ? " - " + getTeacherName(period.teacher_id) : ""}`
-                                                                    : " "}
+                                                            <td
+                                                                key={`${grade}-${className}-${day}-${session}-${periodIndex}`}
+                                                                draggable={!!period}
+                                                                onDragStart={() => handleDragStart(day, session, periodIndex, grade, className, period)}
+                                                                onDragOver={(e) => handleDragOver(e, day, session, periodIndex, grade, className)}
+                                                                onDrop={(e) => handleDrop(e, day, session, periodIndex, grade, className)}
+                                                                style={{
+                                                                    cursor: period ? 'move' : 'default',
+                                                                    backgroundColor:
+                                                                        draggedOverItem?.day === day &&
+                                                                            draggedOverItem?.session === session &&
+                                                                            draggedOverItem?.periodIndex === periodIndex ?
+                                                                            '#e0e0e0' : undefined
+                                                                }}
+                                                            >
+                                                                {period ? (
+                                                                    `${getSubjectName(period.subject_Id)}${showTeacherName ? " - " + getTeacherName(period.teacher_id) : ""}`
+                                                                ) : (
+                                                                    <div className="empty-cell">
+                                                                        <select
+                                                                            value={period?.subject_Id || ""}
+                                                                            onChange={(e) => handleSubjectChange(day, session, periodIndex, grade, className, e.target.value)}
+                                                                            className="cell-select"
+                                                                        >
+                                                                            <option value="">Chọn môn học</option>
+                                                                            {subjectData.map((subject) => (
+                                                                                <option key={subject.subject_Id} value={subject.subject_Id}>
+                                                                                    {subject.subject_name}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                        <select
+                                                                            value={period?.teacher_id || ""}
+                                                                            onChange={(e) => handleTeacherChange(day, session, periodIndex, grade, className, e.target.value)}
+                                                                            className="cell-select"
+                                                                        >
+                                                                            <option value="">Chọn giáo viên</option>
+                                                                            {teacherData.map((teacher) => (
+                                                                                <option key={teacher.teacher_id} value={teacher.teacher_id}>
+                                                                                    {teacher.teacher_name}
+                                                                                </option>
+                                                                            ))}
+                                                                        </select>
+                                                                    </div>
+                                                                )}
                                                             </td>
                                                         );
                                                     })}
