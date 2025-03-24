@@ -121,5 +121,29 @@ namespace Application.Features.Users.Services
             var role = await _roleRepository.GetByIdAsync(roleId);
             return role?.RoleName; // Trả về tên role (ví dụ: "Principal")
         }
+        public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+        {
+            if (changePasswordDto == null)
+                throw new ArgumentNullException(nameof(changePasswordDto));
+
+            if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
+                throw new ArgumentException("Old password and new password are required.");
+
+            // Kiểm tra độ dài và độ phức tạp của mật khẩu mới (tùy chọn)
+            if (changePasswordDto.NewPassword.Length < 8)
+                throw new ArgumentException("New password must be at least 8 characters long.");
+
+            var user = await _userRepository.GetByIdAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User with ID {userId} not found.");
+
+            // Xác minh mật khẩu cũ
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
+                throw new UnauthorizedAccessException("Old password is incorrect.");
+
+            // Hash mật khẩu mới và cập nhật
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            await _userRepository.UpdateAsync(user);
+        }
     }
 }
