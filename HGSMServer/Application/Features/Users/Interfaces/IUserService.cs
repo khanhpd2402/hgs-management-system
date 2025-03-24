@@ -13,5 +13,6 @@ namespace Application.Features.Users.Interfaces
         Task UpdateUserAsync(UserDTO userDto);
         Task DeleteUserAsync(int id);
         Task<string?> GetRoleNameByRoleIdAsync(int roleId);
+        Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
     }
 }

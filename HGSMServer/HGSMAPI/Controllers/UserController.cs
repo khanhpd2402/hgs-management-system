@@ -1,7 +1,9 @@
 ﻿using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace HGSMAPI.Controllers
 {
@@ -85,6 +87,35 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 return NotFound(new { message = ex.Message });
+            }
+        }
+        [HttpPost("change-password")]
+        [Authorize] // Yêu cầu người dùng đã đăng nhập
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
+        {
+            try
+            {
+                // Lấy UserID từ token
+                var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier);
+                if (userIdClaim == null)
+                    return Unauthorized(new { message = "User ID not found in token." });
+
+                var userId = int.Parse(userIdClaim.Value);
+
+                await _userService.ChangePasswordAsync(userId, changePasswordDto);
+                return Ok(new { message = "Password changed successfully." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while changing the password.", error = ex.Message });
             }
         }
     }
