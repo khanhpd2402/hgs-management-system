@@ -129,10 +129,6 @@ namespace Application.Features.Users.Services
             if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
                 throw new ArgumentException("Old password and new password are required.");
 
-            // Kiểm tra độ dài và độ phức tạp của mật khẩu mới (tùy chọn)
-            if (changePasswordDto.NewPassword.Length < 8)
-                throw new ArgumentException("New password must be at least 8 characters long.");
-
             var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userId} not found.");
