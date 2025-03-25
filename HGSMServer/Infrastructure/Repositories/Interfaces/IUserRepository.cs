@@ -8,6 +8,7 @@ namespace Infrastructure.Repositories.Interfaces
     {
         Task<IEnumerable<User>> GetAllAsync();
         Task<User?> GetByIdAsync(int id);
+        Task<User?> GetByIdForUpdateAsync(int id); 
         Task<User?> GetByEmailAsync(string email);
         Task<User?> GetByUsernameAsync(string username);
         Task AddAsync(User user);
