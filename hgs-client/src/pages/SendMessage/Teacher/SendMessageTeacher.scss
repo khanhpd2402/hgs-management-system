@@ -1,0 +1,223 @@
+.container {
+    display: flex;
+    min-height: 100vh;
+    background-color: #fff;
+}
+
+.sidebar {
+    width: 250px;
+    background-color: #f8f9fa;
+    padding: 20px 0;
+    border-right: 1px solid #e9ecef;
+
+    &-title {
+        padding: 0 20px;
+        margin-bottom: 20px;
+        font-size: 16px;
+        font-weight: 600;
+        color: #212529;
+    }
+
+    &-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+
+    &-item {
+        padding: 12px 20px;
+        color: #495057;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &:hover {
+            background-color: #e9ecef;
+        }
+
+        &.active {
+            background-color: #e7f1ff;
+            color: #0d6efd;
+            border-left: 3px solid #0d6efd;
+        }
+    }
+}
+
+.main-content {
+    flex: 1;
+    padding: 20px;
+}
+
+.header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+
+    &-title {
+        font-size: 16px;
+        color: #212529;
+        font-weight: normal;
+    }
+}
+
+.sub-header {
+    color: #6c757d;
+    font-size: 14px;
+    font-weight: normal;
+}
+
+.table-container {
+    background-color: #fff;
+    border-radius: 4px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+.table-title {
+    padding: 15px;
+    border-bottom: 1px solid #dee2e6;
+    font-size: 16px;
+    color: #212529;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+
+    th {
+        background-color: #87a1ff;
+        color: #fff;
+        font-weight: normal;
+        text-align: left;
+        padding: 12px;
+        border: 1px solid #dee2e6;
+
+        &:first-child {
+            width: 40px;
+            text-align: center;
+        }
+    }
+
+    td {
+        padding: 12px;
+        border: 1px solid #dee2e6;
+        color: #212529;
+
+        &:first-child {
+            text-align: center;
+        }
+    }
+
+    tr:hover {
+        background-color: #f8f9fa;
+    }
+
+    input[type="checkbox"] {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+}
+
+.pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border-top: 1px solid #dee2e6;
+
+    &-text {
+        color: #6c757d;
+        font-size: 14px;
+    }
+
+    &-buttons {
+        display: flex;
+        gap: 5px;
+
+        button {
+            padding: 6px 12px;
+            border: 1px solid #dee2e6;
+            background-color: #fff;
+            color: #495057;
+            cursor: pointer;
+            border-radius: 4px;
+
+            &:hover {
+                background-color: #e9ecef;
+            }
+
+            &.active {
+                background-color: #87a1ff;
+                color: #fff;
+                border-color: #87a1ff;
+            }
+
+            &:disabled {
+                cursor: not-allowed;
+                opacity: 0.6;
+            }
+        }
+    }
+}
+
+.message-section {
+    margin-top: 20px;
+    background-color: #f8f9fa;
+    padding: 15px;
+    border-radius: 4px;
+
+    &-title {
+        margin-bottom: 15px;
+        font-size: 16px;
+        color: #212529;
+    }
+
+    input[type="text"], 
+    textarea {
+        width: 100%;
+        padding: 8px;
+        border: 1px solid #ced4da;
+        border-radius: 4px;
+        margin-bottom: 10px;
+
+        &:focus {
+            outline: none;
+            border-color: #87a1ff;
+            box-shadow: 0 0 0 2px rgba(135, 161, 255, 0.25);
+        }
+    }
+}
+
+.message-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+
+    .checkbox-label {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: #495057;
+    }
+
+    .char-count {
+        color: #6c757d;
+    }
+
+    .send-button {
+        padding: 8px 16px;
+        background-color: #87a1ff;
+        color: #fff;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+
+        &:hover {
+            background-color: darken(#87a1ff, 5%);
+        }
+    }
+} 

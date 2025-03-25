@@ -1,277 +1,166 @@
-import React from 'react';
+import React, { useState } from 'react';
+import './SendMessageTeacher.scss';
 
 const SendMessageTeacher = () => {
-    // Dữ liệu mẫu cho bảng
-    const teacherData = [
-        { id: 1, name: 'Tạ Thuấn Anh', code: '36366512-07-1-1', department: 'Khối học xã hội', phone: '0985836971', messagesViettel: 0, messagesOther: 0 },
-        { id: 2, name: 'Vương Thị Ngọc Anh', code: '36366512-07-1-22', department: 'Khối học xã hội', phone: '0373450650', messagesViettel: 0, messagesOther: 0 },
-        { id: 3, name: 'Nguyễn Thị Chiếm', code: '36366512-07-1-2', department: 'Tổ trưởng', phone: '094412500', messagesViettel: 0, messagesOther: 0 },
-        { id: 4, name: 'Phạm Duy Duyên', code: '36366512-07-1-14', department: 'Khối học tự nhiên', phone: '083462358', messagesViettel: 0, messagesOther: 0 },
-        { id: 5, name: 'Nguyễn Thị Duyên', code: '36366512-07-1-6', department: 'Tổ trưởng', phone: '097740375', messagesViettel: 0, messagesOther: 0 },
-        { id: 6, name: 'Phạm Thị Hải', code: '36366512-07-1-4', department: 'Khối học xã hội', phone: '0857124936', messagesViettel: 0, messagesOther: 0 },
-    ];
+    const [activeSection, setActiveSection] = useState('gvcn'); // Mặc định hiển thị GVCN
+
+    // Dữ liệu cho từng mục
+    const data = {
+        overview: [
+            { id: 1, name: 'Nguyễn Văn A', code: 'TQ-001', department: 'Ban Giám Hiệu', phone: '0123456789', messagesViettel: 2, messagesOther: 1 },
+            { id: 2, name: 'Trần Thị B', code: 'TQ-002', department: 'Văn Phòng', phone: '0987654321', messagesViettel: 1, messagesOther: 0 },
+        ],
+        subjects: [
+            { id: 1, name: 'Lê Văn C', code: 'GV-001', department: 'Toán', phone: '0123456789', messagesViettel: 0, messagesOther: 0 },
+            { id: 2, name: 'Phạm Thị D', code: 'GV-002', department: 'Lý', phone: '0987654321', messagesViettel: 1, messagesOther: 1 },
+        ],
+        yearOfficers: [
+            { id: 1, name: 'Hoàng Văn E', code: 'CB-001', department: 'Khối 10', phone: '0123456789', messagesViettel: 3, messagesOther: 0 },
+            { id: 2, name: 'Ngô Thị F', code: 'CB-002', department: 'Khối 11', phone: '0987654321', messagesViettel: 2, messagesOther: 1 },
+        ],
+        classOfficers: [
+            { id: 1, name: 'Đỗ Văn G', code: 'LT-001', department: '10A1', phone: '0123456789', messagesViettel: 1, messagesOther: 0 },
+            { id: 2, name: 'Lý Thị H', code: 'LT-002', department: '11A2', phone: '0987654321', messagesViettel: 0, messagesOther: 2 },
+        ],
+        viettelPhones: [
+            { id: 1, name: 'Trương Văn I', code: 'VT-001', department: 'Khối THPT', phone: '0123456789', messagesViettel: 5, messagesOther: 0 },
+            { id: 2, name: 'Mai Thị K', code: 'VT-002', department: 'Khối THCS', phone: '0987654321', messagesViettel: 3, messagesOther: 0 },
+        ],
+        weeklyNews: [
+            { id: 1, name: 'Bùi Văn L', code: 'TT-001', department: 'Tổ Văn Phòng', phone: '0123456789', messagesViettel: 2, messagesOther: 1 },
+            { id: 2, name: 'Hồ Thị M', code: 'TT-002', department: 'Tổ Truyền Thông', phone: '0987654321', messagesViettel: 1, messagesOther: 1 },
+        ],
+        partyCell: [
+            { id: 1, name: 'Đinh Văn N', code: 'CB-001', department: 'Chi bộ 1', phone: '0123456789', messagesViettel: 4, messagesOther: 0 },
+            { id: 2, name: 'Chu Thị P', code: 'CB-002', department: 'Chi bộ 2', phone: '0987654321', messagesViettel: 2, messagesOther: 1 },
+        ],
+        schoolUnion: [
+            { id: 1, name: 'Tống Văn Q', code: 'CD-001', department: 'BCH Công Đoàn', phone: '0123456789', messagesViettel: 3, messagesOther: 0 },
+            { id: 2, name: 'Lưu Thị R', code: 'CD-002', department: 'Tổ Công Đoàn', phone: '0987654321', messagesViettel: 1, messagesOther: 2 },
+        ],
+        youthUnion: [
+            { id: 1, name: 'Dương Văn S', code: 'TN-001', department: 'BCH Đoàn', phone: '0123456789', messagesViettel: 2, messagesOther: 1 },
+            { id: 2, name: 'Kiều Thị T', code: 'TN-002', department: 'Chi Đoàn', phone: '0987654321', messagesViettel: 1, messagesOther: 0 },
+        ],
+        gvcn: [
+            { id: 1, name: 'Tạ Thuấn Anh', code: '36366512-07-1-1', department: 'Khối học xã hội', phone: '0985836971', messagesViettel: 0, messagesOther: 0 },
+            { id: 2, name: 'Vương Thị Ngọc Anh', code: '36366512-07-1-22', department: 'Khối học xã hội', phone: '0373450650', messagesViettel: 0, messagesOther: 0 },
+            { id: 3, name: 'Nguyễn Thị Chiếm', code: '36366512-07-1-2', department: 'Tổ trưởng', phone: '094412500', messagesViettel: 0, messagesOther: 0 },
+            { id: 4, name: 'Phạm Duy Duyên', code: '36366512-07-1-14', department: 'Khối học tự nhiên', phone: '083462358', messagesViettel: 0, messagesOther: 0 },
+            { id: 5, name: 'Nguyễn Thị Duyên', code: '36366512-07-1-6', department: 'Tổ trưởng', phone: '097740375', messagesViettel: 0, messagesOther: 0 },
+            { id: 6, name: 'Phạm Thị Hải', code: '36366512-07-1-4', department: 'Khối học xã hội', phone: '0857124936', messagesViettel: 0, messagesOther: 0 },
+        ],
+    };
+
+    // Tiêu đề cho từng mục
+    const sectionTitles = {
+        overview: 'Tổng quan',
+        subjects: 'Lớp học bộ môn',
+        yearOfficers: 'Cán bộ năm',
+        classOfficers: 'Cán bộ lớp',
+        viettelPhones: 'Danh sách SĐT VIETTEL',
+        weeklyNews: 'Bản tin hằng tuần',
+        partyCell: 'Chi bộ',
+        schoolUnion: 'Công đoàn trường',
+        youthUnion: 'Đoàn thanh niên',
+        gvcn: 'Giáo viên chủ nhiệm'
+    };
+
+    // Lấy data hiện tại dựa trên section đang active
+    const currentData = data[activeSection] || [];
 
     return (
-        <div style={styles.container}>
+        <div className="container">
             {/* Sidebar */}
-            <div style={styles.sidebar}>
-                <h3 style={styles.sidebarTitle}>Danh sách thống kê</h3>
-                <ul style={styles.sidebarList}>
-                    <li style={styles.sidebarItem}>Tổng quan</li>
-                    <li style={styles.sidebarItem}>Lớp học bộ môn</li>
-                    <li style={styles.sidebarItem}>Cán bộ năm</li>
-                    <li style={styles.sidebarItem}>Cán bộ lớp</li>
-                    <li style={styles.sidebarItem}>Danh sách SĐT VIETTEL</li>
-                    <li style={styles.sidebarItem}>Bản tin hằng tuần</li>
-                    <li style={styles.sidebarItem}>Chi bộ</li>
-                    <li style={styles.sidebarItem}>Công đoàn trường</li>
-                    <li style={styles.sidebarItem}>Đoàn thanh niên</li>
-                    <li style={styles.sidebarItemActive}>Giáo viên chủ nhiệm</li>
+            <div className="sidebar">
+                <h3 className="sidebar-title">Danh sách thống kê</h3>
+                <ul className="sidebar-list">
+                    {Object.entries(sectionTitles).map(([key, title]) => (
+                        <li
+                            key={key}
+                            className={`sidebar-item ${activeSection === key ? 'active' : ''}`}
+                            onClick={() => setActiveSection(key)}
+                        >
+                            {title}
+                        </li>
+                    ))}
                 </ul>
             </div>
 
             {/* Main Content */}
-            <div style={styles.mainContent}>
+            <div className="main-content">
                 {/* Header */}
-                <div style={styles.header}>
-                    <h2 style={styles.headerTitle}>Toàn trường: 23 Giáo viên</h2>
-                    <h3 style={styles.subHeader}>Nguời nhận: 0 giáo viên</h3>
+                <div className="header">
+                    <h2 className="header-title">{sectionTitles[activeSection]}: {currentData.length} Giáo viên</h2>
+                    <h3 className="sub-header">Nguời nhận: 0 giáo viên</h3>
                 </div>
 
                 {/* Teacher List */}
-                <div style={styles.tableContainer}>
-                    <h3 style={styles.tableTitle}>Danh sách giáo viên</h3>
-                    <table style={styles.table}>
+                <div className="table-container">
+                    <h3 className="table-title">Danh sách {sectionTitles[activeSection].toLowerCase()}</h3>
+                    <table className="table">
                         <thead>
                             <tr>
-                                <th style={{ ...styles.th, width: '20px' }}>
+                                <th className="checkbox-column">
                                     <input type="checkbox" />
                                 </th>
-                                <th style={styles.th}>Họ và tên giáo viên</th>
-                                <th style={styles.th}>Mã cán bộ</th>
-                                <th style={styles.th}>Tổ bộ môn</th>
-                                <th style={styles.th}>Số ĐT ĐD</th>
-                                <th style={styles.th}>Số tin nhắn đã nhận Mạng Viettel</th>
-                                <th style={styles.th}>Số tin nhắn đã nhận Mạng khác</th>
+                                <th>Họ và tên</th>
+                                <th>Mã cán bộ</th>
+                                <th>Tổ/Bộ phận</th>
+                                <th>Số ĐT ĐD</th>
+                                <th>Số tin nhắn đã nhận Mạng Viettel</th>
+                                <th>Số tin nhắn đã nhận Mạng khác</th>
                             </tr>
                         </thead>
                         <tbody>
-                            {teacherData.map((teacher) => (
-                                <tr key={teacher.id} style={styles.tr}>
-                                    <td style={{ ...styles.td, width: '20px', textAlign: 'center' }}>
+                            {currentData.map((item) => (
+                                <tr key={item.id}>
+                                    <td className="checkbox-column">
                                         <input type="checkbox" />
                                     </td>
-                                    <td style={styles.td}>{teacher.name}</td>
-                                    <td style={styles.td}>{teacher.code}</td>
-                                    <td style={styles.td}>{teacher.department}</td>
-                                    <td style={styles.td}>{teacher.phone}</td>
-                                    <td style={styles.td}>{teacher.messagesViettel}</td>
-                                    <td style={styles.td}>{teacher.messagesOther}</td>
+                                    <td>{item.name}</td>
+                                    <td>{item.code}</td>
+                                    <td>{item.department}</td>
+                                    <td>{item.phone}</td>
+                                    <td>{item.messagesViettel}</td>
+                                    <td>{item.messagesOther}</td>
                                 </tr>
                             ))}
                         </tbody>
                     </table>
 
                     {/* Pagination */}
-                    <div style={styles.pagination}>
-                        <span style={styles.paginationText}>Tổng số: 23 - Hiển thị 1 - 10</span>
-                        <div style={styles.paginationButtons}>
-                            <button style={styles.paginationButton}>◄</button>
-                            <button style={{ ...styles.paginationButton, backgroundColor: '#17a2b8', color: 'white' }}>1</button>
-                            <button style={styles.paginationButton}>2</button>
-                            <button style={styles.paginationButton}>3</button>
-                            <button style={styles.paginationButton}>...</button>
-                            <button style={styles.paginationButton}>►</button>
+                    <div className="pagination">
+                        <span className="pagination-text">Tổng số: {currentData.length} - Hiển thị 1 - 10</span>
+                        <div className="pagination-buttons">
+                            <button>◄</button>
+                            <button className="active">1</button>
+                            <button>2</button>
+                            <button>3</button>
+                            <button>...</button>
+                            <button>►</button>
                         </div>
                     </div>
                 </div>
 
                 {/* Message Section */}
-                <div style={styles.messageSection}>
-                    <h3 style={styles.messageTitle}>Nguời nhận: 0 giáo viên</h3>
-                    <input type="text" style={styles.messageInput} placeholder="Toàn trường" />
-                    <textarea style={styles.messageTextarea} rows="4" placeholder=""></textarea>
-                    <div style={styles.messageFooter}>
-                        <label style={styles.checkboxLabel}>
+                <div className="message-section">
+                    <h3 className="message-title">Nguời nhận: 0 giáo viên</h3>
+                    <input type="text" placeholder="Toàn trường" />
+                    <textarea rows="4" placeholder=""></textarea>
+                    <div className="message-footer">
+                        <label className="checkbox-label">
                             <input type="checkbox" /> Gửi tin nhắn có dấu
                         </label>
-                        <span style={styles.charCount}>0/0</span>
-                        <button style={styles.sendButton}>
-                            Gửi <span style={styles.sendIcon}>➤</span>
+                        <span className="char-count">0/0</span>
+                        <button className="send-button">
+                            Gửi <span className="send-icon">➤</span>
                         </button>
                     </div>
                 </div>
             </div>
         </div>
     );
-};
-
-// CSS styles (inline)
-const styles = {
-    container: {
-        display: 'flex',
-        minHeight: '100vh',
-        fontFamily: 'Arial, sans-serif',
-        backgroundColor: '#f5f5f5',
-    },
-    sidebar: {
-        width: '200px',
-        backgroundColor: '#e8ecef',
-        padding: '20px',
-        borderRight: '1px solid #ddd',
-    },
-    sidebarTitle: {
-        fontSize: '16px',
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: '20px',
-    },
-    sidebarList: {
-        listStyle: 'none',
-        padding: 0,
-        margin: 0,
-    },
-    sidebarItem: {
-        padding: '10px 0',
-        color: '#555',
-        cursor: 'pointer',
-    },
-    sidebarItemActive: {
-        padding: '10px 0',
-        color: '#17a2b8',
-        fontWeight: 'bold',
-        cursor: 'pointer',
-    },
-    mainContent: {
-        flex: 1,
-        padding: '20px',
-    },
-    header: {
-        marginBottom: '20px',
-    },
-    headerTitle: {
-        fontSize: '18px',
-        fontWeight: 'bold',
-        color: '#333',
-        margin: 0,
-    },
-    subHeader: {
-        fontSize: '16px',
-        color: '#555',
-        margin: '5px 0 0 0',
-    },
-    tableContainer: {
-        backgroundColor: 'white',
-        padding: '10px',
-        borderRadius: '5px',
-        boxShadow: '0 1px 3px rgba(0, 0, 0, 0.1)',
-    },
-    tableTitle: {
-        fontSize: '16px',
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: '10px',
-    },
-    table: {
-        width: '100%',
-        borderCollapse: 'collapse',
-    },
-    th: {
-        padding: '10px',
-        textAlign: 'left',
-        borderBottom: '1px solid #ddd',
-        backgroundColor: '#e8ecef',
-        fontWeight: 'bold',
-        color: '#333',
-    },
-    td: {
-        padding: '10px',
-        textAlign: 'left',
-        borderBottom: '1px solid #ddd',
-        color: '#555',
-    },
-    tr: {
-        transition: 'background-color 0.2s',
-    },
-    pagination: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        marginTop: '10px',
-    },
-    paginationText: {
-        fontSize: '14px',
-        color: '#555',
-    },
-    paginationButtons: {
-        display: 'flex',
-        gap: '5px',
-    },
-    paginationButton: {
-        padding: '5px 10px',
-        border: '1px solid #ddd',
-        backgroundColor: 'white',
-        color: '#333',
-        cursor: 'pointer',
-        borderRadius: '3px',
-    },
-    messageSection: {
-        marginTop: '20px',
-        padding: '10px',
-        backgroundColor: '#e8ecef',
-        borderRadius: '5px',
-    },
-    messageTitle: {
-        fontSize: '16px',
-        fontWeight: 'bold',
-        color: '#333',
-        marginBottom: '10px',
-    },
-    messageInput: {
-        width: '100%',
-        padding: '8px',
-        marginBottom: '10px',
-        border: '1px solid #ddd',
-        borderRadius: '5px',
-        boxSizing: 'border-box',
-    },
-    messageTextarea: {
-        width: '100%',
-        padding: '8px',
-        marginBottom: '10px',
-        border: '1px solid #ddd',
-        borderRadius: '5px',
-        boxSizing: 'border-box',
-        resize: 'none',
-    },
-    messageFooter: {
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-    },
-    checkboxLabel: {
-        display: 'flex',
-        alignItems: 'center',
-        color: '#333',
-    },
-    charCount: {
-        fontSize: '14px',
-        color: '#555',
-    },
-    sendButton: {
-        backgroundColor: '#17a2b8',
-        color: 'white',
-        border: 'none',
-        padding: '8px 15px',
-        borderRadius: '5px',
-        cursor: 'pointer',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '5px',
-    },
-    sendIcon: {
-        fontSize: '14px',
-    },
 };
 
 export default SendMessageTeacher;
