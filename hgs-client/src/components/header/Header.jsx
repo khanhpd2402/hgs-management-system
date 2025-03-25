@@ -8,13 +8,10 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  useAcademicYears,
-  useSemestersByAcademicYear,
-} from "@/services/common/queries";
+import { useAcademicYears } from "@/services/common/queries";
 import { useEffect, useState } from "react";
 
-const Header = () => {
+const Header = ({ setCurrentYear }) => {
   const academicYears = useAcademicYears();
   const [selectedYear, setSelectedYear] = useState(null);
 
@@ -22,6 +19,7 @@ const Header = () => {
     if (academicYears.data && academicYears.data.length > 0) {
       const currentYear = academicYears.data[0];
       setSelectedYear(currentYear);
+      setCurrentYear(currentYear);
       sessionStorage.setItem(
         "currentAcademicYear",
         JSON.stringify(currentYear),
@@ -42,11 +40,12 @@ const Header = () => {
                 (y) => y.academicYearID === value,
               );
               setSelectedYear(year);
+              setCurrentYear(year);
+
               sessionStorage.setItem(
                 "currentAcademicYear",
                 JSON.stringify(year),
               );
-              sessionStorage.setItem("currentAcademicYearId", value);
             }}
           >
             <SelectTrigger className="w-[130px]">
