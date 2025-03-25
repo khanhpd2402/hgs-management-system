@@ -51,13 +51,6 @@ const authRoutes = [
   },
 ];
 
-const privateRouter = [
-  {
-    element: <DefaultLayout />,
-    children: [...studentRouter, ...adminRouter, ...teacherRouter],
-  },
-];
-
 const adminRouter = [
   {
     path: "/admin/user",
@@ -141,11 +134,6 @@ const teacherRouter = [
 
 const studentRouter = [
   {
-    path: "/",
-    element: <div>Home</div>,
-  },
-
-  {
     path: "/student/profile",
     element: (
       <Suspense fallback={<div>Loading...</div>}>
@@ -168,6 +156,21 @@ const studentRouter = [
         <StudentScore />
       </Suspense>
     ),
+  },
+];
+
+const privateRouter = [
+  {
+    element: <DefaultLayout />,
+    children: [
+      {
+        path: "/",
+        element: <div>Home</div>,
+      },
+      ...studentRouter,
+      ...adminRouter,
+      ...teacherRouter,
+    ],
   },
 ];
 
