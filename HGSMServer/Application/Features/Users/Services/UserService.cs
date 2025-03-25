@@ -125,6 +125,7 @@ namespace Application.Features.Users.Services
             return role?.RoleName;
         }
 
+
         public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
         {
             if (changePasswordDto == null)
@@ -138,26 +139,6 @@ namespace Application.Features.Users.Services
 
             // Sử dụng GetByIdForUpdateAsync để tránh xung đột tracking
             var user = await _userRepository.GetByIdForUpdateAsync(userId);
-            if (user == null)
-                throw new ArgumentException($"User with ID {userId} not found.");
-
-            // Xác minh mật khẩu cũ
-            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
-                throw new UnauthorizedAccessException("Old password is incorrect.");
-
-            // Hash mật khẩu mới và cập nhật
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
-            await _userRepository.UpdateAsync(user);
-        }
-        public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
-        {
-            if (changePasswordDto == null)
-                throw new ArgumentNullException(nameof(changePasswordDto));
-
-            if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
-                throw new ArgumentException("Old password and new password are required.");
-
-            var user = await _userRepository.GetByIdAsync(userId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userId} not found.");
 
