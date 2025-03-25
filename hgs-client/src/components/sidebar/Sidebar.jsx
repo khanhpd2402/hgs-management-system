@@ -19,6 +19,12 @@ const menuItems = [
     label: "Quản trị",
     icon: Settings,
     path: "/admin",
+    children: [
+      { label: "Quản lý người dùng", path: "/admin/user" },
+      // { label: "Quản lý môn học", path: "/admin/subject" },
+      // { label: "Quản lý giáo viên", path: "/admin/teacher" },
+      // { label: "Quản lý học sinh", path: "/admin/student" },
+    ],
   },
   {
     label: "Cán bộ",
