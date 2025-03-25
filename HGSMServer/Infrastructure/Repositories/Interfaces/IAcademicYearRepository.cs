@@ -14,6 +14,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddAsync(AcademicYear academicYear);
         Task UpdateAsync(AcademicYear academicYear);
         Task DeleteAsync(int id);
+        Task<AcademicYear?> GetCurrentAcademicYearAsync();
     }
 
 }

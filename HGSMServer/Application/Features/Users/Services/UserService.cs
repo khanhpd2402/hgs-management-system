@@ -27,11 +27,11 @@ namespace Application.Features.Users.Services
             {
                 UserId = u.UserId,
                 Username = u.Username,
-                PasswordHash = u.PasswordHash,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 RoleId = u.RoleId,
-                Status = u.Status
+                Status = u.Status,
+                PasswordHash = u.PasswordHash // Ánh xạ PasswordHash
             }).ToList();
         }
 
@@ -44,11 +44,11 @@ namespace Application.Features.Users.Services
             {
                 UserId = user.UserId,
                 Username = user.Username,
-                PasswordHash = user.PasswordHash,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
-                Status = user.Status
+                Status = user.Status,
+                PasswordHash = user.PasswordHash // Ánh xạ PasswordHash
             };
         }
 
@@ -61,11 +61,28 @@ namespace Application.Features.Users.Services
             {
                 UserId = user.UserId,
                 Username = user.Username,
-                PasswordHash = user.PasswordHash,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
-                Status = user.Status
+                Status = user.Status,
+                PasswordHash = user.PasswordHash // Ánh xạ PasswordHash
+            };
+        }
+
+        public async Task<UserDTO?> GetUserByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetByUsernameAsync(username);
+            if (user == null) return null;
+
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                RoleId = user.RoleId,
+                Status = user.Status,
+                PasswordHash = user.PasswordHash // Ánh xạ PasswordHash
             };
         }
 
@@ -77,18 +94,21 @@ namespace Application.Features.Users.Services
             if (string.IsNullOrEmpty(userDto.PasswordHash))
                 throw new ArgumentException("Password is required.");
 
+            if (userDto.PasswordHash.Length < 8)
+                throw new ArgumentException("Password must be at least 8 characters long.");
+
             var user = new User
             {
                 Username = userDto.Username,
-                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.PasswordHash), // Hash mật khẩu
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.PasswordHash),
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
-                Status = userDto.Status
+                Status = userDto.Status ?? "Active"
             };
 
             await _userRepository.AddAsync(user);
-            userDto.UserId = user.UserId; // Cập nhật UserId cho DTO sau khi thêm
+            userDto.UserId = user.UserId;
         }
 
         public async Task UpdateUserAsync(UserDTO userDto)
@@ -96,12 +116,11 @@ namespace Application.Features.Users.Services
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
 
-            var user = await _userRepository.GetByIdAsync(userDto.UserId);
+            var user = await _userRepository.GetByIdForUpdateAsync(userDto.UserId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userDto.UserId} not found.");
 
             user.Username = userDto.Username;
-            user.PasswordHash = userDto.PasswordHash;
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
             user.RoleId = userDto.RoleId;
@@ -136,37 +155,32 @@ namespace Application.Features.Users.Services
             if (changePasswordDto.NewPassword.Length < 8)
                 throw new ArgumentException("New password must be at least 8 characters long.");
 
-            // Sử dụng GetByIdForUpdateAsync để tránh xung đột tracking
             var user = await _userRepository.GetByIdForUpdateAsync(userId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userId} not found.");
 
-            // Xác minh mật khẩu cũ
             if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
                 throw new UnauthorizedAccessException("Old password is incorrect.");
 
-            // Hash mật khẩu mới và cập nhật
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
             await _userRepository.UpdateAsync(user);
         }
-        public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+
+
+        public async Task AdminChangePasswordAsync(int userId, string newPassword)
         {
-            if (changePasswordDto == null)
-                throw new ArgumentNullException(nameof(changePasswordDto));
+            if (string.IsNullOrEmpty(newPassword))
+                throw new ArgumentException("New password is required.");
 
-            if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
-                throw new ArgumentException("Old password and new password are required.");
+            if (newPassword.Length < 8)
+                throw new ArgumentException("New password must be at least 8 characters long.");
 
-            var user = await _userRepository.GetByIdAsync(userId);
+            var user = await _userRepository.GetByIdForUpdateAsync(userId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userId} not found.");
 
-            // Xác minh mật khẩu cũ
-            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
-                throw new UnauthorizedAccessException("Old password is incorrect.");
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
-            // Hash mật khẩu mới và cập nhật
-            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
             await _userRepository.UpdateAsync(user);
         }
     }
