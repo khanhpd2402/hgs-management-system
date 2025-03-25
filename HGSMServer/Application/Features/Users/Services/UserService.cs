@@ -1,7 +1,6 @@
 ﻿using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
 using Domain.Models;
-using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,7 +12,7 @@ namespace Application.Features.Users.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
-        private readonly IRoleRepository _roleRepository; // Thêm repository cho Role
+        private readonly IRoleRepository _roleRepository;
 
         public UserService(IUserRepository userRepository, IRoleRepository roleRepository)
         {
@@ -75,10 +74,13 @@ namespace Application.Features.Users.Services
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
 
+            if (string.IsNullOrEmpty(userDto.PasswordHash))
+                throw new ArgumentException("Password is required.");
+
             var user = new User
             {
                 Username = userDto.Username,
-                PasswordHash = userDto.PasswordHash,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.PasswordHash), // Hash mật khẩu
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
@@ -116,10 +118,36 @@ namespace Application.Features.Users.Services
 
             await _userRepository.DeleteAsync(id);
         }
+
         public async Task<string?> GetRoleNameByRoleIdAsync(int roleId)
         {
             var role = await _roleRepository.GetByIdAsync(roleId);
-            return role?.RoleName; // Trả về tên role (ví dụ: "Principal")
+            return role?.RoleName;
+        }
+
+        public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+        {
+            if (changePasswordDto == null)
+                throw new ArgumentNullException(nameof(changePasswordDto));
+
+            if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
+                throw new ArgumentException("Old password and new password are required.");
+
+            if (changePasswordDto.NewPassword.Length < 8)
+                throw new ArgumentException("New password must be at least 8 characters long.");
+
+            // Sử dụng GetByIdForUpdateAsync để tránh xung đột tracking
+            var user = await _userRepository.GetByIdForUpdateAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User with ID {userId} not found.");
+
+            // Xác minh mật khẩu cũ
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
+                throw new UnauthorizedAccessException("Old password is incorrect.");
+
+            // Hash mật khẩu mới và cập nhật
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            await _userRepository.UpdateAsync(user);
         }
     }
 }
