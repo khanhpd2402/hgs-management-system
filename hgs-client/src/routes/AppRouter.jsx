@@ -1,5 +1,7 @@
 import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
+import AuthLayout from "@/layouts/AuthLayout/AuthLayout";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
+import Login from "@/pages/Login/Login";
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import GradeBatch from "@/pages/Teacher/GradeBatch/GradeBatch";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
@@ -28,12 +30,25 @@ const StudentScore = lazy(
 );
 
 const AppRouter = () => {
-  const routes = privateRouter;
+  // const routes = privateRouter;
+  const routes = authRoutes;
 
   const router = createBrowserRouter([...routes]);
 
   return <RouterProvider router={router} />;
 };
+
+const authRoutes = [
+  {
+    element: <AuthLayout />,
+    children: [
+      {
+        path: "/login",
+        element: <Login />,
+      },
+    ],
+  },
+];
 
 const privateRouter = [
   {
