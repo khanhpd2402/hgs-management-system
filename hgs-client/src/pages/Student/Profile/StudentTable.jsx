@@ -53,9 +53,11 @@ export default function StudentTable() {
   const [visibleColumns, setVisibleColumns] = useState(
     allColumns.map((col) => ({ id: col.id, label: col.label })),
   );
+  const academicYearId = JSON.parse(
+    sessionStorage.getItem("currentAcademicYear"),
+  ).academicYearID;
 
-  const { data, isPending, error, isError } = useStudents(filter);
-  console.log(data);
+  const { data, isPending, error, isError } = useStudents(academicYearId);
 
   //phan trang
   const { page, pageSize } = filter;
@@ -137,10 +139,10 @@ export default function StudentTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data && data.length > 0 ? (
-                  data.map((student) => (
+                {data && data?.students.length > 0 ? (
+                  data?.students?.map((student) => (
                     <TableRow
-                      key={student.id}
+                      key={student.studentId}
                       className="divide-x divide-gray-300"
                     >
                       {visibleColumns.some((col) => col.id === "actions") && (
