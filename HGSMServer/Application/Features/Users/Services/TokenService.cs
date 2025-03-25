@@ -5,7 +5,6 @@ using Microsoft.IdentityModel.Tokens;
 using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
 using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
@@ -25,20 +24,27 @@ namespace Application.Features.Users.Services
         {
             var claims = new List<Claim>
             {
-                new Claim("sub", user.UserId.ToString()), // Sử dụng "sub" thay vì NameIdentifier
+                new Claim("sub", user.UserId.ToString()),
                 new Claim("email", user.Email ?? ""),
                 new Claim("name", user.Username),
-                new Claim("role", userRole) // Sử dụng "role" thay vì ClaimTypes.Role
+                new Claim("role", userRole),
+                new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
             };
 
-            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_configuration["JWT:SecretKey"]));
+            var secretKey = _configuration["JWT:SecretKey"];
+            if (string.IsNullOrEmpty(secretKey))
+            {
+                throw new InvalidOperationException("JWT SecretKey is not configured.");
+            }
+
+            var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
             var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
             var token = new JwtSecurityToken(
                 issuer: _configuration["JWT:Issuer"],
                 audience: _configuration["JWT:Audience"],
                 claims: claims,
-                expires: DateTime.Now.AddDays(1),
+                expires: DateTime.UtcNow.AddDays(1),
                 signingCredentials: creds);
 
             var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
@@ -47,7 +53,11 @@ namespace Application.Features.Users.Services
             var jwtToken = handler.ReadJwtToken(tokenString);
             var payload = jwtToken.Payload;
 
-            var payloadDict = payload.ToDictionary(claim => claim.Key, claim => claim.Value?.ToString());
+            var payloadDict = new Dictionary<string, string>();
+            foreach (var claim in payload)
+            {
+                payloadDict[claim.Key] = claim.Value?.ToString() ?? string.Empty;
+            }
 
             return (tokenString, payloadDict);
         }
