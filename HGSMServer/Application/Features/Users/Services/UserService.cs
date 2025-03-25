@@ -166,6 +166,7 @@ namespace Application.Features.Users.Services
             await _userRepository.UpdateAsync(user);
         }
 
+
         public async Task AdminChangePasswordAsync(int userId, string newPassword)
         {
             if (string.IsNullOrEmpty(newPassword))
@@ -179,6 +180,7 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"User with ID {userId} not found.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
             await _userRepository.UpdateAsync(user);
         }
     }
