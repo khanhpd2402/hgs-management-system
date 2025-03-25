@@ -9,10 +9,12 @@ namespace Application.Features.Users.Interfaces
         Task<IEnumerable<UserDTO>> GetAllUsersAsync();
         Task<UserDTO?> GetUserByIdAsync(int id);
         Task<UserDTO?> GetUserByEmailAsync(string email);
+        Task<UserDTO?> GetUserByUsernameAsync(string username);
         Task AddUserAsync(UserDTO userDto);
         Task UpdateUserAsync(UserDTO userDto);
         Task DeleteUserAsync(int id);
         Task<string?> GetRoleNameByRoleIdAsync(int roleId);
         Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
+        Task AdminChangePasswordAsync(int userId, string newPassword); // Thêm phương thức mới
     }
 }

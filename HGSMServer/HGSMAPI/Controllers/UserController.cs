@@ -1,9 +1,9 @@
 ﻿using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -18,7 +18,6 @@ namespace HGSMAPI.Controllers
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
         }
 
-        // GET: api/User
         [HttpGet]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
@@ -26,7 +25,6 @@ namespace HGSMAPI.Controllers
             return Ok(users);
         }
 
-        // GET: api/User/5
         [HttpGet("{id}")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
@@ -37,7 +35,6 @@ namespace HGSMAPI.Controllers
             return Ok(user);
         }
 
-        // POST: api/User
         [HttpPost]
         public async Task<IActionResult> CreateUser([FromBody] UserDTO userDto)
         {
@@ -51,7 +48,6 @@ namespace HGSMAPI.Controllers
             return CreatedAtAction(nameof(GetUser), new { id = userDto.UserId }, userDto);
         }
 
-        // PUT: api/User/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UserDTO userDto)
         {
@@ -61,8 +57,8 @@ namespace HGSMAPI.Controllers
             if (id != userDto.UserId)
                 return BadRequest(new { message = "User ID in URL does not match the ID in the body." });
 
-            if (string.IsNullOrEmpty(userDto.Username) || string.IsNullOrEmpty(userDto.PasswordHash))
-                return BadRequest(new { message = "Username and PasswordHash are required." });
+            if (string.IsNullOrEmpty(userDto.Username))
+                return BadRequest(new { message = "Username is required." });
 
             try
             {
@@ -75,7 +71,6 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        // DELETE: api/User/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteUser(int id)
         {
@@ -89,13 +84,13 @@ namespace HGSMAPI.Controllers
                 return NotFound(new { message = ex.Message });
             }
         }
+
         [HttpPost("change-password")]
-        [Authorize] // Yêu cầu người dùng đã đăng nhập
+        [Authorize]
         public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordDto changePasswordDto)
         {
             try
             {
-                // Lấy UserID từ token
                 var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == "sub" || c.Type == ClaimTypes.NameIdentifier);
                 if (userIdClaim == null)
                     return Unauthorized(new { message = "User ID not found in token." });
@@ -108,6 +103,49 @@ namespace HGSMAPI.Controllers
             catch (UnauthorizedAccessException ex)
             {
                 return Unauthorized(new { message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while changing the password.", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/change-status")]
+        [Authorize(Roles = "AdministrativeOfficer,Principal")]
+        public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeStatusDto changeStatusDto)
+        {
+            try
+            {
+                var user = await _userService.GetUserByIdAsync(id);
+                if (user == null)
+                    return NotFound(new { message = $"User with ID {id} not found." });
+
+                user.Status = changeStatusDto.Status;
+                await _userService.UpdateUserAsync(user);
+                return Ok(new { message = "Status updated successfully.", userId = id, newStatus = user.Status });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { message = "An error occurred while updating the status.", error = ex.Message });
+            }
+        }
+
+        [HttpPost("{id}/admin-change-password")]
+        [Authorize(Roles = "AdministrativeOfficer,Principal")]
+        public async Task<IActionResult> AdminChangePassword(int id, [FromBody] string newPassword)
+        {
+            try
+            {
+                await _userService.AdminChangePasswordAsync(id, newPassword);
+                return Ok(new { message = "Password changed successfully by admin.", userId = id });
             }
             catch (ArgumentException ex)
             {
