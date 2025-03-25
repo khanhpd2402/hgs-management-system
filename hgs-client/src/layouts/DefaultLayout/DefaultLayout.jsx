@@ -1,3 +1,4 @@
+import Header from "@/components/header/Header";
 import "./DefaultLayout.scss";
 import Sidebar from "@/components/sidebar/Sidebar";
 import { useState } from "react";
@@ -14,6 +15,7 @@ const DefaultLayout = () => {
       >
         <div className="h-full overflow-x-clip overflow-y-scroll">
           <div className="container mx-auto px-4 py-4">
+            <Header />
             <Outlet />
           </div>
         </div>
