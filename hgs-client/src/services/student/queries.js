@@ -21,13 +21,3 @@ export function useStudent(id) {
     enabled: !!id,
   });
 }
-
-export function useStudent(id) {
-  return useQuery({
-    queryKey: ["student", id],
-    queryFn: () => {
-      return getStudent(id);
-    },
-    enabled: !!id,
-  });
-}

@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
@@ -9,24 +8,18 @@ import { cn } from "@/lib/utils";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
 import { useGradeBatchs } from "@/services/principal/queries";
 import { formatDate } from "@/helpers/formatDate";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 
 export default function GradeBatch() {
-  const gradeBatchs = useGradeBatchs();
-
-  const academicYearId = JSON.parse(
-    sessionStorage.getItem("currentAcademicYear"),
-  ).academicYearID;
-  const semesterQuery = useSemestersByAcademicYear(academicYearId);
-  const semesters = semesterQuery.data || [];
+  const { currentYear } = useLayout();
   const [semester, setSemester] = useState(null);
-  const [selectedBatch, setSelectedBatch] = useState(null);
-  const [detailModalOpen, setDetailModalOpen] = useState(false);
+
+  const gradeBatchs = useGradeBatchs();
+  const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
+  const semesters = semesterQuery.data || [];
   const currentGradeBatchs = gradeBatchs?.data?.filter(
     (batch) => batch.semesterId === semester,
   );
-
-  // Check and update batch statuses based on current date
-
   const getStatusBadge = (status) => {
     switch (status) {
       case true:
@@ -40,10 +33,10 @@ export default function GradeBatch() {
   };
 
   useEffect(() => {
-    if (semesters?.length > 0 && !semester) {
+    if (semesters?.length > 0) {
       setSemester(semesters[0].semesterID);
     }
-  }, [semesters, semester]);
+  }, [semesters, currentYear]);
 
   return (
     <div className="container mx-auto py-6">
@@ -125,14 +118,6 @@ export default function GradeBatch() {
       </div>
 
       {/* Detail Modal Component */}
-      {selectedBatch && (
-        <GradeBatchDetail
-          batch={selectedBatch}
-          open={detailModalOpen}
-          onOpenChange={setDetailModalOpen}
-          // onSave={handleSaveBatchEdit}
-        />
-      )}
     </div>
   );
 }
