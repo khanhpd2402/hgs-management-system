@@ -2,7 +2,7 @@ import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import AuthLayout from "@/layouts/AuthLayout/AuthLayout";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
 import Login from "@/pages/Login/Login";
-import UserManagement from "@/pages/Principal/UserManagement";
+import UserManagement from "@/pages/Principal/UserProfile/UserManagement";
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import GradeBatch from "@/pages/Teacher/GradeBatch/GradeBatch";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
@@ -12,6 +12,7 @@ import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
+import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -59,8 +60,12 @@ const authRoutes = [
 
 const adminRouter = [
   {
-    path: "/admin/user",
-    element: <UserManagement />,
+    path: "/principal/user",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <UserManagement />
+      </ProtectedRoute>
+    ),
   },
 ];
 
@@ -184,6 +189,10 @@ const privateRouter = [
       {
         path: "/",
         element: <Navigate to="/home" />,
+      },
+      {
+        path: "*",
+        element: <ErrorRouteComponent />,
       },
       ...studentRouter,
       ...adminRouter,

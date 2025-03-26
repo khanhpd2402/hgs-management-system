@@ -11,3 +11,27 @@ export const getGradeBatches = async () => {
 export const getGradeBatch = async (id) => {
   return (await axiosInstance.get(`GradeBatch/${id}`)).data;
 };
+
+export const getUsers = async () => {
+  const token = JSON.parse(localStorage.getItem("token"));
+
+  return (
+    await axiosInstance.get(`user`, {
+      headers: { Authorization: `Bearer ${token}` },
+    })
+  ).data;
+};
+
+export const changeUserStatus = async (userId, status) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+
+  return (
+    await axiosInstance.post(
+      `user/${userId}/change-status`,
+      { status },
+      {
+        headers: { Authorization: `Bearer ${token}` },
+      },
+    )
+  ).data;
+};
