@@ -8,13 +8,13 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import {
-  useAcademicYears,
-  useSemestersByAcademicYear,
-} from "@/services/common/queries";
+import { useAcademicYears } from "@/services/common/queries";
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router";
+import PropTypes from "prop-types";
 
-const Header = () => {
+const Header = ({ setCurrentYear }) => {
+  const navigate = useNavigate();
   const academicYears = useAcademicYears();
   const [selectedYear, setSelectedYear] = useState(null);
 
@@ -22,6 +22,7 @@ const Header = () => {
     if (academicYears.data && academicYears.data.length > 0) {
       const currentYear = academicYears.data[0];
       setSelectedYear(currentYear);
+      setCurrentYear(currentYear);
       sessionStorage.setItem(
         "currentAcademicYear",
         JSON.stringify(currentYear),
@@ -29,11 +30,18 @@ const Header = () => {
     }
   }, [academicYears.data]);
 
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    navigate("/login");
+  };
+
   return (
     <header className="flex h-14 items-center border-b px-4 lg:px-6">
       <div className="flex flex-1 items-center justify-between">
         <div className="font-medium">TRƯỜNG THCS HẢI GIANG</div>
-
+        <Button variant="ghost" onClick={handleLogout}>
+          đăng xuất
+        </Button>
         <div className="flex items-center gap-4">
           <Select
             value={selectedYear?.academicYearID}
@@ -42,11 +50,12 @@ const Header = () => {
                 (y) => y.academicYearID === value,
               );
               setSelectedYear(year);
+              setCurrentYear(year);
+
               sessionStorage.setItem(
                 "currentAcademicYear",
                 JSON.stringify(year),
               );
-              sessionStorage.setItem("currentAcademicYearId", value);
             }}
           >
             <SelectTrigger className="w-[130px]">
@@ -79,6 +88,9 @@ const Header = () => {
       </div>
     </header>
   );
+};
+Header.propTypes = {
+  setCurrentYear: PropTypes.func,
 };
 
 export default Header;

@@ -16,11 +16,13 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useState } from "react";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import "./Login.scss";
 import { useLoginMutation } from "@/services/common/mutation";
+import { useNavigate } from "react-router";
+import { useEffect } from "react";
+import { jwtDecode } from "jwt-decode";
 
 const formSchema = z.object({
   username: z.string().min(1, "Tên đăng nhập là bắt buộc"),
@@ -28,7 +30,31 @@ const formSchema = z.object({
 });
 
 const Login = () => {
+  const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+
+  // Check if user is already logged in
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userRole = localStorage.getItem("userRole");
+
+    if (token && userRole) {
+      redirectBasedOnRole(userRole);
+    }
+  }, [navigate]);
+
+  const redirectBasedOnRole = (role) => {
+    switch (role) {
+      case "Principal":
+        navigate("/home");
+        break;
+      case "Teacher":
+        navigate("/teacher/profile");
+        break;
+      default:
+        navigate("/home");
+    }
+  };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -39,9 +65,17 @@ const Login = () => {
   });
 
   const onSubmit = async (values) => {
-    loginMutation.mutate(values);
-  };
+    loginMutation.mutate(values, {
+      onSuccess: (data) => {
+        // Store token and user role in localStorage
+        localStorage.setItem("token", JSON.stringify(data.token));
+        const role = jwtDecode(data.token).role;
 
+        // Redirect based on role
+        redirectBasedOnRole(role);
+      },
+    });
+  };
   return (
     <div className="login-container">
       <div className="login-content">

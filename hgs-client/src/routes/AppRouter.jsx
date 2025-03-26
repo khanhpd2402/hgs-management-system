@@ -7,9 +7,11 @@ import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import GradeBatch from "@/pages/Teacher/GradeBatch/GradeBatch";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
 import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
+import ProtectedRoute from "@/routes/ProtectedRoute";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, RouterProvider } from "react-router";
+import AuthRedirectRoute from "./AuthRedirectRoute";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -31,7 +33,7 @@ const StudentScore = lazy(
 );
 
 const AppRouter = () => {
-  const routes = privateRouter;
+  const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
 
   const router = createBrowserRouter([...routes]);
@@ -41,20 +43,17 @@ const AppRouter = () => {
 
 const authRoutes = [
   {
-    element: <AuthLayout />,
+    element: (
+      <AuthRedirectRoute>
+        <AuthLayout />
+      </AuthRedirectRoute>
+    ),
     children: [
       {
         path: "/login",
         element: <Login />,
       },
     ],
-  },
-];
-
-const privateRouter = [
-  {
-    element: <DefaultLayout />,
-    children: [...studentRouter, ...adminRouter, ...teacherRouter],
   },
 ];
 
@@ -69,11 +68,13 @@ const teacherRouter = [
   {
     path: "/teacher/profile",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
-        <Suspense fallback={<div>Loading...</div>}>
-          <TeacherTable />
-        </Suspense>
-      </ErrorBoundary>
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <TeacherTable />
+          </Suspense>
+        </ErrorBoundary>
+      </ProtectedRoute>
     ),
     // errorElement: <ErrorRouteComponent />,
   },
@@ -124,9 +125,11 @@ const teacherRouter = [
   {
     path: "/teacher/mark-report",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <MarkReportTable />
-      </Suspense>
+      <ProtectedRoute requiredRoles={["Teacher"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <MarkReportTable />
+        </Suspense>
+      </ProtectedRoute>
     ),
   },
   {
@@ -140,11 +143,6 @@ const teacherRouter = [
 ];
 
 const studentRouter = [
-  {
-    path: "/",
-    element: <div>Home</div>,
-  },
-
   {
     path: "/student/profile",
     element: (
@@ -168,6 +166,25 @@ const studentRouter = [
         <StudentScore />
       </Suspense>
     ),
+  },
+];
+
+const privateRouter = [
+  {
+    element: (
+      <ProtectedRoute requiredRoles={["Principal", "Teacher"]}>
+        <DefaultLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "/home",
+        element: <div>Home</div>,
+      },
+      ...studentRouter,
+      ...adminRouter,
+      ...teacherRouter,
+    ],
   },
 ];
 

@@ -13,11 +13,3 @@ export const getStudent = async (id, academicId) => {
 export const updateStudent = async (id, data) => {
   return (await axiosInstance.put(`student/${id}`, data)).data;
 };
-
-export const getStudent = async (id) => {
-  return (await axiosInstance.get(`student/${id}`)).data;
-};
-
-export const updateStudent = async (id, data) => {
-  return (await axiosInstance.put(`student/${id}`, data)).data;
-};
