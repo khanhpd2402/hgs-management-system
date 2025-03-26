@@ -150,9 +150,9 @@ const Login = () => {
                 <Button
                   type="submit"
                   className="login-button w-full py-6 text-base font-medium"
-                  disabled={loginMutation.isLoading}
+                  disabled={loginMutation.isPending}
                 >
-                  {loginMutation.isLoading ? "Đang đăng nhập..." : "Đăng nhập"}
+                  {loginMutation.isPending ? "Đang đăng nhập..." : "Đăng nhập"}
                 </Button>
               </form>
             </Form>
