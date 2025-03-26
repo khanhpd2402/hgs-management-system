@@ -10,11 +10,12 @@ namespace Application.Features.Users.Interfaces
         Task<UserDTO?> GetUserByIdAsync(int id);
         Task<UserDTO?> GetUserByEmailAsync(string email);
         Task<UserDTO?> GetUserByUsernameAsync(string username);
-        Task AddUserAsync(UserDTO userDto);
-        Task UpdateUserAsync(UserDTO userDto);
+        Task AddUserAsync(CreateUserDTO userDto); // Use CreateUserDTO
+        Task UpdateUserAsync(UpdateUserDTO userDto); // Use UpdateUserDTO
         Task DeleteUserAsync(int id);
         Task<string?> GetRoleNameByRoleIdAsync(int roleId);
         Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
-        Task AdminChangePasswordAsync(int userId, string newPassword); // Thêm phương thức mới
+        Task AdminChangePasswordAsync(int userId, string newPassword);
+        Task ChangeUserStatusAsync(int userId, string newStatus);
     }
 }
