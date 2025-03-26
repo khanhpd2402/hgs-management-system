@@ -1,6 +1,6 @@
+import ErrorAuthComponent from "@/components/ErrorAuthComponent";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import { hasRequiredRole, isAuthenticated } from "@/utils/authUtils";
-import { Navigate } from "react-router-dom";
 
 /**
  * A component that protects routes based on authentication and role requirements
@@ -12,7 +12,7 @@ import { Navigate } from "react-router-dom";
 const ProtectedRoute = ({ children, requiredRoles }) => {
   // First check if user is authenticated
   if (!isAuthenticated()) {
-    return <ErrorRouteComponent />;
+    return <ErrorAuthComponent />;
   }
 
   // If roles are specified, check if user has required role
