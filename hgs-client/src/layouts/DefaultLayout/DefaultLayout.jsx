@@ -1,12 +1,20 @@
 import Header from "@/components/header/Header";
 import "./DefaultLayout.scss";
 import Sidebar from "@/components/sidebar/Sidebar";
-import { useState } from "react";
+import {  useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
+
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [currentYear, setCurrentYear] = useState(null);
+
+  // Authentication check
+  // useEffect(() => {
+  //   if (!isAuthenticated()) {
+  //     navigate("/login");
+  //   }
+  // }, [navigate]);
 
   return (
     <div className="flex h-screen overflow-x-clip">
