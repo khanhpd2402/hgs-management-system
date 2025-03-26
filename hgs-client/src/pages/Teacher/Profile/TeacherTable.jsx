@@ -66,7 +66,6 @@ export default function TeacherTable() {
   //phan trang
   const { page, pageSize, department, contract, search } = filter;
 
-  console.log(filter);
   const filteredData =
     data?.teachers.filter((teacher) => {
       // Filter by department
