@@ -31,7 +31,7 @@ namespace Application.Features.Users.Services
                 PhoneNumber = u.PhoneNumber,
                 RoleId = u.RoleId,
                 Status = u.Status,
-                PasswordHash = u.PasswordHash // Ánh xạ PasswordHash
+                PasswordHash = u.PasswordHash
             }).ToList();
         }
 
@@ -48,7 +48,7 @@ namespace Application.Features.Users.Services
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
                 Status = user.Status,
-                PasswordHash = user.PasswordHash // Ánh xạ PasswordHash
+                PasswordHash = user.PasswordHash
             };
         }
 
@@ -65,7 +65,7 @@ namespace Application.Features.Users.Services
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
                 Status = user.Status,
-                PasswordHash = user.PasswordHash // Ánh xạ PasswordHash
+                PasswordHash = user.PasswordHash
             };
         }
 
@@ -82,11 +82,11 @@ namespace Application.Features.Users.Services
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
                 Status = user.Status,
-                PasswordHash = user.PasswordHash // Ánh xạ PasswordHash
+                PasswordHash = user.PasswordHash
             };
         }
 
-        public async Task AddUserAsync(UserDTO userDto)
+        public async Task AddUserAsync(CreateUserDTO userDto)
         {
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
@@ -104,14 +104,13 @@ namespace Application.Features.Users.Services
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
-                Status = userDto.Status ?? "Active"
+                Status = "Active" // Gán mặc định Status = "Active"
             };
 
             await _userRepository.AddAsync(user);
-            userDto.UserId = user.UserId;
         }
 
-        public async Task UpdateUserAsync(UserDTO userDto)
+        public async Task UpdateUserAsync(UpdateUserDTO userDto)
         {
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
@@ -124,7 +123,7 @@ namespace Application.Features.Users.Services
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
             user.RoleId = userDto.RoleId;
-            user.Status = userDto.Status;
+            // Không cập nhật Status từ DTO
 
             await _userRepository.UpdateAsync(user);
         }
@@ -182,6 +181,16 @@ namespace Application.Features.Users.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
 
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task ChangeUserStatusAsync(int userId, string newStatus)
+        {
+            var user = await _userRepository.GetByIdForUpdateAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User with ID {userId} not found.");
+
+            user.Status = newStatus;
             await _userRepository.UpdateAsync(user);
         }
     }
