@@ -57,11 +57,10 @@ namespace HGSMAPI.Controllers
             }
 
             // Kiểm tra mật khẩu
-            var userFromRepo = await _userService.GetUserByUsernameAsync(loginDto.Username);
-            if (userFromRepo == null || !VerifyPassword(loginDto.Password, userFromRepo.PasswordHash))
+            if (!VerifyPassword(loginDto.Password, user.PasswordHash))
             {
                 Console.WriteLine($"Password verification failed for user {loginDto.Username}.");
-                Console.WriteLine($"Stored hash: {userFromRepo?.PasswordHash}");
+                Console.WriteLine($"Stored hash: {user.PasswordHash}");
                 return Unauthorized(new { message = "Invalid username or password." });
             }
 
@@ -162,8 +161,17 @@ namespace HGSMAPI.Controllers
                 return NotFound(new { message = "User not found." });
             }
 
-            userToUpdate.RoleId = assignRoleDto.RoleId;
-            await _userService.UpdateUserAsync(userToUpdate);
+            // Ánh xạ từ UserDTO sang UpdateUserDTO
+            var updateUserDto = new UpdateUserDTO
+            {
+                UserId = userToUpdate.UserId,
+                Username = userToUpdate.Username,
+                Email = userToUpdate.Email,
+                PhoneNumber = userToUpdate.PhoneNumber,
+                RoleId = assignRoleDto.RoleId // Cập nhật RoleId
+            };
+
+            await _userService.UpdateUserAsync(updateUserDto);
 
             return Ok(new { message = "Role assigned successfully.", userId = assignRoleDto.UserId, newRoleId = assignRoleDto.RoleId });
         }
