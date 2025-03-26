@@ -1,14 +1,14 @@
 using Domain.Models;
 using HGSMAPI.AutoMapper;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
-using Microsoft.AspNetCore.Authentication.Cookies; // Thêm namespace này
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.OData;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 using NLog;
-using Infrastructure.Repositories.Implementtations;
+using Infrastructure.Repositories.Implementations; // Sửa namespace
 using Infrastructure.Repositories.Interfaces;
 using Common.Constants;
 using Application.Features.Students.Interfaces;
@@ -21,16 +21,14 @@ using Application.Features.Role.Interfaces;
 using Application.Features.Role.Services;
 using Common.Utils;
 using Application.Features.Timetables.Services;
+using Application.Features.Timetables.Interfaces; // Thêm namespace cho ITimetableService
 using Application.Features.Classes.Interfaces;
 using Application.Features.Classes.Services;
 using Microsoft.EntityFrameworkCore;
 using Application.Features.Attendances.Interfaces;
 using Application.Features.Attendances.Services;
-using Application.Features.Attendances.DTOs;
-using Infrastructure.Repositories.Implementations;
 using Application.Features.GradeBatchs.Interfaces;
 using Application.Services;
-using Infrastructure.Repositories;
 using Application.Features.Grades.Interfaces;
 using Application.Features.Grades.Services;
 using Application.Features.Subjects.Interfaces;
@@ -45,22 +43,62 @@ using Application.Features.LessonPlans.Interfaces;
 using Application.Features.LessonPlans.Services;
 using Application.Features.TeachingAssignments.Interfaces;
 using Application.Features.TeachingAssignments.Services;
+using Application.Features.Attendances.DTOs;
+using Infrastructure.Repositories.Implementtations;
+using Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình NLog
 LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
+
 // Đọc khóa từ appsettings.json
 var encryptionKey = builder.Configuration["SecuritySettings:EncryptionKey"];
+if (string.IsNullOrEmpty(encryptionKey))
+{
+    throw new InvalidOperationException("EncryptionKey is not configured in appsettings.json.");
+}
+
 // Đăng ký SecurityHelper vào DI container
 builder.Services.AddSingleton(new SecurityHelper(encryptionKey));
-// Add services to the container.
-builder.Services.AddCors();
-builder.Services.AddControllers();
-builder.Services.AddControllers().AddJsonOptions(options =>
+
+// Thêm CORS
+builder.Services.AddCors(options =>
 {
-    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
 });
+
+// Thêm controllers và cấu hình JSON
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
+
+// Thêm AutoMapper
 builder.Services.AddAutoMapper(typeof(MappingProfile));
-builder.Services.AddDbContext<HgsdbContext>();
+
+// Thêm DbContext
+builder.Services.AddDbContext<HgsdbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Thêm Session
+builder.Services.AddDistributedMemoryCache(); // Sử dụng bộ nhớ trong để lưu session (cho dev/test)
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".HGSM.Session";
+});
+
+// Đăng ký các dịch vụ và repository
 // Student Management
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
@@ -106,21 +144,27 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ISmsService, TwilioSmsService>();
 
-builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio")); // Sử dụng builder.Configuration
+// Cấu hình Twilio
+builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio"));
 
+// Đăng ký Logger
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
-builder.Services.AddControllers().AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
-builder.Services.AddDbContext<HgsdbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-builder.Services.AddScoped<TimetableService>();
+
+// Thêm HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
 // Configure Authentication
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = "Google"; // Sử dụng Google khi challenge
-    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme; // Dùng Cookies để lưu phiên
+    options.DefaultChallengeScheme = "Google";
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
-.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme) // Thêm Cookie Authentication
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.LoginPath = "/api/Auth/login";
+    options.LogoutPath = "/api/Auth/logout";
+})
 .AddJwtBearer(options =>
 {
     options.SaveToken = true;
@@ -133,7 +177,7 @@ builder.Services.AddAuthentication(options =>
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
         ClockSkew = TimeSpan.Zero,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"])),
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
     };
 })
 .AddGoogle("Google", options =>
@@ -145,7 +189,6 @@ builder.Services.AddAuthentication(options =>
     options.Scope.Add("profile");
     options.Scope.Add("email");
 });
-builder.Services.AddHttpContextAccessor();
 
 // Configure Swagger
 builder.Services.AddEndpointsApiExplorer();
@@ -214,9 +257,10 @@ builder.Services.AddSwaggerGen(option =>
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+// Configure the HTTP request pipeline
 if (app.Environment.IsDevelopment())
 {
+    app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(options =>
     {
@@ -226,20 +270,18 @@ if (app.Environment.IsDevelopment())
         options.OAuthUsePkce();
     });
 }
-app.UseCors(builder =>
-{
-    builder
-    .AllowAnyOrigin()
-    .AllowAnyMethod()
-    .AllowAnyHeader();
-});
+
+app.UseCors("AllowAll");
+
 if (!app.Environment.IsDevelopment())
 {
     app.UseHttpsRedirection();
 }
 
-app.UseAuthentication();
+// Thêm middleware session trước Authentication và Authorization
+app.UseSession();
 
+app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
