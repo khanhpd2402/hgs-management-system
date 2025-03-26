@@ -10,7 +10,7 @@ import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
@@ -180,6 +180,10 @@ const privateRouter = [
       {
         path: "/home",
         element: <div>Home</div>,
+      },
+      {
+        path: "/",
+        element: <Navigate to="/home" />,
       },
       ...studentRouter,
       ...adminRouter,
