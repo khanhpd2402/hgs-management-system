@@ -23,15 +23,12 @@ export const getUsers = async () => {
 };
 
 export const changeUserStatus = async (userId, status) => {
-  const token = JSON.parse(localStorage.getItem("token"));
+  return (await axiosInstance.post(`user/${userId}/change-status`, { status }))
+    .data;
+};
 
-  return (
-    await axiosInstance.post(
-      `user/${userId}/change-status`,
-      { status },
-      {
-        headers: { Authorization: `Bearer ${token}` },
-      },
-    )
-  ).data;
+export const resetUserPassword = async (userId, newPassword) => {
+  return await axiosInstance.post(`user/${userId}/admin-change-password`, {
+    newPassword,
+  });
 };
