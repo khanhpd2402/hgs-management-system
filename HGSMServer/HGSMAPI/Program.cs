@@ -1,0 +1,289 @@
+using Domain.Models;
+using HGSMAPI.AutoMapper;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.OData;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using System.Text;
+using System.Text.Json.Serialization;
+using NLog;
+using Infrastructure.Repositories.Implementations; // Sửa namespace
+using Infrastructure.Repositories.Interfaces;
+using Common.Constants;
+using Application.Features.Students.Interfaces;
+using Application.Features.Students.Services;
+using Application.Features.Users.Interfaces;
+using Application.Features.Users.Services;
+using Application.Features.Teachers.Interfaces;
+using Application.Features.Teachers.Services;
+using Application.Features.Role.Interfaces;
+using Application.Features.Role.Services;
+using Common.Utils;
+using Application.Features.Timetables.Services;
+using Application.Features.Timetables.Interfaces; // Thêm namespace cho ITimetableService
+using Application.Features.Classes.Interfaces;
+using Application.Features.Classes.Services;
+using Microsoft.EntityFrameworkCore;
+using Application.Features.Attendances.Interfaces;
+using Application.Features.Attendances.Services;
+using Application.Features.GradeBatchs.Interfaces;
+using Application.Services;
+using Application.Features.Grades.Interfaces;
+using Application.Features.Grades.Services;
+using Application.Features.Subjects.Interfaces;
+using Application.Features.Subjects.Services;
+using Application.Features.Semesters.Interfaces;
+using Application.Features.Semesters.Services;
+using Application.Features.AcademicYears.Interfaces;
+using Application.Features.AcademicYears.Services;
+using Application.Features.LeaveRequests.Interfaces;
+using Application.Features.LeaveRequests.Services;
+using Application.Features.LessonPlans.Interfaces;
+using Application.Features.LessonPlans.Services;
+using Application.Features.TeachingAssignments.Interfaces;
+using Application.Features.TeachingAssignments.Services;
+using Application.Features.Attendances.DTOs;
+using Infrastructure.Repositories.Implementtations;
+using Infrastructure.Repositories;
+
+var builder = WebApplication.CreateBuilder(args);
+
+// Cấu hình NLog
+LogManager.LoadConfiguration(string.Concat(Directory.GetCurrentDirectory(), "/nlog.config"));
+
+// Đọc khóa từ appsettings.json
+var encryptionKey = builder.Configuration["SecuritySettings:EncryptionKey"];
+if (string.IsNullOrEmpty(encryptionKey))
+{
+    throw new InvalidOperationException("EncryptionKey is not configured in appsettings.json.");
+}
+
+// Đăng ký SecurityHelper vào DI container
+builder.Services.AddSingleton(new SecurityHelper(encryptionKey));
+
+// Thêm CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder.AllowAnyOrigin()
+               .AllowAnyMethod()
+               .AllowAnyHeader();
+    });
+});
+
+// Thêm controllers và cấu hình JSON
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+    })
+    .AddOData(op => op.Select().Expand().Filter().Count().OrderBy().SetMaxTop(AppConstants.MAX_TOP_ODATA));
+
+// Thêm AutoMapper
+builder.Services.AddAutoMapper(typeof(MappingProfile));
+
+// Thêm DbContext
+builder.Services.AddDbContext<HgsdbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Thêm Session
+builder.Services.AddDistributedMemoryCache(); // Sử dụng bộ nhớ trong để lưu session (cho dev/test)
+builder.Services.AddSession(options =>
+{
+    options.IdleTimeout = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name = ".HGSM.Session";
+});
+
+// Đăng ký các dịch vụ và repository
+// Student Management
+builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IStudentRepository, StudentRepository>();
+builder.Services.AddScoped<IGradeService, GradeService>();
+builder.Services.AddScoped<IGradeRepository, GradeRepository>();
+builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
+builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
+
+// Teacher Management
+builder.Services.AddScoped<ITeacherService, TeacherService>();
+builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
+builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
+builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
+builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
+
+// Class & Timetable Management
+builder.Services.AddScoped<IClassService, ClassService>();
+builder.Services.AddScoped<IClassRepository, ClassRepository>();
+builder.Services.AddScoped<ISubjectService, SubjectService>();
+builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
+builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+
+// Academic Year & Semester Management
+builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
+builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
+builder.Services.AddScoped<ISemesterService, SemesterService>();
+builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
+
+// Attendance & Leave Management
+builder.Services.AddScoped<IAttendanceService, AttendanceService>();
+builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
+builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
+builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+
+// User & Role Management
+builder.Services.AddScoped<IUserService, UserService>();
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<IRoleService, RoleService>();
+builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
+// System & Utility Services
+builder.Services.AddScoped<ITokenService, TokenService>();
+builder.Services.AddScoped<ISmsService, TwilioSmsService>();
+
+// Cấu hình Twilio
+builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio"));
+
+// Đăng ký Logger
+builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
+
+// Thêm HttpContextAccessor
+builder.Services.AddHttpContextAccessor();
+
+// Configure Authentication
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = "Google";
+    options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
+})
+.AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
+{
+    options.LoginPath = "/api/Auth/login";
+    options.LogoutPath = "/api/Auth/logout";
+})
+.AddJwtBearer(options =>
+{
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = false,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = builder.Configuration["JWT:Issuer"],
+        ValidAudience = builder.Configuration["JWT:Audience"],
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+    };
+})
+.AddGoogle("Google", options =>
+{
+    options.ClientId = builder.Configuration["Google:ClientId"];
+    options.ClientSecret = builder.Configuration["Google:ClientSecret"];
+    options.CallbackPath = "/GoogleLogin/callback";
+    options.SaveTokens = true;
+    options.Scope.Add("profile");
+    options.Scope.Add("email");
+});
+
+// Configure Swagger
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(option =>
+{
+    option.SwaggerDoc("v1", new OpenApiInfo { Title = "Project API", Version = "v1" });
+
+    // Cấu hình Bearer token
+    option.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+    {
+        In = ParameterLocation.Header,
+        Description = "Please enter a valid token",
+        Name = "Authorization",
+        Type = SecuritySchemeType.Http,
+        BearerFormat = "JWT",
+        Scheme = "Bearer"
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "Bearer"
+                }
+            },
+            new string[]{}
+        }
+    });
+
+    // Cấu hình OAuth2 cho Google
+    option.AddSecurityDefinition("oauth2", new OpenApiSecurityScheme
+    {
+        Type = SecuritySchemeType.OAuth2,
+        Flows = new OpenApiOAuthFlows
+        {
+            AuthorizationCode = new OpenApiOAuthFlow
+            {
+                AuthorizationUrl = new Uri("https://accounts.google.com/o/oauth2/auth"),
+                TokenUrl = new Uri("https://oauth2.googleapis.com/token"),
+                Scopes = new Dictionary<string, string>
+                {
+                    { "profile", "Access to your profile" },
+                    { "email", "Access to your email" }
+                }
+            }
+        }
+    });
+    option.AddSecurityRequirement(new OpenApiSecurityRequirement
+    {
+        {
+            new OpenApiSecurityScheme
+            {
+                Reference = new OpenApiReference
+                {
+                    Type = ReferenceType.SecurityScheme,
+                    Id = "oauth2"
+                }
+            },
+            new string[] { "profile", "email" }
+        }
+    });
+});
+
+var app = builder.Build();
+
+// Configure the HTTP request pipeline
+if (app.Environment.IsDevelopment())
+{
+    app.UseDeveloperExceptionPage();
+    app.UseSwagger();
+    app.UseSwaggerUI(options =>
+    {
+        options.SwaggerEndpoint("/swagger/v1/swagger.json", "Project API v1");
+        options.OAuthClientId(builder.Configuration["Google:ClientId"]);
+        options.OAuthScopes("profile", "email");
+        options.OAuthUsePkce();
+    });
+}
+
+app.UseCors("AllowAll");
+
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
+
+// Thêm middleware session trước Authentication và Authorization
+app.UseSession();
+
+app.UseAuthentication();
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.Run();

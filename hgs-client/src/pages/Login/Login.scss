@@ -1,0 +1,120 @@
+.login-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  padding: 1rem;
+}
+
+.login-content {
+  display: flex;
+  width: 100%;
+  max-width: 1000px;
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+.login-left {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 3rem;
+  background: linear-gradient(135deg, #1e3c72 0%, #2a5298 100%);
+  color: white;
+
+  @media (max-width: 768px) {
+    display: none;
+  }
+}
+
+.school-logo {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 80px;
+  height: 80px;
+  background: white;
+  border-radius: 50%;
+  margin: 0 auto 2rem;
+  span {
+    font-size: 28px;
+    font-weight: 800;
+    color: #1e3c72;
+    letter-spacing: -1px;
+  }
+}
+
+.login-welcome {
+  text-align: center;
+
+  h1 {
+    font-size: 2rem;
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+    color: rgba(255, 255, 255, 0.9);
+  }
+
+  .school-name {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 1rem;
+    color: white;
+    letter-spacing: 0.5px;
+  }
+
+  .system-description {
+    font-size: 1rem;
+    color: rgba(255, 255, 255, 0.8);
+    font-weight: 400;
+    margin-top: 1rem;
+  }
+}
+
+.login-card {
+  flex: 1;
+  max-width: 450px;
+  border: none;
+  background: white;
+  border-radius: 0;
+  padding: 2.5rem;
+
+  @media (max-width: 768px) {
+    max-width: 100%;
+    border-radius: 12px;
+    padding: 2rem;
+  }
+}
+
+.login-button {
+  background: linear-gradient(to right, #1e3c72, #2a5298);
+  transition: all 0.2s ease;
+
+  &:hover:not(:disabled) {
+    background: linear-gradient(to right, #1a3666, #22478d);
+    box-shadow: 0 4px 8px rgba(30, 60, 114, 0.3);
+  }
+
+  &:disabled {
+    opacity: 0.7;
+    cursor: not-allowed;
+  }
+}
+
+.form-item {
+  transition: all 0.2s ease;
+
+  &:focus-within {
+    .form-label {
+      color: #1e3c72;
+    }
+  }
+}
+
+.form-message {
+  margin-top: 0.25rem;
+}
