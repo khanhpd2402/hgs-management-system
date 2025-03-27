@@ -99,6 +99,8 @@ builder.Services.AddSession(options =>
 });
 
 // Đăng ký các dịch vụ và repository
+//Parent Management
+builder.Services.AddScoped<IParentRepository, ParentRepository>();
 // Student Management
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();

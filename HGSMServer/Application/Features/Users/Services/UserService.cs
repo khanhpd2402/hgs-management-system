@@ -1,6 +1,7 @@
 ﻿using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
 using Domain.Models;
+using Infrastructure.Repositories.Implementations;
 using Infrastructure.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
@@ -13,16 +14,27 @@ namespace Application.Features.Users.Services
     {
         private readonly IUserRepository _userRepository;
         private readonly IRoleRepository _roleRepository;
+        private readonly ITeacherRepository _teacherRepository;
+        private readonly IParentRepository _parentRepository;
+        private readonly IStudentRepository _studentRepository;
 
-        public UserService(IUserRepository userRepository, IRoleRepository roleRepository)
+        public UserService(
+            IUserRepository userRepository,
+            IRoleRepository roleRepository,
+            ITeacherRepository teacherRepository,
+            IParentRepository parentRepository,
+            IStudentRepository studentRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
+            _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
+            _parentRepository = parentRepository ?? throw new ArgumentNullException(nameof(parentRepository));
+            _studentRepository = studentRepository ?? throw new ArgumentNullException(nameof(studentRepository));
         }
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
-            var users = await _userRepository.GetAllAsync();
+            var users = await _userRepository.GetAllUsersWithTeacherAndParentInfoAsync();
             return users.Select(u => new UserDTO
             {
                 UserId = u.UserId,
@@ -31,13 +43,14 @@ namespace Application.Features.Users.Services
                 PhoneNumber = u.PhoneNumber,
                 RoleId = u.RoleId,
                 Status = u.Status,
-                PasswordHash = u.PasswordHash
+                PasswordHash = u.PasswordHash,
+                FullName = u.Teacher?.FullName ?? u.Parent?.FullName
             }).ToList();
         }
 
         public async Task<UserDTO?> GetUserByIdAsync(int id)
         {
-            var user = await _userRepository.GetByIdAsync(id);
+            var user = await _userRepository.GetUserWithTeacherAndParentInfoAsync(id);
             if (user == null) return null;
 
             return new UserDTO
@@ -48,7 +61,8 @@ namespace Application.Features.Users.Services
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
                 Status = user.Status,
-                PasswordHash = user.PasswordHash
+                PasswordHash = user.PasswordHash,
+                FullName = user.Teacher?.FullName ?? user.Parent?.FullName
             };
         }
 
@@ -57,15 +71,17 @@ namespace Application.Features.Users.Services
             var user = await _userRepository.GetByEmailAsync(email);
             if (user == null) return null;
 
+            var userWithDetails = await _userRepository.GetUserWithTeacherAndParentInfoAsync(user.UserId);
             return new UserDTO
             {
-                UserId = user.UserId,
-                Username = user.Username,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                RoleId = user.RoleId,
-                Status = user.Status,
-                PasswordHash = user.PasswordHash
+                UserId = userWithDetails.UserId,
+                Username = userWithDetails.Username,
+                Email = userWithDetails.Email,
+                PhoneNumber = userWithDetails.PhoneNumber,
+                RoleId = userWithDetails.RoleId,
+                Status = userWithDetails.Status,
+                PasswordHash = userWithDetails.PasswordHash,
+                FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullName
             };
         }
 
@@ -74,15 +90,17 @@ namespace Application.Features.Users.Services
             var user = await _userRepository.GetByUsernameAsync(username);
             if (user == null) return null;
 
+            var userWithDetails = await _userRepository.GetUserWithTeacherAndParentInfoAsync(user.UserId);
             return new UserDTO
             {
-                UserId = user.UserId,
-                Username = user.Username,
-                Email = user.Email,
-                PhoneNumber = user.PhoneNumber,
-                RoleId = user.RoleId,
-                Status = user.Status,
-                PasswordHash = user.PasswordHash
+                UserId = userWithDetails.UserId,
+                Username = userWithDetails.Username,
+                Email = userWithDetails.Email,
+                PhoneNumber = userWithDetails.PhoneNumber,
+                RoleId = userWithDetails.RoleId,
+                Status = userWithDetails.Status,
+                PasswordHash = userWithDetails.PasswordHash,
+                FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullName
             };
         }
 
@@ -97,6 +115,7 @@ namespace Application.Features.Users.Services
             if (userDto.PasswordHash.Length < 8)
                 throw new ArgumentException("Password must be at least 8 characters long.");
 
+            // Tạo User
             var user = new User
             {
                 Username = userDto.Username,
@@ -104,10 +123,53 @@ namespace Application.Features.Users.Services
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
-                Status = "Active" // Gán mặc định Status = "Active"
+                Status = "Active"
             };
 
             await _userRepository.AddAsync(user);
+
+            // Kiểm tra RoleId để quyết định tạo bản ghi trong Teachers hoặc Parents
+            if (userDto.RoleId != 6) // 6 là RoleID của Parent
+            {
+                var teacher = new Teacher
+                {
+                    UserId = user.UserId,
+                    FullName = userDto.FullName,
+                    Dob = DateOnly.FromDateTime(userDto.DOB),
+                    Gender = userDto.Gender,
+                    SchoolJoinDate = DateOnly.FromDateTime(userDto.SchoolJoinDate),
+                    Ethnicity = null,
+                    Religion = null,
+                    MaritalStatus = null,
+                    IdcardNumber = null,
+                    InsuranceNumber = null,
+                    EmploymentType = null,
+                    Position = null,
+                    Department = null,
+                    AdditionalDuties = null,
+                    IsHeadOfDepartment = false,
+                    EmploymentStatus = null,
+                    RecruitmentAgency = null,
+                    HiringDate = null,
+                    PermanentEmploymentDate = null,
+                    PermanentAddress = null,
+                    Hometown = null
+                };
+
+                await _teacherRepository.AddAsync(teacher);
+            }
+            else // RoleId = 6 (Parent)
+            {
+                var parent = new Parent
+                {
+                    UserId = user.UserId,
+                    FullName = userDto.FullName,
+                    Dob = userDto.DOB != default ? DateOnly.FromDateTime(userDto.DOB) : null,
+                    Occupation = null
+                };
+
+                await _parentRepository.AddAsync(parent);
+            }
         }
 
         public async Task UpdateUserAsync(UpdateUserDTO userDto)
@@ -123,7 +185,6 @@ namespace Application.Features.Users.Services
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
             user.RoleId = userDto.RoleId;
-            // Không cập nhật Status từ DTO
 
             await _userRepository.UpdateAsync(user);
         }
@@ -190,5 +251,7 @@ namespace Application.Features.Users.Services
             user.Status = newStatus;
             await _userRepository.UpdateAsync(user);
         }
+
+        
     }
 }
