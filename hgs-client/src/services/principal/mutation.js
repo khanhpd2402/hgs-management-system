@@ -1,5 +1,5 @@
 import { useMutation } from "@tanstack/react-query";
-import { addGradeBatch, changeUserStatus } from "./api";
+import { addGradeBatch, changeUserStatus, resetUserPassword } from "./api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -36,6 +36,23 @@ export function useChangeStatus() {
         console.log(data);
         queryClient.invalidateQueries({ queryKey: ["users"] });
         // toast.success("Thay đổi trạng thái thành công");
+      }
+    },
+  });
+}
+
+export function useResetPassword() {
+  return useMutation({
+    mutationFn: ({ userId, newPassword }) => {
+      return resetUserPassword(userId, newPassword);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đặt lại mật khẩu thất bại");
+      } else {
+        console.log(data);
+        toast.success("Đặt lại mật khẩu thành công");
       }
     },
   });

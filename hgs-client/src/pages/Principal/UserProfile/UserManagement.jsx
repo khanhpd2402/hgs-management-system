@@ -15,7 +15,10 @@ import MyPagination from "@/components/MyPagination";
 import PaginationControls from "@/components/PaginationControls";
 import { Key, Search, Lock, UserRound } from "lucide-react";
 import { useUsers } from "@/services/principal/queries";
-import { useChangeStatus } from "@/services/principal/mutation";
+import {
+  useChangeStatus,
+  useResetPassword,
+} from "@/services/principal/mutation";
 import {
   Dialog,
   DialogContent,
@@ -26,6 +29,8 @@ import {
 } from "@/components/ui/dialog";
 import CustomTooltip from "@/components/common/CustomToolTip";
 import toast from "react-hot-toast";
+import { Label } from "@/components/ui/label";
+import CustomPasswordInput from "@/components/common/CustomPasswordInput";
 
 const UserManagement = () => {
   const [filter, setFilter] = useState({
@@ -38,7 +43,13 @@ const UserManagement = () => {
     userId: null,
     currentStatus: null,
   });
-
+  const [passwordDialog, setPasswordDialog] = useState({
+    isOpen: false,
+    userId: null,
+    username: null,
+    newPassword: "",
+  });
+  const resetPasswordMutation = useResetPassword();
   const statusMutation = useChangeStatus();
   const userQuery = useUsers();
   const allUsers = userQuery.data || [];
@@ -85,6 +96,33 @@ const UserManagement = () => {
       isOpen: false,
       userId: null,
       currentStatus: null,
+    });
+  };
+
+  const openPasswordDialog = (userId, username) => {
+    setPasswordDialog({
+      isOpen: true,
+      userId,
+      username,
+      newPassword: "Haigiang@2025",
+    });
+  };
+
+  const closePasswordDialog = () => {
+    setPasswordDialog({
+      isOpen: false,
+      userId: null,
+      username: null,
+      newPassword: "",
+    });
+  };
+
+  const handleResetPassword = () => {
+    if (!passwordDialog.userId || !passwordDialog.newPassword) return;
+
+    resetPasswordMutation.mutate({
+      userId: passwordDialog.userId,
+      newPassword: passwordDialog.newPassword,
     });
   };
 
@@ -138,22 +176,22 @@ const UserManagement = () => {
             <Table className="table-fixed border-collapse">
               <TableHeader className="bg-slate-100">
                 <TableRow className="border-b border-gray-200">
-                  <TableHead className="w-24 border border-gray-200 text-center">
+                  <TableHead className="w-40 border border-gray-200 text-center">
                     Thao tác
                   </TableHead>
                   <TableHead className="w-16 border border-gray-200 text-center">
                     STT
                   </TableHead>
-                  <TableHead className="w-48 border border-gray-200">
+                  <TableHead className="w-48 border border-gray-200 text-center">
                     Tên cán bộ
                   </TableHead>
-                  <TableHead className="w-44 border border-gray-200">
+                  <TableHead className="w-44 border border-gray-200 text-center">
                     Tên đăng nhập
                   </TableHead>
-                  <TableHead className="w-64 border border-gray-200">
+                  <TableHead className="w-56 border border-gray-200 text-center">
                     Email
                   </TableHead>
-                  <TableHead className="w-32 border border-gray-200">
+                  <TableHead className="w-32 border border-gray-200 text-center">
                     Điện thoại
                   </TableHead>
 
@@ -217,6 +255,9 @@ const UserManagement = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 cursor-pointer rounded-full bg-gray-100"
+                              onClick={() =>
+                                openPasswordDialog(user.userId, user.username)
+                              }
                             >
                               <Key className="h-4 w-4 text-green-500" />
                             </Button>
@@ -317,6 +358,57 @@ const UserManagement = () => {
                 : statusDialog.currentStatus === "Active"
                   ? "Khóa tài khoản"
                   : "Mở khóa tài khoản"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={passwordDialog.isOpen} onOpenChange={closePasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Đặt lại mật khẩu</DialogTitle>
+            <DialogDescription>
+              Đặt lại mật khẩu cho tài khoản {passwordDialog.username}
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div>
+              <Label htmlFor="newPassword" className="text-center">
+                Mật khẩu mới
+              </Label>
+              <CustomPasswordInput
+                id="newPassword"
+                value={passwordDialog.newPassword}
+                onChange={(e) =>
+                  setPasswordDialog({
+                    ...passwordDialog,
+                    newPassword: e.target.value,
+                  })
+                }
+                className="mt-3"
+              />
+            </div>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={closePasswordDialog}
+              className="mt-2 sm:mt-0"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={handleResetPassword}
+              className="mt-2 sm:mt-0"
+              disabled={
+                resetPasswordMutation.isPending || !passwordDialog.newPassword
+              }
+            >
+              {resetPasswordMutation.isPending
+                ? "Đang xử lý..."
+                : "Đặt lại mật khẩu"}
             </Button>
           </DialogFooter>
         </DialogContent>
