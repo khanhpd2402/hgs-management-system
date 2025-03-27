@@ -13,7 +13,7 @@ namespace HGSMAPI.Controllers
 
         public StudentController(IStudentService studentService)
         {
-            _studentService = studentService;
+            _studentService = studentService ?? throw new ArgumentNullException(nameof(studentService));
         }
 
         // Lấy danh sách học sinh theo năm học
@@ -34,50 +34,65 @@ namespace HGSMAPI.Controllers
             return Ok(student);
         }
 
-
         // POST: api/Student
         [HttpPost]
+        [Consumes("application/json")] // Chỉ chấp nhận Content-Type là application/json
         public async Task<IActionResult> CreateStudent([FromBody] CreateStudentDto createStudentDto)
         {
-            if (createStudentDto == null) return BadRequest();
+            if (createStudentDto == null) return BadRequest("Student data cannot be null.");
 
-            var studentId = await _studentService.AddStudentAsync(createStudentDto);
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                return BadRequest(new { message = "Invalid input data.", errors });
+            }
 
-            return CreatedAtAction(nameof(GetStudent), new { id = studentId }, createStudentDto);
+            try
+            {
+                var studentId = await _studentService.AddStudentAsync(createStudentDto);
+                return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId = 1 }, createStudentDto);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // PUT: api/Student/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDto updateStudentDto)
         {
-            if (id != updateStudentDto.StudentId) return BadRequest();
+            if (id != updateStudentDto.StudentId) return BadRequest("Student ID mismatch.");
 
-            await _studentService.UpdateStudentAsync(updateStudentDto);
-            return NoContent();
+            try
+            {
+                await _studentService.UpdateStudentAsync(updateStudentDto);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // DELETE: api/Student/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
-            await _studentService.DeleteStudentAsync(id);
-            return NoContent();
+            try
+            {
+                await _studentService.DeleteStudentAsync(id);
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
-        //[HttpGet("export-full-excel")]
-        //public async Task<IActionResult> ExportStudentsFullToExcel()
-        //{
-        //    var fileBytes = await _studentService.ExportStudentsFullToExcelAsync();
-        //    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students_Full.xlsx");
-        //}
-
-        //[HttpPost("export-selected-excel")]
-        //public async Task<IActionResult> ExportStudentsSelectedToExcel([FromBody] List<string> selectedColumns)
-        //{
-        //    var fileBytes = await _studentService.ExportStudentsSelectedToExcelAsync(selectedColumns);
-        //    return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Students_Selected.xlsx");
-        //}
-
-
 
         [HttpPost("import")]
         public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)
@@ -85,9 +100,15 @@ namespace HGSMAPI.Controllers
             if (file == null || file.Length == 0)
                 return BadRequest("Vui lòng chọn file Excel!");
 
-            await _studentService.ImportStudentsFromExcelAsync(file);
-            return Ok("Import danh sách học sinh thành công!");
+            try
+            {
+                await _studentService.ImportStudentsFromExcelAsync(file);
+                return Ok("Import danh sách học sinh thành công!");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
-
     }
 }
