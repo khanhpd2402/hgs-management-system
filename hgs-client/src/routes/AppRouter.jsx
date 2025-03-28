@@ -13,6 +13,7 @@ import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
+import AddStudent from "@/pages/Student/Profile/AddStudent";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -161,6 +162,14 @@ const studentRouter = [
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <StudentProfile />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/student/profile/create-student",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AddStudent />
       </Suspense>
     ),
   },
