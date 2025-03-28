@@ -9,8 +9,13 @@ namespace Application.Features.Users.Interfaces
         Task<IEnumerable<UserDTO>> GetAllUsersAsync();
         Task<UserDTO?> GetUserByIdAsync(int id);
         Task<UserDTO?> GetUserByEmailAsync(string email);
-        Task AddUserAsync(UserDTO userDto);
-        Task UpdateUserAsync(UserDTO userDto);
+        Task<UserDTO?> GetUserByUsernameAsync(string username);
+        Task AddUserAsync(CreateUserDTO userDto); // Use CreateUserDTO
+        Task UpdateUserAsync(UpdateUserDTO userDto); // Use UpdateUserDTO
         Task DeleteUserAsync(int id);
+        Task<string?> GetRoleNameByRoleIdAsync(int roleId);
+        Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
+        Task AdminChangePasswordAsync(int userId, string newPassword);
+        Task ChangeUserStatusAsync(int userId, string newStatus);
     }
 }
