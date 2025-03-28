@@ -57,6 +57,12 @@ const menuItems = [
         label: "Thời khóa biểu",
         path: "/teacher/schedule",
       },
+      {
+        label: "Đề xuất giảng dạy",
+        path: "/teacher/request-lesson-plan",
+      },
+
+
     ],
   },
   {
