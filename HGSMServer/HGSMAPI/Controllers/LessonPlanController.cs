@@ -18,19 +18,20 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("upload")]
-        [Authorize(Roles = "Teacher")]
+        [Authorize(Roles = "Teacher, HeadOfDepartment")]
         public async Task<IActionResult> UploadLessonPlan([FromBody] LessonPlanUploadDto lessonPlanDto)
         {
             try
             {
                 await _lessonPlanService.UploadLessonPlanAsync(lessonPlanDto);
-                return Ok(new { message = "Lesson plan uploaded successfully.", planId = 1 }); // Cần lấy ID thực tế từ repository
+                return Ok(new { message = "Lesson plan uploaded successfully." });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Error uploading lesson plan.", error = ex.Message });
             }
         }
+
 
         [HttpPost("review")]
         [Authorize(Roles = "HeadOfDepartment")]
@@ -44,6 +45,51 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Error reviewing lesson plan.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("all")]
+        [Authorize(Roles = "Teacher, HeadOfDepartment, Principal")]
+        public async Task<IActionResult> GetAllLessonPlans([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var (lessonPlans, totalCount) = await _lessonPlanService.GetAllLessonPlansAsync(pageNumber, pageSize);
+                return Ok(new { lessonPlans, totalCount });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving lesson plans.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("{planId}")]
+        [Authorize(Roles = "Teacher, HeadOfDepartment, Principal")] 
+        public async Task<IActionResult> GetLessonPlanById(int planId)
+        {
+            try
+            {
+                var lessonPlan = await _lessonPlanService.GetLessonPlanByIdAsync(planId);
+                return Ok(lessonPlan);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error retrieving lesson plan.", error = ex.Message });
+            }
+        }
+
+        [HttpGet("filter-by-status")]
+        [Authorize(Roles = "Teacher, HeadOfDepartment, Principal")]
+        public async Task<IActionResult> GetLessonPlansByStatus([FromQuery] string status, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        {
+            try
+            {
+                var (lessonPlans, totalCount) = await _lessonPlanService.GetLessonPlansByStatusAsync(status, pageNumber, pageSize);
+                return Ok(new { lessonPlans, totalCount });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = "Error filtering lesson plans.", error = ex.Message });
             }
         }
     }
