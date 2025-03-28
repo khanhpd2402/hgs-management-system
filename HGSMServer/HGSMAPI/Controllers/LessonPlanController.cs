@@ -24,13 +24,14 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _lessonPlanService.UploadLessonPlanAsync(lessonPlanDto);
-                return Ok(new { message = "Lesson plan uploaded successfully.", planId = 1 }); // Cần lấy ID thực tế từ repository
+                return Ok(new { message = "Lesson plan uploaded successfully." });
             }
             catch (Exception ex)
             {
                 return BadRequest(new { message = "Error uploading lesson plan.", error = ex.Message });
             }
         }
+
 
         [HttpPost("review")]
         [Authorize(Roles = "HeadOfDepartment")]
