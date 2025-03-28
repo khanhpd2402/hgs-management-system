@@ -57,5 +57,16 @@ namespace Infrastructure.Repositories
                     p.User.PhoneNumber == phoneNumber &&
                     p.User.Email == email);
         }
+
+        public async Task<StudentParent> GetStudentParentByRelationshipAsync(int studentId, string relationship)
+        {
+            return await _context.StudentParents
+                .FirstOrDefaultAsync(sp => sp.StudentId == studentId && sp.Relationship == relationship);
+        }
+        public async Task UpdateAsync(Parent parent)
+        {
+            _context.Parents.Update(parent);
+            await _context.SaveChangesAsync();
+        }
     }
 }
