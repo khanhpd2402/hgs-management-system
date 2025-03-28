@@ -6,6 +6,7 @@ import StudentFilter from "./StudentFilter";
 import { Button } from "@/components/ui/button";
 import { Settings } from "lucide-react";
 import ColumnConfigModal from "@/components/ColumnConfigModal";
+import { useNavigate } from "react-router";
 
 const StudentTableHeader = ({
   type = "student",
@@ -15,6 +16,7 @@ const StudentTableHeader = ({
   columns,
 }) => {
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
+  const navigate = useNavigate();
   return (
     <div className="mb-4 flex items-center justify-between">
       <h2 className="text-lg font-semibold">Danh sách học sinh</h2>
@@ -22,6 +24,12 @@ const StudentTableHeader = ({
         <StudentFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
         <ExportExcelByColumn type={type} visibleColumns={columns} />
+        <Button
+          variant="outline"
+          onClick={() => navigate("/student/profile/create-student")}
+        >
+          Thêm mới
+        </Button>
         <Button
           variant="outline"
           onClick={() => setIsColumnConfigOpen(true)}

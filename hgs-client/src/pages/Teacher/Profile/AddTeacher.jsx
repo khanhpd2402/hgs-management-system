@@ -48,8 +48,14 @@ export default function AddTeacher() {
       }),
     idcardNumber: z
       .string()
-      .length(12, "Số CMND/CCCD phải có đúng 12 chữ số")
-      .regex(/^\d{12}$/, "Số CMND/CCCD chỉ được chứa chữ số"),
+      .refine(
+        (val) => !val || val.length === 9 || val.length === 12,
+        "Số CMND/CCCD phải có 9 hoặc 12 chữ số",
+      )
+      .refine(
+        (val) => !val || /^\d+$/.test(val),
+        "Số CMND/CCCD chỉ được chứa chữ số",
+      ),
     hometown: z
       .string()
       .min(1, "Quê quán không được để trống")

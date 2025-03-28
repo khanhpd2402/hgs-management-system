@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,79 +20,67 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useEffect } from "react";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import { formatDate } from "@/helpers/formatDate";
 
 export default function StudentProfile() {
   const { id } = useParams();
-  const studentQuery = useStudent(id);
+  const { currentYear } = useLayout();
+  const academicYearId = currentYear?.academicYearID;
+  const studentQuery = useStudent({ id, academicYearId });
   const { mutate, isPending: isUpdating } = useUpdateStudent();
 
   console.log(studentQuery.data);
 
   const studentSchema = z.object({
-    // Basic student info
-    fullName: z
+    studentId: z.coerce.number().int().nonnegative(),
+    fullName: z.string().min(1, "Vui lòng nhập họ và tên"),
+    dob: z.string().min(1, "Date of birth is required"),
+    gender: z.string().min(1, "Vui lòng chọn giới tính"),
+    classId: z.coerce.number().int().nonnegative(),
+    admissionDate: z.string().min(1, "Vui lòng nhập ngày nhập học"),
+    enrollmentType: z.string().min(1, "Vui lòng nhập phương thức trúng tuyển"),
+    ethnicity: z.string().optional(),
+    permanentAddress: z.string().optional(),
+    birthPlace: z.string().optional(),
+    religion: z.string().optional(),
+    repeatingYear: z.boolean().default(false),
+    idcardNumber: zz
       .string()
-      .min(1, "Họ và tên không được để trống")
-      .regex(
-        /^[\p{L}\s]+$/u,
-        "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+      .optional()
+      .refine(
+        (val) => !val || val.length === 8 || val.length === 12,
+        "Số CMND/CCCD phải có 8 hoặc 12 chữ số",
+      )
+      .refine(
+        (val) => !val || /^\d+$/.test(val),
+        "Số CMND/CCCD chỉ được chứa chữ số",
       ),
-    dob: z.date().nullable(),
-    gender: z.enum(["Nam", "Nữ", "Khác"]).optional(),
-    grade: z.string().min(1, "Khối lớp không được để trống"),
-    className: z.string().min(1, "Lớp học không được để trống"),
-    status: z.enum(["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]),
-    registrationNumber: z.string().optional(),
-    admissionType: z.string().optional(),
+    status: z.string().min(1, "Vui lòng chọn trạng thái học sinh"),
 
-    // Parent information - Father
-    fatherName: z
-      .string()
-      .min(1, "Họ tên cha không được để trống")
-      .regex(
-        /^[\p{L}\s]+$/u,
-        "Họ tên cha không được chứa số hoặc ký tự đặc biệt",
-      ),
-    fatherOccupation: z.string().optional(),
-    fatherPhone: z
-      .string()
-      .regex(/^0\d{9}$/, "Số điện thoại phải có 10 số và bắt đầu bằng số 0")
-      .optional(),
+    // Father information
+    fullNameFather: z.string().optional(),
+    yearOfBirthFather: z.string().optional(),
+    occupationFather: z.string().optional(),
+    phoneNumberFather: z.string().optional(),
+    emailFather: z.string().optional(),
+    idcardNumberFather: z.string().optional(),
 
-    // Parent information - Mother
-    motherName: z
-      .string()
-      .min(1, "Họ tên mẹ không được để trống")
-      .regex(
-        /^[\p{L}\s]+$/u,
-        "Họ tên mẹ không được chứa số hoặc ký tự đặc biệt",
-      ),
-    motherOccupation: z.string().optional(),
-    motherPhone: z
-      .string()
-      .regex(/^0\d{9}$/, "Số điện thoại phải có 10 số và bắt đầu bằng số 0")
-      .optional(),
+    // Mother information
+    fullNameMother: z.string().optional(),
+    yearOfBirthMother: z.string().optional(),
+    occupationMother: z.string().optional(),
+    phoneNumberMother: z.string().optional(),
+    emailMother: z.string().optional(),
+    idcardNumberMother: z.string().optional(),
 
-    // Address information
-    province: z
-      .string()
-      .min(1, "Tỉnh/TP không được để trống")
-      .regex(/^[\p{L}\s]+$/u, "Tỉnh/TP không được chứa số hoặc ký tự đặc biệt"),
-    district: z
-      .string()
-      .min(1, "Quận/huyện không được để trống")
-      .regex(
-        /^[\p{L}\s]+$/u,
-        "Quận/huyện không được chứa số hoặc ký tự đặc biệt",
-      ),
-    ward: z
-      .string()
-      .min(1, "Xã/phường không được để trống")
-      .regex(
-        /^[\p{L}\s]+$/u,
-        "Xã/phường không được chứa số hoặc ký tự đặc biệt",
-      ),
-    address: z.string().optional(),
+    // Guardian information
+    fullNameGuardian: z.string().optional(),
+    yearOfBirthGuardian: z.string().optional(),
+    occupationGuardian: z.string().optional(),
+    phoneNumberGuardian: z.string().optional(),
+    emailGuardian: z.string().optional(),
+    idcardNumberGuardian: z.string().optional(),
   });
 
   const {
@@ -107,8 +94,34 @@ export default function StudentProfile() {
   } = useForm({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      status: "Đang học",
-      gender: "Nữ",
+      studentId: 0,
+      fullName: "",
+      gender: "",
+      classId: 0,
+      enrollmentType: "",
+      repeatingYear: false,
+      status: "",
+      // Father information
+      fullNameFather: "",
+      yearOfBirthFather: "",
+      occupationFather: "",
+      phoneNumberFather: "",
+      emailFather: "",
+      idcardNumberFather: "",
+      // Mother information
+      fullNameMother: "",
+      yearOfBirthMother: "",
+      occupationMother: "",
+      phoneNumberMother: "",
+      emailMother: "",
+      idcardNumberMother: "",
+      // Guardian information
+      fullNameGuardian: "",
+      yearOfBirthGuardian: "",
+      occupationGuardian: "",
+      phoneNumberGuardian: "",
+      emailGuardian: "",
+      idcardNumberGuardian: "",
     },
   });
 
@@ -118,7 +131,7 @@ export default function StudentProfile() {
       // Set form values from studentQuery.data
       Object.keys(studentQuery.data).forEach((key) => {
         // Handle date fields separately
-        if (["dob"].includes(key) && studentQuery.data[key]) {
+        if (["dob", "admissionDate"].includes(key) && studentQuery.data[key]) {
           try {
             setValue(key, new Date(studentQuery.data[key]));
           } catch (e) {
@@ -129,6 +142,20 @@ export default function StudentProfile() {
           setValue(key, studentQuery.data[key]);
         }
       });
+
+      // Handle parent dates
+      if (studentQuery.data.parents) {
+        studentQuery.data.parents.forEach((parent, index) => {
+          if (parent.dob) {
+            try {
+              setValue(`parents.${index}.dob`, new Date(parent.dob));
+            } catch (e) {
+              console.error(`Error parsing parent date of birth:`, e);
+              setValue(`parents.${index}.dob`, null);
+            }
+          }
+        });
+      }
     }
   }, [studentQuery.data, setValue]);
 
@@ -216,7 +243,6 @@ export default function StudentProfile() {
           {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
         </Button>
       </div>
-
       {/* Basic Student Info Card */}
       <Card>
         <CardHeader>
@@ -251,6 +277,21 @@ export default function StudentProfile() {
             defaultValue={studentQuery.data?.gender}
           />
           <FormField
+            name="ethnicity"
+            label="Dân tộc"
+            defaultValue={studentQuery.data?.ethnicity}
+          />
+          <FormField
+            name="religion"
+            label="Tôn giáo"
+            defaultValue={studentQuery.data?.religion}
+          />
+          <FormField
+            name="idcardNumber"
+            label="CCCD/CMND"
+            defaultValue={studentQuery.data?.idcardNumber}
+          />
+          <FormField
             name="grade"
             label="Khối"
             defaultValue={studentQuery.data?.grade}
@@ -267,104 +308,66 @@ export default function StudentProfile() {
             options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
             defaultValue={studentQuery.data?.status}
           />
-        </CardContent>
-      </Card>
-
-      {/* Registration Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin hồ sơ</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
-            name="registrationNumber"
-            label="Số đăng bộ"
-            defaultValue={studentQuery.data?.registrationNumber}
+            name="enrollmentType"
+            label="Hình thức trúng tuyển"
+            defaultValue={studentQuery.data?.enrollmentType}
           />
           <FormField
-            name="admissionType"
-            label="Hình thức trúng tuyển"
-            defaultValue={studentQuery.data?.admissionType}
+            type="date"
+            name="admissionDate"
+            label="Ngày nhập học"
+            defaultValue={studentQuery.data?.admissionDate}
+          />
+          <FormField
+            name="birthPlace"
+            label="Nơi sinh"
+            defaultValue={studentQuery.data?.birthPlace}
+          />
+          <FormField
+            name="permanentAddress"
+            label="Địa chỉ thường trú"
+            defaultValue={studentQuery.data?.permanentAddress}
           />
         </CardContent>
       </Card>
 
       {/* Father Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin cha</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            name="fatherName"
-            label="Họ và tên"
-            defaultValue={studentQuery.data?.fatherName}
-          />
-          <FormField
-            name="fatherOccupation"
-            label="Nghề nghiệp"
-            defaultValue={studentQuery.data?.fatherOccupation}
-          />
-          <FormField
-            name="fatherPhone"
-            label="Số điện thoại"
-            defaultValue={studentQuery.data?.fatherPhone}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Mother Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin mẹ</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            name="motherName"
-            label="Họ và tên"
-            defaultValue={studentQuery.data?.motherName}
-          />
-          <FormField
-            name="motherOccupation"
-            label="Nghề nghiệp"
-            defaultValue={studentQuery.data?.motherOccupation}
-          />
-          <FormField
-            name="motherPhone"
-            label="Số điện thoại"
-            defaultValue={studentQuery.data?.motherPhone}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Address Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin địa chỉ và hộ khẩu</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField
-            name="province"
-            label="Tỉnh/Thành phố"
-            defaultValue={studentQuery.data?.province}
-          />
-          <FormField
-            name="district"
-            label="Quận/Huyện"
-            defaultValue={studentQuery.data?.district}
-          />
-          <FormField
-            name="ward"
-            label="Xã/Phường"
-            defaultValue={studentQuery.data?.ward}
-          />
-          <FormField
-            name="address"
-            label="Thôn/Xóm/Số nhà"
-            defaultValue={studentQuery.data?.address}
-          />
-        </CardContent>
-      </Card>
+      {studentQuery.data?.parents.map((parent, index) => (
+        <Card key={parent.parentId || index}>
+          <CardHeader>
+            <CardTitle>Thông tin {parent.relationship.toLowerCase()}</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <FormField
+              name={`parents.${index}.fullName`}
+              label="Họ và tên"
+              defaultValue={parent.fullName}
+            />
+            <FormField
+              name={`parents.${index}.occupation`}
+              label="Nghề nghiệp"
+              defaultValue={parent.occupation}
+            />
+            <FormField
+              name={`parents.${index}.phoneNumber`}
+              label="Số điện thoại"
+              defaultValue={parent.phoneNumber}
+            />
+            <FormField
+              name={`parents.${index}.dob`}
+              label="Ngày sinh"
+              type="date"
+              defaultValue={parent.dob}
+            />
+            <FormField
+              name={`parents.${index}.email`}
+              label="Email"
+              defaultValue={parent.email}
+            />
+          </CardContent>
+        </Card>
+      ))}
 
       {/* Submit button at bottom for convenience */}
       <div className="flex justify-end">
