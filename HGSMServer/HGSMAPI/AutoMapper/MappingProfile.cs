@@ -10,6 +10,7 @@ using Application.Features.Parents.DTOs;
 using Application.Features.AcademicYears.DTOs;
 using Application.Features.Semesters.DTOs;
 using Application.Features.LeaveRequests.DTOs;
+using Application.Features.LessonPlans.DTOs;
 namespace HGSMAPI.AutoMapper
 {
     public class MappingProfile : Profile
@@ -79,6 +80,10 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<LeaveRequest, LeaveRequestDto>().ReverseMap();
             CreateMap<CreateLeaveRequestDto, LeaveRequest>();
+            CreateMap<LessonPlan, LessonPlanResponseDto>()
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher != null ? src.Teacher.FullName : "Unknown"))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject != null ? src.Subject.SubjectName : "Unknown"))
+                .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src => src.Reviewer != null ? src.Reviewer.FullName : "N/A"));
         }
     }
 }
