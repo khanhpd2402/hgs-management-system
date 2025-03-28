@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getAcademicYears,
+  getClasses,
   getSemestersByAcademicYear,
   getSubjects,
 } from "./api";
@@ -10,6 +11,15 @@ export function useSubjects() {
     queryKey: ["subjects"],
     queryFn: () => {
       return getSubjects();
+    },
+  });
+}
+
+export function useClasses() {
+  return useQuery({
+    queryKey: ["classes"],
+    queryFn: () => {
+      return getClasses();
     },
   });
 }
