@@ -235,23 +235,27 @@ const ScheduleTable = () => {
         }
     };
 
-    // Thêm hàm kiểm tra trùng lặp
     const checkDuplicate = (newScheduleData, grade, className, day, session, period) => {
-        const existingPeriods = newScheduleData[grade][className][day][session] || [];
+        const allClassesInGrade = Object.keys(newScheduleData[grade] || {});
 
-        // Kiểm tra trùng giáo viên trong cùng một khung giờ
-        const hasTeacherDuplicate = existingPeriods.some(
-            (existingPeriod) =>
-                existingPeriod &&
-                period &&
-                existingPeriod.teacher_id === period.teacher_id
-        );
+        for (const currentClassName of allClassesInGrade) {
 
-        if (hasTeacherDuplicate) {
-            return {
-                isDuplicate: true,
-                message: "Giáo viên này đã có tiết dạy trong khung giờ này!"
-            };
+            const existingPeriods = newScheduleData[grade][currentClassName][day][session] || [];
+
+            // Kiểm tra xem có trùng giáo viên không
+            const hasTeacherDuplicate = existingPeriods.some(
+                (existingPeriod) =>
+                    existingPeriod &&
+                    period &&
+                    existingPeriod.teacher_id === period.teacher_id
+            );
+
+            if (hasTeacherDuplicate) {
+                return {
+                    isDuplicate: true,
+                    message: `Giáo viên này đã có tiết dạy ở lớp ${currentClassName} trong cùng khung giờ!`
+                };
+            }
         }
 
         return {
@@ -656,14 +660,33 @@ const ScheduleTable = () => {
                     <thead>
                         <tr>
                             <th className="sticky-header" colSpan={3}>Lịch học</th>
+                            {/* Nhóm các lớp theo khối và hiển thị */}
+                            {Object.entries(
+                                filteredClasses.reduce((acc, { grade, className }) => {
+                                    if (!acc[grade]) acc[grade] = [];
+                                    acc[grade].push(className);
+                                    return acc;
+                                }, {})
+                            ).map(([grade, classes]) => (
+                                <th key={grade} colSpan={classes.length}>Khối {grade}</th>
+                            ))}
                         </tr>
                         <tr>
                             <th className="sticky-col col-1">Thứ</th>
                             <th className="sticky-col col-2">Buổi</th>
                             <th className="sticky-col col-3">Tiết</th>
-                            {filteredClasses.map(({ grade, className }) => (
-                                <th key={`${grade}-${className}`}>Khối {grade} - {className}</th>
-                            ))}
+                            {/* Hiển thị tên lớp theo thứ tự khối */}
+                            {Object.entries(
+                                filteredClasses.reduce((acc, { grade, className }) => {
+                                    if (!acc[grade]) acc[grade] = [];
+                                    acc[grade].push(className);
+                                    return acc;
+                                }, {})
+                            ).flatMap(([_, classes]) =>
+                                classes.map(className => (
+                                    <th key={className}>{className}</th>
+                                ))
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -782,10 +805,11 @@ const ScheduleTable = () => {
                 onDragOver={handleTrashDragOver}
                 onDragLeave={handleTrashDragLeave}
                 onDrop={handleTrashDrop}
+                style={{ marginBottom: '30px' }}
             >
                 <Trash2 size={24} />
             </div>
-        </div>
+        </div >
     );
 };
 
