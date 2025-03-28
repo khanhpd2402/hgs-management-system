@@ -40,25 +40,21 @@ namespace Application.Features.LessonPlans.Services
                 throw new ArgumentException("Plan content is required.");
 
             var claims = _httpContextAccessor.HttpContext?.User?.Claims?.ToList() ?? new List<Claim>();
-            Console.WriteLine($"Claims: {string.Join(", ", claims.Select(c => $"{c.Type}: {c.Value}"))}");
-
             var userIdClaim = claims.FirstOrDefault(c => c.Type == "sub")
                 ?? claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
                 ?? throw new UnauthorizedAccessException("User ID not found in token.");
 
             var userId = int.Parse(userIdClaim.Value);
-            Console.WriteLine($"Extracted UserId: {userId}");
-
             var teacherId = await GetTeacherIdFromUserId(userId);
+
             var teacher = await _teacherRepository.GetByIdAsync(teacherId);
             if (teacher == null)
                 throw new ArgumentException("Teacher not found.");
-            if (teacher.TeacherId != lessonPlanDto.TeacherId)
-                throw new UnauthorizedAccessException("You can only upload lesson plans for yourself.");
 
+            // Không cần kiểm tra lessonPlanDto.TeacherId nữa vì ta đã tự động lấy teacherId
             var lessonPlan = new LessonPlan
             {
-                TeacherId = lessonPlanDto.TeacherId,
+                TeacherId = teacherId, // Gán teacherId tự động từ userId
                 SubjectId = lessonPlanDto.SubjectId,
                 PlanContent = lessonPlanDto.PlanContent,
                 Status = "Processing",
@@ -73,6 +69,7 @@ namespace Application.Features.LessonPlans.Services
 
             await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
         }
+
 
         public async Task ReviewLessonPlanAsync(LessonPlanReviewDto reviewDto)
         {
