@@ -1,4 +1,5 @@
 ﻿using Domain.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,5 +20,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(string idCard); // Kiểm tra xem học sinh có tồn tại không
         Task AddRangeAsync(IEnumerable<Student> students); // Thêm danh sách học sinh
+        Task<IDbContextTransaction> BeginTransactionAsync();
     }
 }

@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repositories.Implementations
 {
@@ -85,6 +86,10 @@ namespace Infrastructure.Repositories.Implementations
         public async Task<bool> ExistsAsync(string idCard)
         {
             return await _context.Students.AnyAsync(s => s.IdcardNumber == idCard);
+        }
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
     }
 }
