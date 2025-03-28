@@ -4,8 +4,11 @@ using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using AutoMapper; // Thêm AutoMapper để ánh xạ
 
 namespace Application.Features.LessonPlans.Services
 {
@@ -13,16 +16,22 @@ namespace Application.Features.LessonPlans.Services
     {
         private readonly ILessonPlanRepository _lessonPlanRepository;
         private readonly ITeacherRepository _teacherRepository;
-        private readonly IUserRepository _userRepository; // Để map UserID sang TeacherID
+        private readonly IUserRepository _userRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMapper _mapper; // Thêm IMapper
 
-        public LessonPlanService(ILessonPlanRepository lessonPlanRepository, ITeacherRepository teacherRepository,
-            IUserRepository userRepository, IHttpContextAccessor httpContextAccessor)
+        public LessonPlanService(
+            ILessonPlanRepository lessonPlanRepository,
+            ITeacherRepository teacherRepository,
+            IUserRepository userRepository,
+            IHttpContextAccessor httpContextAccessor,
+            IMapper mapper)
         {
             _lessonPlanRepository = lessonPlanRepository ?? throw new ArgumentNullException(nameof(lessonPlanRepository));
             _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
         public async Task UploadLessonPlanAsync(LessonPlanUploadDto lessonPlanDto)
@@ -30,9 +39,15 @@ namespace Application.Features.LessonPlans.Services
             if (lessonPlanDto == null || string.IsNullOrEmpty(lessonPlanDto.PlanContent))
                 throw new ArgumentException("Plan content is required.");
 
-            var userId = int.Parse(_httpContextAccessor.HttpContext?.User?.Claims
-                ?.FirstOrDefault(c => c.Type == "sub")?.Value
-                ?? throw new UnauthorizedAccessException("User ID not found in token."));
+            var claims = _httpContextAccessor.HttpContext?.User?.Claims?.ToList() ?? new List<Claim>();
+            Console.WriteLine($"Claims: {string.Join(", ", claims.Select(c => $"{c.Type}: {c.Value}"))}");
+
+            var userIdClaim = claims.FirstOrDefault(c => c.Type == "sub")
+                ?? claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
+                ?? throw new UnauthorizedAccessException("User ID not found in token.");
+
+            var userId = int.Parse(userIdClaim.Value);
+            Console.WriteLine($"Extracted UserId: {userId}");
 
             var teacherId = await GetTeacherIdFromUserId(userId);
             var teacher = await _teacherRepository.GetByIdAsync(teacherId);
@@ -48,12 +63,12 @@ namespace Application.Features.LessonPlans.Services
                 PlanContent = lessonPlanDto.PlanContent,
                 Status = "Processing",
                 SemesterId = lessonPlanDto.SemesterId,
-                Title = lessonPlanDto.Title, // Gán Title
-                AttachmentUrl = lessonPlanDto.AttachmentUrl, // Gán AttachmentUrl
+                Title = lessonPlanDto.Title,
+                AttachmentUrl = lessonPlanDto.AttachmentUrl,
                 SubmittedDate = DateTime.Now,
-                Feedback = null, // Ban đầu chưa có phản hồi
-                ReviewedDate = null, // Ban đầu chưa được duyệt
-                ReviewerId = null // Ban đầu chưa có người duyệt
+                Feedback = null,
+                ReviewedDate = null,
+                ReviewerId = null
             };
 
             await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
@@ -74,7 +89,6 @@ namespace Application.Features.LessonPlans.Services
             var claims = _httpContextAccessor.HttpContext?.User?.Claims?.ToList() ?? new List<Claim>();
             Console.WriteLine($"Claims: {string.Join(", ", claims.Select(c => $"{c.Type}: {c.Value}"))}");
 
-            // Tìm "sub" hoặc ClaimTypes.NameIdentifier
             var userIdClaim = claims.FirstOrDefault(c => c.Type == "sub")
                 ?? claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
                 ?? throw new UnauthorizedAccessException("User ID not found in token.");
@@ -106,6 +120,29 @@ namespace Application.Features.LessonPlans.Services
             await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
         }
 
+        public async Task<List<LessonPlanResponseDto>> GetAllLessonPlansAsync()
+        {
+            var lessonPlans = await _lessonPlanRepository.GetAllLessonPlansAsync();
+            return _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+        }
+
+        public async Task<LessonPlanResponseDto> GetLessonPlanByIdAsync(int planId)
+        {
+            var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdAsync(planId);
+            if (lessonPlan == null)
+                throw new ArgumentException("Lesson plan not found.");
+            return _mapper.Map<LessonPlanResponseDto>(lessonPlan);
+        }
+
+        public async Task<List<LessonPlanResponseDto>> GetLessonPlansByStatusAsync(string status)
+        {
+            if (string.IsNullOrEmpty(status))
+                throw new ArgumentException("Status is required.");
+
+            var lessonPlans = await _lessonPlanRepository.GetLessonPlansByStatusAsync(status);
+            return _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+        }
+
         private async Task<int> GetTeacherIdFromUserId(int userId)
         {
             var user = await _userRepository.GetByIdAsync(userId);
@@ -116,6 +153,22 @@ namespace Application.Features.LessonPlans.Services
             if (teacher == null)
                 throw new UnauthorizedAccessException($"No teacher found for UserID {userId}.");
             return teacher.TeacherId;
+        }
+        public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetAllLessonPlansAsync(int pageNumber, int pageSize)
+        {
+            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetAllLessonPlansAsync(pageNumber, pageSize);
+            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+            return (lessonPlanDtos, totalCount);
+        }
+
+        public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize)
+        {
+            if (string.IsNullOrEmpty(status))
+                throw new ArgumentException("Status is required.");
+
+            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByStatusAsync(status, pageNumber, pageSize);
+            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+            return (lessonPlanDtos, totalCount);
         }
     }
 }
