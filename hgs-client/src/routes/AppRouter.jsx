@@ -15,6 +15,8 @@ import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import ScheduleTable from "@/pages/Schedule/ScheduleSymtem/Schedule";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+import RequestLessonPlan from "@/pages/RequestLessonPlan/RequestLessonPlan";
+import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -155,7 +157,22 @@ const teacherRouter = [
       </Suspense>
     ),
   },
-
+  {
+    path: "/teacher/request-lesson-plan",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <RequestLessonPlan />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/teacher/upload-lesson-plan",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <UploadLessonPlan />
+      </Suspense>
+    ),
+  },
 ];
 
 const studentRouter = [
