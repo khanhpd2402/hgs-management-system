@@ -1,4 +1,4 @@
-﻿using System.Net.NetworkInformation;
+﻿using System;
 
 namespace Application.Features.Users.DTOs
 {
@@ -27,5 +27,7 @@ namespace Application.Features.Users.DTOs
                 _status = value;
             }
         }
+
+        public string? FullName { get; set; } 
     }
 }
