@@ -61,5 +61,10 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.Teachers.AddRangeAsync(teachers);
             await _context.SaveChangesAsync();
         }
+        public async Task<Teacher> GetByUserIdAsync(int userId)
+        {
+            return await _context.Teachers
+                .FirstOrDefaultAsync(t => t.UserId == userId);
+        }
     }
 }

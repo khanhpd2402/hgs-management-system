@@ -16,25 +16,13 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
-
-const fields = [
-  { value: "name", label: "Họ tên cán bộ" },
-  { value: "code", label: "Mã cán bộ" },
-  { value: "phone", label: "Số ĐTDD" },
-  { value: "email", label: "Địa chỉ Email" },
-  { value: "dob", label: "Ngày sinh" },
-  { value: "id", label: "ID" },
-];
+import { useSubjects } from "@/services/common/queries";
 
 // const departments = [
 //   { value: "natural_science", label: "Khoa học tự nhiên" },
 //   { value: "social_science", label: "Khoa học xã hội" },
 //   { value: "whole_school", label: "Toàn trường" },
 // ];
-const departments = [
-  { value: "Vật lý", label: "Vật Lý" },
-  { value: "Toán", label: "Toán" },
-];
 
 // const contracts = [
 //   { value: "less_than_1_year", label: "Hợp đồng dưới 1 năm" },
@@ -56,6 +44,8 @@ export default function TeacherFilter({ setFilter }) {
   const [search, setSearch] = useState("");
   const [department, setDepartment] = useState("");
   const [contract, setContract] = useState("");
+
+  const subjectsQuery = useSubjects();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -92,9 +82,9 @@ export default function TeacherFilter({ setFilter }) {
                 <SelectValue placeholder="Chọn tổ bộ môn" />
               </SelectTrigger>
               <SelectContent>
-                {departments.map((d) => (
-                  <SelectItem key={d.value} value={d.value}>
-                    {d.label}
+                {subjectsQuery?.data?.map((s) => (
+                  <SelectItem key={s.subjectId} value={s.subjectName}>
+                    {s.subjectName}
                   </SelectItem>
                 ))}
               </SelectContent>

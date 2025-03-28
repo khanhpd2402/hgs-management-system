@@ -90,7 +90,7 @@ CREATE TABLE [dbo].[Teachers] (
     [PermanentAddress] NVARCHAR(255) NULL,
     [Hometown] NVARCHAR(255) NULL,
     PRIMARY KEY CLUSTERED ([TeacherID] ASC),
-    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE SET NULL,
+    CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE CASCADE,
     UNIQUE NONCLUSTERED ([InsuranceNumber] ASC),
     UNIQUE NONCLUSTERED ([UserID] ASC),
     UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
@@ -287,6 +287,18 @@ CREATE TABLE [dbo].[Attendances] (
     CONSTRAINT [FK_Attendances_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]),
     CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [Date], [Shift], [SemesterID])
 )
+ALTER TABLE [dbo].[LessonPlans]
+ADD
+    [Title] NVARCHAR(255) NULL,
+    [AttachmentUrl] NVARCHAR(500) NULL,
+    [Feedback] NVARCHAR(max) NULL,
+    [SubmittedDate] DATETIME NULL DEFAULT GETDATE(),
+    [ReviewedDate] DATETIME NULL,
+    [ReviewerId] INT NULL;
+
+-- Thêm ràng buộc FOREIGN KEY cho ReviewerId
+ALTER TABLE [dbo].[LessonPlans]
+ADD CONSTRAINT [FK_LessonPlans_Reviewer_Teachers] FOREIGN KEY ([ReviewerId]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE SET NULL;
 
 -- Chèn dữ liệu
 INSERT INTO [dbo].[AcademicYears] ([YearName], [StartDate], [EndDate])

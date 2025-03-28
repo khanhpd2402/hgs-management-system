@@ -7,8 +7,6 @@ import {
   Home,
   Users,
   Settings,
-  MessageCircle,
-  Server,
 } from "lucide-react";
 
 const menuItems = [
@@ -20,21 +18,13 @@ const menuItems = [
   {
     label: "Quản trị",
     icon: Settings,
-    path: "/admin",
-  },
-  {
-    label: "Hệ thống",
-    icon: Server,
-    path: "/system",
-    children: [{ label: "Thời khóa biểu", path: "/system/schedule" }],
-  },
-  {
-    label: "Liên lạc",
-    icon: MessageCircle,
-    path: "/contact",
-    children: [{ label: "PHSH", path: "/contact/SendToParent" },
-    { label: "Giáo viên", path: "/contact/SendToTeacher" },
-    { label: "Thống kê liên lạc", path: "/contact/StatisticsCommunication" }
+    path: "/principal",
+    children: [
+      { label: "Quản lý người dùng", path: "/principal/user" },
+      { label: "Thời khóa biểu", path: "/system/schedule" },
+      // { label: "Quản lý môn học", path: "/admin/subject" },
+      // { label: "Quản lý giáo viên", path: "/admin/teacher" },
+      // { label: "Quản lý học sinh", path: "/admin/student" },
     ],
   },
   {
@@ -59,7 +49,10 @@ const menuItems = [
         label: "Báo cáo điểm",
         path: "/teacher/mark-report",
       },
-
+      {
+        label: "Quản lý đợt nhập điểm",
+        path: "/teacher/grade-batch",
+      },
     ],
   },
   {

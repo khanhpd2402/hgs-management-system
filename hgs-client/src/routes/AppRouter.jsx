@@ -1,14 +1,19 @@
 import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
+import AuthLayout from "@/layouts/AuthLayout/AuthLayout";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
-import ScheduleTable from "@/pages/Schedule/Schedule";
-import SendMessagePHHS from "@/pages/SendMessage/PHHS/SendMessagePHHS";
-import SendMessageTeacher from "@/pages/SendMessage/Teacher/SendMessageTeacher";
+import Login from "@/pages/Login/Login";
+import UserManagement from "@/pages/Principal/UserProfile/UserManagement";
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
+import GradeBatch from "@/pages/Teacher/GradeBatch/GradeBatch";
 import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
 import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
+import ProtectedRoute from "@/routes/ProtectedRoute";
 import { lazy, Suspense } from "react";
 import { ErrorBoundary } from "react-error-boundary";
-import { createBrowserRouter, RouterProvider } from "react-router";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
+import AuthRedirectRoute from "./AuthRedirectRoute";
+import ErrorRouteComponent from "@/components/ErrorRouteComponent";
+import ScheduleTable from "@/pages/Schedule/ScheduleSymtem/Schedule";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -30,146 +35,183 @@ const StudentScore = lazy(
 );
 
 const AppRouter = () => {
-  const routes = privateRouter;
+  const routes = [...privateRouter, ...authRoutes, ...systemRouter];
+  // const routes = authRoutes;
 
   const router = createBrowserRouter([...routes]);
 
   return <RouterProvider router={router} />;
 };
 
-const privateRouter = [
+const authRoutes = [
   {
-    element: <DefaultLayout />,
-
+    element: (
+      <AuthRedirectRoute>
+        <AuthLayout />
+      </AuthRedirectRoute>
+    ),
     children: [
       {
-        path: "/",
+        path: "/login",
+        element: <Login />,
+      },
+    ],
+  },
+];
+
+const adminRouter = [
+  {
+    path: "/principal/user",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <UserManagement />
+      </ProtectedRoute>
+    ),
+  },
+];
+
+const teacherRouter = [
+  {
+    path: "/teacher/profile",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+          <Suspense fallback={<div>Loading...</div>}>
+            <TeacherTable />
+          </Suspense>
+        </ErrorBoundary>
+      </ProtectedRoute>
+    ),
+    // errorElement: <ErrorRouteComponent />,
+  },
+  {
+    path: "/teacher/profile/:id",
+    element: (
+      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TeacherProfile />
+        </Suspense>
+      </ErrorBoundary>
+    ),
+    // errorElement: <ErrorRouteComponent />,
+  },
+  {
+    path: "/teacher/profile/create-teacher",
+    element: (
+      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+        <AddTeacher />
+      </ErrorBoundary>
+    ),
+    // errorElement: <ErrorRouteComponent />,
+  },
+  {
+    path: "/teacher/teaching-assignment",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <TATable />
+      </Suspense>
+    ),
+  },
+  {
+    path: "teacher/take-attendance",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AttendanceTable />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/teacher/head-teacher-assignment",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <HTATable />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/teacher/mark-report",
+    element: (
+      <ProtectedRoute requiredRoles={["Teacher"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <MarkReportTable />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/grade-batch",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <GradeBatch />
+      </Suspense>
+    ),
+  },
+];
+
+const studentRouter = [
+  {
+    path: "/student/profile",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <StudentTable />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/student/profile/:id",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <StudentProfile />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/student/score",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <StudentScore />
+      </Suspense>
+    ),
+  },
+];
+
+const privateRouter = [
+  {
+    element: (
+      <ProtectedRoute requiredRoles={["Principal", "Teacher"]}>
+        <DefaultLayout />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "/home",
         element: <div>Home</div>,
       },
       {
-        path: "/teacher/profile",
-        element: (
-          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <TeacherTable />
-            </Suspense>
-          </ErrorBoundary>
-        ),
-        // errorElement: <ErrorRouteComponent />,
+        path: "/",
+        element: <Navigate to="/home" />,
       },
       {
-        path: "/teacher/profile/:id",
-        element: (
-          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
-            <Suspense fallback={<div>Loading...</div>}>
-              <TeacherProfile />
-            </Suspense>
-          </ErrorBoundary>
-        ),
-        // errorElement: <ErrorRouteComponent />,
+        path: "*",
+        element: <ErrorRouteComponent />,
       },
-      {
-        path: "/teacher/profile/create-teacher",
-        element: (
-          <ErrorBoundary fallback={<FallbackErrorBoundary />}>
-            <AddTeacher />
-          </ErrorBoundary>
-        ),
-        // errorElement: <ErrorRouteComponent />,
-      },
-      {
-        path: "/teacher/teaching-assignment",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <TATable />
-          </Suspense>
-        ),
-      },
-      {
-        path: "teacher/take-attendance",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <AttendanceTable />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/teacher/head-teacher-assignment",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <HTATable />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/teacher/mark-report",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <MarkReportTable />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/student/profile",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <StudentTable />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/student/profile/:id",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <StudentProfile />
-          </Suspense>
-        ),
-      },
-      {
-        path: "/student/score",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <StudentScore />
-          </Suspense>
-        ),
-      },
-      {
-        path: "system/schedule",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <ScheduleTable></ScheduleTable>
-          </Suspense>
+      ...studentRouter,
+      ...adminRouter,
+      ...teacherRouter,
+    ],
+  },
+];
 
-        ),
-      },
+const systemRouter = [
+  {
+    element: (
+      <DefaultLayout />
+    ),
+    children: [
       {
-        path: "system/schedule",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <ScheduleTable></ScheduleTable>
-          </Suspense>
-
-        ),
+        path: "/system/schedule",
+        element: <ScheduleTable />,
       },
-      {
-        path: "contact/SendToParent",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <SendMessagePHHS></SendMessagePHHS>
-          </Suspense>
-
-        ),
-      },
-      {
-        path: "contact/SendToTeacher",
-        element: (
-          <Suspense fallback={<div>Loading...</div>}>
-            <SendMessageTeacher></SendMessageTeacher>
-          </Suspense>
-
-        ),
-      },
-
     ],
   },
 ];

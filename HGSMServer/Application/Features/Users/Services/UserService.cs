@@ -12,10 +12,12 @@ namespace Application.Features.Users.Services
     public class UserService : IUserService
     {
         private readonly IUserRepository _userRepository;
+        private readonly IRoleRepository _roleRepository;
 
-        public UserService(IUserRepository userRepository)
+        public UserService(IUserRepository userRepository, IRoleRepository roleRepository)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
         }
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
@@ -25,11 +27,11 @@ namespace Application.Features.Users.Services
             {
                 UserId = u.UserId,
                 Username = u.Username,
-                PasswordHash = u.PasswordHash,
                 Email = u.Email,
                 PhoneNumber = u.PhoneNumber,
                 RoleId = u.RoleId,
-                Status = u.Status
+                Status = u.Status,
+                PasswordHash = u.PasswordHash
             }).ToList();
         }
 
@@ -42,11 +44,11 @@ namespace Application.Features.Users.Services
             {
                 UserId = user.UserId,
                 Username = user.Username,
-                PasswordHash = user.PasswordHash,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
-                Status = user.Status
+                Status = user.Status,
+                PasswordHash = user.PasswordHash
             };
         }
 
@@ -59,48 +61,69 @@ namespace Application.Features.Users.Services
             {
                 UserId = user.UserId,
                 Username = user.Username,
-                PasswordHash = user.PasswordHash,
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
-                Status = user.Status
+                Status = user.Status,
+                PasswordHash = user.PasswordHash
             };
         }
 
-        public async Task AddUserAsync(UserDTO userDto)
+        public async Task<UserDTO?> GetUserByUsernameAsync(string username)
+        {
+            var user = await _userRepository.GetByUsernameAsync(username);
+            if (user == null) return null;
+
+            return new UserDTO
+            {
+                UserId = user.UserId,
+                Username = user.Username,
+                Email = user.Email,
+                PhoneNumber = user.PhoneNumber,
+                RoleId = user.RoleId,
+                Status = user.Status,
+                PasswordHash = user.PasswordHash
+            };
+        }
+
+        public async Task AddUserAsync(CreateUserDTO userDto)
         {
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
+
+            if (string.IsNullOrEmpty(userDto.PasswordHash))
+                throw new ArgumentException("Password is required.");
+
+            if (userDto.PasswordHash.Length < 8)
+                throw new ArgumentException("Password must be at least 8 characters long.");
 
             var user = new User
             {
                 Username = userDto.Username,
-                PasswordHash = userDto.PasswordHash,
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(userDto.PasswordHash),
                 Email = userDto.Email,
                 PhoneNumber = userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
-                Status = userDto.Status
+                Status = "Active" // Gán mặc định Status = "Active"
             };
 
             await _userRepository.AddAsync(user);
-            userDto.UserId = user.UserId; // Cập nhật UserId cho DTO sau khi thêm
         }
 
-        public async Task UpdateUserAsync(UserDTO userDto)
+        public async Task UpdateUserAsync(UpdateUserDTO userDto)
         {
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
 
-            var user = await _userRepository.GetByIdAsync(userDto.UserId);
+            var user = await _userRepository.GetByIdForUpdateAsync(userDto.UserId);
             if (user == null)
                 throw new ArgumentException($"User with ID {userDto.UserId} not found.");
 
             user.Username = userDto.Username;
-            user.PasswordHash = userDto.PasswordHash;
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
             user.RoleId = userDto.RoleId;
-            user.Status = userDto.Status;
+            // Không cập nhật Status từ DTO
 
             await _userRepository.UpdateAsync(user);
         }
@@ -112,6 +135,63 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"User with ID {id} not found.");
 
             await _userRepository.DeleteAsync(id);
+        }
+
+        public async Task<string?> GetRoleNameByRoleIdAsync(int roleId)
+        {
+            var role = await _roleRepository.GetByIdAsync(roleId);
+            return role?.RoleName;
+        }
+
+
+        public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
+        {
+            if (changePasswordDto == null)
+                throw new ArgumentNullException(nameof(changePasswordDto));
+
+            if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
+                throw new ArgumentException("Old password and new password are required.");
+
+            if (changePasswordDto.NewPassword.Length < 8)
+                throw new ArgumentException("New password must be at least 8 characters long.");
+
+            var user = await _userRepository.GetByIdForUpdateAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User with ID {userId} not found.");
+
+            if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
+                throw new UnauthorizedAccessException("Old password is incorrect.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
+            await _userRepository.UpdateAsync(user);
+        }
+
+
+        public async Task AdminChangePasswordAsync(int userId, string newPassword)
+        {
+            if (string.IsNullOrEmpty(newPassword))
+                throw new ArgumentException("New password is required.");
+
+            if (newPassword.Length < 8)
+                throw new ArgumentException("New password must be at least 8 characters long.");
+
+            var user = await _userRepository.GetByIdForUpdateAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User with ID {userId} not found.");
+
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+
+            await _userRepository.UpdateAsync(user);
+        }
+
+        public async Task ChangeUserStatusAsync(int userId, string newStatus)
+        {
+            var user = await _userRepository.GetByIdForUpdateAsync(userId);
+            if (user == null)
+                throw new ArgumentException($"User with ID {userId} not found.");
+
+            user.Status = newStatus;
+            await _userRepository.UpdateAsync(user);
         }
     }
 }

@@ -37,6 +37,10 @@ export default function ExcelImportModal({ type }) {
     onError: () => {
       toast.error("Có lỗi xảy ra khi import dữ liệu!");
     },
+
+    onSettled: (data, error) => {
+      console.log(error);
+    },
   });
 
   const sampleFiles = {
