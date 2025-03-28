@@ -11,5 +11,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<Parent> GetByIdAsync(int parentId);
         Task<Parent> GetParentByUserIdAsync(int userId);
         Task<Parent> GetParentByDetailsAsync(string fullName, DateOnly? dob, string phoneNumber, string email, string idcardNumber);
+        Task<StudentParent> GetStudentParentByRelationshipAsync(int studentId, string relationship);
+        Task UpdateAsync(Parent parent);
     }
 }

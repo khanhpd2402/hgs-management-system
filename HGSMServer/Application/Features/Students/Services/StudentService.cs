@@ -9,6 +9,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Features.Students.Services
@@ -18,17 +19,20 @@ namespace Application.Features.Students.Services
         private readonly IStudentRepository _studentRepository;
         private readonly IUserRepository _userRepository;
         private readonly IParentRepository _parentRepository;
+        private readonly IClassRepository _classRepository;
         private readonly IMapper _mapper;
 
         public StudentService(
             IStudentRepository studentRepository,
             IUserRepository userRepository,
             IParentRepository parentRepository,
+            IClassRepository classRepository,
             IMapper mapper)
         {
             _studentRepository = studentRepository ?? throw new ArgumentNullException(nameof(studentRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _parentRepository = parentRepository ?? throw new ArgumentNullException(nameof(parentRepository));
+            _classRepository = classRepository ?? throw new ArgumentNullException(nameof(classRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
         }
 
@@ -55,77 +59,111 @@ namespace Application.Features.Students.Services
             if (createStudentDto == null)
                 throw new ArgumentNullException(nameof(createStudentDto));
 
-            // Kiểm tra trùng lặp IdcardNumber (nếu có)
-            if (!string.IsNullOrWhiteSpace(createStudentDto.IdcardNumber))
+            Console.WriteLine($"Adding student: {createStudentDto.FullName}, IdcardNumber: {createStudentDto.IdcardNumber}");
+
+            // Sử dụng transaction để đảm bảo tính toàn vẹn dữ liệu
+            using var transaction = await _studentRepository.BeginTransactionAsync();
+            try
             {
-                bool exists = await _studentRepository.ExistsAsync(createStudentDto.IdcardNumber);
-                if (exists)
+                // Kiểm tra trùng lặp IdcardNumber (nếu có)
+                if (!string.IsNullOrWhiteSpace(createStudentDto.IdcardNumber))
                 {
-                    throw new Exception($"Số CMND/CCCD {createStudentDto.IdcardNumber} đã tồn tại.");
+                    bool exists = await _studentRepository.ExistsAsync(createStudentDto.IdcardNumber);
+                    if (exists)
+                    {
+                        Console.WriteLine($"IdcardNumber {createStudentDto.IdcardNumber} already exists.");
+                        throw new Exception($"Số CMND/CCCD {createStudentDto.IdcardNumber} đã tồn tại.");
+                    }
                 }
-            }
 
-            // Tạo học sinh
-            var student = _mapper.Map<Student>(createStudentDto);
-            student.StudentClasses = new List<StudentClass>
-            {
-                new StudentClass
+                // Kiểm tra ClassId có tồn tại không
+                Console.WriteLine($"Checking if ClassId {createStudentDto.ClassId} exists...");
+                if (!await _classRepository.ExistsAsync(createStudentDto.ClassId))
                 {
-                    ClassId = createStudentDto.ClassId,
-                    AcademicYearId = 1 // Giả sử AcademicYearId = 1, bạn có thể thay đổi logic để lấy giá trị thực tế
+                    Console.WriteLine($"ClassId {createStudentDto.ClassId} does not exist.");
+                    throw new Exception($"ClassId {createStudentDto.ClassId} không tồn tại.");
                 }
-            };
 
-            await _studentRepository.AddAsync(student);
+                // Tạo học sinh
+                Console.WriteLine("Mapping CreateStudentDto to Student...");
+                var student = _mapper.Map<Student>(createStudentDto);
+                student.StudentClasses = new List<StudentClass>
+        {
+            new StudentClass
+            {
+                ClassId = createStudentDto.ClassId,
+                AcademicYearId = 1 // Giả sử AcademicYearId = 1, bạn có thể thay đổi logic để lấy giá trị thực tế
+            }
+        };
 
-            // Xử lý thông tin cha
-            if (!string.IsNullOrEmpty(createStudentDto.FullNameFather) &&
-                (!string.IsNullOrEmpty(createStudentDto.PhoneNumberFather) || !string.IsNullOrEmpty(createStudentDto.EmailFather)))
-            {
-                await CreateParentAndLinkAsync(student.StudentId, createStudentDto.FullNameFather,
-                    createStudentDto.YearOfBirthFather, createStudentDto.OccupationFather,
-                    createStudentDto.PhoneNumberFather, createStudentDto.EmailFather,
-                    createStudentDto.IdcardNumberFather, "Father");
-            }
-            else
-            {
-                Console.WriteLine($"Skipping father for StudentID {student.StudentId}: Insufficient data (FullName, PhoneNumber, or Email missing).");
-            }
+                Console.WriteLine("Adding student to database...");
+                await _studentRepository.AddAsync(student);
+                Console.WriteLine($"Student added with ID: {student.StudentId}");
 
-            // Xử lý thông tin mẹ
-            if (!string.IsNullOrEmpty(createStudentDto.FullNameMother) &&
-                (!string.IsNullOrEmpty(createStudentDto.PhoneNumberMother) || !string.IsNullOrEmpty(createStudentDto.EmailMother)))
-            {
-                await CreateParentAndLinkAsync(student.StudentId, createStudentDto.FullNameMother,
-                    createStudentDto.YearOfBirthMother, createStudentDto.OccupationMother,
-                    createStudentDto.PhoneNumberMother, createStudentDto.EmailMother,
-                    createStudentDto.IdcardNumberMother, "Mother");
-            }
-            else
-            {
-                Console.WriteLine($"Skipping mother for StudentID {student.StudentId}: Insufficient data (FullName, PhoneNumber, or Email missing).");
-            }
+                // Xử lý thông tin cha
+                if (!string.IsNullOrEmpty(createStudentDto.FullNameFather) &&
+                    (!string.IsNullOrEmpty(createStudentDto.PhoneNumberFather) || !string.IsNullOrEmpty(createStudentDto.EmailFather)))
+                {
+                    Console.WriteLine("Processing father information...");
+                    await CreateParentAndLinkAsync(student.StudentId, createStudentDto.FullNameFather,
+                        createStudentDto.YearOfBirthFather, createStudentDto.OccupationFather,
+                        createStudentDto.PhoneNumberFather, createStudentDto.EmailFather,
+                        createStudentDto.IdcardNumberFather, "Father");
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping father for StudentID {student.StudentId}: Insufficient data (FullName, PhoneNumber, or Email missing).");
+                }
 
-            // Xử lý thông tin người bảo hộ
-            if (!string.IsNullOrEmpty(createStudentDto.FullNameGuardian) &&
-                (!string.IsNullOrEmpty(createStudentDto.PhoneNumberGuardian) || !string.IsNullOrEmpty(createStudentDto.EmailGuardian)))
-            {
-                await CreateParentAndLinkAsync(student.StudentId, createStudentDto.FullNameGuardian,
-                    createStudentDto.YearOfBirthGuardian, createStudentDto.OccupationGuardian,
-                    createStudentDto.PhoneNumberGuardian, createStudentDto.EmailGuardian,
-                    createStudentDto.IdcardNumberGuardian, "Guardian");
-            }
-            else
-            {
-                Console.WriteLine($"Skipping guardian for StudentID {student.StudentId}: Insufficient data (FullName, PhoneNumber, or Email missing).");
-            }
+                // Xử lý thông tin mẹ
+                if (!string.IsNullOrEmpty(createStudentDto.FullNameMother) &&
+                    (!string.IsNullOrEmpty(createStudentDto.PhoneNumberMother) || !string.IsNullOrEmpty(createStudentDto.EmailMother)))
+                {
+                    Console.WriteLine("Processing mother information...");
+                    await CreateParentAndLinkAsync(student.StudentId, createStudentDto.FullNameMother,
+                        createStudentDto.YearOfBirthMother, createStudentDto.OccupationMother,
+                        createStudentDto.PhoneNumberMother, createStudentDto.EmailMother,
+                        createStudentDto.IdcardNumberMother, "Mother");
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping mother for StudentID {student.StudentId}: Insufficient data (FullName, PhoneNumber, or Email missing).");
+                }
 
-            return student.StudentId; // Trả về ID sau khi thêm
+                // Xử lý thông tin người bảo hộ
+                if (!string.IsNullOrEmpty(createStudentDto.FullNameGuardian) &&
+                    (!string.IsNullOrEmpty(createStudentDto.PhoneNumberGuardian) || !string.IsNullOrEmpty(createStudentDto.EmailGuardian)))
+                {
+                    Console.WriteLine("Processing guardian information...");
+                    await CreateParentAndLinkAsync(student.StudentId, createStudentDto.FullNameGuardian,
+                        createStudentDto.YearOfBirthGuardian, createStudentDto.OccupationGuardian,
+                        createStudentDto.PhoneNumberGuardian, createStudentDto.EmailGuardian,
+                        createStudentDto.IdcardNumberGuardian, "Guardian");
+                }
+                else
+                {
+                    Console.WriteLine($"Skipping guardian for StudentID {student.StudentId}: Insufficient data (FullName, PhoneNumber, or Email missing).");
+                }
+
+                // Commit transaction nếu tất cả thành công
+                await transaction.CommitAsync();
+                Console.WriteLine("Transaction committed successfully.");
+                return student.StudentId; // Trả về ID sau khi thêm
+            }
+            catch (Exception ex)
+            {
+                // Rollback transaction nếu có lỗi
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Transaction rolled back due to error: {ex.Message}");
+                throw; // Ném lại ngoại lệ để API trả về lỗi cho client
+            }
         }
 
         private async Task CreateParentAndLinkAsync(int studentId, string fullName, DateOnly? yearOfBirth, string occupation,
-            string phoneNumber, string email, string idcardNumber, string relationship)
+    string phoneNumber, string email, string idcardNumber, string relationship)
         {
+            Console.WriteLine($"Creating parent for StudentID {studentId}, Relationship: {relationship}, FullName: {fullName}, PhoneNumber: {phoneNumber}, Email: {email}");
+
             // Kiểm tra dữ liệu đầu vào
             if (string.IsNullOrEmpty(fullName) || (string.IsNullOrEmpty(phoneNumber) && string.IsNullOrEmpty(email)))
             {
@@ -148,10 +186,10 @@ namespace Application.Features.Students.Services
             }
 
             // Kiểm tra xem phụ huynh đã tồn tại chưa (dựa trên tất cả các trường)
+            Console.WriteLine($"Checking if parent exists with FullName: {fullName}, PhoneNumber: {phoneNumber}, Email: {email}...");
             var existingParent = await _parentRepository.GetParentByDetailsAsync(fullName, yearOfBirth, phoneNumber, email, idcardNumber);
             if (existingParent != null)
             {
-                // Nếu phụ huynh đã tồn tại với tất cả thông tin trùng khớp, sử dụng phụ huynh hiện có
                 Console.WriteLine($"Parent already exists for StudentID {studentId} with matching details. Using existing ParentID {existingParent.ParentId}.");
 
                 // Kiểm tra xem mối quan hệ đã tồn tại chưa
@@ -170,86 +208,69 @@ namespace Application.Features.Students.Services
                     Relationship = relationship
                 };
 
+                Console.WriteLine($"Adding relationship for StudentID {studentId} and ParentID {existingParent.ParentId}...");
                 await _parentRepository.AddStudentParentAsync(studentParent);
+                Console.WriteLine($"Added relationship for StudentID {studentId} and ParentID {existingParent.ParentId}.");
                 return;
             }
 
-            // Nếu không tìm thấy phụ huynh trùng khớp, tạo mới User và Parent
-            User user = null;
+            // Kiểm tra trùng lặp PhoneNumber và Email
             if (!string.IsNullOrEmpty(phoneNumber))
             {
-                user = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
-            }
-            if (user == null && !string.IsNullOrEmpty(email))
-            {
-                user = await _userRepository.GetByEmailAsync(email);
-            }
-
-            if (user == null)
-            {
-                // Tạo username theo định dạng lastname+stt
-                string lastName = ExtractLastName(fullName); // Lấy phần tên (phần cuối cùng)
-                Console.WriteLine($"Extracted lastName for {fullName}: {lastName}");
-
-                int maxUserId = await _userRepository.GetMaxUserIdAsync(); // Lấy UserID lớn nhất hiện tại
-                int stt = maxUserId + 1; // Số thứ tự sẽ khớp với UserID của bản ghi mới
-                string username = $"{lastName.ToLower()}{stt}";
-
-                // Kiểm tra xem username đã tồn tại chưa, nếu có thì tăng stt cho đến khi tìm được username chưa tồn tại
-                while (await _userRepository.GetByUsernameAsync(username) != null)
+                Console.WriteLine($"Checking if PhoneNumber {phoneNumber} exists...");
+                var existingUserByPhone = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
+                if (existingUserByPhone != null)
                 {
-                    stt++;
-                    username = $"{lastName.ToLower()}{stt}";
+                    Console.WriteLine($"PhoneNumber {phoneNumber} already exists for UserID {existingUserByPhone.UserId}.");
+                    throw new Exception($"Số điện thoại {phoneNumber} đã được sử dụng bởi một người dùng khác (UserID: {existingUserByPhone.UserId}).");
                 }
-
-                Console.WriteLine($"Creating new user with Username: {username}, stt: {stt}");
-
-                // Tạo mới User
-                user = new User
-                {
-                    Username = username,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("12345678"), // Mật khẩu mặc định là 1-8
-                    Email = email,
-                    PhoneNumber = phoneNumber,
-                    RoleId = 6, // RoleID của Parent
-                    Status = "Active"
-                };
-
-                await _userRepository.AddAsync(user);
-                Console.WriteLine($"Created new user with UserID: {user.UserId}, Username: {user.Username}");
             }
-            else
+            if (!string.IsNullOrEmpty(email))
             {
-                // Nếu User đã tồn tại nhưng thông tin khác (ví dụ: Email hoặc PhoneNumber khác), tạo User mới
-                string lastName = ExtractLastName(fullName);
-                Console.WriteLine($"Extracted lastName for {fullName}: {lastName}");
-
-                int maxUserId = await _userRepository.GetMaxUserIdAsync();
-                int stt = maxUserId + 1;
-                string username = $"{lastName.ToLower()}{stt}";
-
-                // Kiểm tra xem username đã tồn tại chưa
-                while (await _userRepository.GetByUsernameAsync(username) != null)
+                Console.WriteLine($"Checking if Email {email} exists...");
+                var existingUserByEmail = await _userRepository.GetByEmailAsync(email);
+                if (existingUserByEmail != null)
                 {
-                    stt++;
-                    username = $"{lastName.ToLower()}{stt}";
+                    Console.WriteLine($"Email {email} already exists for UserID {existingUserByEmail.UserId}.");
+                    throw new Exception($"Email {email} đã được sử dụng bởi một người dùng khác (UserID: {existingUserByEmail.UserId}).");
                 }
-
-                Console.WriteLine($"Creating new user with Username: {username}, stt: {stt}");
-
-                user = new User
-                {
-                    Username = username,
-                    PasswordHash = BCrypt.Net.BCrypt.HashPassword("12345678"), // Mật khẩu mặc định là 1-8
-                    Email = email,
-                    PhoneNumber = phoneNumber,
-                    RoleId = 6,
-                    Status = "Active"
-                };
-
-                await _userRepository.AddAsync(user);
-                Console.WriteLine($"Created new user with UserID: {user.UserId}, Username: {user.Username}");
             }
+
+            // Tạo username tạm thời
+            string lastName = ExtractLastName(fullName);
+            Console.WriteLine($"Extracted lastName for {fullName}: {lastName}");
+            string tempUsername = $"{lastName.ToLower()}temp"; // Username tạm thời
+
+            // Tạo mới User với username tạm thời
+            var user = new User
+            {
+                Username = tempUsername, // Gán username tạm thời để tránh lỗi NOT NULL
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword("12345678"), // Mật khẩu mặc định là 1-8
+                Email = email,
+                PhoneNumber = phoneNumber,
+                RoleId = 6, // RoleID của Parent
+                Status = "Active"
+            };
+
+            Console.WriteLine("Adding new user to database with temporary username...");
+            await _userRepository.AddAsync(user);
+            Console.WriteLine($"Created new user with UserID: {user.UserId}");
+
+            // Cập nhật username theo định dạng lastname + UserId
+            string finalUsername = $"{lastName.ToLower()}{user.UserId}";
+            Console.WriteLine($"Generated final username: {finalUsername}. Checking for duplicates...");
+            // Kiểm tra trùng lặp username
+            var existingUserByUsername = await _userRepository.GetByUsernameAsync(finalUsername);
+            if (existingUserByUsername != null)
+            {
+                Console.WriteLine($"Username {finalUsername} already exists for UserID {existingUserByUsername.UserId}.");
+                throw new Exception($"Username {finalUsername} đã tồn tại (UserID: {existingUserByUsername.UserId}). Vui lòng chọn tên khác.");
+            }
+
+            user.Username = finalUsername;
+            Console.WriteLine($"Updating user with final Username: {user.Username}...");
+            await _userRepository.UpdateAsync(user);
+            Console.WriteLine($"Updated user with Username: {user.Username}");
 
             // Tạo mới Parent
             var parent = new Parent
@@ -261,7 +282,9 @@ namespace Application.Features.Students.Services
                 IdcardNumber = idcardNumber
             };
 
+            Console.WriteLine("Adding new parent to database...");
             await _parentRepository.AddAsync(parent);
+            Console.WriteLine($"Created new parent with ParentID: {parent.ParentId}");
 
             // Thêm mối quan hệ vào StudentParents
             var newStudentParent = new StudentParent
@@ -271,7 +294,9 @@ namespace Application.Features.Students.Services
                 Relationship = relationship
             };
 
+            Console.WriteLine($"Adding relationship for StudentID {studentId} and ParentID {parent.ParentId}...");
             await _parentRepository.AddStudentParentAsync(newStudentParent);
+            Console.WriteLine($"Added relationship for StudentID {studentId} and ParentID {parent.ParentId}.");
         }
 
         private string ExtractLastName(string fullName)
@@ -325,23 +350,203 @@ namespace Application.Features.Students.Services
 
         public async Task UpdateStudentAsync(UpdateStudentDto updateStudentDto)
         {
+            Console.WriteLine($"Updating student with StudentID: {updateStudentDto.StudentId}");
+
+            // Kiểm tra học sinh có tồn tại không
             var student = await _studentRepository.GetByIdAsync(updateStudentDto.StudentId);
             if (student == null)
             {
-                throw new KeyNotFoundException("Student not found");
+                throw new KeyNotFoundException($"Student with ID {updateStudentDto.StudentId} not found");
             }
 
-            _mapper.Map(updateStudentDto, student); // Cập nhật từ DTO vào entity
+            // Kiểm tra trùng lặp IdcardNumber (nếu có và thay đổi)
+            if (!string.IsNullOrWhiteSpace(updateStudentDto.IdcardNumber) && updateStudentDto.IdcardNumber != student.IdcardNumber)
+            {
+                bool exists = await _studentRepository.ExistsAsync(updateStudentDto.IdcardNumber);
+                if (exists)
+                {
+                    throw new Exception($"Số CMND/CCCD {updateStudentDto.IdcardNumber} đã tồn tại.");
+                }
+            }
+
+            // Kiểm tra ClassId có tồn tại không (nếu thay đổi)
+            var currentClass = student.StudentClasses?.FirstOrDefault(sc => sc.StudentId == student.StudentId);
+            if (currentClass == null || currentClass.ClassId != updateStudentDto.ClassId)
+            {
+                if (!await _classRepository.ExistsAsync(updateStudentDto.ClassId))
+                {
+                    throw new Exception($"ClassId {updateStudentDto.ClassId} không tồn tại.");
+                }
+
+                // Cập nhật ClassId trong StudentClasses
+                if (currentClass != null)
+                {
+                    currentClass.ClassId = updateStudentDto.ClassId;
+                }
+                else
+                {
+                    student.StudentClasses = new List<StudentClass>
+                    {
+                        new StudentClass
+                        {
+                            StudentId = student.StudentId,
+                            ClassId = updateStudentDto.ClassId,
+                            AcademicYearId = 1 // Giả sử AcademicYearId = 1
+                        }
+                    };
+                }
+            }
+
+            // Cập nhật thông tin học sinh
+            _mapper.Map(updateStudentDto, student);
             await _studentRepository.UpdateAsync(student);
+            Console.WriteLine($"Updated student with StudentID: {student.StudentId}");
+
+            // Xử lý thông tin cha
+            if (!string.IsNullOrEmpty(updateStudentDto.FullNameFather) &&
+                (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberFather) || !string.IsNullOrEmpty(updateStudentDto.EmailFather)))
+            {
+                await UpdateOrCreateParentAsync(student.StudentId, updateStudentDto.FullNameFather,
+                    updateStudentDto.YearOfBirthFather, updateStudentDto.OccupationFather,
+                    updateStudentDto.PhoneNumberFather, updateStudentDto.EmailFather,
+                    updateStudentDto.IdcardNumberFather, "Father");
+            }
+
+            // Xử lý thông tin mẹ
+            if (!string.IsNullOrEmpty(updateStudentDto.FullNameMother) &&
+                (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberMother) || !string.IsNullOrEmpty(updateStudentDto.EmailMother)))
+            {
+                await UpdateOrCreateParentAsync(student.StudentId, updateStudentDto.FullNameMother,
+                    updateStudentDto.YearOfBirthMother, updateStudentDto.OccupationMother,
+                    updateStudentDto.PhoneNumberMother, updateStudentDto.EmailMother,
+                    updateStudentDto.IdcardNumberMother, "Mother");
+            }
+
+            // Xử lý thông tin người bảo hộ
+            if (!string.IsNullOrEmpty(updateStudentDto.FullNameGuardian) &&
+                (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberGuardian) || !string.IsNullOrEmpty(updateStudentDto.EmailGuardian)))
+            {
+                await UpdateOrCreateParentAsync(student.StudentId, updateStudentDto.FullNameGuardian,
+                    updateStudentDto.YearOfBirthGuardian, updateStudentDto.OccupationGuardian,
+                    updateStudentDto.PhoneNumberGuardian, updateStudentDto.EmailGuardian,
+                    updateStudentDto.IdcardNumberGuardian, "Guardian");
+            }
+        }
+
+        private async Task UpdateOrCreateParentAsync(int studentId, string fullName, DateOnly? yearOfBirth, string occupation,
+            string phoneNumber, string email, string idcardNumber, string relationship)
+        {
+            Console.WriteLine($"Updating/Creating parent for StudentID {studentId}, Relationship: {relationship}, FullName: {fullName}");
+
+            // Kiểm tra dữ liệu đầu vào
+            if (string.IsNullOrEmpty(fullName) || (string.IsNullOrEmpty(phoneNumber) && string.IsNullOrEmpty(email)))
+            {
+                Console.WriteLine($"Invalid parent data for StudentID {studentId}. Skipping...");
+                return;
+            }
+
+            // Kiểm tra định dạng email (nếu có)
+            if (!string.IsNullOrEmpty(email) && !IsValidEmail(email))
+            {
+                Console.WriteLine($"Invalid email format for parent of StudentID {studentId}: {email}. Skipping...");
+                return;
+            }
+
+            // Kiểm tra định dạng số điện thoại (nếu có)
+            if (!string.IsNullOrEmpty(phoneNumber) && !IsValidPhoneNumber(phoneNumber))
+            {
+                Console.WriteLine($"Invalid phone number format for parent of StudentID {studentId}: {phoneNumber}. Skipping...");
+                return;
+            }
+
+            // Kiểm tra xem học sinh đã có phụ huynh với mối quan hệ này chưa
+            var existingStudentParent = await _parentRepository.GetStudentParentByRelationshipAsync(studentId, relationship);
+            if (existingStudentParent != null)
+            {
+                // Nếu đã có phụ huynh, cập nhật thông tin phụ huynh
+                var parent = await _parentRepository.GetByIdAsync(existingStudentParent.ParentId);
+                if (parent != null)
+                {
+                    // Kiểm tra xem FullName có thay đổi không
+                    bool fullNameChanged = parent.FullName != fullName;
+
+                    // Kiểm tra xem PhoneNumber hoặc Email có thay đổi không
+                    var user = await _userRepository.GetByIdAsync(parent.UserId);
+                    if (user != null)
+                    {
+                        bool phoneNumberChanged = user.PhoneNumber != phoneNumber;
+                        bool emailChanged = user.Email != email;
+
+                        // Kiểm tra trùng lặp PhoneNumber (nếu thay đổi)
+                        if (phoneNumberChanged && !string.IsNullOrEmpty(phoneNumber))
+                        {
+                            var existingUserByPhone = await _userRepository.GetByPhoneNumberAsync(phoneNumber);
+                            if (existingUserByPhone != null && existingUserByPhone.UserId != user.UserId)
+                            {
+                                throw new Exception($"Số điện thoại {phoneNumber} đã được sử dụng bởi một người dùng khác (UserID: {existingUserByPhone.UserId}).");
+                            }
+                        }
+
+                        // Kiểm tra trùng lặp Email (nếu thay đổi)
+                        if (emailChanged && !string.IsNullOrEmpty(email))
+                        {
+                            var existingUserByEmail = await _userRepository.GetByEmailAsync(email);
+                            if (existingUserByEmail != null && existingUserByEmail.UserId != user.UserId)
+                            {
+                                throw new Exception($"Email {email} đã được sử dụng bởi một người dùng khác (UserID: {existingUserByEmail.UserId}).");
+                            }
+                        }
+
+                        // Cập nhật thông tin phụ huynh
+                        parent.FullName = fullName;
+                        parent.Dob = yearOfBirth;
+                        parent.Occupation = occupation ?? "Unknown";
+                        parent.IdcardNumber = idcardNumber;
+
+                        await _parentRepository.UpdateAsync(parent);
+                        Console.WriteLine($"Updated parent with ParentID: {parent.ParentId}");
+
+                        // Cập nhật thông tin User
+                        user.PhoneNumber = phoneNumber;
+                        user.Email = email;
+
+                        // Nếu FullName thay đổi, cập nhật username theo định dạng lastname + UserId
+                        if (fullNameChanged)
+                        {
+                            string lastName = ExtractLastName(fullName);
+                            string newUsername = $"{lastName.ToLower()}{user.UserId}";
+                            // Kiểm tra trùng lặp username
+                            var existingUserByUsername = await _userRepository.GetByUsernameAsync(newUsername);
+                            if (existingUserByUsername != null && existingUserByUsername.UserId != user.UserId)
+                            {
+                                throw new Exception($"Username {newUsername} đã tồn tại (UserID: {existingUserByUsername.UserId}). Vui lòng chọn tên khác.");
+                            }
+                            user.Username = newUsername;
+                            Console.WriteLine($"Updated username for UserID {user.UserId} to {newUsername} due to FullName change.");
+                        }
+
+                        await _userRepository.UpdateAsync(user);
+                        Console.WriteLine($"Updated user with UserID: {user.UserId}");
+                    }
+                }
+                return;
+            }
+
+            // Nếu chưa có phụ huynh, tạo mới
+            await CreateParentAndLinkAsync(studentId, fullName, yearOfBirth, occupation, phoneNumber, email, idcardNumber, relationship);
         }
 
         public async Task DeleteStudentAsync(int id)
         {
+            Console.WriteLine($"Deleting student with StudentID: {id}");
             await _studentRepository.DeleteAsync(id);
+            Console.WriteLine($"Deleted student with StudentID: {id}");
         }
 
         public async Task ImportStudentsFromExcelAsync(IFormFile file)
         {
+            Console.WriteLine("Importing students from Excel file");
+
             var data = ExcelImportHelper.ReadExcelData(file);
             var students = new List<Student>();
 
@@ -387,6 +592,7 @@ namespace Application.Features.Students.Services
             }
 
             await _studentRepository.AddRangeAsync(students);
+            Console.WriteLine($"Imported {students.Count} students from Excel file");
         }
     }
 }

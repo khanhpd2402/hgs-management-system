@@ -11,7 +11,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<User> GetByEmailAsync(string email);
         Task<User> GetByPhoneNumberAsync(string phoneNumber);
         Task<User> GetByUsernameAsync(string username);
-        Task<User> GetByIdAsync(int id);
+        Task<User> GetByIdAsync(int? id);
         Task<User> GetByIdForUpdateAsync(int id);
         Task<int> GetUserCountAsync();
         Task<int> GetMaxUserIdAsync();
