@@ -13,3 +13,7 @@ export const getStudent = async (id, academicId) => {
 export const updateStudent = async (id, data) => {
   return (await axiosInstance.put(`student/${id}`, data)).data;
 };
+
+export const createStudent = async (data) => {
+  return (await axiosInstance.post(`student`, data)).data;
+};
