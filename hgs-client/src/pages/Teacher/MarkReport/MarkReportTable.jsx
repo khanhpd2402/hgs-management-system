@@ -11,6 +11,8 @@ import {
 import '@/pages/Teacher/MarkReport/styles/toast.scss';
 import '@/pages/Teacher/MarkReport/styles/markReport.scss';
 
+import { getGrades } from '@/services/Grade/api';
+
 const EditGradeDialog = ({ grade, onClose, onSave }) => {
   const [score, setScore] = useState(grade.score);
   const [comment, setComment] = useState(grade.teacherComment || '');

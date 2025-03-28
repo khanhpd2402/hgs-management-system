@@ -14,6 +14,7 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import ScheduleTable from "@/pages/Schedule/ScheduleSymtem/Schedule";
+import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -146,6 +147,15 @@ const teacherRouter = [
       </Suspense>
     ),
   },
+  {
+    path: "/teacher/schedule",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <ScheduleTeacher />
+      </Suspense>
+    ),
+  },
+
 ];
 
 const studentRouter = [

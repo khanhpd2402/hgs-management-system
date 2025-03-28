@@ -53,6 +53,10 @@ const menuItems = [
         label: "Quản lý đợt nhập điểm",
         path: "/teacher/grade-batch",
       },
+      {
+        label: "Thời khóa biểu",
+        path: "/teacher/schedule",
+      },
     ],
   },
   {
