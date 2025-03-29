@@ -8,7 +8,7 @@ namespace Application.Features.LessonPlans.DTOs
 {
     public class LessonPlanUploadDto
     {
-        public int TeacherId { get; set; }
+        //public int TeacherId { get; set; }
         public int SubjectId { get; set; }
         public string PlanContent { get; set; }
         public int SemesterId { get; set; }
