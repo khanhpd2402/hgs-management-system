@@ -20,6 +20,7 @@ const ReviewList = () => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
             );
+            console.log("token", token);
             setLessonPlans(response.data.lessonPlans);
             setTotalPages(Math.ceil(response.data.totalCount / pageSize));
             setLoading(false);
