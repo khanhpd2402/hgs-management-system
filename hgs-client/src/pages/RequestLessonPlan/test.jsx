@@ -95,8 +95,7 @@ const UploadLessonPlan = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-        console.log(token); // Kiểm tra token đã loại bỏ dấu ngoặc kép chưa
+        const token = localStorage.getItem('token');
 
         if (!token) {
             alert('Vui lòng đăng nhập để thực hiện chức năng này!');

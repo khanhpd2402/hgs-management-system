@@ -17,6 +17,7 @@ import ScheduleTable from "@/pages/Schedule/ScheduleSymtem/Schedule";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 import RequestLessonPlan from "@/pages/RequestLessonPlan/RequestLessonPlan";
 import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
+import ReviewDetail from "@/pages/RequestLessonPlan/ReviewList/ReviewDetail";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -173,6 +174,15 @@ const teacherRouter = [
       </Suspense>
     ),
   },
+  {
+    path: "/teacher/review-detail/:planId",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <ReviewDetail />
+      </Suspense>
+    ),
+  },
+
 ];
 
 const studentRouter = [
