@@ -14,6 +14,7 @@ public partial class Parent
     public DateOnly? Dob { get; set; }
 
     public string? Occupation { get; set; }
+    public string IdcardNumber { get; set; }
 
     public virtual ICollection<StudentParent> StudentParents { get; set; } = new List<StudentParent>();
 
