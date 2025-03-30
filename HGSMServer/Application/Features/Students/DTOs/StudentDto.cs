@@ -25,7 +25,7 @@ namespace Application.Features.Students.DTOs
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
 
-        public List<ParentDto> Parents { get; set; } = new();
+        public int? ParentId { get; set; }
     }
 
 }

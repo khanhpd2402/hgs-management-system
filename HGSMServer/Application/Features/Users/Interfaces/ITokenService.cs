@@ -6,6 +6,6 @@ namespace Application.Features.Users.Interfaces
 {
     public interface ITokenService
     {
-        Task<(string tokenString, Dictionary<string, string> tokenPayload)> GenerateTokenAsync(UserDTO user, string userRole);
+        Task<(string tokenString, Dictionary<string, string> tokenPayload)> GenerateTokenAsync(UserDTO user); 
     }
 }
