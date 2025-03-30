@@ -1,9 +1,9 @@
 import Header from "@/components/header/Header";
 import "./DefaultLayout.scss";
 import Sidebar from "@/components/sidebar/Sidebar";
-import {  useState } from "react";
+import { useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
-
+import Footer from "@/components/footer/footer";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);
@@ -26,6 +26,7 @@ const DefaultLayout = () => {
           <div className="container mx-auto px-4 py-4">
             <Header setCurrentYear={setCurrentYear} />
             <Outlet context={{ currentYear }} />
+            <Footer />
           </div>
         </div>
       </div>
