@@ -83,7 +83,8 @@ namespace HGSMAPI.Controllers
                 Console.WriteLine($"User {user.Username} is HeadOfDepartment. Effective role: {effectiveRole}");
             }
 
-            (string tokenString, Dictionary<string, string> tokenPayload) = await _tokenService.GenerateTokenAsync(user, effectiveRole);
+            // Tạo token (chỉ truyền UserDTO, không cần effectiveRole)
+            var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(user);
             Console.WriteLine($"Token generated for user {user.Username}.");
 
             var claimsIdentity = new ClaimsIdentity(new[]
