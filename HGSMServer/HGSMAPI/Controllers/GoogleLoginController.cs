@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Security.Claims;
+using System.Linq;
 
 namespace HGSMAPI.Controllers
 {
@@ -65,8 +66,8 @@ namespace HGSMAPI.Controllers
                 return StatusCode(403, new { message = "Access denied. Insufficient permissions." });
             }
 
-            // Tạo token
-            var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(existingUser, userRole);
+            // Tạo token (chỉ truyền UserDTO, không cần userRole)
+            var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(existingUser);
 
             // Đăng nhập bằng cookie
             var claimsIdentity = new ClaimsIdentity(new[]
