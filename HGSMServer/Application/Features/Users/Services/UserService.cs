@@ -321,6 +321,7 @@ namespace Application.Features.Users.Services
 
             user.Status = newStatus;
             await _userRepository.UpdateAsync(user);
+            //check conflict
         }
     }
 }
