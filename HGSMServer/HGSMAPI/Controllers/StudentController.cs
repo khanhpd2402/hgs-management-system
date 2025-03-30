@@ -105,12 +105,26 @@ namespace HGSMAPI.Controllers
 
             try
             {
-                await _studentService.ImportStudentsFromExcelAsync(file);
-                return Ok("Import danh sách học sinh thành công!");
+                var results = await _studentService.ImportStudentsFromExcelAsync(file);
+                return Ok(new ApiResponse(true, "Import danh sách học sinh hoàn tất", results));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponse(false, $"Lỗi khi import: {ex.Message}"));
+            }
+        }
+
+        public class ApiResponse
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public object Data { get; set; }
+
+            public ApiResponse(bool success, string message, object data = null)
+            {
+                Success = success;
+                Message = message;
+                Data = data;
             }
         }
         [HttpGet("download-template")]
@@ -120,56 +134,56 @@ namespace HGSMAPI.Controllers
             {
                 var worksheet = workbook.Worksheets.Add("Students");
 
-                // Định nghĩa các cột
                 var headers = new List<string>
         {
             "Họ và tên", "Ngày sinh", "Giới tính", "Ngày nhập học", "Hình thức nhập học", "Dân tộc",
             "Địa chỉ thường trú", "Nơi sinh", "Tôn giáo", "Lưu ban", "Số CMND/CCCD", "Trạng thái",
-            "FullNameFather", "YearOfBirthFather", "OccupationFather", "PhoneNumberFather", "EmailFather", "IdcardNumberFather",
-            "FullNameMother", "YearOfBirthMother", "OccupationMother", "PhoneNumberMother", "EmailMother", "IdcardNumberMother",
-            "FullNameGuardian", "YearOfBirthGuardian", "OccupationGuardian", "PhoneNumberGuardian", "EmailGuardian", "IdcardNumberGuardian"
+            "Tên lớp",
+            "Họ và tên cha", "Ngày sinh cha", "Nghề nghiệp cha", "SĐT cha", "Email cha", "Số CCCD cha",
+            "Họ và tên mẹ", "Ngày sinh mẹ", "Nghề nghiệp mẹ", "SĐT mẹ", "Email mẹ", "Số CCCD mẹ",
+            "Họ và tên người bảo hộ", "Ngày sinh người bảo hộ", "Nghề nghiệp người bảo hộ", "SĐT người bảo hộ", "Email người bảo hộ", "Số CCCD người bảo hộ"
         };
 
-                // Thêm tiêu đề
                 for (int i = 0; i < headers.Count; i++)
                 {
                     worksheet.Cell(1, i + 1).Value = headers[i];
                     worksheet.Cell(1, i + 1).Style.Font.Bold = true;
                 }
 
-                // Thêm dòng ví dụ
-                worksheet.Cell(2, 1).Value = "Nguyễn Văn A";
-                worksheet.Cell(2, 2).Value = "25-04-2008";
-                worksheet.Cell(2, 3).Value = "Nam";
-                worksheet.Cell(2, 4).Value = "25-04-2008";
-                worksheet.Cell(2, 5).Value = "Xét tuyển";
-                worksheet.Cell(2, 6).Value = "Kinh";
-                worksheet.Cell(2, 7).Value = "123 Đường ABC, Quận 1";
-                worksheet.Cell(2, 8).Value = "Hà Nội";
-                worksheet.Cell(2, 9).Value = "Phật giáo";
-                worksheet.Cell(2, 10).Value = "Không";
-                worksheet.Cell(2, 11).Value = "123456290121";
-                worksheet.Cell(2, 12).Value = "Đang học";
-                worksheet.Cell(2, 13).Value = "Nguyễn Văn B";
-                worksheet.Cell(2, 14).Value = "25-04-1999";
-                worksheet.Cell(2, 15).Value = "Kỹ sư";
-                worksheet.Cell(2, 16).Value = "0987614321";
-                worksheet.Cell(2, 17).Value = "nguyenvanbxcx@example.com";
-                worksheet.Cell(2, 18).Value = "987654321098";
-                worksheet.Cell(2, 19).Value = "Trần Thị C";
-                worksheet.Cell(2, 20).Value = "25-04-1973";
-                worksheet.Cell(2, 21).Value = "Giáo viên";
-                worksheet.Cell(2, 22).Value = "0978123156";
-                worksheet.Cell(2, 23).Value = "tranthicgg@example.com";
-                worksheet.Cell(2, 24).Value = "123256789123";
-                worksheet.Cell(2, 25).Value = "Lê Văn D";
-                worksheet.Cell(2, 26).Value = "25-04-2000";
-                worksheet.Cell(2, 27).Value = "Doanh nhân";
-                worksheet.Cell(2, 28).Value = "0912342678";
-                worksheet.Cell(2, 29).Value = "levand1@example.com";
-                worksheet.Cell(2, 30).Value = "456789143456";
 
-                // Tự động điều chỉnh độ rộng cột
+                worksheet.Cell(2, 1).Value = "Nguyễn Thị Mai";
+                worksheet.Cell(2, 2).Value = "15-08-2010";
+                worksheet.Cell(2, 3).Value = "Nữ";
+                worksheet.Cell(2, 4).Value = "10-09-2022"; // Ngày nhập học hợp lệ
+                worksheet.Cell(2, 5).Value = "Thi tuyển";
+                worksheet.Cell(2, 6).Value = "Kinh";
+                worksheet.Cell(2, 7).Value = "456 Đường XYZ, Quận 2";
+                worksheet.Cell(2, 8).Value = "TP. Hồ Chí Minh";
+                worksheet.Cell(2, 9).Value = "Không";
+                worksheet.Cell(2, 10).Value = "Không";
+                worksheet.Cell(2, 11).Value = "987654321012";
+                worksheet.Cell(2, 12).Value = "Đang học";
+                worksheet.Cell(2, 13).Value = "7B";
+                worksheet.Cell(2, 14).Value = "Trần Văn An";
+                worksheet.Cell(2, 15).Value = "20-05-1985";
+                worksheet.Cell(2, 16).Value = "Kỹ sư";
+                worksheet.Cell(2, 17).Value = "0912345678"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 18).Value = "tranvanan@example.com";
+                worksheet.Cell(2, 19).Value = "123456789876";
+                worksheet.Cell(2, 20).Value = "Lê Thị Hồng";
+                worksheet.Cell(2, 21).Value = "12-11-1987";
+                worksheet.Cell(2, 22).Value = "Nhân viên văn phòng";
+                worksheet.Cell(2, 23).Value = "0987654321"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 24).Value = "lethihong@example.com";
+                worksheet.Cell(2, 25).Value = "789456123654";
+                worksheet.Cell(2, 26).Value = "Phạm Văn Bình";
+                worksheet.Cell(2, 27).Value = "25-07-1982";
+                worksheet.Cell(2, 28).Value = "Doanh nhân";
+                worksheet.Cell(2, 29).Value = "0965124789"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 30).Value = "phamvanbinh@example.com";
+                worksheet.Cell(2, 31).Value = "321654987123"; // Căn cước công dân mới
+
+
                 worksheet.Columns().AdjustToContents();
 
                 using (var stream = new MemoryStream())
