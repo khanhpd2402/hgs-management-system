@@ -1,4 +1,4 @@
-﻿using Application.Features.Users.DTOs;
+using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
 using Domain.Models;
 using Infrastructure.Repositories.Implementations;
@@ -272,7 +272,6 @@ namespace Application.Features.Users.Services
             return role?.RoleName;
         }
 
-
         public async Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto)
         {
             if (changePasswordDto == null)
@@ -295,7 +294,6 @@ namespace Application.Features.Users.Services
             await _userRepository.UpdateAsync(user);
         }
 
-
         public async Task AdminChangePasswordAsync(int userId, string newPassword)
         {
             if (string.IsNullOrEmpty(newPassword))
@@ -309,7 +307,6 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"User with ID {userId} not found.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
-
             await _userRepository.UpdateAsync(user);
         }
 
