@@ -35,8 +35,9 @@ namespace HGSMAPI.Controllers
         }
 
         // POST: api/Student
+        
         [HttpPost]
-        [Consumes("application/json")] // Chỉ chấp nhận Content-Type là application/json
+        [Consumes("application/json")]
         public async Task<IActionResult> CreateStudent([FromBody] CreateStudentDto createStudentDto)
         {
             if (createStudentDto == null) return BadRequest("Student data cannot be null.");
@@ -50,7 +51,8 @@ namespace HGSMAPI.Controllers
             try
             {
                 var studentId = await _studentService.AddStudentAsync(createStudentDto);
-                return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId = 1 }, createStudentDto);
+                var createdStudent = await _studentService.GetStudentByIdAsync(studentId, 1); // Giả sử AcademicYearId = 1
+                return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId = 1 }, createdStudent);
             }
             catch (Exception ex)
             {

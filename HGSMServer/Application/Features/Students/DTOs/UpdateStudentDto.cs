@@ -1,8 +1,9 @@
-﻿using System;
+﻿using Application.Features.Students.Interfaces;
+using System;
 
 namespace Application.Features.Students.DTOs
 {
-    public class UpdateStudentDto
+    public class UpdateStudentDto : IParentInfoDto
     {
         public int StudentId { get; set; } // Bắt buộc cần ID khi update
         public string FullName { get; set; } = null!;

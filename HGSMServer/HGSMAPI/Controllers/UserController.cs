@@ -44,6 +44,7 @@ namespace HGSMAPI.Controllers
             return Ok(user);
         }
 
+        
         [HttpPost]
         [Authorize(Roles = "Principal,AdministrativeOfficer")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO userDto)
@@ -55,10 +56,10 @@ namespace HGSMAPI.Controllers
                 return BadRequest(new { message = "Invalid input data.", errors });
             }
 
-            Console.WriteLine($"Creating user with username: {userDto.Username}...");
-            await _userService.AddUserAsync(userDto);
-            var createdUser = await _userService.GetUserByUsernameAsync(userDto.Username);
-            Console.WriteLine($"User created with ID {createdUser.UserId} and username {userDto.Username}.");
+            Console.WriteLine("Creating new user...");
+            var createdUser = await _userService.AddUserAsync(userDto);
+
+            Console.WriteLine($"User created with ID {createdUser.UserId} and username {createdUser.Username}.");
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.UserId }, createdUser);
         }
 
@@ -76,12 +77,6 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"UpdateUser: ID mismatch. URL ID: {id}, Body ID: {userDto.UserId}.");
                 return BadRequest(new { message = "User ID in URL does not match the ID in the body." });
-            }
-
-            if (string.IsNullOrEmpty(userDto.Username))
-            {
-                Console.WriteLine("UpdateUser: Username is missing.");
-                return BadRequest(new { message = "Username is required." });
             }
 
             try
@@ -240,7 +235,16 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, new { message = "An error occurred while changing the password.", error = ex.Message });
             }
         }
+    }
 
-        
+    // DTO bổ sung nếu chưa có trong mã nguồn trước
+    public class ChangeStatusDto
+    {
+        public string Status { get; set; }
+    }
+
+    public class AdminChangePasswordDto
+    {
+        public string NewPassword { get; set; }
     }
 }
