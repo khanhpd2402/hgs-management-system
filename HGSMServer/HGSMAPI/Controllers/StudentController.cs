@@ -1,5 +1,6 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
@@ -112,5 +113,75 @@ namespace HGSMAPI.Controllers
                 return BadRequest(new { message = ex.Message });
             }
         }
+        [HttpGet("download-template")]
+        public IActionResult DownloadExcelTemplate()
+        {
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Students");
+
+                // Định nghĩa các cột
+                var headers = new List<string>
+        {
+            "Họ và tên", "Ngày sinh", "Giới tính", "Ngày nhập học", "Hình thức nhập học", "Dân tộc",
+            "Địa chỉ thường trú", "Nơi sinh", "Tôn giáo", "Lưu ban", "Số CMND/CCCD", "Trạng thái",
+            "FullNameFather", "YearOfBirthFather", "OccupationFather", "PhoneNumberFather", "EmailFather", "IdcardNumberFather",
+            "FullNameMother", "YearOfBirthMother", "OccupationMother", "PhoneNumberMother", "EmailMother", "IdcardNumberMother",
+            "FullNameGuardian", "YearOfBirthGuardian", "OccupationGuardian", "PhoneNumberGuardian", "EmailGuardian", "IdcardNumberGuardian"
+        };
+
+                // Thêm tiêu đề
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    worksheet.Cell(1, i + 1).Value = headers[i];
+                    worksheet.Cell(1, i + 1).Style.Font.Bold = true;
+                }
+
+                // Thêm dòng ví dụ
+                worksheet.Cell(2, 1).Value = "Nguyễn Văn A";
+                worksheet.Cell(2, 2).Value = "25-04-2008";
+                worksheet.Cell(2, 3).Value = "Nam";
+                worksheet.Cell(2, 4).Value = "25-04-2008";
+                worksheet.Cell(2, 5).Value = "Xét tuyển";
+                worksheet.Cell(2, 6).Value = "Kinh";
+                worksheet.Cell(2, 7).Value = "123 Đường ABC, Quận 1";
+                worksheet.Cell(2, 8).Value = "Hà Nội";
+                worksheet.Cell(2, 9).Value = "Phật giáo";
+                worksheet.Cell(2, 10).Value = "Không";
+                worksheet.Cell(2, 11).Value = "123456290121";
+                worksheet.Cell(2, 12).Value = "Đang học";
+                worksheet.Cell(2, 13).Value = "Nguyễn Văn B";
+                worksheet.Cell(2, 14).Value = "25-04-1999";
+                worksheet.Cell(2, 15).Value = "Kỹ sư";
+                worksheet.Cell(2, 16).Value = "0987614321";
+                worksheet.Cell(2, 17).Value = "nguyenvanbxcx@example.com";
+                worksheet.Cell(2, 18).Value = "987654321098";
+                worksheet.Cell(2, 19).Value = "Trần Thị C";
+                worksheet.Cell(2, 20).Value = "25-04-1973";
+                worksheet.Cell(2, 21).Value = "Giáo viên";
+                worksheet.Cell(2, 22).Value = "0978123156";
+                worksheet.Cell(2, 23).Value = "tranthicgg@example.com";
+                worksheet.Cell(2, 24).Value = "123256789123";
+                worksheet.Cell(2, 25).Value = "Lê Văn D";
+                worksheet.Cell(2, 26).Value = "25-04-2000";
+                worksheet.Cell(2, 27).Value = "Doanh nhân";
+                worksheet.Cell(2, 28).Value = "0912342678";
+                worksheet.Cell(2, 29).Value = "levand1@example.com";
+                worksheet.Cell(2, 30).Value = "456789143456";
+
+                // Tự động điều chỉnh độ rộng cột
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StudentImportTemplate.xlsx");
+                }
+            }
+        }
+
+
+
     }
 }
