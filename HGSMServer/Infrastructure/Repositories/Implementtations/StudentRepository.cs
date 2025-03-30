@@ -95,5 +95,10 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Database.BeginTransactionAsync();
         }
+        public async Task<AcademicYear> GetCurrentAcademicYearAsync(DateOnly currentDate)
+        {
+            return await _context.Set<AcademicYear>()
+                .FirstOrDefaultAsync(ay => ay.StartDate <= currentDate && ay.EndDate >= currentDate);
+        }
     }
 }

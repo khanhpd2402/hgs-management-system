@@ -66,5 +66,21 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Teachers
                 .FirstOrDefaultAsync(t => t.UserId == userId);
         }
+        public async Task<IEnumerable<TeacherSubject>> GetTeacherSubjectsAsync(int teacherId)
+        {
+            return await _context.TeacherSubjects
+                .Where(ts => ts.TeacherId == teacherId)
+                .ToListAsync();
+        }
+
+        public async Task DeleteTeacherSubjectsAsync(int teacherId)
+        {
+            var subjects = await _context.TeacherSubjects
+                .Where(ts => ts.TeacherId == teacherId)
+                .ToListAsync();
+
+            _context.TeacherSubjects.RemoveRange(subjects);
+            await _context.SaveChangesAsync();
+        }
     }
 }

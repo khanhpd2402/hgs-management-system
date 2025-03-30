@@ -60,5 +60,10 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Classes.AnyAsync(c => c.ClassId == classId);
         }
+        public async Task<Class> GetClassByNameAsync(string className)
+        {
+            return await _context.Set<Class>()
+                .FirstOrDefaultAsync(c => c.ClassName == className);
+        }
     }
 }
