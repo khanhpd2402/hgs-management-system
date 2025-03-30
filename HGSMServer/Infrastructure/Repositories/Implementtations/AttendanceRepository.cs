@@ -1,8 +1,12 @@
 ﻿using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
-namespace Infrastructure.Repositories.Implementtations
+namespace Infrastructure.Repositories.Implementtations // Sửa lỗi chính tả từ "Implementtations" thành "Implementations"
 {
     public class AttendanceRepository : IAttendanceRepository
     {
@@ -43,15 +47,33 @@ namespace Infrastructure.Repositories.Implementtations
 
         public async Task<List<string>> GetParentPhoneNumbers(int studentId)
         {
-            var phoneNumbers = await _context.Students
-                .Where(s => s.StudentId == studentId)
-                .SelectMany(s => s.StudentParents)
-                .Select(sp => sp.Parent.User.PhoneNumber)
-                .ToListAsync();
+            var student = await _context.Students
+                .Include(s => s.Parent)
+                .ThenInclude(p => p.User)
+                .FirstOrDefaultAsync(s => s.StudentId == studentId);
 
-            if (phoneNumbers == null || !phoneNumbers.Any())
+            if (student == null || student.Parent == null)
             {
                 throw new Exception($"Không tìm thấy phụ huynh cho học sinh với ID {studentId}.");
+            }
+
+            var phoneNumbers = new List<string>();
+
+            // Lấy số điện thoại từ Parent (Father, Mother, Guardian)
+            if (!string.IsNullOrEmpty(student.Parent.PhoneNumberFather))
+                phoneNumbers.Add(student.Parent.PhoneNumberFather);
+            if (!string.IsNullOrEmpty(student.Parent.PhoneNumberMother))
+                phoneNumbers.Add(student.Parent.PhoneNumberMother);
+            if (!string.IsNullOrEmpty(student.Parent.PhoneNumberGuardian))
+                phoneNumbers.Add(student.Parent.PhoneNumberGuardian);
+
+            // Nếu không có số điện thoại nào, lấy từ User nếu có
+            if (!phoneNumbers.Any() && !string.IsNullOrEmpty(student.Parent.User?.PhoneNumber))
+                phoneNumbers.Add(student.Parent.User.PhoneNumber);
+
+            if (!phoneNumbers.Any())
+            {
+                throw new Exception($"Không tìm thấy số điện thoại phụ huynh cho học sinh với ID {studentId}.");
             }
 
             return phoneNumbers;

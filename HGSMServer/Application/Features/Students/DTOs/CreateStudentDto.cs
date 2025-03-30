@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Application.Features.Students.Interfaces;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.Features.Students.DTOs
 {
-    public class CreateStudentDto
+    public class CreateStudentDto : IParentInfoDto
     {
         // Thông tin học sinh
         [Required(ErrorMessage = "FullName is required.")]
