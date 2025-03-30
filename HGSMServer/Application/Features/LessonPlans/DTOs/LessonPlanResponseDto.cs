@@ -10,6 +10,7 @@ namespace Application.Features.LessonPlans.DTOs
         public int SubjectId { get; set; }
         public string SubjectName { get; set; } 
         public string PlanContent { get; set; }
+        public string? AttachmentUrl { get; set; }
         public string Status { get; set; }
         public int SemesterId { get; set; }
         public string Feedback { get; set; }
