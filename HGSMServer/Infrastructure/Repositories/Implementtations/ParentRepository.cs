@@ -1,5 +1,4 @@
 ﻿using Domain.Models;
-//using Infrastructure.Data;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
@@ -21,18 +20,6 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
         }
 
-        public async Task AddStudentParentAsync(StudentParent studentParent)
-        {
-            await _context.StudentParents.AddAsync(studentParent);
-            await _context.SaveChangesAsync();
-        }
-
-        public async Task<StudentParent> GetStudentParentAsync(int studentId, int parentId)
-        {
-            return await _context.StudentParents
-                .FirstOrDefaultAsync(sp => sp.StudentId == studentId && sp.ParentId == parentId);
-        }
-
         public async Task<Parent> GetByIdAsync(int parentId)
         {
             return await _context.Parents
@@ -48,21 +35,17 @@ namespace Infrastructure.Repositories
 
         public async Task<Parent> GetParentByDetailsAsync(string fullName, DateOnly? dob, string phoneNumber, string email, string idcardNumber)
         {
+            // Cập nhật để sử dụng các trường mới của Parent
             return await _context.Parents
                 .Include(p => p.User)
                 .FirstOrDefaultAsync(p =>
-                    p.FullName == fullName &&
-                    p.Dob == dob &&
-                    p.IdcardNumber == idcardNumber &&
-                    p.User.PhoneNumber == phoneNumber &&
-                    p.User.Email == email);
+                    (p.FullNameFather == fullName || p.FullNameMother == fullName || p.FullNameGuardian == fullName) &&
+                    (p.YearOfBirthFather == dob || p.YearOfBirthMother == dob || p.YearOfBirthGuardian == dob) &&
+                    (p.IdcardNumberFather == idcardNumber || p.IdcardNumberMother == idcardNumber || p.IdcardNumberGuardian == idcardNumber) &&
+                    (p.PhoneNumberFather == phoneNumber || p.PhoneNumberMother == phoneNumber || p.PhoneNumberGuardian == phoneNumber || p.User.PhoneNumber == phoneNumber) &&
+                    (p.EmailFather == email || p.EmailMother == email || p.EmailGuardian == email || p.User.Email == email));
         }
 
-        public async Task<StudentParent> GetStudentParentByRelationshipAsync(int studentId, string relationship)
-        {
-            return await _context.StudentParents
-                .FirstOrDefaultAsync(sp => sp.StudentId == studentId && sp.Relationship == relationship);
-        }
         public async Task UpdateAsync(Parent parent)
         {
             _context.Parents.Update(parent);
