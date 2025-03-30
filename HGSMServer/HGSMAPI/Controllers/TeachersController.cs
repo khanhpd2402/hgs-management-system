@@ -65,8 +65,11 @@ namespace HGSMAPI.Controllers
         [HttpDelete("{id}")]
         public async Task<ActionResult> DeleteTeacher(int id)
         {
-            await _teacherService.DeleteTeacherAsync(id);
-            return NoContent();
+            var result = await _teacherService.DeleteTeacherAsync(id);
+            if (!result)
+                return NotFound("Không tìm thấy giáo viên với ID này"); // 404
+
+            return Ok(new { Message = "Xóa giáo viên thành công" });
         }
 
         [HttpPost("import")]
