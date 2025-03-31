@@ -1,4 +1,5 @@
-﻿using Application.Features.Students.DTOs;
+﻿using Application.Features.Parents.DTOs;
+using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
 using AutoMapper;
 using Common.Utils;
@@ -39,7 +40,21 @@ namespace Application.Features.Students.Services
         public async Task<StudentListResponseDto> GetAllStudentsWithParentsAsync(int academicYearId)
         {
             var students = await _studentRepository.GetAllWithParentsAsync(academicYearId);
-            var studentDtos = _mapper.Map<List<StudentDto>>(students);
+            var studentDtos = new List<StudentDto>();
+
+            foreach (var student in students)
+            {
+                var studentDto = _mapper.Map<StudentDto>(student);
+                if (student.ParentId.HasValue)
+                {
+                    var parent = await _parentRepository.GetByIdAsync(student.ParentId.Value);
+                    if (parent != null)
+                    {
+                        studentDto.Parent = _mapper.Map<ParentDto>(parent);
+                    }
+                }
+                studentDtos.Add(studentDto);
+            }
 
             return new StudentListResponseDto
             {
@@ -51,7 +66,20 @@ namespace Application.Features.Students.Services
         public async Task<StudentDto?> GetStudentByIdAsync(int id, int academicYearId)
         {
             var student = await _studentRepository.GetByIdWithParentsAsync(id, academicYearId);
-            return student == null ? null : _mapper.Map<StudentDto>(student);
+            if (student == null)
+                return null;
+
+            var studentDto = _mapper.Map<StudentDto>(student);
+            if (student.ParentId.HasValue)
+            {
+                var parent = await _parentRepository.GetByIdAsync(student.ParentId.Value);
+                if (parent != null)
+                {
+                    studentDto.Parent = _mapper.Map<ParentDto>(parent);
+                }
+            }
+
+            return studentDto;
         }
 
         public async Task<int> AddStudentAsync(CreateStudentDto createStudentDto)
