@@ -1,18 +1,14 @@
 ﻿using Domain.Models;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITimetableRepository
     {
-        Task<List<Timetable>> GetTimetableByClassAsync(int classId, DateOnly effectiveDate);
-        Task<Timetable?> GetTimetableByIdAsync(int timetableId);
-        Task<Timetable> AddTimetableAsync(Timetable timetable);
-        Task<bool> UpdateTimetableAsync(Timetable timetable);
-        Task<bool> DeleteTimetableAsync(int timetableId);
+        Task<IEnumerable<TimetableDetail>> GetByStudentIdAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null);
+        Task<IEnumerable<TimetableDetail>> GetByTeacherIdAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null);
+        Task<bool> UpdateDetailAsync(TimetableDetail detail);
+        Task<bool> DeleteDetailAsync(int detailId);
+        Task<bool> IsConflictAsync(TimetableDetail detail);
+        Task<Timetable> AddAsync(Timetable timetable);
     }
 }

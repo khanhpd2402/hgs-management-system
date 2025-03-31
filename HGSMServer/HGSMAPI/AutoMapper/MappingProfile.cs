@@ -10,6 +10,7 @@ using Application.Features.Parents.DTOs;
 using Application.Features.AcademicYears.DTOs;
 using Application.Features.Semesters.DTOs;
 using Application.Features.LeaveRequests.DTOs;
+using Application.Features.Timetables.DTOs;
 namespace HGSMAPI.AutoMapper
 {
     public class MappingProfile : Profile
@@ -79,6 +80,9 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<LeaveRequest, LeaveRequestDto>().ReverseMap();
             CreateMap<CreateLeaveRequestDto, LeaveRequest>();
+
+            CreateMap<Timetable, TimetableDto>().ReverseMap();
+            CreateMap<TimetableDetail, TimetableDetailDto>().ReverseMap();
         }
     }
 }

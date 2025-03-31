@@ -5,12 +5,12 @@ namespace Application.Features.Timetables.Interfaces
 {
     public interface ITimetableService
     {
-        //Task<TimetableResponse> GetTimetableAsync(int classId, DateOnly effectiveDate);
-        Task<Timetable?> GetTimetableByIdAsync(int timetableId);
-        Task<Timetable> AddTimetableAsync(Timetable timetable);
-        Task<bool> UpdateTimetableAsync(Timetable timetable);
-        Task<bool> DeleteTimetableAsync(int timetableId);
-        Task<byte[]> ExportTimetableToExcel(int classId, DateOnly effectiveDate);
-        Task<bool> ImportTimetableFromExcel(Stream fileStream);
+        Task<IEnumerable<TimetableDetailDto>> GetTimetableByStudentAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null);
+        Task<IEnumerable<TimetableDetailDto>> GetTimetableByTeacherAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null);
+        Task<TimetableDto> AddAsync(TimetableDto timetableDto);
+        Task<bool> UpdateDetailAsync(TimetableDetailDto detailDto);
+        Task<bool> DeleteDetailAsync(int detailId);
+        Task<bool> IsConflictAsync(TimetableDetailDto detailDto);
     }
+
 }
