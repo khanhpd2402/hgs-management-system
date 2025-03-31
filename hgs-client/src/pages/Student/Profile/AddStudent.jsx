@@ -18,6 +18,7 @@ import { z } from "zod";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { useClasses } from "@/services/common/queries";
 import { formatDate } from "@/helpers/formatDate";
+import { useState } from "react";
 
 export default function AddStudent() {
   const { currentYear } = useLayout();
@@ -25,169 +26,237 @@ export default function AddStudent() {
   const academicYearId = currentYear?.academicYearID;
   const { mutate, isPending: isUpdating } = useCreateStudent();
 
-  const studentSchema = z.object({
-    fullName: z.string().min(1, "Họ và tên không được để trống"),
-    dob: z
-      .date()
-      .nullable()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày sinh",
-          });
-        }
-      }),
-    gender: z.string().min(1, "Vui lòng chọn giới tính"),
-    classId: z.coerce
-      .number()
-      .int()
-      .refine((val) => val > 0, {
-        message: "Vui lòng chọn lớp",
-      }),
-    admissionDate: z
-      .date()
-      .nullable()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày nhập học",
-          });
-        }
-      }),
-    enrollmentType: z
-      .string()
-      .min(1, "Hình thức trúng tuyển không được để trống"),
-    ethnicity: z.string().optional(),
-    permanentAddress: z.string().min(1, "Họ và tên không được để trống"),
-    birthPlace: z.string().min(1, "Họ và tên không được để trống"),
-    religion: z.string().optional(),
-    repeatingYear: z.boolean().default(false),
-    idcardNumber: z
-      .string()
-      .optional()
-      .refine(
-        (val) => !val || val.length === 8 || val.length === 12,
-        "Số CMND/CCCD phải có 8 hoặc 12 chữ số",
-      )
-      .refine(
-        (val) => !val || /^\d+$/.test(val),
-        "Số CMND/CCCD chỉ được chứa chữ số",
-      ),
-    status: z.string().min(1, "Vui lòng chọn trạng thái"),
+  // State để lưu trữ checkbox nào được chọn
+  const [showFatherInfo, setShowFatherInfo] = useState(false);
+  const [showMotherInfo, setShowMotherInfo] = useState(false);
+  const [showGuardianInfo, setShowGuardianInfo] = useState(false);
 
-    // Father information
-    fullNameFather: z.string().optional(),
-    yearOfBirthFather: z
-      .union([z.date(), z.null()])
-      .optional()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày sinh",
-          });
-        }
-      }),
-    occupationFather: z.string().optional(),
-    phoneNumberFather: z.string().optional(),
-    emailFather: z
-      .string()
-      .email("Email không hợp lệ")
-      .optional()
-      .or(z.literal("")),
-    idcardNumberFather: z
-      .string()
-      .optional()
-      .refine(
-        (val) => !val || val.length === 9 || val.length === 12,
-        "Số CMND/CCCD phải có 9 hoặc 12 chữ số",
-      )
-      .refine(
-        (val) => !val || /^\d+$/.test(val),
-        "Số CMND/CCCD chỉ được chứa chữ số",
-      ),
+  const studentSchema = z
+    .object({
+      fullName: z.string().min(1, "Họ và tên không được để trống"),
+      dob: z
+        .date()
+        .nullable()
+        .superRefine((val, ctx) => {
+          if (val === null) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Vui lòng chọn ngày sinh",
+            });
+          }
+        }),
+      gender: z.string().min(1, "Vui lòng chọn giới tính"),
+      classId: z.coerce
+        .number()
+        .int()
+        .refine((val) => val > 0, {
+          message: "Vui lòng chọn lớp",
+        }),
+      admissionDate: z
+        .date()
+        .nullable()
+        .superRefine((val, ctx) => {
+          if (val === null) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Vui lòng chọn ngày nhập học",
+            });
+          }
+        }),
+      enrollmentType: z
+        .string()
+        .min(1, "Hình thức trúng tuyển không được để trống"),
+      ethnicity: z.string().optional(),
+      permanentAddress: z.string().min(1, "Họ và tên không được để trống"),
+      birthPlace: z.string().min(1, "Họ và tên không được để trống"),
+      religion: z.string().optional(),
+      repeatingYear: z.boolean().default(false),
+      idcardNumber: z
+        .string()
+        .min(1, "Số CCCD không được để trống")
+        .refine(
+          (val) => val.length === 12,
+          "Số CCCD phải có chính xác 12 chữ số",
+        )
+        .refine((val) => /^\d+$/.test(val), "Số CCCD chỉ được chứa chữ số"),
 
-    // Mother information
-    fullNameMother: z.string().optional(),
-    yearOfBirthMother: z
-      .date()
-      .optional()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày sinh",
-          });
-        }
-      }),
-    occupationMother: z.string().optional(),
-    phoneNumberMother: z
-      .string()
-      .optional()
-      .refine((val) => !val || /^(0|\+84)[0-9]{9,10}$/.test(val), {
-        message: "Số điện thoại không hợp lệ",
-      }),
-    emailMother: z
-      .string()
-      .email("Email không hợp lệ")
-      .optional()
-      .or(z.literal("")),
-    idcardNumberMother: z
-      .string()
-      .optional()
-      .refine(
-        (val) => !val || val.length === 9 || val.length === 12,
-        "Số CMND/CCCD phải có 9 hoặc 12 chữ số",
-      )
-      .refine(
-        (val) => !val || /^\d+$/.test(val),
-        "Số CMND/CCCD chỉ được chứa chữ số",
-      ),
+      status: z.string().min(1, "Vui lòng chọn trạng thái"),
 
-    // Guardian information
-    fullNameGuardian: z.string().optional(),
-    yearOfBirthGuardian: z
-      .date()
-      .optional()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày sinh",
-          });
-        }
-      }),
-    occupationGuardian: z.string().optional(),
-    phoneNumberGuardian: z
-      .string()
-      .optional()
-      .refine((val) => !val || /^(0|\+84)[0-9]{9,10}$/.test(val), {
-        message: "Số điện thoại không hợp lệ",
-      }),
-    emailGuardian: z
-      .string()
-      .email("Email không hợp lệ")
-      .optional()
-      .or(z.literal("")),
-    idcardNumberGuardian: z
-      .string()
-      .optional()
-      .refine(
-        (val) => !val || val.length === 9 || val.length === 12,
-        "Số CMND/CCCD phải có 9 hoặc 12 chữ số",
-      )
-      .refine(
-        (val) => !val || /^\d+$/.test(val),
-        "Số CMND/CCCD chỉ được chứa chữ số",
-      ),
-  });
+      // Father information
+      fullNameFather: z
+        .string()
+        .min(showFatherInfo ? 1 : 0, "Họ và tên không được để trống"),
+      yearOfBirthFather: z
+        .union([z.date(), z.null()])
+        .refine((val) => !showFatherInfo || val !== null, {
+          message: "Vui lòng chọn ngày sinh",
+        }),
+      occupationFather: z
+        .string()
+        .min(showFatherInfo ? 1 : 0, "Nghề nghiệp không được để trống"),
+      phoneNumberFather: z
+        .string()
+        .min(showFatherInfo ? 1 : 0, "Số điện thoại không được để trống")
+        .refine((val) => !showFatherInfo || /^(0|\+84)[0-9]{9,10}$/.test(val), {
+          message: "Số điện thoại không hợp lệ",
+        }),
+      emailFather: z
+        .string()
+        .email("Email không hợp lệ")
+        .optional()
+        .or(z.literal("")),
+      idcardNumberFather: z
+        .string()
+        .superRefine((val, ctx) => {
+          // Chỉ validate nếu showGuardianInfo là true
+          if (showFatherInfo) {
+            // Kiểm tra không được để trống
+            if (!val || val.trim().length === 0) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD không được để trống",
+              });
+            }
+            // Kiểm tra độ dài 12 ký tự
+            else if (val.length !== 12) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD phải có chính xác 12 chữ số",
+              });
+            }
+            // Kiểm tra chỉ chứa chữ số
+            else if (!/^\d+$/.test(val)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD chỉ được chứa chữ số",
+              });
+            }
+          }
+          return z.NEVER;
+        })
+        .optional(),
+
+      // Mother information
+      fullNameMother: z
+        .string()
+        .min(showMotherInfo ? 1 : 0, "Họ và tên không được để trống"),
+      yearOfBirthMother: z
+        .union([z.date(), z.null()])
+        .refine((val) => !showMotherInfo || val !== null, {
+          message: "Vui lòng chọn ngày sinh",
+        }),
+      occupationMother: z
+        .string()
+        .min(showMotherInfo ? 1 : 0, "Nghề nghiệp không được để trống"),
+      phoneNumberMother: z
+        .string()
+        .min(showMotherInfo ? 1 : 0, "Số điện thoại không được để trống")
+        .refine((val) => !showMotherInfo || /^(0|\+84)[0-9]{9,10}$/.test(val), {
+          message: "Số điện thoại không hợp lệ",
+        }),
+      idcardNumberMother: z
+        .string()
+        .superRefine((val, ctx) => {
+          // Chỉ validate nếu showGuardianInfo là true
+          if (showMotherInfo) {
+            // Kiểm tra không được để trống
+            if (!val || val.trim().length === 0) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD không được để trống",
+              });
+            }
+            // Kiểm tra độ dài 12 ký tự
+            else if (val.length !== 12) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD phải có chính xác 12 chữ số",
+              });
+            }
+            // Kiểm tra chỉ chứa chữ số
+            else if (!/^\d+$/.test(val)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD chỉ được chứa chữ số",
+              });
+            }
+          }
+          return z.NEVER;
+        })
+        .optional(),
+
+      // Guardian information
+      fullNameGuardian: z
+        .string()
+        .min(showGuardianInfo ? 1 : 0, "Họ và tên không được để trống"),
+      yearOfBirthGuardian: z
+        .union([z.date(), z.null()])
+        .refine((val) => !showGuardianInfo || val !== null, {
+          message: "Vui lòng chọn ngày sinh",
+        }),
+      occupationGuardian: z
+        .string()
+        .min(showGuardianInfo ? 1 : 0, "Nghề nghiệp không được để trống"),
+      phoneNumberGuardian: z
+        .string()
+        .min(showGuardianInfo ? 1 : 0, "Số điện thoại không được để trống")
+        .refine(
+          (val) => !showGuardianInfo || /^(0|\+84)[0-9]{9,10}$/.test(val),
+          {
+            message: "Số điện thoại không hợp lệ",
+          },
+        ),
+      emailGuardian: z
+        .string()
+        .email("Email không hợp lệ")
+        .optional()
+        .or(z.literal("")),
+      idcardNumberGuardian: z
+        .string()
+        .superRefine((val, ctx) => {
+          // Chỉ validate nếu showGuardianInfo là true
+          if (showGuardianInfo) {
+            // Kiểm tra không được để trống
+            if (!val || val.trim().length === 0) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD không được để trống",
+              });
+            }
+            // Kiểm tra độ dài 12 ký tự
+            else if (val.length !== 12) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD phải có chính xác 12 chữ số",
+              });
+            }
+            // Kiểm tra chỉ chứa chữ số
+            else if (!/^\d+$/.test(val)) {
+              ctx.addIssue({
+                code: z.ZodIssueCode.custom,
+                message: "Số CCCD chỉ được chứa chữ số",
+              });
+            }
+          }
+          return z.NEVER;
+        })
+        .optional(),
+    })
+    .superRefine((val, ctx) => {
+      // Kiểm tra ít nhất 1 checkbox được chọn
+      if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message:
+            "Vui lòng chọn ít nhất 1 người thân (cha, mẹ hoặc người giám hộ)",
+          path: ["familyInfoRequired"], // Tạo một path giả để hiển thị lỗi
+        });
+      }
+    });
 
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
     control,
     reset,
@@ -229,6 +298,9 @@ export default function AddStudent() {
 
   // Submit handler
   const onSubmit = (formData) => {
+    // if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
+    //   return;
+    // }
     const formattedData = {
       ...formData,
       dob: formData.dob ? formatDate(formData.dob) : null,
@@ -246,7 +318,11 @@ export default function AddStudent() {
         : null,
     };
     console.log(formattedData);
-    mutate(formattedData);
+    mutate(formattedData, {
+      onSuccess: () => {
+        reset();
+      },
+    });
   };
 
   // Form field component
@@ -395,48 +471,109 @@ export default function AddStudent() {
         </CardContent>
       </Card>
 
-      {/* Father Information */}
+      {/* Family Information Section */}
       <Card>
         <CardHeader>
-          <CardTitle>Thông tin cha</CardTitle>
+          <CardTitle>Thông tin gia đình</CardTitle>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField name="fullNameFather" label="Họ và tên" />
-          <FormField name="yearOfBirthFather" label="Năm sinh" type="date" />
-          <FormField name="occupationFather" label="Nghề nghiệp" />
-          <FormField name="phoneNumberFather" label="Số điện thoại" />
-          <FormField name="emailFather" label="Email" />
-          <FormField name="idcardNumberFather" label="CCCD/CMND" />
-        </CardContent>
-      </Card>
+        <CardContent className="space-y-6">
+          {/* Checkbox selection */}
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="showFatherInfo"
+                checked={showFatherInfo}
+                onChange={(e) => setShowFatherInfo(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="showFatherInfo">Thông tin cha</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="showMotherInfo"
+                checked={showMotherInfo}
+                onChange={(e) => setShowMotherInfo(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="showMotherInfo">Thông tin mẹ</Label>
+            </div>
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="showGuardianInfo"
+                checked={showGuardianInfo}
+                onChange={(e) => setShowGuardianInfo(e.target.checked)}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="showGuardianInfo">Thông tin người bảo hộ</Label>
+            </div>
+          </div>
+          {errors.familyInfoRequired && (
+            <p className="text-sm text-red-500">
+              {errors.familyInfoRequired.message}
+            </p>
+          )}
 
-      {/* Mother Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin mẹ</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField name="fullNameMother" label="Họ và tên" />
-          <FormField name="yearOfBirthMother" label="Năm sinh" type="date" />
-          <FormField name="occupationMother" label="Nghề nghiệp" />
-          <FormField name="phoneNumberMother" label="Số điện thoại" />
-          <FormField name="emailMother" label="Email" />
-          <FormField name="idcardNumberMother" label="CCCD/CMND" />
-        </CardContent>
-      </Card>
+          {/* Father Information - chỉ hiển thị khi checkbox được chọn */}
+          {showFatherInfo && (
+            <div className="rounded-lg border p-4">
+              <h3 className="mb-4 text-lg font-semibold">Thông tin cha</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField name="fullNameFather" label="Họ và tên" />
+                <FormField
+                  name="yearOfBirthFather"
+                  label="Năm sinh"
+                  type="date"
+                />
+                <FormField name="occupationFather" label="Nghề nghiệp" />
+                <FormField name="phoneNumberFather" label="Số điện thoại" />
+                <FormField name="emailFather" label="Email" />
+                <FormField name="idcardNumberFather" label="CCCD/CMND" />
+              </div>
+            </div>
+          )}
 
-      {/* Guardian Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin người giám hộ</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField name="fullNameGuardian" label="Họ và tên" />
-          <FormField name="yearOfBirthGuardian" label="Năm sinh" type="date" />
-          <FormField name="occupationGuardian" label="Nghề nghiệp" />
-          <FormField name="phoneNumberGuardian" label="Số điện thoại" />
-          <FormField name="emailGuardian" label="Email" />
-          <FormField name="idcardNumberGuardian" label="CCCD/CMND" />
+          {/* Mother Information - chỉ hiển thị khi checkbox được chọn */}
+          {showMotherInfo && (
+            <div className="rounded-lg border p-4">
+              <h3 className="mb-4 text-lg font-semibold">Thông tin mẹ</h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField name="fullNameMother" label="Họ và tên" />
+                <FormField
+                  name="yearOfBirthMother"
+                  label="Năm sinh"
+                  type="date"
+                />
+                <FormField name="occupationMother" label="Nghề nghiệp" />
+                <FormField name="phoneNumberMother" label="Số điện thoại" />
+                <FormField name="emailMother" label="Email" />
+                <FormField name="idcardNumberMother" label="CCCD/CMND" />
+              </div>
+            </div>
+          )}
+
+          {/* Guardian Information - chỉ hiển thị khi checkbox được chọn */}
+          {showGuardianInfo && (
+            <div className="rounded-lg border p-4">
+              <h3 className="mb-4 text-lg font-semibold">
+                Thông tin người giám hộ
+              </h3>
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <FormField name="fullNameGuardian" label="Họ và tên" />
+                <FormField
+                  name="yearOfBirthGuardian"
+                  label="Năm sinh"
+                  type="date"
+                />
+                <FormField name="occupationGuardian" label="Nghề nghiệp" />
+                <FormField name="phoneNumberGuardian" label="Số điện thoại" />
+                <FormField name="emailGuardian" label="Email" />
+                <FormField name="idcardNumberGuardian" label="CCCD/CMND" />
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
