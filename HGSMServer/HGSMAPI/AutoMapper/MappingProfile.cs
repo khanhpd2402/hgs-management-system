@@ -38,17 +38,9 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId));
 
             CreateMap<Student, StudentDto>()
-                .ForMember(dest => dest.ClassName,
-                    opt => opt.MapFrom(src => src.StudentClasses
-                        .Select(sc => sc.Class.ClassName)
-                        .FirstOrDefault()))
-                .ForMember(dest => dest.Grade,
-                    opt => opt.MapFrom(src => src.StudentClasses
-                        .Select(sc => sc.Class.Grade)
-                        .FirstOrDefault()))
-                .ForMember(dest => dest.ParentId,
-                    opt => opt.MapFrom(src => src.ParentId))
-                .ReverseMap();
+            .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
+            .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.Grade))
+            .ForMember(dest => dest.Parent, opt => opt.Ignore());
 
             CreateMap<Parent, ParentDto>()
                 .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
