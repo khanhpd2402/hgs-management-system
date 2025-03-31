@@ -16,6 +16,7 @@ namespace Application.Features.Teachers.Interfaces
         Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto);
         Task<bool> IsHomeroomAssignedAsync(int teacherId, int classId, int academicYearId);
         Task<bool> HasHomeroomTeacherAsync(int classId, int academicYearId);
+        Task<string> GenerateUniqueUsernameAsync(string fullName);
     }
 
 }

@@ -55,7 +55,7 @@ namespace Application.Services
                 {
                     foreach (var assessmentType in assessmentTypes)
                     {
-                        
+
                         grades.Add(new Grade
                         {
                             BatchId = newBatch.BatchId,
@@ -76,16 +76,115 @@ namespace Application.Services
             return _mapper.Map<GradeBatchDto>(newBatch);
         }
 
-
-        public async Task<bool> UpdateAsync(GradeBatchDto gradeBatchDto)
-        {
-            var batch = _mapper.Map<GradeBatch>(gradeBatchDto);
-            return await _gradeBatchRepository.UpdateAsync(batch);
-        }
-
         public async Task<bool> DeleteAsync(int id)
         {
             return await _gradeBatchRepository.DeleteAsync(id);
         }
+        public async Task<GradeBatchDetailResponseDto> GetGradeBatchDetailAsync(int batchId)
+        {
+            var batch = await _gradeBatchRepository.GetGradeBatchWithGradesAsync(batchId);
+
+            var classIds = batch.Grades
+                .Select(g => g.ClassId)
+                .Distinct()
+                .ToList();
+
+            var subjects = batch.Grades
+                .Select(g => new SubjectDto
+                {
+                    SubjectId = g.SubjectId,
+                    SubjectName = g.Subject.SubjectName
+                })
+                .DistinctBy(x => x.SubjectId)
+                .ToList();
+
+            var assessmentTypes = batch.Grades
+                .Select(g => new AssessmentTypeDto
+                {
+                    SubjectId = g.SubjectId,
+                    AssessmentTypeName = g.AssessmentsTypeName,
+                    ClassId = g.ClassId
+                })
+                .DistinctBy(x => new { x.SubjectId, x.AssessmentTypeName, x.ClassId })
+                .ToList();
+
+            return new GradeBatchDetailResponseDto
+            {
+                BatchId = batch.BatchId,
+                BatchName = batch.BatchName,
+                SemesterId = batch.SemesterId,
+                StartDate = batch.StartDate,
+                EndDate = batch.EndDate,
+                IsActive = batch.IsActive,
+                ClassIds = classIds,
+                Subjects = subjects,
+                AssessmentTypes = assessmentTypes
+            };
+        }
+
+        public async Task<GradeBatchDto> UpdateAsync(GradeBatchToCreateDto request)
+        {
+            var batch = await _gradeBatchRepository.GetByIdAsync(request.GradeBatch.BatchId);
+            if (batch == null)
+                throw new Exception("GradeBatch not found");
+
+            // 1. Update thông tin GradeBatch
+            batch.BatchName = request.GradeBatch.BatchName;
+            batch.SemesterId = request.GradeBatch.SemesterId;
+            batch.StartDate = request.GradeBatch.StartDate;
+            batch.EndDate = request.GradeBatch.EndDate;
+            batch.IsActive = request.GradeBatch.IsActive;
+
+            await _gradeBatchRepository.UpdateAsync(batch);
+
+            // 2. Kiểm tra xem có cần thêm đầu điểm mới không
+            var existingGrades = await _gradeRepository.GetByBatchIdAsync(batch.BatchId);
+            var existingKeys = existingGrades
+                .Select(g => new { g.SubjectId, g.AssessmentsTypeName })
+                .Distinct()
+                .ToList();
+
+            var academicYearId = await _studentRepository.GetAcademicYearIdAsync(batch.SemesterId);
+            var students = await _studentRepository.GetAllWithParentsAsync(academicYearId);
+
+            var newGrades = new List<Grade>();
+
+            foreach (var subjectId in request.SubjectIds)
+            {
+                foreach (var assessmentType in request.AssessmentTypes)
+                {
+                    bool exists = existingKeys.Any(x => x.SubjectId == subjectId && x.AssessmentsTypeName == assessmentType);
+                    if (exists)
+                        continue;
+
+                    foreach (var student in students)
+                    {
+                        var classId = student.StudentClasses
+                            .Where(sc => sc.AcademicYearId == academicYearId)
+                            .Select(sc => sc.ClassId)
+                            .FirstOrDefault();
+
+                        newGrades.Add(new Grade
+                        {
+                            BatchId = batch.BatchId,
+                            StudentId = student.StudentId,
+                            ClassId = classId,
+                            SubjectId = subjectId,
+                            AssessmentsTypeName = assessmentType,
+                            Score = null,
+                            TeacherComment = null
+                        });
+                    }
+                }
+            }
+
+            if (newGrades.Any())
+            {
+                await _gradeRepository.AddRangeAsync(newGrades);
+            }
+
+            return _mapper.Map<GradeBatchDto>(batch);
+        }
+
     }
 }

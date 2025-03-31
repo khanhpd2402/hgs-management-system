@@ -1,23 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace Application.Features.Timetables.DTOs
+﻿namespace Application.Features.Timetables.DTOs
 {
-    public class TimetableDto
+    public class CreateTimetableDto
     {
-        public int TimetableId { get; set; }
         public int SemesterId { get; set; }
         public DateOnly EffectiveDate { get; set; }
         public List<TimetableDetailDto> Details { get; set; } = new();
     }
 
-    public class TimetableDetailDto
+    public class CreateTimetableDetailDto
     {
-        public int TimetableDetailId { get; set; }
-        public int TimetableId { get; set; }
         public int ClassId { get; set; }
         public int SubjectId { get; set; }
         public int TeacherId { get; set; }

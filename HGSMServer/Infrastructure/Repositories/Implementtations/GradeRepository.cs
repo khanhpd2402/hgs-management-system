@@ -42,6 +42,11 @@ namespace Infrastructure.Repositories.Implementtations
                 .Where(g => gradeIds.Contains(g.GradeId))
                 .ToListAsync();
         }
-
+        public async Task<IEnumerable<Grade>> GetByBatchIdAsync(int batchId)
+        {
+            return await _context.Grades
+                .Where(g => g.BatchId == batchId)
+                .ToListAsync();
+        }
     }
 }

@@ -11,12 +11,11 @@ namespace Common.Utils
     public static class DateHelper
     {
 
-        // Chuyển chuỗi thành DateOnly
         public static DateOnly ParseDate(string dateString)
         {
             if (string.IsNullOrWhiteSpace(dateString))
             {
-                throw new Exception("Ngày không được để trống.");
+                return default; // Trả về 01/01/0001 nếu ngày trống
             }
 
             if (!DateOnly.TryParseExact(dateString.Trim(), AppConstants.DATE_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
@@ -26,6 +25,8 @@ namespace Common.Utils
 
             return date;
         }
+
+
     }
 
 }

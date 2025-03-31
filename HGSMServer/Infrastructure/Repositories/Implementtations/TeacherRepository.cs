@@ -51,9 +51,9 @@ namespace Infrastructure.Repositories.Implementtations
                 await _context.SaveChangesAsync();
             }
         }
-        public async Task<bool> ExistsAsync(string idCard, string insuranceNumber)
+        public async Task<bool> ExistsAsync(string idCard)
         {
-            return await _context.Teachers.AnyAsync(t => t.IdcardNumber == idCard || t.InsuranceNumber == insuranceNumber);
+            return await _context.Teachers.AnyAsync(t => t.IdcardNumber == idCard);
         }
 
         public async Task AddRangeAsync(IEnumerable<Teacher> teachers)
@@ -66,5 +66,14 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Teachers
                 .FirstOrDefaultAsync(t => t.UserId == userId);
         }
+        public async Task<bool> IsUsernameExistsAsync(string username)
+        {
+            return await _context.Users.AnyAsync(t => t.Username == username);
+        }
+        public async Task<bool> IsEmailOrPhoneExistsAsync(string email, string phoneNumber)
+        {
+            return await _context.Users.AnyAsync(u => u.Email == email || u.PhoneNumber == phoneNumber);
+        }
+
     }
 }
