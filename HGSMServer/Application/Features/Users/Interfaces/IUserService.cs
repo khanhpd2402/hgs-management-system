@@ -10,7 +10,7 @@ namespace Application.Features.Users.Interfaces
         Task<UserDTO?> GetUserByIdAsync(int id);
         Task<UserDTO?> GetUserByEmailAsync(string email);
         Task<UserDTO?> GetUserByUsernameAsync(string username);
-        Task AddUserAsync(CreateUserDTO userDto);
+        Task<UserDTO> AddUserAsync(CreateUserDTO userDto);
         Task UpdateUserAsync(UpdateUserDTO userDto);
         Task DeleteUserAsync(int id);
         Task<string?> GetRoleNameByRoleIdAsync(int roleId);

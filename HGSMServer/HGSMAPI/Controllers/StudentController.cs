@@ -1,5 +1,6 @@
 ﻿using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
+using ClosedXML.Excel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
@@ -35,8 +36,9 @@ namespace HGSMAPI.Controllers
         }
 
         // POST: api/Student
+        
         [HttpPost]
-        [Consumes("application/json")] // Chỉ chấp nhận Content-Type là application/json
+        [Consumes("application/json")]
         public async Task<IActionResult> CreateStudent([FromBody] CreateStudentDto createStudentDto)
         {
             if (createStudentDto == null) return BadRequest("Student data cannot be null.");
@@ -50,7 +52,8 @@ namespace HGSMAPI.Controllers
             try
             {
                 var studentId = await _studentService.AddStudentAsync(createStudentDto);
-                return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId = 1 }, createStudentDto);
+                var createdStudent = await _studentService.GetStudentByIdAsync(studentId, 1); // Giả sử AcademicYearId = 1
+                return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId = 1 }, createdStudent);
             }
             catch (Exception ex)
             {
@@ -102,13 +105,97 @@ namespace HGSMAPI.Controllers
 
             try
             {
-                await _studentService.ImportStudentsFromExcelAsync(file);
-                return Ok("Import danh sách học sinh thành công!");
+                var results = await _studentService.ImportStudentsFromExcelAsync(file);
+                return Ok(new ApiResponse(true, "Import danh sách học sinh hoàn tất", results));
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ApiResponse(false, $"Lỗi khi import: {ex.Message}"));
             }
         }
+
+        public class ApiResponse
+        {
+            public bool Success { get; set; }
+            public string Message { get; set; }
+            public object Data { get; set; }
+
+            public ApiResponse(bool success, string message, object data = null)
+            {
+                Success = success;
+                Message = message;
+                Data = data;
+            }
+        }
+        [HttpGet("download-template")]
+        public IActionResult DownloadExcelTemplate()
+        {
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Students");
+
+                var headers = new List<string>
+        {
+            "Họ và tên", "Ngày sinh", "Giới tính", "Ngày nhập học", "Hình thức nhập học", "Dân tộc",
+            "Địa chỉ thường trú", "Nơi sinh", "Tôn giáo", "Lưu ban", "Số CMND/CCCD", "Trạng thái",
+            "Tên lớp",
+            "Họ và tên cha", "Ngày sinh cha", "Nghề nghiệp cha", "SĐT cha", "Email cha", "Số CCCD cha",
+            "Họ và tên mẹ", "Ngày sinh mẹ", "Nghề nghiệp mẹ", "SĐT mẹ", "Email mẹ", "Số CCCD mẹ",
+            "Họ và tên người bảo hộ", "Ngày sinh người bảo hộ", "Nghề nghiệp người bảo hộ", "SĐT người bảo hộ", "Email người bảo hộ", "Số CCCD người bảo hộ"
+        };
+
+                for (int i = 0; i < headers.Count; i++)
+                {
+                    worksheet.Cell(1, i + 1).Value = headers[i];
+                    worksheet.Cell(1, i + 1).Style.Font.Bold = true;
+                }
+
+
+                worksheet.Cell(2, 1).Value = "Nguyễn Thị Mai";
+                worksheet.Cell(2, 2).Value = "15-08-2010";
+                worksheet.Cell(2, 3).Value = "Nữ";
+                worksheet.Cell(2, 4).Value = "10-09-2022"; // Ngày nhập học hợp lệ
+                worksheet.Cell(2, 5).Value = "Thi tuyển";
+                worksheet.Cell(2, 6).Value = "Kinh";
+                worksheet.Cell(2, 7).Value = "456 Đường XYZ, Quận 2";
+                worksheet.Cell(2, 8).Value = "TP. Hồ Chí Minh";
+                worksheet.Cell(2, 9).Value = "Không";
+                worksheet.Cell(2, 10).Value = "Không";
+                worksheet.Cell(2, 11).Value = "987654321012";
+                worksheet.Cell(2, 12).Value = "Đang học";
+                worksheet.Cell(2, 13).Value = "7B";
+                worksheet.Cell(2, 14).Value = "Trần Văn An";
+                worksheet.Cell(2, 15).Value = "20-05-1985";
+                worksheet.Cell(2, 16).Value = "Kỹ sư";
+                worksheet.Cell(2, 17).Value = "0912345678"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 18).Value = "tranvanan@example.com";
+                worksheet.Cell(2, 19).Value = "123456789876";
+                worksheet.Cell(2, 20).Value = "Lê Thị Hồng";
+                worksheet.Cell(2, 21).Value = "12-11-1987";
+                worksheet.Cell(2, 22).Value = "Nhân viên văn phòng";
+                worksheet.Cell(2, 23).Value = "0987654321"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 24).Value = "lethihong@example.com";
+                worksheet.Cell(2, 25).Value = "789456123654";
+                worksheet.Cell(2, 26).Value = "Phạm Văn Bình";
+                worksheet.Cell(2, 27).Value = "25-07-1982";
+                worksheet.Cell(2, 28).Value = "Doanh nhân";
+                worksheet.Cell(2, 29).Value = "0965124789"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 30).Value = "phamvanbinh@example.com";
+                worksheet.Cell(2, 31).Value = "321654987123"; // Căn cước công dân mới
+
+
+                worksheet.Columns().AdjustToContents();
+
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    stream.Position = 0;
+                    return File(stream.ToArray(), "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "StudentImportTemplate.xlsx");
+                }
+            }
+        }
+
+
+
     }
 }
