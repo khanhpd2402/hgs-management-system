@@ -1,9 +1,10 @@
-﻿using System;
+﻿using Application.Features.Students.Interfaces;
+using System;
 using System.ComponentModel.DataAnnotations;
 
 namespace Application.Features.Students.DTOs
 {
-    public class CreateStudentDto
+    public class CreateStudentDto : IParentInfoDto
     {
         // Thông tin học sinh
         [Required(ErrorMessage = "FullName is required.")]
@@ -18,10 +19,6 @@ namespace Application.Features.Students.DTOs
         [Required(ErrorMessage = "ClassId is required.")]
         [Range(1, int.MaxValue, ErrorMessage = "ClassId must be greater than 0.")]
         public int ClassId { get; set; }
-
-        [Required(ErrorMessage = "Grade is required.")]
-        [Range(1, 12, ErrorMessage = "Grade must be between 1 and 12.")]
-        public int Grade { get; set; }
 
         [Required(ErrorMessage = "AdmissionDate is required.")]
         public DateOnly AdmissionDate { get; set; }
@@ -44,7 +41,7 @@ namespace Application.Features.Students.DTOs
         public string? OccupationFather { get; set; }
         public string? PhoneNumberFather { get; set; }
         public string? EmailFather { get; set; }
-        public string? IdcardNumberFather { get; set; } // Thêm trường IdcardNumber cho cha
+        public string? IdcardNumberFather { get; set; }
 
         // Thông tin mẹ
         public string? FullNameMother { get; set; }
@@ -52,7 +49,7 @@ namespace Application.Features.Students.DTOs
         public string? OccupationMother { get; set; }
         public string? PhoneNumberMother { get; set; }
         public string? EmailMother { get; set; }
-        public string? IdcardNumberMother { get; set; } // Thêm trường IdcardNumber cho mẹ
+        public string? IdcardNumberMother { get; set; }
 
         // Thông tin người bảo hộ (nếu có)
         public string? FullNameGuardian { get; set; }
@@ -60,6 +57,6 @@ namespace Application.Features.Students.DTOs
         public string? OccupationGuardian { get; set; }
         public string? PhoneNumberGuardian { get; set; }
         public string? EmailGuardian { get; set; }
-        public string? IdcardNumberGuardian { get; set; } // Thêm trường IdcardNumber cho người bảo hộ
+        public string? IdcardNumberGuardian { get; set; }
     }
 }

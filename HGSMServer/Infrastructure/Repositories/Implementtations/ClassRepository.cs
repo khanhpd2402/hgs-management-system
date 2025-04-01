@@ -56,5 +56,14 @@ namespace Infrastructure.Repositories.Implementtations
             _context.Classes.Remove(classEntity);
             await _context.SaveChangesAsync();
         }
+        public async Task<bool> ExistsAsync(int classId)
+        {
+            return await _context.Classes.AnyAsync(c => c.ClassId == classId);
+        }
+        public async Task<Class> GetClassByNameAsync(string className)
+        {
+            return await _context.Set<Class>()
+                .FirstOrDefaultAsync(c => c.ClassName == className);
+        }
     }
 }

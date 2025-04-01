@@ -9,5 +9,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<Class> AddAsync(Class classEntity);
         Task<Class> UpdateAsync(Class classEntity);
         Task DeleteAsync(int id);
+        Task<bool> ExistsAsync(int classId);
+        Task<Class> GetClassByNameAsync(string className);
     }
 }

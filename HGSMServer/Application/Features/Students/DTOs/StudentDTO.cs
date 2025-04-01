@@ -1,9 +1,4 @@
 ﻿using Application.Features.Parents.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Application.Features.Students.DTOs
 {
@@ -25,7 +20,7 @@ namespace Application.Features.Students.DTOs
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
 
-        public List<ParentDto> Parents { get; set; } = new();
+        
+        public ParentDto? Parent { get; set; }
     }
-
 }
