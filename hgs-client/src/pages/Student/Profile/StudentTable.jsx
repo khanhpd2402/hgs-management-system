@@ -23,6 +23,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router";
+import { formatDateString } from "@/helpers/formatDate";
 
 export default function StudentTable() {
   const queryClient = useQueryClient();
@@ -60,13 +61,41 @@ export default function StudentTable() {
   const { data, isPending, error, isError } = useStudents(academicYearId);
 
   //phan trang
-  const { page, pageSize } = filter;
+  const { page, pageSize, search } = filter;
 
-  const startIndex = (page - 1) * pageSize + 1;
-  const endIndex = Math.min(
-    (page - 1) * pageSize + (data?.length || 0),
-    startIndex + pageSize - 1,
+  const filteredData =
+    data?.students?.filter((teacher) => {
+      // // Filter by department
+      // if (department && teacher.department !== department) {
+      //   return false;
+      // }
+
+      // // Filter by contract type
+      // if (contract && teacher.employmentType !== contract) {
+      //   return false;
+      // }
+
+      // Filter by search term (case insensitive)
+      if (search) {
+        const searchLower = search.toLowerCase();
+        return (
+          teacher.fullName?.toLowerCase().includes(searchLower) ||
+          teacher.email?.toLowerCase().includes(searchLower) ||
+          teacher.phoneNumber?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
+    }) || [];
+
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const currentData = filteredData.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
   );
+
+  const startIndex = filteredData.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, filteredData.length);
 
   // Save visible columns to localStorage
   useEffect(() => {
@@ -83,8 +112,6 @@ export default function StudentTable() {
       setVisibleColumns(JSON.parse(savedColumns));
     }
   }, []);
-
-  console.log(data);
 
   if (isPending) {
     return (
@@ -139,8 +166,8 @@ export default function StudentTable() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {data && data?.students.length > 0 ? (
-                  data?.students?.map((student) => (
+                {currentData && currentData.length > 0 ? (
+                  currentData?.map((student) => (
                     <TableRow
                       key={student.studentId}
                       className="divide-x divide-gray-300"
@@ -200,7 +227,7 @@ export default function StudentTable() {
 
                       {visibleColumns.some((col) => col.id === "class") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
-                          {student.class}
+                          {student.className}
                         </TableCell>
                       )}
 
@@ -212,7 +239,7 @@ export default function StudentTable() {
 
                       {visibleColumns.some((col) => col.id === "dob") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
-                          {student.dob}
+                          {formatDateString(student.dob)}
                         </TableCell>
                       )}
 
@@ -244,13 +271,13 @@ export default function StudentTable() {
         <PaginationControls
           pageSize={pageSize}
           setFilter={setFilter}
-          totalItems={data?.length || 0}
+          totalItems={filteredData.length || 0}
           startIndex={startIndex}
           endIndex={endIndex}
         />
 
         <MyPagination
-          totalPages={6}
+          totalPages={totalPages}
           currentPage={page}
           onPageChange={setFilter}
         />
