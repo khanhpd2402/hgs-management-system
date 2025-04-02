@@ -581,3 +581,6 @@ FodyWeavers.xsd
 # Additional files built by Visual Studio
 
 # End of https://www.toptal.com/developers/gitignore/api/visualstudio,csharp
+# Ignore Google Cloud Service Account Credentials
+HGSMServer/HGSMAPI/Config/service-account-credentials.json
+HGSMServer/HGSMAPI/Config/credential.json
