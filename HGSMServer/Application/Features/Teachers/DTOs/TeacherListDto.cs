@@ -29,5 +29,6 @@ namespace Application.Features.Teachers.DTOs
         // Thông tin từ bảng Users
         public string Email { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
+        public string? TeachingSubject { get; set; }
     }
 }

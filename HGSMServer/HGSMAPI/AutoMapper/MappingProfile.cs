@@ -11,6 +11,7 @@ using Application.Features.AcademicYears.DTOs;
 using Application.Features.Semesters.DTOs;
 using Application.Features.LeaveRequests.DTOs;
 using Application.Features.LessonPlans.DTOs;
+using Application.Features.Exams.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -18,26 +19,30 @@ namespace HGSMAPI.AutoMapper
     {
         public MappingProfile()
         {
+            // Ánh xạ cho TeacherDetailDto sang Teacher
             CreateMap<TeacherDetailDto, Teacher>()
                 .ForMember(dest => dest.User, opt => opt.Ignore());
 
             CreateMap<Teacher, TeacherDetailDto>()
                 .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User != null ? src.User.UserId : (int?)null));
 
-            CreateMap<Student, StudentDto>()
-                .ForMember(dest => dest.ClassName,
-                    opt => opt.MapFrom(src => src.StudentClasses
-                        .Select(sc => sc.Class.ClassName)
-                        .FirstOrDefault()))
-                .ForMember(dest => dest.Grade,
-                    opt => opt.MapFrom(src => src.StudentClasses
-                        .Select(sc => sc.Class.Grade)
-                        .FirstOrDefault()))
-                .ForMember(dest => dest.ParentId, // Thêm ánh xạ cho ParentId
-                    opt => opt.MapFrom(src => src.ParentId))
-                .ReverseMap();
+            // Ánh xạ cho TeacherListDto sang Teacher
+            //CreateMap<TeacherListDto, Teacher>()
+            //    .ForMember(dest => dest.User, opt => opt.Ignore()) // Bỏ qua trường User vì được tạo thủ công trong TeacherService
+            //    .ForMember(dest => dest.TeacherSubjects, opt => opt.Ignore()); // Bỏ qua TeachingSubject vì Teacher không có trường này
+            //                                                                   // In your AutoMapper configuration
+            CreateMap<TeacherListDto, Teacher>()
+                .ForMember(dest => dest.TeacherId, opt => opt.Ignore()); // Ignore TeacherId during mapping
 
-            // Ánh xạ cho Parent sang ParentDto
+            // Ánh xạ cho Teacher sang TeacherListDto (đã có trong yêu cầu trước)
+            CreateMap<Teacher, TeacherListDto>()
+                .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId));
+
+            CreateMap<Student, StudentDto>()
+            .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
+            .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.Grade))
+            .ForMember(dest => dest.Parent, opt => opt.Ignore());
+
             CreateMap<Parent, ParentDto>()
                 .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
                 .ForMember(dest => dest.FullNameFather, opt => opt.MapFrom(src => src.FullNameFather))
@@ -91,6 +96,12 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher != null ? src.Teacher.FullName : "Unknown"))
                 .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject != null ? src.Subject.SubjectName : "Unknown"))
                 .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src => src.Reviewer != null ? src.Reviewer.FullName : "N/A"));
+            CreateMap<Question, QuestionDto>()
+                .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
+            CreateMap<QuestionDto, Question>()
+                .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
+            CreateMap<ExamProposal, ExamProposalDto>();
+            CreateMap<ExamProposal, ExamProposalDto>();
         }
     }
 }

@@ -19,6 +19,6 @@ namespace Application.Features.Students.Interfaces
         //Task<byte[]> ExportStudentsFullToExcelAsync();
         //Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns);
 
-        Task ImportStudentsFromExcelAsync(IFormFile file);
+        Task<List<string>> ImportStudentsFromExcelAsync(IFormFile file);
     }
 }

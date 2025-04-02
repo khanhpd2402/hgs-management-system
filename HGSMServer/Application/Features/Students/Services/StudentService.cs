@@ -1,7 +1,9 @@
-﻿using Application.Features.Students.DTOs;
+﻿using Application.Features.Parents.DTOs;
+using Application.Features.Students.DTOs;
 using Application.Features.Students.Interfaces;
 using AutoMapper;
 using Common.Utils;
+using DocumentFormat.OpenXml.InkML;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -21,25 +23,42 @@ namespace Application.Features.Students.Services
         private readonly IParentRepository _parentRepository;
         private readonly IClassRepository _classRepository;
         private readonly IMapper _mapper;
+        private readonly HgsdbContext _context;
 
         public StudentService(
-            IStudentRepository studentRepository,
-            IUserRepository userRepository,
-            IParentRepository parentRepository,
-            IClassRepository classRepository,
-            IMapper mapper)
+    IStudentRepository studentRepository,
+    IUserRepository userRepository,
+    IParentRepository parentRepository,
+    IClassRepository classRepository,
+    IMapper mapper,
+    HgsdbContext context)
         {
             _studentRepository = studentRepository ?? throw new ArgumentNullException(nameof(studentRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _parentRepository = parentRepository ?? throw new ArgumentNullException(nameof(parentRepository));
             _classRepository = classRepository ?? throw new ArgumentNullException(nameof(classRepository));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
         public async Task<StudentListResponseDto> GetAllStudentsWithParentsAsync(int academicYearId)
         {
             var students = await _studentRepository.GetAllWithParentsAsync(academicYearId);
-            var studentDtos = _mapper.Map<List<StudentDto>>(students);
+            var studentDtos = new List<StudentDto>();
+
+            foreach (var student in students)
+            {
+                var studentDto = _mapper.Map<StudentDto>(student);
+                if (student.ParentId.HasValue)
+                {
+                    var parent = await _parentRepository.GetByIdAsync(student.ParentId.Value);
+                    if (parent != null)
+                    {
+                        studentDto.Parent = _mapper.Map<ParentDto>(parent);
+                    }
+                }
+                studentDtos.Add(studentDto);
+            }
 
             return new StudentListResponseDto
             {
@@ -51,7 +70,20 @@ namespace Application.Features.Students.Services
         public async Task<StudentDto?> GetStudentByIdAsync(int id, int academicYearId)
         {
             var student = await _studentRepository.GetByIdWithParentsAsync(id, academicYearId);
-            return student == null ? null : _mapper.Map<StudentDto>(student);
+            if (student == null)
+                return null;
+
+            var studentDto = _mapper.Map<StudentDto>(student);
+            if (student.ParentId.HasValue)
+            {
+                var parent = await _parentRepository.GetByIdAsync(student.ParentId.Value);
+                if (parent != null)
+                {
+                    studentDto.Parent = _mapper.Map<ParentDto>(parent);
+                }
+            }
+
+            return studentDto;
         }
 
         public async Task<int> AddStudentAsync(CreateStudentDto createStudentDto)
@@ -60,6 +92,8 @@ namespace Application.Features.Students.Services
                 throw new ArgumentNullException(nameof(createStudentDto));
 
             Console.WriteLine($"Adding student: {createStudentDto.FullName}, IdcardNumber: {createStudentDto.IdcardNumber}");
+
+            ValidateStudentDto(createStudentDto);
 
             using var transaction = await _studentRepository.BeginTransactionAsync();
             try
@@ -115,8 +149,8 @@ namespace Application.Features.Students.Services
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                Console.WriteLine($"Transaction rolled back due to error: {ex.Message}");
-                throw;
+                Console.WriteLine($"Transaction rolled back due to error: {ex.Message}, Inner Exception: {ex.InnerException?.Message}");
+                throw new Exception($"Lỗi khi thêm học sinh: {ex.Message}. Chi tiết: {ex.InnerException?.Message}");
             }
         }
 
@@ -124,12 +158,57 @@ namespace Application.Features.Students.Services
         {
             Console.WriteLine($"Creating parent for StudentID {student.StudentId}");
 
+            ValidateParentInfoDto(parentInfoDto);
+
+            // Kiểm tra xem có thông tin liên lạc nào hợp lệ không
+            bool hasFatherContact = !string.IsNullOrEmpty(parentInfoDto.PhoneNumberFather) || !string.IsNullOrEmpty(parentInfoDto.EmailFather);
+            bool hasMotherContact = !string.IsNullOrEmpty(parentInfoDto.PhoneNumberMother) || !string.IsNullOrEmpty(parentInfoDto.EmailMother);
+            bool hasGuardianContact = !string.IsNullOrEmpty(parentInfoDto.PhoneNumberGuardian) || !string.IsNullOrEmpty(parentInfoDto.EmailGuardian);
+
+            if (!hasFatherContact && !hasMotherContact && !hasGuardianContact)
+            {
+                Console.WriteLine($"Không có thông tin liên lạc hợp lệ cho phụ huynh của StudentID {student.StudentId}. Bỏ qua việc tạo phụ huynh.");
+                return;
+            }
+
+            // Tìm phụ huynh hiện có
+            Parent existingParent = null;
+            if (hasFatherContact)
+            {
+                existingParent = await _parentRepository.GetParentByDetailsAsync(
+                    parentInfoDto.FullNameFather, parentInfoDto.YearOfBirthFather,
+                    parentInfoDto.PhoneNumberFather, parentInfoDto.EmailFather, parentInfoDto.IdcardNumberFather);
+            }
+            else if (hasMotherContact)
+            {
+                existingParent = await _parentRepository.GetParentByDetailsAsync(
+                    parentInfoDto.FullNameMother, parentInfoDto.YearOfBirthMother,
+                    parentInfoDto.PhoneNumberMother, parentInfoDto.EmailMother, parentInfoDto.IdcardNumberMother);
+            }
+            else if (hasGuardianContact)
+            {
+                existingParent = await _parentRepository.GetParentByDetailsAsync(
+                    parentInfoDto.FullNameGuardian, parentInfoDto.YearOfBirthGuardian,
+                    parentInfoDto.PhoneNumberGuardian, parentInfoDto.EmailGuardian, parentInfoDto.IdcardNumberGuardian);
+            }
+
+            if (existingParent != null)
+            {
+                Console.WriteLine($"Phụ huynh đã tồn tại với ParentID: {existingParent.ParentId}. Liên kết với học sinh...");
+                student.ParentId = existingParent.ParentId;
+                return;
+            }
+
+            // Tạo user và parent mới
+            string phoneNumber = parentInfoDto.PhoneNumberFather ?? parentInfoDto.PhoneNumberMother ?? parentInfoDto.PhoneNumberGuardian;
+            string email = parentInfoDto.EmailFather ?? parentInfoDto.EmailMother ?? parentInfoDto.EmailGuardian;
+
             var user = new User
             {
-                Username = "parenttemp", // Username tạm thời
+                Username = $"temp_{Guid.NewGuid().ToString().Substring(0, 8)}",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("12345678"),
-                Email = parentInfoDto.EmailFather ?? parentInfoDto.EmailMother ?? parentInfoDto.EmailGuardian,
-                PhoneNumber = parentInfoDto.PhoneNumberFather ?? parentInfoDto.PhoneNumberMother ?? parentInfoDto.PhoneNumberGuardian,
+                Email = email,
+                PhoneNumber = phoneNumber,
                 RoleId = 6,
                 Status = "Active"
             };
@@ -151,21 +230,19 @@ namespace Application.Features.Students.Services
                 }
             }
 
-            Console.WriteLine("Adding new user with temporary username...");
             await _userRepository.AddAsync(user);
-            Console.WriteLine($"Created new user with UserID: {user.UserId}");
+            Console.WriteLine($"Tạo user mới với UserID: {user.UserId}");
 
-            // Sinh username theo RoleName + UserId
-            string roleName = "Parent"; // RoleId = 6 luôn là Parent
-            string finalUsername = $"{roleName.ToLower()}{user.UserId}";
+            string fullNameForUsername = parentInfoDto.FullNameFather ?? parentInfoDto.FullNameMother ?? parentInfoDto.FullNameGuardian ?? "user";
+            string finalUsername = FormatUserName.GenerateUsername(fullNameForUsername, user.UserId);
             var existingUserByUsername = await _userRepository.GetByUsernameAsync(finalUsername);
             if (existingUserByUsername != null)
             {
-                throw new Exception($"Username {finalUsername} đã tồn tại (UserID: {existingUserByUsername.UserId}).");
+                finalUsername += $"_{user.UserId}";
             }
             user.Username = finalUsername;
             await _userRepository.UpdateAsync(user);
-            Console.WriteLine($"Updated user with Username: {user.Username}");
+            Console.WriteLine($"Cập nhật user với Username: {user.Username}");
 
             var parent = new Parent
             {
@@ -190,40 +267,54 @@ namespace Application.Features.Students.Services
                 IdcardNumberGuardian = parentInfoDto.IdcardNumberGuardian
             };
 
-            Console.WriteLine("Adding new parent to database...");
             await _parentRepository.AddAsync(parent);
-            Console.WriteLine($"Created new parent with ParentID: {parent.ParentId}");
+            Console.WriteLine($"Tạo phụ huynh mới với ParentID: {parent.ParentId}");
 
-            student.ParentId = parent.ParentId;
-            await _studentRepository.UpdateAsync(student);
-            Console.WriteLine($"Linked StudentID {student.StudentId} with ParentID {parent.ParentId}");
+            student.ParentId = parent.ParentId; // Chỉ gán ParentId, không thêm hoặc cập nhật student
+            Console.WriteLine($"Liên kết StudentID với ParentID {parent.ParentId}");
         }
 
-        private string ExtractLastName(string fullName)
+        private void ValidateStudentDto(CreateStudentDto dto)
         {
-            if (string.IsNullOrEmpty(fullName))
-                return "";
-
-            var parts = fullName.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
-            return parts.Length > 0 ? RemoveDiacritics(parts[^1]) : "";
+            if (string.IsNullOrWhiteSpace(dto.FullName))
+                throw new ArgumentException("Họ và tên không được để trống.");
+            if (dto.Dob == default || dto.Dob > DateOnly.FromDateTime(DateTime.Now))
+                throw new ArgumentException("Ngày sinh không hợp lệ.");
+            if (string.IsNullOrWhiteSpace(dto.Gender) || !new[] { "Nam", "Nữ", "Khác" }.Contains(dto.Gender))
+                throw new ArgumentException("Giới tính không hợp lệ. Phải là 'Nam', 'Nữ' hoặc 'Khác'.");
+            if (dto.AdmissionDate == default || dto.AdmissionDate > DateOnly.FromDateTime(DateTime.Now))
+                throw new ArgumentException("Ngày nhập học không hợp lệ.");
+            if (!string.IsNullOrWhiteSpace(dto.IdcardNumber) && !IsValidIdCardNumber(dto.IdcardNumber))
+                throw new ArgumentException("Số CMND/CCCD không hợp lệ.");
         }
 
-        private string RemoveDiacritics(string text)
+        private void ValidateParentInfoDto(IParentInfoDto dto)
         {
-            if (string.IsNullOrEmpty(text))
-                return text;
+            if (!string.IsNullOrEmpty(dto.EmailFather) && !IsValidEmail(dto.EmailFather))
+                throw new ArgumentException("EmailFather không hợp lệ.");
+            if (!string.IsNullOrEmpty(dto.PhoneNumberFather) && !IsValidPhoneNumber(dto.PhoneNumberFather))
+                throw new ArgumentException("PhoneNumberFather không hợp lệ.");
+            if (!string.IsNullOrEmpty(dto.IdcardNumberFather) && !IsValidIdCardNumber(dto.IdcardNumberFather))
+                throw new ArgumentException("IdcardNumberFather không hợp lệ.");
 
-            var normalizedString = text.Normalize(System.Text.NormalizationForm.FormD);
-            var stringBuilder = new StringBuilder();
-            foreach (var c in normalizedString)
-            {
-                var unicodeCategory = System.Globalization.CharUnicodeInfo.GetUnicodeCategory(c);
-                if (unicodeCategory != System.Globalization.UnicodeCategory.NonSpacingMark)
-                {
-                    stringBuilder.Append(c);
-                }
-            }
-            return stringBuilder.ToString().Normalize(System.Text.NormalizationForm.FormC);
+            if (!string.IsNullOrEmpty(dto.EmailMother) && !IsValidEmail(dto.EmailMother))
+                throw new ArgumentException("EmailMother không hợp lệ.");
+            if (!string.IsNullOrEmpty(dto.PhoneNumberMother) && !IsValidPhoneNumber(dto.PhoneNumberMother))
+                throw new ArgumentException("PhoneNumberMother không hợp lệ.");
+            if (!string.IsNullOrEmpty(dto.IdcardNumberMother) && !IsValidIdCardNumber(dto.IdcardNumberMother))
+                throw new ArgumentException("IdcardNumberMother không hợp lệ.");
+
+            if (!string.IsNullOrEmpty(dto.EmailGuardian) && !IsValidEmail(dto.EmailGuardian))
+                throw new ArgumentException("EmailGuardian không hợp lệ.");
+            if (!string.IsNullOrEmpty(dto.PhoneNumberGuardian) && !IsValidPhoneNumber(dto.PhoneNumberGuardian))
+                throw new ArgumentException("PhoneNumberGuardian không hợp lệ.");
+            if (!string.IsNullOrEmpty(dto.IdcardNumberGuardian) && !IsValidIdCardNumber(dto.IdcardNumberGuardian))
+                throw new ArgumentException("IdcardNumberGuardian không hợp lệ.");
+        }
+
+        private bool IsValidIdCardNumber(string idCardNumber)
+        {
+            return string.IsNullOrEmpty(idCardNumber) || System.Text.RegularExpressions.Regex.IsMatch(idCardNumber, @"^\d{12}$");
         }
 
         private bool IsValidEmail(string email)
@@ -308,8 +399,8 @@ namespace Application.Features.Students.Services
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                Console.WriteLine($"Transaction rolled back due to error: {ex.Message}");
-                throw;
+                Console.WriteLine($"Transaction rolled back due to error: {ex.Message}, Inner Exception: {ex.InnerException?.Message}");
+                throw new Exception($"Lỗi khi cập nhật học sinh: {ex.Message}. Chi tiết: {ex.InnerException?.Message}");
             }
         }
 
@@ -348,17 +439,14 @@ namespace Application.Features.Students.Services
                             user.Email = newEmail;
                         }
 
-                        string lastNameFather = ExtractLastName(updateStudentDto.FullNameFather);
-                        string lastNameMother = ExtractLastName(updateStudentDto.FullNameMother);
-                        string lastNameGuardian = ExtractLastName(updateStudentDto.FullNameGuardian);
-                        string combinedLastName = $"{lastNameFather}{lastNameMother}{lastNameGuardian}".ToLower();
-                        string newUsername = $"{combinedLastName}{user.UserId}";
+                        string fullNameForUsername = updateStudentDto.FullNameFather ?? updateStudentDto.FullNameMother ?? updateStudentDto.FullNameGuardian ?? "user";
+                        string newUsername = FormatUserName.GenerateUsername(fullNameForUsername, user.UserId);
                         if (user.Username != newUsername)
                         {
                             var existingUserByUsername = await _userRepository.GetByUsernameAsync(newUsername);
                             if (existingUserByUsername != null && existingUserByUsername.UserId != user.UserId)
                             {
-                                throw new Exception($"Username {newUsername} đã tồn tại (UserID: {existingUserByUsername.UserId}).");
+                                newUsername += $"_{user.UserId}";
                             }
                             user.Username = newUsername;
                         }
@@ -403,55 +491,199 @@ namespace Application.Features.Students.Services
             Console.WriteLine($"Deleted student with StudentID: {id}");
         }
 
-        public async Task ImportStudentsFromExcelAsync(IFormFile file)
+        public async Task<List<string>> ImportStudentsFromExcelAsync(IFormFile file)
         {
             Console.WriteLine("Importing students from Excel file");
 
+            if (file == null || file.Length == 0)
+                throw new ArgumentException("Vui lòng chọn file Excel!");
+
             var data = ExcelImportHelper.ReadExcelData(file);
             var students = new List<Student>();
+            var importResults = new List<string>();
 
+            Console.WriteLine("Dữ liệu đọc từ Excel:");
             foreach (var row in data)
             {
-                string idCardNumber = row["Số CMND/CCCD"]?.ToString().Trim();
-                if (string.IsNullOrWhiteSpace(idCardNumber))
-                {
-                    throw new Exception("Số CMND/CCCD không được để trống.");
-                }
-
-                bool exists = await _studentRepository.ExistsAsync(idCardNumber);
-                if (exists)
-                {
-                    throw new Exception($"Số CMND/CCCD {idCardNumber} đã tồn tại.");
-                }
-
-                var student = new Student
-                {
-                    FullName = row["Họ và tên"]?.ToString().Trim() ?? throw new Exception("Họ và tên không được để trống."),
-                    Dob = DateHelper.ParseDate(row["Ngày sinh"]?.ToString()),
-                    Gender = row["Giới tính"]?.ToString().Trim() ?? throw new Exception("Giới tính không được để trống."),
-                    AdmissionDate = DateHelper.ParseDate(row["Ngày nhập học"]?.ToString()),
-                    EnrollmentType = row["Hình thức nhập học"]?.ToString().Trim(),
-                    Ethnicity = row["Dân tộc"]?.ToString().Trim(),
-                    PermanentAddress = row["Địa chỉ thường trú"]?.ToString().Trim(),
-                    BirthPlace = row["Nơi sinh"]?.ToString().Trim(),
-                    Religion = row["Tôn giáo"]?.ToString().Trim(),
-                    RepeatingYear = !string.IsNullOrWhiteSpace(row["Lưu ban"]?.ToString()) && row["Lưu ban"].ToString().Trim() == "Có",
-                    IdcardNumber = idCardNumber,
-                    Status = row["Trạng thái"]?.ToString().Trim() ?? "Đang học",
-                    StudentClasses = new List<StudentClass>
-                    {
-                        new StudentClass
-                        {
-                            ClassId = 1,
-                            AcademicYearId = 1
-                        }
-                    }
-                };
-                students.Add(student);
+                Console.WriteLine(string.Join(", ", row.Select(kvp => $"{kvp.Key}: {kvp.Value}")));
             }
 
-            await _studentRepository.AddRangeAsync(students);
-            Console.WriteLine($"Imported {students.Count} students from Excel file");
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+            var currentAcademicYear = await _studentRepository.GetCurrentAcademicYearAsync(currentDate);
+            if (currentAcademicYear == null)
+                throw new Exception("Không tìm thấy năm học hiện tại.");
+
+            using var transaction = await _studentRepository.BeginTransactionAsync();
+            try
+            {
+                foreach (var row in data)
+                {
+                    string fullName = null;
+                    try
+                    {
+                        if (!row.TryGetValue("Họ và tên", out fullName) || string.IsNullOrEmpty(fullName))
+                        {
+                            importResults.Add($"Lỗi: Thiếu hoặc rỗng 'Họ và tên' trong dòng: {string.Join(", ", row.Values)}");
+                            continue;
+                        }
+
+                        if (!row.TryGetValue("Ngày sinh", out var dobStr) || string.IsNullOrEmpty(dobStr))
+                        {
+                            importResults.Add($"Lỗi: Thiếu hoặc rỗng 'Ngày sinh' trong dòng: {fullName}");
+                            continue;
+                        }
+
+                        if (!row.TryGetValue("Giới tính", out var gender) || string.IsNullOrEmpty(gender))
+                        {
+                            importResults.Add($"Lỗi: Thiếu hoặc rỗng 'Giới tính' trong dòng: {fullName}");
+                            continue;
+                        }
+
+                        if (!row.TryGetValue("Ngày nhập học", out var admissionDateStr) || string.IsNullOrEmpty(admissionDateStr))
+                        {
+                            importResults.Add($"Lỗi: Thiếu hoặc rỗng 'Ngày nhập học' trong dòng: {fullName}");
+                            continue;
+                        }
+
+                        if (!row.TryGetValue("Tên lớp", out var className) || string.IsNullOrEmpty(className))
+                        {
+                            importResults.Add($"Lỗi: Thiếu hoặc rỗng 'Tên lớp' trong dòng: {fullName}");
+                            continue;
+                        }
+
+                        string idCardNumber = null;
+                        if (!row.TryGetValue("Số CMND/CCCD", out idCardNumber) && !row.TryGetValue("Số CMND", out idCardNumber))
+                        {
+                            idCardNumber = null;
+                        }
+
+                        // Parse ngày sinh và ngày nhập học
+                        Console.WriteLine($"Parsing Dob for {fullName}: {dobStr}");
+                        var dob = DateHelper.ParseDate(dobStr);
+
+                        Console.WriteLine($"Parsing AdmissionDate for {fullName}: {admissionDateStr}");
+                        var admissionDate = DateHelper.ParseDate(admissionDateStr);
+
+                        var validClasses = new[] { "6A", "6B", "7A", "7B", "7C", "8A", "8B", "9A", "9B" };
+                        if (!validClasses.Contains(className.ToUpper()))
+                            throw new Exception($"Tên lớp '{className}' không hợp lệ. Phải là một trong: {string.Join(", ", validClasses)}");
+
+                        var classEntity = await _classRepository.GetClassByNameAsync(className.ToUpper());
+                        if (classEntity == null)
+                            throw new Exception($"Không tìm thấy lớp '{className}' trong hệ thống.");
+
+                        if (!string.IsNullOrEmpty(idCardNumber) && await _studentRepository.ExistsAsync(idCardNumber.Trim()))
+                            throw new Exception($"Số CMND/CCCD {idCardNumber} đã tồn tại.");
+
+                        if (!string.IsNullOrEmpty(idCardNumber) && !IsValidIdCardNumber(idCardNumber))
+                            throw new Exception($"Số CMND/CCCD {idCardNumber} không hợp lệ (phải là 12 chữ số).");
+
+                        var student = new Student
+                        {
+                            FullName = fullName.Trim(),
+                            Dob = dob,
+                            Gender = gender.Trim(),
+                            AdmissionDate = admissionDate,
+                            EnrollmentType = row.TryGetValue("Hình thức nhập học", out var enrollmentType) ? enrollmentType.Trim() : null,
+                            Ethnicity = row.TryGetValue("Dân tộc", out var ethnicity) ? ethnicity.Trim() : null,
+                            PermanentAddress = row.TryGetValue("Địa chỉ thường trú", out var permAddress) ? permAddress.Trim() : null,
+                            BirthPlace = row.TryGetValue("Nơi sinh", out var birthPlace) ? birthPlace.Trim() : null,
+                            Religion = row.TryGetValue("Tôn giáo", out var religion) ? religion.Trim() : null,
+                            RepeatingYear = row.TryGetValue("Lưu ban", out var repeating) && repeating.Trim().ToLower() == "có",
+                            IdcardNumber = idCardNumber?.Trim(),
+                            Status = row.TryGetValue("Trạng thái", out var status) ? status.Trim() : "Đang học",
+                            StudentClasses = new List<StudentClass>
+                            {
+                                new StudentClass
+                                {
+                                    ClassId = classEntity.ClassId,
+                                    AcademicYearId = currentAcademicYear.AcademicYearId
+                                }
+                            }
+                        };
+
+                        bool hasParentInfo = row.Any(kvp => kvp.Key.Contains("cha") || kvp.Key.Contains("mẹ") || kvp.Key.Contains("người bảo hộ"));
+                        if (hasParentInfo)
+                        {
+                            Console.WriteLine($"Processing parent information for student {student.FullName}...");
+
+                            var parentInfoDto = new ParentInfoDto
+                            {
+                                FullNameFather = row.TryGetValue("Họ và tên cha", out var fatherName) ? fatherName.Trim() : null,
+                                YearOfBirthFather = row.TryGetValue("Ngày sinh cha", out var fatherDobStr) && !string.IsNullOrEmpty(fatherDobStr) ? DateHelper.ParseDate(fatherDobStr) : null,
+                                OccupationFather = row.TryGetValue("Nghề nghiệp cha", out var fatherOcc) ? fatherOcc.Trim() : null,
+                                PhoneNumberFather = row.TryGetValue("SĐT cha", out var fatherPhone) ? fatherPhone.Trim() : null,
+                                EmailFather = row.TryGetValue("Email cha", out var fatherEmail) ? fatherEmail.Trim() : null,
+                                IdcardNumberFather = row.TryGetValue("Số CCCD cha", out var fatherIdCard) ? fatherIdCard.Trim() : null,
+                                FullNameMother = row.TryGetValue("Họ và tên mẹ", out var motherName) ? motherName.Trim() : null,
+                                YearOfBirthMother = row.TryGetValue("Ngày sinh mẹ", out var motherDobStr) && !string.IsNullOrEmpty(motherDobStr) ? DateHelper.ParseDate(motherDobStr) : null,
+                                OccupationMother = row.TryGetValue("Nghề nghiệp mẹ", out var motherOcc) ? motherOcc.Trim() : null,
+                                PhoneNumberMother = row.TryGetValue("SĐT mẹ", out var motherPhone) ? motherPhone.Trim() : null,
+                                EmailMother = row.TryGetValue("Email mẹ", out var motherEmail) ? motherEmail.Trim() : null,
+                                IdcardNumberMother = row.TryGetValue("Số CCCD mẹ", out var motherIdCard) ? motherIdCard.Trim() : null,
+                                FullNameGuardian = row.TryGetValue("Họ và tên người bảo hộ", out var guardianName) ? guardianName.Trim() : null,
+                                YearOfBirthGuardian = row.TryGetValue("Ngày sinh người bảo hộ", out var guardianDobStr) && !string.IsNullOrEmpty(guardianDobStr) ? DateHelper.ParseDate(guardianDobStr) : null,
+                                OccupationGuardian = row.TryGetValue("Nghề nghiệp người bảo hộ", out var guardianOcc) ? guardianOcc.Trim() : null,
+                                PhoneNumberGuardian = row.TryGetValue("SĐT người bảo hộ", out var guardianPhone) ? guardianPhone.Trim() : null,
+                                EmailGuardian = row.TryGetValue("Email người bảo hộ", out var guardianEmail) ? guardianEmail.Trim() : null,
+                                IdcardNumberGuardian = row.TryGetValue("Số CCCD người bảo hộ", out var guardianIdCard) ? guardianIdCard.Trim() : null
+                            };
+
+                            bool hasCompleteFatherInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameFather) &&
+                                                         parentInfoDto.YearOfBirthFather.HasValue &&
+                                                         !string.IsNullOrEmpty(parentInfoDto.OccupationFather) &&
+                                                         !string.IsNullOrEmpty(parentInfoDto.PhoneNumberFather) &&
+                                                         !string.IsNullOrEmpty(parentInfoDto.IdcardNumberFather);
+
+                            bool hasCompleteMotherInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameMother) &&
+                                                         parentInfoDto.YearOfBirthMother.HasValue &&
+                                                         !string.IsNullOrEmpty(parentInfoDto.OccupationMother) &&
+                                                         !string.IsNullOrEmpty(parentInfoDto.PhoneNumberMother) &&
+                                                         !string.IsNullOrEmpty(parentInfoDto.IdcardNumberMother);
+
+                            bool hasCompleteGuardianInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameGuardian) &&
+                                                           parentInfoDto.YearOfBirthGuardian.HasValue &&
+                                                           !string.IsNullOrEmpty(parentInfoDto.OccupationGuardian) &&
+                                                           !string.IsNullOrEmpty(parentInfoDto.PhoneNumberGuardian) &&
+                                                           !string.IsNullOrEmpty(parentInfoDto.IdcardNumberGuardian);
+
+                            if (hasCompleteFatherInfo || hasCompleteMotherInfo || hasCompleteGuardianInfo)
+                            {
+                                await CreateParentAndLinkAsync(student, parentInfoDto);
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Không đủ thông tin để tạo phụ huynh cho {student.FullName}. Bỏ qua việc tạo phụ huynh.");
+                            }
+                        }
+
+                        students.Add(student);
+                        importResults.Add($"Đã thêm học sinh: {student.FullName} (CMND/CCCD: {student.IdcardNumber ?? "Không có"}, Lớp: {className})");
+                    }
+                    catch (Exception ex)
+                    {
+                        importResults.Add($"Lỗi khi xử lý dòng '{fullName ?? "Không xác định"}': {ex.Message}");
+                    }
+                }
+
+                if (students.Any())
+                {
+                    Console.WriteLine($"Adding {students.Count} students to database...");
+                    await _studentRepository.AddRangeAsync(students);
+                }
+
+                await transaction.CommitAsync();
+                Console.WriteLine($"Imported {students.Count} students from Excel file");
+                return importResults;
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                Console.WriteLine($"Transaction rolled back due to error: {ex.Message}, Inner Exception: {ex.InnerException?.Message}");
+                throw new Exception($"Lỗi khi import học sinh: {ex.Message}. Chi tiết: {ex.InnerException?.Message}");
+            }
         }
     }
 }
+
+

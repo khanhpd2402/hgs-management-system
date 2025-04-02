@@ -19,7 +19,7 @@ public partial class Semester
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
-    public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
+    public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
     public virtual ICollection<GradeBatch> GradeBatches { get; set; } = new List<GradeBatch>();
 
