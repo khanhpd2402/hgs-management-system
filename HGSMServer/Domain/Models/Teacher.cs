@@ -51,13 +51,15 @@ public partial class Teacher
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
-    public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
+    public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
 
     public virtual ICollection<LessonPlan> LessonPlanReviewers { get; set; } = new List<LessonPlan>();
 
     public virtual ICollection<LessonPlan> LessonPlanTeachers { get; set; } = new List<LessonPlan>();
+
+    public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 

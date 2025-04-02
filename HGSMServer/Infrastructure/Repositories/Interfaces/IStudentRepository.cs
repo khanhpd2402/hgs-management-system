@@ -18,5 +18,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<bool> ExistsAsync(string idCard);
         Task AddRangeAsync(IEnumerable<Student> students);
         Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<AcademicYear> GetCurrentAcademicYearAsync(DateOnly currentDate);
     }
 }
