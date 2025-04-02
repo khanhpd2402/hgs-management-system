@@ -10,7 +10,7 @@ using System.Text;
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
-    private readonly IRoleRepository _roleRepository; // Thêm dependency
+    private readonly IRoleRepository _roleRepository; 
 
     public TokenService(IConfiguration configuration, IRoleRepository roleRepository)
     {
@@ -20,7 +20,6 @@ public class TokenService : ITokenService
 
     public async Task<(string tokenString, Dictionary<string, string> tokenPayload)> GenerateTokenAsync(UserDTO user)
     {
-        // Lấy RoleName từ RoleId
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         if (role == null)
             throw new ArgumentException($"Role with ID {user.RoleId} not found.");
@@ -31,7 +30,7 @@ public class TokenService : ITokenService
             new Claim("sub", user.UserId.ToString()),
             new Claim("email", user.Email ?? ""),
             new Claim("name", user.Username),
-            new Claim("role", userRole), // Dùng RoleName từ DB
+            new Claim("role", userRole), 
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
