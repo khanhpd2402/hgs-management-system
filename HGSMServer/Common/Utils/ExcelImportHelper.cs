@@ -10,12 +10,11 @@ namespace Common.Utils
             using var stream = new MemoryStream();
             file.CopyTo(stream);
             using var workbook = new XLWorkbook(stream);
-            var worksheet = workbook.Worksheet(1); // Lấy sheet đầu tiên
+            var worksheet = workbook.Worksheet(1);
 
             var rowCount = worksheet.LastRowUsed().RowNumber();
             var colCount = worksheet.LastColumnUsed().ColumnNumber();
 
-            // Đọc tiêu đề cột
             var headers = new List<string>();
             for (int col = 1; col <= colCount; col++)
             {
@@ -23,14 +22,31 @@ namespace Common.Utils
             }
 
             var dataList = new List<Dictionary<string, string>>();
+            var dateFormat = "dd/MM/yyyy";
 
-            // Đọc dữ liệu từ hàng thứ 2
             for (int row = 2; row <= rowCount; row++)
             {
                 var rowData = new Dictionary<string, string>();
                 for (int col = 1; col <= colCount; col++)
                 {
-                    rowData[headers[col - 1]] = worksheet.Cell(row, col).Value.ToString();
+                    var cell = worksheet.Cell(row, col);
+                    string cellValue;
+
+                    if (cell.DataType == XLDataType.DateTime)
+                    {
+                        var dateValue = cell.GetDateTime();
+                        cellValue = dateValue.ToString(dateFormat);
+                    }
+                    else
+                    {
+                        cellValue = cell.Value.ToString();
+                        if (cellValue.StartsWith("'"))
+                        {
+                            cellValue = cellValue.Substring(1);
+                        }
+                    }
+
+                    rowData[headers[col - 1]] = cellValue;
                 }
                 dataList.Add(rowData);
             }
@@ -38,5 +54,4 @@ namespace Common.Utils
             return dataList;
         }
     }
-
 }
