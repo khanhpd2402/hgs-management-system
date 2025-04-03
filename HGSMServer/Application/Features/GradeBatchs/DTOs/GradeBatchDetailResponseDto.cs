@@ -13,10 +13,10 @@ namespace Application.Features.GradeBatchs.DTOs
         public int SemesterId { get; set; }
         public DateOnly? StartDate { get; set; }
         public DateOnly? EndDate { get; set; }
-        public bool? IsActive { get; set; }
-        public List<int> ClassIds { get; set; } // thêm
-        public List<SubjectDto> Subjects { get; set; }
-        public List<AssessmentTypeDto> AssessmentTypes { get; set; }
+        public string? Status { get; set; } // Trạng thái đợt nhập điểm
+        public List<int> ClassIds { get; set; } = new List<int>(); // Danh sách ID các lớp liên quan
+        public List<SubjectGradeBatchDto> Subjects { get; set; } = new List<SubjectGradeBatchDto>();
+        public List<AssessmentTypeGradeBatchDto> AssessmentTypes { get; set; } = new List<AssessmentTypeGradeBatchDto>();
     }
 
     public class SubjectGradeBatchDto
@@ -27,9 +27,9 @@ namespace Application.Features.GradeBatchs.DTOs
 
     public class AssessmentTypeGradeBatchDto
     {
-        public int SubjectId { get; set; }
+        public int SubjectId { get; set; } // ID môn học liên quan đến loại đánh giá
         public string AssessmentTypeName { get; set; }
-        public int ClassId { get; set; }
+        public int ClassId { get; set; } // ID lớp học liên quan
     }
 
 

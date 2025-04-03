@@ -3,6 +3,7 @@ using Application.Features.Timetables.Interfaces;
 using AutoMapper;
 using ClosedXML.Excel;
 using Domain.Models; // Đảm bảo namespace đúng với model EF sinh ra
+using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -23,11 +24,22 @@ namespace Application.Features.Timetables.Services
             _mapper = mapper;
         }
 
-        public async Task<TimetableDto> AddAsync(TimetableDto timetableDto)
+        public async Task<Timetable> CreateTimetableAsync(CreateTimetableDto dto)
         {
-            var timetable = _mapper.Map<Timetable>(timetableDto);
-            var result = await _repository.AddAsync(timetable);
-            return _mapper.Map<TimetableDto>(result);
+            // Map và tạo Timetable
+            var timetable = _mapper.Map<Timetable>(dto);
+            var createdTimetable = await _repository.CreateTimetableAsync(timetable);
+
+            // Map và thêm các TimetableDetails
+            foreach (var detailDto in dto.Details)
+            {
+                var timetableDetail = _mapper.Map<TimetableDetail>(detailDto);
+                timetableDetail.TimetableId = createdTimetable.TimetableId; // Gán TimetableId
+                await _repository.AddTimetableDetailAsync(timetableDetail);
+                createdTimetable.TimetableDetails.Add(timetableDetail);
+            }
+
+            return createdTimetable;
         }
 
         public async Task<IEnumerable<TimetableDetailDto>> GetTimetableByStudentAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)

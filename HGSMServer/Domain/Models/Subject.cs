@@ -15,8 +15,6 @@ public partial class Subject
 
     public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
-
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();

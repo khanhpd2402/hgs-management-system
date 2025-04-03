@@ -10,6 +10,7 @@ namespace Application.Features.LessonPlans.DTOs
     {
         public int PlanId { get; set; }
         public string Status { get; set; } // "Approved" or "Rejected"
-        public string Feedback { get; set; } 
+        public string Feedback { get; set; }
+        //public string? AttachmentUrl { get; set; }
     }
 }

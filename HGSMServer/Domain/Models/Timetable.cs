@@ -11,6 +11,8 @@ public partial class Timetable
 
     public DateOnly EffectiveDate { get; set; }
 
+    public string Status { get; set; } = null!;
+
     public virtual Semester Semester { get; set; } = null!;
 
     public virtual ICollection<TimetableDetail> TimetableDetails { get; set; } = new List<TimetableDetail>();

@@ -69,11 +69,18 @@ namespace Infrastructure.Repositories.Implementtations
                 x.TimetableId == detail.TimetableId);
         }
 
-        public async Task<Timetable> AddAsync(Timetable timetable)
+        public async Task<Timetable> CreateTimetableAsync(Timetable timetable)
         {
             _context.Timetables.Add(timetable);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // Lưu để có TimetableId
             return timetable;
+        }
+
+        public async Task<TimetableDetail> AddTimetableDetailAsync(TimetableDetail detail)
+        {
+            _context.TimetableDetails.Add(detail);
+            await _context.SaveChangesAsync();
+            return detail;
         }
 
     }
