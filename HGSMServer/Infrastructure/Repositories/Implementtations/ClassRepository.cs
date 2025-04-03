@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(sc => sc.Student) // Nếu cần thông tin học sinh
                 .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.Timetables)
+                //.Include(c => c.Timetables)
                 .ToListAsync();
         }
 
