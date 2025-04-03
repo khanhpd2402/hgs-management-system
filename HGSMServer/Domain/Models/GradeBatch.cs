@@ -15,7 +15,7 @@ public partial class GradeBatch
 
     public DateOnly? EndDate { get; set; }
 
-    public bool? IsActive { get; set; }
+    public string Status { get; set; } = null!;
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
 
