@@ -580,5 +580,5 @@ FodyWeavers.xsd
 ### VisualStudio Patch ###
 # Additional files built by Visual Studio
 
-# End of https://www.toptal.com/developers/gitignore/api/visualstudio,csharp"HGSMServer/HGSMAPI/Config/service-account-credentials.json" 
-"git-filter-repo/" 
+# End of https://www.toptal.com/developers/gitignore/api/visualstudio,csharp
+# HGSMServer/HGSMAPI/Config/service-account-credentials.json
