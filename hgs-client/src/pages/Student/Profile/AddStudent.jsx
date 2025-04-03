@@ -467,7 +467,7 @@ export default function AddStudent() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
           <Button type="submit" disabled={isUpdating}>
-            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+            {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>
         {/* Basic Student Info Card */}
@@ -665,7 +665,7 @@ export default function AddStudent() {
         {/* Submit button at bottom for convenience */}
         <div className="flex justify-end">
           <Button type="submit" disabled={isUpdating} size="lg">
-            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+            {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>
       </form>
