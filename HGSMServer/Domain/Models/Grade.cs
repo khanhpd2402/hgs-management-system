@@ -9,11 +9,9 @@ public partial class Grade
 
     public int? BatchId { get; set; }
 
-    public int StudentId { get; set; }
+    public int? StudentClassId { get; set; }
 
-    public int ClassId { get; set; }
-
-    public int SubjectId { get; set; }
+    public int? AssignmentId { get; set; }
 
     public string? Score { get; set; }
 
@@ -21,11 +19,9 @@ public partial class Grade
 
     public string? TeacherComment { get; set; }
 
+    public virtual TeachingAssignment? Assignment { get; set; }
+
     public virtual GradeBatch? Batch { get; set; }
 
-    public virtual Class Class { get; set; } = null!;
-
-    public virtual Student Student { get; set; } = null!;
-
-    public virtual Subject Subject { get; set; } = null!;
+    public virtual StudentClass? StudentClass { get; set; }
 }
