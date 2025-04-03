@@ -61,15 +61,15 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        // PUT: api/Student/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDto updateStudentDto)
         {
-            if (id != updateStudentDto.StudentId) return BadRequest("Student ID mismatch.");
+            if (updateStudentDto == null) return BadRequest("Student data cannot be null.");
 
             try
             {
-                await _studentService.UpdateStudentAsync(updateStudentDto);
+                // Truyền id từ URL trực tiếp vào UpdateStudentAsync
+                await _studentService.UpdateStudentAsync(id, updateStudentDto);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
