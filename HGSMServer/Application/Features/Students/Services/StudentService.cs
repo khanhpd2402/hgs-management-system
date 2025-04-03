@@ -117,29 +117,29 @@ namespace Application.Features.Students.Services
 
                 Console.WriteLine("Mapping CreateStudentDto to Student...");
                 var student = _mapper.Map<Student>(createStudentDto);
+                var currentAcademicYearId = await GetCurrentAcademicYearIdAsync(); // Lấy động AcademicYearId
                 student.StudentClasses = new List<StudentClass>
-                {
-                    new StudentClass
-                    {
-                        ClassId = createStudentDto.ClassId,
-                        AcademicYearId = 1 // Giả sử AcademicYearId = 1
-                    }
-                };
+        {
+            new StudentClass
+            {
+                ClassId = createStudentDto.ClassId,
+                AcademicYearId = currentAcademicYearId
+            }
+        };
 
                 Console.WriteLine("Adding student to database...");
                 await _studentRepository.AddAsync(student);
                 Console.WriteLine($"Student added with ID: {student.StudentId}");
 
-                if (!string.IsNullOrEmpty(createStudentDto.FullNameFather) ||
-                    !string.IsNullOrEmpty(createStudentDto.FullNameMother) ||
-                    !string.IsNullOrEmpty(createStudentDto.FullNameGuardian))
+                if (HasCompleteParentInfo(createStudentDto)) // Kiểm tra thông tin parent đầy đủ
                 {
                     Console.WriteLine("Processing parent information...");
                     await CreateParentAndLinkAsync(student, createStudentDto);
+                    await _studentRepository.UpdateAsync(student); // Lưu ParentId vào database
                 }
                 else
                 {
-                    Console.WriteLine($"Skipping parent creation for StudentID {student.StudentId}: No parent data provided.");
+                    Console.WriteLine($"Skipping parent creation for StudentID {student.StudentId}: No complete parent data provided.");
                 }
 
                 await transaction.CommitAsync();
@@ -160,32 +160,43 @@ namespace Application.Features.Students.Services
 
             ValidateParentInfoDto(parentInfoDto);
 
-            // Kiểm tra xem có thông tin liên lạc nào hợp lệ không
-            bool hasFatherContact = !string.IsNullOrEmpty(parentInfoDto.PhoneNumberFather) || !string.IsNullOrEmpty(parentInfoDto.EmailFather);
-            bool hasMotherContact = !string.IsNullOrEmpty(parentInfoDto.PhoneNumberMother) || !string.IsNullOrEmpty(parentInfoDto.EmailMother);
-            bool hasGuardianContact = !string.IsNullOrEmpty(parentInfoDto.PhoneNumberGuardian) || !string.IsNullOrEmpty(parentInfoDto.EmailGuardian);
+            // Kiểm tra thông tin đầy đủ cho cha, mẹ, hoặc người bảo hộ
+            bool hasCompleteFatherInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameFather) &&
+                                         parentInfoDto.YearOfBirthFather.HasValue &&
+                                         !string.IsNullOrEmpty(parentInfoDto.PhoneNumberFather) &&
+                                         !string.IsNullOrEmpty(parentInfoDto.IdcardNumberFather);
 
-            if (!hasFatherContact && !hasMotherContact && !hasGuardianContact)
+            bool hasCompleteMotherInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameMother) &&
+                                         parentInfoDto.YearOfBirthMother.HasValue &&
+                                         !string.IsNullOrEmpty(parentInfoDto.PhoneNumberMother) &&
+                                         !string.IsNullOrEmpty(parentInfoDto.IdcardNumberMother);
+
+            bool hasCompleteGuardianInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameGuardian) &&
+                                           parentInfoDto.YearOfBirthGuardian.HasValue &&
+                                           !string.IsNullOrEmpty(parentInfoDto.PhoneNumberGuardian) &&
+                                           !string.IsNullOrEmpty(parentInfoDto.IdcardNumberGuardian);
+
+            if (!hasCompleteFatherInfo && !hasCompleteMotherInfo && !hasCompleteGuardianInfo)
             {
-                Console.WriteLine($"Không có thông tin liên lạc hợp lệ cho phụ huynh của StudentID {student.StudentId}. Bỏ qua việc tạo phụ huynh.");
+                Console.WriteLine($"Không đủ thông tin để tạo phụ huynh cho StudentID {student.StudentId}. Bỏ qua.");
                 return;
             }
 
             // Tìm phụ huynh hiện có
             Parent existingParent = null;
-            if (hasFatherContact)
+            if (hasCompleteFatherInfo)
             {
                 existingParent = await _parentRepository.GetParentByDetailsAsync(
                     parentInfoDto.FullNameFather, parentInfoDto.YearOfBirthFather,
                     parentInfoDto.PhoneNumberFather, parentInfoDto.EmailFather, parentInfoDto.IdcardNumberFather);
             }
-            else if (hasMotherContact)
+            else if (hasCompleteMotherInfo)
             {
                 existingParent = await _parentRepository.GetParentByDetailsAsync(
                     parentInfoDto.FullNameMother, parentInfoDto.YearOfBirthMother,
                     parentInfoDto.PhoneNumberMother, parentInfoDto.EmailMother, parentInfoDto.IdcardNumberMother);
             }
-            else if (hasGuardianContact)
+            else if (hasCompleteGuardianInfo)
             {
                 existingParent = await _parentRepository.GetParentByDetailsAsync(
                     parentInfoDto.FullNameGuardian, parentInfoDto.YearOfBirthGuardian,
@@ -270,8 +281,22 @@ namespace Application.Features.Students.Services
             await _parentRepository.AddAsync(parent);
             Console.WriteLine($"Tạo phụ huynh mới với ParentID: {parent.ParentId}");
 
-            student.ParentId = parent.ParentId; // Chỉ gán ParentId, không thêm hoặc cập nhật student
+            student.ParentId = parent.ParentId;
             Console.WriteLine($"Liên kết StudentID với ParentID {parent.ParentId}");
+        }
+        private bool HasCompleteParentInfo(IParentInfoDto dto)
+        {
+            return (!string.IsNullOrEmpty(dto.FullNameFather) && dto.YearOfBirthFather.HasValue && !string.IsNullOrEmpty(dto.PhoneNumberFather) && !string.IsNullOrEmpty(dto.IdcardNumberFather)) ||
+                   (!string.IsNullOrEmpty(dto.FullNameMother) && dto.YearOfBirthMother.HasValue && !string.IsNullOrEmpty(dto.PhoneNumberMother) && !string.IsNullOrEmpty(dto.IdcardNumberMother)) ||
+                   (!string.IsNullOrEmpty(dto.FullNameGuardian) && dto.YearOfBirthGuardian.HasValue && !string.IsNullOrEmpty(dto.PhoneNumberGuardian) && !string.IsNullOrEmpty(dto.IdcardNumberGuardian));
+        }
+        private async Task<int> GetCurrentAcademicYearIdAsync()
+        {
+            var currentDate = DateOnly.FromDateTime(DateTime.Now);
+            var currentAcademicYear = await _studentRepository.GetCurrentAcademicYearAsync(currentDate);
+            if (currentAcademicYear == null)
+                throw new Exception("Không tìm thấy năm học hiện tại.");
+            return currentAcademicYear.AcademicYearId;
         }
 
         private void ValidateStudentDto(CreateStudentDto dto)
