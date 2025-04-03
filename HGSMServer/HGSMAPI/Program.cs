@@ -46,6 +46,9 @@ using Application.Features.TeachingAssignments.Services;
 using Application.Features.Attendances.DTOs;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories;
+using Application.Features.Exams.Interfaces;
+using Application.Features.Exams.Services;
+using HGSMAPI;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -72,6 +75,10 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
+// Thiết lập culture mặc định cho ứng dụng
+var cultureInfo = new System.Globalization.CultureInfo("vi-VN");
+System.Globalization.CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
+System.Globalization.CultureInfo.DefaultThreadCurrentUICulture = cultureInfo;
 
 // Thêm controllers và cấu hình JSON
 builder.Services.AddControllers()
@@ -99,6 +106,10 @@ builder.Services.AddSession(options =>
 });
 
 // Đăng ký các dịch vụ và repository
+//Exam, Question Management
+builder.Services.AddScoped<IQuestionService, QuestionService>();
+builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<GoogleDriveService>();
 //Parent Management
 builder.Services.AddScoped<IParentRepository, ParentRepository>();
 // Student Management

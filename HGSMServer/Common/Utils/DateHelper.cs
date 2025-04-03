@@ -1,10 +1,5 @@
 ﻿using Common.Constants;
-using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.Utils
 {
@@ -18,15 +13,25 @@ namespace Common.Utils
                 return default; // Trả về 01/01/0001 nếu ngày trống
             }
 
-            if (!DateOnly.TryParseExact(dateString.Trim(), AppConstants.DATE_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
+            // Loại bỏ dấu nháy đơn ở đầu và khoảng trắng thừa
+            string cleanedDateString = dateString.Trim().TrimStart('\'');
+
+            // Thử định dạng chính: dd/MM/yyyy
+            if (DateOnly.TryParseExact(cleanedDateString, AppConstants.DATE_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.None, out var date))
             {
-                throw new Exception($"Ngày '{dateString}' không đúng định dạng {AppConstants.DATE_FORMAT}.");
+                return date;
             }
 
-            return date;
+            // Thử định dạng khác: yyyy-MM-dd HH:mm:ss (như của Trần Thị Mai Lụa)
+            if (cleanedDateString.Contains("-") && DateTime.TryParse(cleanedDateString, CultureInfo.InvariantCulture, DateTimeStyles.None, out var dt))
+            {
+                return DateOnly.FromDateTime(dt);
+            }
+
+            // Nếu không parse được, ném lỗi với thông tin chi tiết
+            throw new Exception($"Ngày '{dateString}' không đúng định dạng {AppConstants.DATE_FORMAT} hoặc không thể phân tích.");
         }
 
 
     }
-
 }
