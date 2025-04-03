@@ -1,9 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 
 namespace Common.Utils
 {
@@ -28,12 +25,11 @@ namespace Common.Utils
             return $"{lastName}{firstChar}{middleChars}" + $"{id}";
         }
 
-        /// <summary>
-        /// Loại bỏ dấu tiếng Việt khỏi chuỗi.
-        /// </summary>
         public static string RemoveDiacritics(string text)
         {
             if (string.IsNullOrEmpty(text)) return text;
+
+            text = text.Replace("đ", "d").Replace("Đ", "D");
 
             string normalizedString = text.Normalize(NormalizationForm.FormD);
             var stringBuilder = new StringBuilder();

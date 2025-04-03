@@ -11,6 +11,7 @@ using Application.Features.AcademicYears.DTOs;
 using Application.Features.Semesters.DTOs;
 using Application.Features.LeaveRequests.DTOs;
 using Application.Features.LessonPlans.DTOs;
+using Application.Features.Exams.DTOs;
 
 using Application.Features.Timetables.DTOs;
 namespace HGSMAPI.AutoMapper
@@ -115,6 +116,12 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.Subject, opt => opt.Ignore())  // Ignore navigation property
                 .ForMember(dest => dest.Teacher, opt => opt.Ignore())  // Ignore navigation property
                 .ForMember(dest => dest.Timetable, opt => opt.Ignore());
+            CreateMap<Question, QuestionDto>()
+                .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
+            CreateMap<QuestionDto, Question>()
+                .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
+            CreateMap<ExamProposal, ExamProposalDto>();
+            CreateMap<ExamProposal, ExamProposalDto>();
         }
     }
 }

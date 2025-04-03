@@ -13,9 +13,11 @@ public partial class Subject
 
     public string TypeOfGrade { get; set; } = null!;
 
-    public virtual ICollection<Exam> Exams { get; set; } = new List<Exam>();
+    public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
+
+    public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 
