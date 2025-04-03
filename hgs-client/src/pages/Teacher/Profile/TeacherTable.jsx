@@ -35,8 +35,8 @@ export default function TeacherTable() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
-    sort: "",
-    order: "asc",
+    department: "",
+    contract: "",
     search: "",
   });
 
@@ -64,16 +64,41 @@ export default function TeacherTable() {
   const teacherMutation = useDeleteTeacher();
 
   //phan trang
-  const { page, pageSize } = filter;
+  const { page, pageSize, department, contract, search } = filter;
 
-  const totalPages = Math.ceil(data?.totalCount / pageSize);
-  const currentData = data?.teachers.slice(
+  const filteredData =
+    data?.teachers.filter((teacher) => {
+      // Filter by department
+      if (department && teacher.department !== department) {
+        return false;
+      }
+
+      // Filter by contract type
+      if (contract && teacher.employmentType !== contract) {
+        return false;
+      }
+
+      // Filter by search term (case insensitive)
+      if (search) {
+        const searchLower = search.toLowerCase();
+        return (
+          teacher.fullName?.toLowerCase().includes(searchLower) ||
+          teacher.email?.toLowerCase().includes(searchLower) ||
+          teacher.phoneNumber?.toLowerCase().includes(searchLower)
+        );
+      }
+
+      return true;
+    }) || [];
+
+  const totalPages = Math.ceil(filteredData.length / pageSize);
+  const currentData = filteredData.slice(
     (page - 1) * pageSize,
     page * pageSize,
   );
 
-  const startIndex = data?.totalCount === 0 ? 0 : (page - 1) * pageSize + 1;
-  const endIndex = Math.min(page * pageSize, data?.totalCount);
+  const startIndex = filteredData.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, filteredData.length);
 
   // Save visible columns to localStorage
   useEffect(() => {
@@ -93,7 +118,7 @@ export default function TeacherTable() {
 
   if (isPending) {
     return (
-      <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
+      <Card className="relative mt-6 flex min-h-[400px] items-center justify-center p-4">
         <Spinner size="medium" />
       </Card>
     );
@@ -125,7 +150,7 @@ export default function TeacherTable() {
         data={data?.teachers}
       />
 
-      <div className="max-h-[400px] overflow-auto border border-gray-200">
+      <div className="max-h-[500px] overflow-auto border border-gray-200">
         <div className="min-w-max">
           <Table className="w-full border-collapse">
             <TableHeader className="bg-gray-100">
@@ -275,7 +300,7 @@ export default function TeacherTable() {
         <PaginationControls
           pageSize={pageSize}
           setFilter={setFilter}
-          totalItems={data?.totalCount || 0}
+          totalItems={filteredData.length || 0}
           startIndex={startIndex}
           endIndex={endIndex}
         />

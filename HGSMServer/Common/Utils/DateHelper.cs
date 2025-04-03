@@ -5,11 +5,12 @@ namespace Common.Utils
 {
     public static class DateHelper
     {
+
         public static DateOnly ParseDate(string dateString)
         {
             if (string.IsNullOrWhiteSpace(dateString))
             {
-                throw new Exception("Ngày không được để trống.");
+                return default; // Trả về 01/01/0001 nếu ngày trống
             }
 
             // Loại bỏ dấu nháy đơn ở đầu và khoảng trắng thừa
@@ -30,5 +31,7 @@ namespace Common.Utils
             // Nếu không parse được, ném lỗi với thông tin chi tiết
             throw new Exception($"Ngày '{dateString}' không đúng định dạng {AppConstants.DATE_FORMAT} hoặc không thể phân tích.");
         }
+
+
     }
 }

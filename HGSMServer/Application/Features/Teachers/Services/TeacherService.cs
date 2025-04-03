@@ -54,21 +54,28 @@ namespace Application.Features.Teachers.Services
             }
 
             // Kiểm tra trùng lặp IDCardNumber hoặc InsuranceNumber
-            if (await _teacherRepository.ExistsAsync(teacherDto.IdcardNumber, teacherDto.InsuranceNumber))
+            if (await _teacherRepository.ExistsAsync(teacherDto.IdcardNumber))
             {
                 throw new Exception($"Giáo viên với CMND/CCCD {teacherDto.IdcardNumber} hoặc Số bảo hiểm {teacherDto.InsuranceNumber} đã tồn tại.");
             }
+            // Kiểm tra email hoặc số điện thoại đã tồn tại
+            if (await _teacherRepository.IsEmailOrPhoneExistsAsync(teacherDto.Email, teacherDto.PhoneNumber))
+            {
+                throw new Exception($"Email {teacherDto.Email} hoặc số điện thoại {teacherDto.PhoneNumber} đã tồn tại.");
+            }
+
+            // Tạo username không trùng
 
             // Map từ TeacherListDto sang Teacher
             var teacher = _mapper.Map<Teacher>(teacherDto);
-
+            var username = await GenerateUniqueUsernameAsync(teacherDto.FullName);
             // Thêm User cho giáo viên
             teacher.User = new User
             {
                 Email = teacherDto.Email,
                 PhoneNumber = teacherDto.PhoneNumber,
                 RoleId = 2,
-                Username = FormatUserName.GenerateUsername(teacherDto.FullName, 1),
+                Username = username,
                 PasswordHash = PasswordHasher.HashPassword("DefaultPassword@123")
             };
 
@@ -76,6 +83,19 @@ namespace Application.Features.Teachers.Services
             await _teacherRepository.AddAsync(teacher);
         }
 
+        public async Task<string> GenerateUniqueUsernameAsync(string fullName)
+        {
+            int counter = 1;
+            string username;
+
+            do
+            {
+                username = FormatUserName.GenerateUsername(fullName, counter);
+                counter++;
+            } while (await _teacherRepository.IsUsernameExistsAsync(username));
+
+            return username;
+        }
 
         public async Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto)
         {
@@ -100,36 +120,7 @@ namespace Application.Features.Teachers.Services
             await _teacherRepository.DeleteAsync(id);
             return true; // Trả về true nếu xóa thành công
         }
-        private static Dictionary<string, string> GetTeacherColumnMappings()
-        {
-            return new Dictionary<string, string>
-            {
-                { "TeacherId", "Mã giáo viên" },
-                { "FullName", "Họ và tên" },
-                { "Dob", "Ngày sinh" },
-                { "Gender", "Giới tính" },
-                { "Ethnicity", "Dân tộc" },
-                { "Religion", "Tôn giáo" },
-                { "MaritalStatus", "Tình trạng hôn nhân" },
-                { "IdcardNumber", "CMND/CCCD" },
-                { "InsuranceNumber", "Số sổ bảo hiểm" },
-                { "EmploymentType", "Hình thức hợp đồng" },
-                { "Position", "Vị trí việc làm" },
-                { "Department", "Tổ bộ môn" },
-                { "AdditionalDuties", "Nhiệm vụ kiêm nhiệm" },
-                { "IsHeadOfDepartment", "Là tổ trưởng" },
-                { "EmploymentStatus", "Trạng thái cán bộ" },
-                { "RecruitmentAgency", "Cơ quan tuyển dụng" },
-                { "HiringDate", "Ngày tuyển dụng" },
-                { "PermanentEmploymentDate", "Ngày vào biên chế" },
-                { "SchoolJoinDate", "Ngày vào trường" },
-                { "PermanentAddress", "Địa chỉ thường trú" },
-                { "Hometown", "Quê quán" },
-                { "Email", "Email" },
-                { "PhoneNumber", "Số điện thoại" }
-            };
-        }
-
+        
         public async Task ImportTeachersFromExcelAsync(IFormFile file)
         {
             var data = ExcelImportHelper.ReadExcelData(file);
@@ -142,29 +133,32 @@ namespace Application.Features.Teachers.Services
                     string.IsNullOrEmpty(row["Ngày sinh"]) ||
                     string.IsNullOrEmpty(row["Giới tính"]) ||
                     string.IsNullOrEmpty(row["CMND/CCCD"]) ||
-                    string.IsNullOrEmpty(row["Số sổ bảo hiểm"]) ||
-                    string.IsNullOrEmpty(row["Tổ bộ môn"]) ||
                     string.IsNullOrEmpty(row["Ngày vào trường"]))
                 {
                     throw new Exception("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
                 }
+                // Kiểm tra email hoặc số điện thoại đã tồn tại
+                if (await _teacherRepository.IsEmailOrPhoneExistsAsync(row["Email"], row["Số điện thoại"]))
+                {
+                    throw new Exception($"Email {row["Email"]} hoặc số điện thoại {row["Số điện thoại"]} đã tồn tại.");
+                }
+
+                // Tạo username không trùng
+                var username = await GenerateUniqueUsernameAsync(row["Họ và tên"]);
 
                 // Chuẩn hóa dữ liệu
                 string idCardNumber = row["CMND/CCCD"].Trim();
-                string insuranceNumber = row["Số sổ bảo hiểm"].Trim();
-
                 // Kiểm tra trùng lặp IDCardNumber hoặc InsuranceNumber
-                if (await _teacherRepository.ExistsAsync(idCardNumber, insuranceNumber))
+                if (await _teacherRepository.ExistsAsync(idCardNumber))
                 {
-                    throw new Exception($"Giáo viên với CMND/CCCD {idCardNumber} hoặc Sổ bảo hiểm {insuranceNumber} đã tồn tại.");
+                    throw new Exception($"Giáo viên với CMND/CCCD {idCardNumber} đã tồn tại.");
                 }
-
                 var user = new User
                 {
                     Email = row["Email"],
                     PhoneNumber = row["Số điện thoại"],
                     RoleId = 2,  // Không fix cứng là 2 nữa
-                    Username = FormatUserName.GenerateUsername(row["Họ và tên"], 1),
+                    Username = username,
                     PasswordHash = PasswordHasher.HashPassword("DefaultPassword@123")
                 };
 
@@ -177,7 +171,7 @@ namespace Application.Features.Teachers.Services
                     Religion = row["Tôn giáo"],
                     MaritalStatus = row["Tình trạng hôn nhân"],
                     IdcardNumber = idCardNumber,
-                    InsuranceNumber = insuranceNumber,
+                    InsuranceNumber = row["Số sổ bảo hiểm"],
                     EmploymentType = row["Hình thức hợp đồng"],
                     Position = row["Vị trí việc làm"],
                     Department = row["Tổ bộ môn"],

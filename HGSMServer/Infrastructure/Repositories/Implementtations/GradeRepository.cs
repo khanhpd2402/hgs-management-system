@@ -18,16 +18,46 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.Grades.AddRangeAsync(grades);
             await _context.SaveChangesAsync();
         }
-        public async Task<List<Grade>> GetGradesAsync(int classId, int subjectId, int semesterId)
+        public async Task<List<Grade>> GetGradesByStudentAsync(int studentId, int semesterId)
         {
             return await (from g in _context.Grades
                           join gb in _context.GradeBatches on g.BatchId equals gb.BatchId
                           join sem in _context.Semesters on gb.SemesterId equals sem.SemesterId
-                          where g.ClassId == classId
-                                && g.SubjectId == subjectId
+                          where g.StudentClass.StudentId == studentId
                                 && sem.SemesterId == semesterId
-                          select g).Include(s => s.Student).ToListAsync();
+                          select g)
+                          .Include(g => g.StudentClass.Student) // Lấy thông tin học sinh
+                          .Include(g => g.Assignment.Subject) // Lấy môn học
+                          .ToListAsync();
         }
+        public async Task<List<Grade>> GetGradesByClassAsync(int classId, int subjectId, int semesterId)
+        {
+            return await (from g in _context.Grades
+                          join gb in _context.GradeBatches on g.BatchId equals gb.BatchId
+                          join sem in _context.Semesters on gb.SemesterId equals sem.SemesterId
+                          join ta in _context.TeachingAssignments on g.AssignmentId equals ta.AssignmentId
+                          where g.StudentClass.ClassId == classId
+                                && ta.SubjectId == subjectId
+                                && sem.SemesterId == semesterId
+                          select g)
+                          .Include(g => g.StudentClass.Student)
+                          .ToListAsync();
+        }
+        public async Task<List<Grade>> GetGradesByTeacherAsync(int teacherId, int classId, int subjectId, int semesterId)
+        {
+            return await (from g in _context.Grades
+                          join gb in _context.GradeBatches on g.BatchId equals gb.BatchId
+                          join sem in _context.Semesters on gb.SemesterId equals sem.SemesterId
+                          join ta in _context.TeachingAssignments on g.AssignmentId equals ta.AssignmentId
+                          where ta.TeacherId == teacherId  // Giáo viên dạy lớp này
+                                && g.StudentClass.ClassId == classId
+                                && ta.SubjectId == subjectId
+                                && sem.SemesterId == semesterId
+                          select g)
+                          .Include(g => g.StudentClass.Student)  // Lấy thông tin học sinh
+                          .ToListAsync();
+        }
+
         public async Task<bool> UpdateMultipleGradesAsync(List<Grade> grades)
         {
             if (grades == null || grades.Count == 0) return false;
@@ -42,6 +72,11 @@ namespace Infrastructure.Repositories.Implementtations
                 .Where(g => gradeIds.Contains(g.GradeId))
                 .ToListAsync();
         }
-
+        public async Task<IEnumerable<Grade>> GetByBatchIdAsync(int batchId)
+        {
+            return await _context.Grades
+                .Where(g => g.BatchId == batchId)
+                .ToListAsync();
+        }
     }
 }
