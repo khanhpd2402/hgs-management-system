@@ -371,20 +371,29 @@ export default function StudentProfile() {
       yearOfBirthGuardian: null,
     },
   });
+
   useEffect(() => {
-    if (studentQuery.data) {
+    if (studentQuery.data && classQuery.data) {
       const student = studentQuery.data;
+
       // Set parent info checkboxes
       setShowFatherInfo(!!student?.parent?.fullNameFather);
       setShowMotherInfo(!!student?.parent?.fullNameMother);
       setShowGuardianInfo(!!student?.parent?.fullNameGuardian);
+
+      console.log(
+        classQuery?.data?.filter((c) => c.className === student.className)
+          .classId,
+      );
 
       // Reset form with student data
       reset({
         fullName: student.fullName || "",
         gender: student.gender || "",
         enrollmentType: student.enrollmentType || "",
-        classId: student.classId || 0,
+        classId: classQuery?.data?.filter(
+          (c) => c.className === student.className,
+        ).classId,
         dob: student.dob ? new Date(student.dob) : null,
         admissionDate: student.admissionDate
           ? new Date(student.admissionDate)
@@ -428,7 +437,7 @@ export default function StudentProfile() {
         idcardNumberGuardian: student.parent?.idcardNumberGuardian || "",
       });
     }
-  }, [studentQuery.data, reset]);
+  }, [studentQuery.data, classQuery.data, reset]);
 
   if (studentQuery.isPending) return <Spinner />;
 
