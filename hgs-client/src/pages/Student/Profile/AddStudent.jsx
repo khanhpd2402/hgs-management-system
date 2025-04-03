@@ -10,7 +10,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 import { useCreateStudent } from "@/services/student/mutation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -19,6 +24,7 @@ import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { useClasses } from "@/services/common/queries";
 import { formatDate } from "@/helpers/formatDate";
 import { useState } from "react";
+import { useStudents } from "@/services/student/queries";
 
 export default function AddStudent() {
   const { currentYear } = useLayout();
@@ -30,6 +36,71 @@ export default function AddStudent() {
   const [showFatherInfo, setShowFatherInfo] = useState(false);
   const [showMotherInfo, setShowMotherInfo] = useState(false);
   const [showGuardianInfo, setShowGuardianInfo] = useState(false);
+  const [showSiblingsModal, setShowSiblingsModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const studentsQuery = useStudents(academicYearId);
+  const filteredStudents = studentsQuery.data?.students?.filter((student) =>
+    student.fullName.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const handleChangeSibling = (student) => {
+    const currentValues = watch();
+    const parentInfo = {};
+
+    if (student?.parent?.fullNameFather) {
+      setShowFatherInfo(true);
+      Object.assign(parentInfo, {
+        fullNameFather: student.parent.fullNameFather,
+        yearOfBirthFather: student.parent.yearOfBirthFather
+          ? new Date(student.parent.yearOfBirthFather)
+          : null,
+        occupationFather: student.parent.occupationFather || "",
+        phoneNumberFather: student.parent.phoneNumberFather || "",
+        emailFather: student.parent.emailFather || "",
+        idcardNumberFather: student.parent.idcardNumberFather || "",
+      });
+    } else {
+      setShowFatherInfo(false);
+    }
+
+    if (student?.parent?.fullNameMother) {
+      setShowMotherInfo(true);
+      Object.assign(parentInfo, {
+        fullNameMother: student.parent.fullNameMother,
+        yearOfBirthMother: student.parent.yearOfBirthMother
+          ? new Date(student.parent.yearOfBirthMother)
+          : null,
+        occupationMother: student.parent.occupationMother || "",
+        phoneNumberMother: student.parent.phoneNumberMother || "",
+        emailMother: student.parent.emailMother || "",
+        idcardNumberMother: student.parent.idcardNumberMother || "",
+      });
+    } else {
+      setShowMotherInfo(false);
+    }
+
+    if (student?.parent?.fullNameGuardian) {
+      setShowGuardianInfo(true);
+      Object.assign(parentInfo, {
+        fullNameGuardian: student.parent.fullNameGuardian,
+        yearOfBirthGuardian: student.parent.yearOfBirthGuardian
+          ? new Date(student.parent.yearOfBirthGuardian)
+          : null,
+        occupationGuardian: student.parent.occupationGuardian || "",
+        phoneNumberGuardian: student.parent.phoneNumberGuardian || "",
+        emailGuardian: student.parent.emailGuardian || "",
+        idcardNumberGuardian: student.parent.idcardNumberGuardian || "",
+      });
+    } else {
+      setShowGuardianInfo(false);
+    }
+
+    // Reset form with all parent info at once
+    reset({
+      ...currentValues,
+      ...parentInfo,
+    });
+  };
 
   const studentSchema = z
     .object({
@@ -264,10 +335,10 @@ export default function AddStudent() {
   } = useForm({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      classId: null,
       fullName: "",
       gender: "",
       enrollmentType: "",
+      classId: 0,
       dob: null,
       admissionDate: null,
 
@@ -298,6 +369,7 @@ export default function AddStudent() {
 
   // Submit handler
   const onSubmit = (formData) => {
+    console.log("submit");
     // if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
     //   return;
     // }
@@ -341,7 +413,7 @@ export default function AddStudent() {
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
-                  <SelectValue placeholder={`Chọn ${label.toLowerCase()}`} />
+                  <SelectValue placeholder={`Chọn ${label?.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
                   {options.map((option) => (
@@ -386,203 +458,280 @@ export default function AddStudent() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="container mx-auto space-y-6 py-6"
-    >
-      {/* Header with title and save button */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
-        <Button type="submit" disabled={isUpdating}>
-          {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
-        </Button>
-      </div>
-      {/* Basic Student Info Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin học sinh</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="flex items-center gap-4 md:col-span-2">
-            <div className="flex-1">
-              <FormField name="fullName" label="Họ và tên" />
+    <>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="container mx-auto space-y-6 py-6"
+      >
+        {/* Header with title and save button */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
+          <Button type="submit" disabled={isUpdating}>
+            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+          </Button>
+        </div>
+        {/* Basic Student Info Card */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin học sinh</CardTitle>
+          </CardHeader>
+          <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex items-center gap-4 md:col-span-2">
+              <div className="flex-1">
+                <FormField name="fullName" label="Họ và tên" />
+              </div>
             </div>
-          </div>
-          <FormField name="dob" label="Ngày sinh" type="date" />
-          <FormField
-            name="gender"
-            label="Giới tính"
-            type="select"
-            options={["Nam", "Nữ", "Khác"]}
-          />
-          <FormField name="ethnicity" label="Dân tộc" />
-          <FormField name="religion" label="Tôn giáo" />
-          <FormField name="idcardNumber" label="CCCD/CMND" />
-          <div className="space-y-2">
-            <Label htmlFor="classId">Lớp</Label>
-            <Controller
-              name="classId"
-              control={control}
-              render={({ field }) => (
-                <Select
-                  onValueChange={(value) => field.onChange(parseInt(value))}
-                  value={
-                    field.value && field.value !== 0
-                      ? field.value.toString()
-                      : undefined
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Chọn lớp" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {classQuery.data?.map((c) => (
-                      <SelectItem key={c.classId} value={c.classId.toString()}>
-                        {c.className}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+            <FormField name="dob" label="Ngày sinh" type="date" />
+            <FormField
+              name="gender"
+              label="Giới tính"
+              type="select"
+              options={["Nam", "Nữ", "Khác"]}
+            />
+            <FormField name="ethnicity" label="Dân tộc" />
+            <FormField name="religion" label="Tôn giáo" />
+            <FormField name="idcardNumber" label="CCCD/CMND" />
+            <div className="space-y-2">
+              <Label htmlFor="classId">Lớp</Label>
+              <Controller
+                name="classId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={
+                      field.value && field.value !== 0
+                        ? field.value.toString()
+                        : undefined
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn lớp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classQuery.data?.map((c) => (
+                        <SelectItem
+                          key={c.classId}
+                          value={c.classId.toString()}
+                        >
+                          {c.className}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.classId && (
+                <p className="text-sm text-red-500">{errors.classId.message}</p>
               )}
+            </div>
+            <FormField
+              name="status"
+              label="Trạng thái"
+              type="select"
+              options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
             />
-            {errors.classId && (
-              <p className="text-sm text-red-500">{errors.classId.message}</p>
+            <FormField name="enrollmentType" label="Hình thức trúng tuyển" />
+            <FormField name="admissionDate" label="Ngày nhập học" type="date" />
+            <FormField name="birthPlace" label="Nơi sinh" />
+            <FormField name="permanentAddress" label="Địa chỉ thường trú" />
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="repeatingYear"
+                {...register("repeatingYear")}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="repeatingYear">Học sinh lưu ban</Label>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Family Information Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin gia đình</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Checkbox selection */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showFatherInfo"
+                  checked={showFatherInfo}
+                  onChange={(e) => setShowFatherInfo(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="showFatherInfo">Thông tin cha</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showMotherInfo"
+                  checked={showMotherInfo}
+                  onChange={(e) => setShowMotherInfo(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="showMotherInfo">Thông tin mẹ</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showGuardianInfo"
+                  checked={showGuardianInfo}
+                  onChange={(e) => setShowGuardianInfo(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="showGuardianInfo">Thông tin người bảo hộ</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSiblingsModal(true)}
+                >
+                  Có anh/chị/em đang học
+                </Button>
+              </div>
+            </div>
+            {errors.familyInfoRequired && (
+              <p className="text-sm text-red-500">
+                {errors.familyInfoRequired.message}
+              </p>
             )}
-          </div>
-          <FormField
-            name="status"
-            label="Trạng thái"
-            type="select"
-            options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
-          />
-          <FormField name="enrollmentType" label="Hình thức trúng tuyển" />
-          <FormField name="admissionDate" label="Ngày nhập học" type="date" />
-          <FormField name="birthPlace" label="Nơi sinh" />
-          <FormField name="permanentAddress" label="Địa chỉ thường trú" />
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="repeatingYear"
-              {...register("repeatingYear")}
-              className="h-4 w-4 rounded border-gray-300"
+
+            {/* Father Information - chỉ hiển thị khi checkbox được chọn */}
+            {showFatherInfo && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">Thông tin cha</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField name="fullNameFather" label="Họ và tên" />
+                  <FormField
+                    name="yearOfBirthFather"
+                    label="Năm sinh"
+                    type="date"
+                  />
+                  <FormField name="occupationFather" label="Nghề nghiệp" />
+                  <FormField name="phoneNumberFather" label="Số điện thoại" />
+                  <FormField name="emailFather" label="Email" />
+                  <FormField name="idcardNumberFather" label="CCCD/CMND" />
+                </div>
+              </div>
+            )}
+
+            {/* Mother Information - chỉ hiển thị khi checkbox được chọn */}
+            {showMotherInfo && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">Thông tin mẹ</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField name="fullNameMother" label="Họ và tên" />
+                  <FormField
+                    name="yearOfBirthMother"
+                    label="Năm sinh"
+                    type="date"
+                  />
+                  <FormField name="occupationMother" label="Nghề nghiệp" />
+                  <FormField name="phoneNumberMother" label="Số điện thoại" />
+                  <FormField name="emailMother" label="Email" />
+                  <FormField name="idcardNumberMother" label="CCCD/CMND" />
+                </div>
+              </div>
+            )}
+
+            {/* Guardian Information - chỉ hiển thị khi checkbox được chọn */}
+            {showGuardianInfo && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">
+                  Thông tin người giám hộ
+                </h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField name="fullNameGuardian" label="Họ và tên" />
+                  <FormField
+                    name="yearOfBirthGuardian"
+                    label="Năm sinh"
+                    type="date"
+                  />
+                  <FormField name="occupationGuardian" label="Nghề nghiệp" />
+                  <FormField name="phoneNumberGuardian" label="Số điện thoại" />
+                  <FormField name="emailGuardian" label="Email" />
+                  <FormField name="idcardNumberGuardian" label="CCCD/CMND" />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Submit button at bottom for convenience */}
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isUpdating} size="lg">
+            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+          </Button>
+        </div>
+      </form>
+      <Dialog open={showSiblingsModal} onOpenChange={setShowSiblingsModal}>
+        <DialogContent className="!w-full !max-w-fit">
+          <DialogHeader>
+            <DialogTitle>Danh sách học sinh</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Tìm kiếm theo tên..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mt-2"
             />
-            <Label htmlFor="repeatingYear">Học sinh lưu ban</Label>
+            <div className="max-h-[400px] overflow-y-auto">
+              <table className="w-full">
+                <thead className="">
+                  <tr className="bg-background sticky top-0 z-10 border-b">
+                    <th className="p-2 text-left">Họ và tên</th>
+                    <th className="p-2 text-left">Lớp</th>
+                    <th className="p-2 text-left">Họ tên cha</th>
+                    <th className="p-2 text-left">Họ tên mẹ</th>
+                    <th className="p-2 text-left">Họ tên người bảo hộ</th>
+                    <th className="p-2 text-left">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents && filteredStudents.length > 0 ? (
+                    filteredStudents?.map((student) => (
+                      <tr key={student.studentId} className="border-b">
+                        <td className="w-50 p-2">{student.fullName}</td>
+                        <td className="w-14 p-2">{student.className}</td>
+                        <td className="w-50 p-2">
+                          {student?.parent?.fullNameFather}
+                        </td>
+                        <td className="w-50 p-2">
+                          {student?.parent?.fullNameMother}
+                        </td>
+                        <td className="w-50 p-2">
+                          {student?.parent?.fullNameGuardian}
+                        </td>
+                        <td className="w-30 p-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowSiblingsModal(false);
+                              handleChangeSibling(student);
+                            }}
+                          >
+                            Chọn
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <td colSpan={10}>Đang tải dữ liệu</td>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Family Information Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin gia đình</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          {/* Checkbox selection */}
-          <div className="flex flex-wrap gap-4">
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="showFatherInfo"
-                checked={showFatherInfo}
-                onChange={(e) => setShowFatherInfo(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="showFatherInfo">Thông tin cha</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="showMotherInfo"
-                checked={showMotherInfo}
-                onChange={(e) => setShowMotherInfo(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="showMotherInfo">Thông tin mẹ</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <input
-                type="checkbox"
-                id="showGuardianInfo"
-                checked={showGuardianInfo}
-                onChange={(e) => setShowGuardianInfo(e.target.checked)}
-                className="h-4 w-4 rounded border-gray-300"
-              />
-              <Label htmlFor="showGuardianInfo">Thông tin người bảo hộ</Label>
-            </div>
-          </div>
-          {errors.familyInfoRequired && (
-            <p className="text-sm text-red-500">
-              {errors.familyInfoRequired.message}
-            </p>
-          )}
-
-          {/* Father Information - chỉ hiển thị khi checkbox được chọn */}
-          {showFatherInfo && (
-            <div className="rounded-lg border p-4">
-              <h3 className="mb-4 text-lg font-semibold">Thông tin cha</h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField name="fullNameFather" label="Họ và tên" />
-                <FormField
-                  name="yearOfBirthFather"
-                  label="Năm sinh"
-                  type="date"
-                />
-                <FormField name="occupationFather" label="Nghề nghiệp" />
-                <FormField name="phoneNumberFather" label="Số điện thoại" />
-                <FormField name="emailFather" label="Email" />
-                <FormField name="idcardNumberFather" label="CCCD/CMND" />
-              </div>
-            </div>
-          )}
-
-          {/* Mother Information - chỉ hiển thị khi checkbox được chọn */}
-          {showMotherInfo && (
-            <div className="rounded-lg border p-4">
-              <h3 className="mb-4 text-lg font-semibold">Thông tin mẹ</h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField name="fullNameMother" label="Họ và tên" />
-                <FormField
-                  name="yearOfBirthMother"
-                  label="Năm sinh"
-                  type="date"
-                />
-                <FormField name="occupationMother" label="Nghề nghiệp" />
-                <FormField name="phoneNumberMother" label="Số điện thoại" />
-                <FormField name="emailMother" label="Email" />
-                <FormField name="idcardNumberMother" label="CCCD/CMND" />
-              </div>
-            </div>
-          )}
-
-          {/* Guardian Information - chỉ hiển thị khi checkbox được chọn */}
-          {showGuardianInfo && (
-            <div className="rounded-lg border p-4">
-              <h3 className="mb-4 text-lg font-semibold">
-                Thông tin người giám hộ
-              </h3>
-              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                <FormField name="fullNameGuardian" label="Họ và tên" />
-                <FormField
-                  name="yearOfBirthGuardian"
-                  label="Năm sinh"
-                  type="date"
-                />
-                <FormField name="occupationGuardian" label="Nghề nghiệp" />
-                <FormField name="phoneNumberGuardian" label="Số điện thoại" />
-                <FormField name="emailGuardian" label="Email" />
-                <FormField name="idcardNumberGuardian" label="CCCD/CMND" />
-              </div>
-            </div>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Submit button at bottom for convenience */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isUpdating} size="lg">
-          {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
-        </Button>
-      </div>
-    </form>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }

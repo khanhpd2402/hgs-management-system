@@ -25,7 +25,7 @@ import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 export default function StudentProfile() {
   const { id } = useParams();
   const { currentYear } = useLayout();
-  const academicYearId = currentYear?.academicYearID;
+  const academicYearId = currentYear?.academicYearID || null;
   const studentQuery = useStudent({ id, academicYearId });
   const { mutate, isPending: isUpdating } = useUpdateStudent();
 
