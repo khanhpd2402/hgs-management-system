@@ -60,6 +60,8 @@ public partial class HgsdbContext : DbContext
 
     public virtual DbSet<Timetable> Timetables { get; set; }
 
+    public virtual DbSet<TimetableDetail> TimetableDetails { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
@@ -74,9 +76,9 @@ public partial class HgsdbContext : DbContext
     {
         modelBuilder.Entity<AcademicYear>(entity =>
         {
-            entity.HasKey(e => e.AcademicYearId).HasName("PK__Academic__C54C7A21CB26F9D2");
+            entity.HasKey(e => e.AcademicYearId).HasName("PK__Academic__C54C7A2196D7E364");
 
-            entity.HasIndex(e => e.YearName, "UQ__Academic__294C4DA908391E36").IsUnique();
+            entity.HasIndex(e => e.YearName, "UQ__Academic__294C4DA98F1B64EB").IsUnique();
 
             entity.Property(e => e.AcademicYearId).HasColumnName("AcademicYearID");
             entity.Property(e => e.YearName)
@@ -86,7 +88,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Attendance>(entity =>
         {
-            entity.HasKey(e => e.AttendanceId).HasName("PK__Attendan__8B69263CB0388CF8");
+            entity.HasKey(e => e.AttendanceId).HasName("PK__Attendan__8B69263CD9375B10");
 
             entity.HasIndex(e => new { e.StudentId, e.Date, e.Shift, e.SemesterId }, "UQ_Attendance").IsUnique();
 
@@ -102,12 +104,11 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Attendances)
                 .HasForeignKey(d => d.CreatedBy)
-                .OnDelete(DeleteBehavior.SetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_Attendances_Teachers");
 
             entity.HasOne(d => d.Semester).WithMany(p => p.Attendances)
                 .HasForeignKey(d => d.SemesterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Attendances_Semesters");
 
             entity.HasOne(d => d.Student).WithMany(p => p.Attendances)
@@ -117,9 +118,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Class>(entity =>
         {
-            entity.HasKey(e => e.ClassId).HasName("PK__Classes__CB1927A0B293B004");
+            entity.HasKey(e => e.ClassId).HasName("PK__Classes__CB1927A0856A48DD");
 
-            entity.HasIndex(e => e.ClassName, "UQ__Classes__F8BF561B2AA7A8EC").IsUnique();
+            entity.HasIndex(e => e.ClassName, "UQ__Classes__F8BF561BFFFBD54A").IsUnique();
 
             entity.Property(e => e.ClassId).HasColumnName("ClassID");
             entity.Property(e => e.ClassName).HasMaxLength(50);
@@ -127,7 +128,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<ExamProposal>(entity =>
         {
-            entity.HasKey(e => e.ProposalId).HasName("PK__ExamProp__6F39E100160BE60B");
+            entity.HasKey(e => e.ProposalId).HasName("PK__ExamProp__6F39E10048AF24C2");
 
             entity.Property(e => e.ProposalId).HasColumnName("ProposalID");
             entity.Property(e => e.CreatedDate)
@@ -140,22 +141,22 @@ public partial class HgsdbContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.ExamProposals)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ExamPropo__Creat__59C55456");
+                .HasConstraintName("FK_ExamProposals_Teachers");
 
             entity.HasOne(d => d.Semester).WithMany(p => p.ExamProposals)
                 .HasForeignKey(d => d.SemesterId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ExamPropo__Semes__58D1301D");
+                .HasConstraintName("FK_ExamProposals_Semesters");
 
             entity.HasOne(d => d.Subject).WithMany(p => p.ExamProposals)
                 .HasForeignKey(d => d.SubjectId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ExamPropo__Subje__57DD0BE4");
+                .HasConstraintName("FK_ExamProposals_Subjects");
         });
 
         modelBuilder.Entity<ExamProposalQuestion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ExamProp__3214EC270B9D64E0");
+            entity.HasKey(e => e.Id).HasName("PK__ExamProp__3214EC270C084E42");
 
             entity.HasIndex(e => new { e.ProposalId, e.QuestionId }, "UQ_Proposal_Question").IsUnique();
 
@@ -165,54 +166,48 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Proposal).WithMany(p => p.ExamProposalQuestions)
                 .HasForeignKey(d => d.ProposalId)
-                .HasConstraintName("FK__ExamPropo__Propo__5D95E53A");
+                .HasConstraintName("FK_ExamProposalQuestions_ExamProposals");
 
             entity.HasOne(d => d.Question).WithMany(p => p.ExamProposalQuestions)
                 .HasForeignKey(d => d.QuestionId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__ExamPropo__Quest__5E8A0973");
+                .HasConstraintName("FK_ExamProposalQuestions_Questions");
         });
 
         modelBuilder.Entity<Grade>(entity =>
         {
-            entity.HasKey(e => e.GradeId).HasName("PK__Grades__54F87A3773E5593F");
+            entity.HasKey(e => e.GradeId).HasName("PK__Grades__54F87A379AA84E07");
 
             entity.Property(e => e.GradeId).HasColumnName("GradeID");
             entity.Property(e => e.AssessmentsTypeName).HasMaxLength(100);
+            entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
             entity.Property(e => e.BatchId).HasColumnName("BatchID");
-            entity.Property(e => e.ClassId).HasColumnName("ClassID");
             entity.Property(e => e.Score).HasMaxLength(10);
-            entity.Property(e => e.StudentId).HasColumnName("StudentID");
-            entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
+            entity.Property(e => e.StudentClassId).HasColumnName("StudentClassID");
+
+            entity.HasOne(d => d.Assignment).WithMany(p => p.Grades)
+                .HasForeignKey(d => d.AssignmentId)
+                .HasConstraintName("FK__Grades__Assignme__787EE5A0");
 
             entity.HasOne(d => d.Batch).WithMany(p => p.Grades)
                 .HasForeignKey(d => d.BatchId)
-                .HasConstraintName("FK__Grades__BatchID__114A936A");
+                .HasConstraintName("FK__Grades__BatchID__76969D2E");
 
-            entity.HasOne(d => d.Class).WithMany(p => p.Grades)
-                .HasForeignKey(d => d.ClassId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Grades_Classes");
-
-            entity.HasOne(d => d.Student).WithMany(p => p.Grades)
-                .HasForeignKey(d => d.StudentId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Grades_Students");
-
-            entity.HasOne(d => d.Subject).WithMany(p => p.Grades)
-                .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Grades_Subjects");
+            entity.HasOne(d => d.StudentClass).WithMany(p => p.Grades)
+                .HasForeignKey(d => d.StudentClassId)
+                .HasConstraintName("FK__Grades__StudentC__778AC167");
         });
 
         modelBuilder.Entity<GradeBatch>(entity =>
         {
-            entity.HasKey(e => e.BatchId).HasName("PK__GradeBat__5D55CE38DBEF4C5B");
+            entity.HasKey(e => e.BatchId).HasName("PK__GradeBat__5D55CE38D9B4B281");
 
             entity.Property(e => e.BatchId).HasColumnName("BatchID");
             entity.Property(e => e.BatchName).HasMaxLength(255);
-            entity.Property(e => e.IsActive).HasDefaultValue(true);
             entity.Property(e => e.SemesterId).HasColumnName("SemesterID");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .HasDefaultValue("Active");
 
             entity.HasOne(d => d.Semester).WithMany(p => p.GradeBatches)
                 .HasForeignKey(d => d.SemesterId)
@@ -222,7 +217,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<LeaveRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__LeaveReq__33A8519AA21C5322");
+            entity.HasKey(e => e.RequestId).HasName("PK__LeaveReq__33A8519AAB3164A4");
 
             entity.Property(e => e.RequestId).HasColumnName("RequestID");
             entity.Property(e => e.Status).HasMaxLength(20);
@@ -230,13 +225,12 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Teacher).WithMany(p => p.LeaveRequests)
                 .HasForeignKey(d => d.TeacherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_LeaveRequests_Teachers");
         });
 
         modelBuilder.Entity<LessonPlan>(entity =>
         {
-            entity.HasKey(e => e.PlanId).HasName("PK__LessonPl__755C22D7C6A4FDDE");
+            entity.HasKey(e => e.PlanId).HasName("PK__LessonPl__755C22D760A8AA77");
 
             entity.Property(e => e.PlanId).HasColumnName("PlanID");
             entity.Property(e => e.AttachmentUrl).HasMaxLength(500);
@@ -252,28 +246,24 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Reviewer).WithMany(p => p.LessonPlanReviewers)
                 .HasForeignKey(d => d.ReviewerId)
-                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_LessonPlans_Reviewer_Teachers");
 
             entity.HasOne(d => d.Semester).WithMany(p => p.LessonPlans)
                 .HasForeignKey(d => d.SemesterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_LessonPlans_Semesters");
 
             entity.HasOne(d => d.Subject).WithMany(p => p.LessonPlans)
                 .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_LessonPlans_Subjects");
 
             entity.HasOne(d => d.Teacher).WithMany(p => p.LessonPlanTeachers)
                 .HasForeignKey(d => d.TeacherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_LessonPlans_Teachers");
         });
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E328187E8AF");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32FF2FD8CE");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
             entity.Property(e => e.CreateDate)
@@ -285,9 +275,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Parent>(entity =>
         {
-            entity.HasKey(e => e.ParentId).HasName("PK__Parents__D339510F8D7B5DEC");
+            entity.HasKey(e => e.ParentId).HasName("PK__Parents__D339510F08E5A0DD");
 
-            entity.HasIndex(e => e.UserId, "UQ__Parents__1788CCAD02BE07A1").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__Parents__1788CCAD9826AE33").IsUnique();
 
             entity.Property(e => e.ParentId).HasColumnName("ParentID");
             entity.Property(e => e.EmailFather).HasMaxLength(100);
@@ -309,13 +299,12 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.User).WithOne(p => p.Parent)
                 .HasForeignKey<Parent>(d => d.UserId)
-                .OnDelete(DeleteBehavior.SetNull)
                 .HasConstraintName("FK_Parents_Users");
         });
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C779C4A64");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8CCA06A81E");
 
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
             entity.Property(e => e.CorrectAnswer).HasMaxLength(255);
@@ -330,19 +319,19 @@ public partial class HgsdbContext : DbContext
             entity.HasOne(d => d.CreatedByNavigation).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.CreatedBy)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Questions__Creat__51300E55");
+                .HasConstraintName("FK_Questions_Teachers");
 
             entity.HasOne(d => d.Subject).WithMany(p => p.Questions)
                 .HasForeignKey(d => d.SubjectId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Questions__Subje__503BEA1C");
+                .HasConstraintName("FK_Questions_Subjects");
         });
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A426C52D1");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A00B3A77B");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B61608972F968").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B6160871AEE8A").IsUnique();
 
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.RoleName).HasMaxLength(50);
@@ -350,7 +339,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Semester>(entity =>
         {
-            entity.HasKey(e => e.SemesterId).HasName("PK__Semester__043301BD77AA60DD");
+            entity.HasKey(e => e.SemesterId).HasName("PK__Semester__043301BD04715037");
 
             entity.HasIndex(e => new { e.AcademicYearId, e.SemesterName }, "UQ_Semesters").IsUnique();
 
@@ -360,15 +349,14 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.AcademicYear).WithMany(p => p.Semesters)
                 .HasForeignKey(d => d.AcademicYearId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Semesters_AcademicYears");
         });
 
         modelBuilder.Entity<Student>(entity =>
         {
-            entity.HasKey(e => e.StudentId).HasName("PK__Students__32C52A794CC12F9E");
+            entity.HasKey(e => e.StudentId).HasName("PK__Students__32C52A79482C8ACF");
 
-            entity.HasIndex(e => e.IdcardNumber, "UQ__Students__IDCardNumber").IsUnique();
+            entity.HasIndex(e => e.IdcardNumber, "UQ__Students__2CEB98361159120E").IsUnique();
 
             entity.Property(e => e.StudentId).HasColumnName("StudentID");
             entity.Property(e => e.BirthPlace).HasMaxLength(255);
@@ -396,9 +384,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<StudentClass>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__StudentC__3214EC27B409D4BA");
+            entity.HasKey(e => e.Id).HasName("PK__StudentC__3214EC274F6500B1");
 
-            entity.HasIndex(e => new { e.StudentId, e.AcademicYearId }, "UQ__StudentC__3E91EDDAC7FAC234").IsUnique();
+            entity.HasIndex(e => new { e.StudentId, e.AcademicYearId }, "UQ__StudentC__3E91EDDAADCB4D3A").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.AcademicYearId).HasColumnName("AcademicYearID");
@@ -412,7 +400,6 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Class).WithMany(p => p.StudentClasses)
                 .HasForeignKey(d => d.ClassId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_StudentClasses_Classes");
 
             entity.HasOne(d => d.Student).WithMany(p => p.StudentClasses)
@@ -422,9 +409,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Subject>(entity =>
         {
-            entity.HasKey(e => e.SubjectId).HasName("PK__Subjects__AC1BA3887CD41D08");
+            entity.HasKey(e => e.SubjectId).HasName("PK__Subjects__AC1BA3886D8B24FF");
 
-            entity.HasIndex(e => e.SubjectName, "UQ__Subjects__4C5A7D55E6AA9C32").IsUnique();
+            entity.HasIndex(e => e.SubjectName, "UQ__Subjects__4C5A7D55517490A5").IsUnique();
 
             entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
             entity.Property(e => e.SubjectCategory).HasMaxLength(50);
@@ -434,13 +421,11 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Teacher>(entity =>
         {
-            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF25944F08DC4F9");
+            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF259441D21959A");
 
-            entity.HasIndex(e => e.InsuranceNumber, "UQ__Teachers__01A4DDACB40E229D").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__Teachers__1788CCADEA30EBEE").IsUnique();
 
-            entity.HasIndex(e => e.UserId, "UQ__Teachers__1788CCAD06A4B0EC").IsUnique();
-
-            entity.HasIndex(e => e.IdcardNumber, "UQ__Teachers__2CEB9836F2776FDB").IsUnique();
+            entity.HasIndex(e => e.IdcardNumber, "UQ__Teachers__2CEB9836B4BBCD72").IsUnique();
 
             entity.Property(e => e.TeacherId).HasColumnName("TeacherID");
             entity.Property(e => e.AdditionalDuties).HasMaxLength(255);
@@ -472,7 +457,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<TeacherClass>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TeacherC__3214EC2779B77384");
+            entity.HasKey(e => e.Id).HasName("PK__TeacherC__3214EC277059CC67");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.AcademicYearId).HasColumnName("AcademicYearID");
@@ -496,7 +481,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<TeacherSubject>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TeacherS__3214EC27B34339F2");
+            entity.HasKey(e => e.Id).HasName("PK__TeacherS__3214EC27E0F63448");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.IsMainSubject).HasDefaultValue(false);
@@ -505,18 +490,18 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Subject).WithMany(p => p.TeacherSubjects)
                 .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TeacherSubjects_Subjects");
 
             entity.HasOne(d => d.Teacher).WithMany(p => p.TeacherSubjects)
                 .HasForeignKey(d => d.TeacherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
+                .OnDelete(DeleteBehavior.Cascade)
                 .HasConstraintName("FK_TeacherSubjects_Teachers");
         });
 
         modelBuilder.Entity<TeachingAssignment>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__Teaching__32499E57966C5A89");
+            entity.HasKey(e => e.AssignmentId).HasName("PK__Teaching__32499E57EEA43D32");
 
             entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
             entity.Property(e => e.ClassId).HasColumnName("ClassID");
@@ -526,63 +511,63 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Class).WithMany(p => p.TeachingAssignments)
                 .HasForeignKey(d => d.ClassId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TeachingAssignments_Classes");
 
             entity.HasOne(d => d.Semester).WithMany(p => p.TeachingAssignments)
                 .HasForeignKey(d => d.SemesterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TeachingAssignments_Semesters");
 
             entity.HasOne(d => d.Subject).WithMany(p => p.TeachingAssignments)
                 .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TeachingAssignments_Subjects");
 
             entity.HasOne(d => d.Teacher).WithMany(p => p.TeachingAssignments)
                 .HasForeignKey(d => d.TeacherId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_TeachingAssignments_Teachers");
         });
 
         modelBuilder.Entity<Timetable>(entity =>
         {
-            entity.HasKey(e => e.TimetableId).HasName("PK__Timetabl__68413F40EC9309DF");
+            entity.HasKey(e => e.TimetableId).HasName("PK__Timetabl__68413F60CFA4DFF9");
 
-            entity.Property(e => e.TimetableId).HasColumnName("TimetableID");
-            entity.Property(e => e.ClassId).HasColumnName("ClassID");
-            entity.Property(e => e.DayOfWeek).HasMaxLength(20);
-            entity.Property(e => e.SemesterId).HasColumnName("SemesterID");
-            entity.Property(e => e.Shift).HasMaxLength(20);
-            entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
-            entity.Property(e => e.TeacherId).HasColumnName("TeacherID");
-
-            entity.HasOne(d => d.Class).WithMany(p => p.Timetables)
-                .HasForeignKey(d => d.ClassId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Timetables_Classes");
+            entity.Property(e => e.Status)
+                .HasMaxLength(10)
+                .HasDefaultValue("Active");
 
             entity.HasOne(d => d.Semester).WithMany(p => p.Timetables)
                 .HasForeignKey(d => d.SemesterId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Timetables_Semesters");
+                .HasConstraintName("FK__Timetable__Semes__1BC821DD");
+        });
 
-            entity.HasOne(d => d.Subject).WithMany(p => p.Timetables)
+        modelBuilder.Entity<TimetableDetail>(entity =>
+        {
+            entity.HasKey(e => e.TimetableDetailId).HasName("PK__Timetabl__56B983EAA3CCD69A");
+
+            entity.HasOne(d => d.Class).WithMany(p => p.TimetableDetails)
+                .HasForeignKey(d => d.ClassId)
+                .HasConstraintName("FK__Timetable__Class__22751F6C");
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.TimetableDetails)
                 .HasForeignKey(d => d.SubjectId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Timetables_Subjects");
+                .HasConstraintName("FK__Timetable__Subje__236943A5");
 
-            entity.HasOne(d => d.Teacher).WithMany(p => p.Timetables)
+            entity.HasOne(d => d.Teacher).WithMany(p => p.TimetableDetails)
                 .HasForeignKey(d => d.TeacherId)
+                .HasConstraintName("FK__Timetable__Teach__245D67DE");
+
+            entity.HasOne(d => d.Timetable).WithMany(p => p.TimetableDetails)
+                .HasForeignKey(d => d.TimetableId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Timetables_Teachers");
+                .HasConstraintName("FK__Timetable__Timet__2180FB33");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC970C9314");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCAC87B26C5E");
 
-            entity.HasIndex(e => e.Username, "UQ_Users_Username").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Users__536C85E46C32D65A").IsUnique();
+
+            entity.HasIndex(e => e.Username, "UQ__Users__536C85E4E8388C21").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email).HasMaxLength(100);
@@ -596,7 +581,6 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Role).WithMany(p => p.Users)
                 .HasForeignKey(d => d.RoleId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Users_Roles");
         });
 
