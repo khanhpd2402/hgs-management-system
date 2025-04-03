@@ -18,7 +18,14 @@ const menuItems = [
   {
     label: "Quản trị",
     icon: Settings,
-    path: "/admin",
+    path: "/system",
+    children: [
+      { label: "Quản lý người dùng", path: "/system/user" },
+      { label: "Quản lý lớp", path: "/system/class" },
+      { label: "Quản lý môn học", path: "/system/subject" },
+      // { label: "Quản lý giáo viên", path: "/admin/teacher" },
+      // { label: "Quản lý học sinh", path: "/admin/student" },
+    ],
   },
   {
     label: "Cán bộ",
@@ -42,7 +49,10 @@ const menuItems = [
         label: "Báo cáo điểm",
         path: "/teacher/mark-report",
       },
-
+      {
+        label: "Quản lý đợt nhập điểm",
+        path: "/teacher/grade-batch",
+      },
     ],
   },
   {

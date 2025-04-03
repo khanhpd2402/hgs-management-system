@@ -14,5 +14,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<GradeBatch> AddAsync(GradeBatch gradeBatch);
         Task<bool> UpdateAsync(GradeBatch gradeBatch);
         Task<bool> DeleteAsync(int id);
+        Task<GradeBatch> GetGradeBatchWithGradesAsync(int batchId);
     }
 }

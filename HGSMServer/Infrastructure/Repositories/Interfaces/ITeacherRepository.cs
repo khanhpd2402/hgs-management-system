@@ -9,10 +9,12 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddAsync(Teacher teacher);
         Task UpdateAsync(Teacher teacher);
         Task DeleteAsync(int id);
-        Task<bool> ExistsAsync(string idCard, string insuranceNumber); // Kiểm tra giáo viên có tồn tại không
+        Task<bool> ExistsAsync(string idCard); // Kiểm tra giáo viên có tồn tại không
         Task AddRangeAsync(IEnumerable<Teacher> teachers); // Thêm danh sách giáo viên
         Task<Teacher> GetByUserIdAsync(int userId);
         Task<IEnumerable<TeacherSubject>> GetTeacherSubjectsAsync(int teacherId);
         Task DeleteTeacherSubjectsAsync(int teacherId);
+        Task<bool> IsUsernameExistsAsync(string username);
+        Task<bool> IsEmailOrPhoneExistsAsync(string email, string phoneNumber);
     }
-}
+} 
