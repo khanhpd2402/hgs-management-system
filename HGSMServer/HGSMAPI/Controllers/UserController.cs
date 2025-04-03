@@ -44,26 +44,22 @@ namespace HGSMAPI.Controllers
             return Ok(user);
         }
 
+        
         [HttpPost]
         [Authorize(Roles = "Principal,AdministrativeOfficer")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO userDto)
         {
-            if (userDto == null)
+            if (!ModelState.IsValid)
             {
-                Console.WriteLine("CreateUser: User data is null.");
-                return BadRequest(new { message = "User data cannot be null." });
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
+                return BadRequest(new { message = "Invalid input data.", errors });
             }
 
-            if (string.IsNullOrEmpty(userDto.Username) || string.IsNullOrEmpty(userDto.PasswordHash))
-            {
-                Console.WriteLine("CreateUser: Username or PasswordHash is missing.");
-                return BadRequest(new { message = "Username and PasswordHash are required." });
-            }
+            Console.WriteLine("Creating new user...");
+            var createdUser = await _userService.AddUserAsync(userDto);
 
-            Console.WriteLine($"Creating user with username: {userDto.Username}...");
-            await _userService.AddUserAsync(userDto);
-            var createdUser = await _userService.GetUserByUsernameAsync(userDto.Username); // Lấy lại user để trả về
-            Console.WriteLine($"User created with ID {createdUser.UserId} and username {userDto.Username}.");
+            Console.WriteLine($"User created with ID {createdUser.UserId} and username {createdUser.Username}.");
             return CreatedAtAction(nameof(GetUser), new { id = createdUser.UserId }, createdUser);
         }
 
@@ -81,12 +77,6 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"UpdateUser: ID mismatch. URL ID: {id}, Body ID: {userDto.UserId}.");
                 return BadRequest(new { message = "User ID in URL does not match the ID in the body." });
-            }
-
-            if (string.IsNullOrEmpty(userDto.Username))
-            {
-                Console.WriteLine("UpdateUser: Username is missing.");
-                return BadRequest(new { message = "Username is required." });
             }
 
             try
@@ -192,7 +182,6 @@ namespace HGSMAPI.Controllers
 
             try
             {
-                // Lấy user từ UserService để kiểm tra sự tồn tại
                 var userDto = await _userService.GetUserByIdAsync(id);
                 if (userDto == null)
                 {
@@ -201,7 +190,6 @@ namespace HGSMAPI.Controllers
                 }
 
                 Console.WriteLine($"Changing status of user with ID {id} to {changeStatusDto.Status}...");
-                // Cập nhật Status trực tiếp trên đối tượng User trong database
                 await _userService.ChangeUserStatusAsync(id, changeStatusDto.Status);
                 Console.WriteLine($"Status of user with ID {id} updated to {changeStatusDto.Status}.");
                 return Ok(new { message = "Status updated successfully.", userId = id, newStatus = changeStatusDto.Status });
@@ -220,21 +208,43 @@ namespace HGSMAPI.Controllers
 
         [HttpPost("{id}/admin-change-password")]
         [Authorize(Roles = "Principal,AdministrativeOfficer")]
-        public async Task<IActionResult> AdminChangePassword(int id, [FromBody] string newPassword)
+        public async Task<IActionResult> AdminChangePassword(int id, [FromBody] AdminChangePasswordDto adminChangePasswordDto)
         {
+            if (!ModelState.IsValid)
+            {
+                var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
+                return BadRequest(new { message = "Invalid input data.", errors });
+            }
+
             try
             {
-                await _userService.AdminChangePasswordAsync(id, newPassword);
+                Console.WriteLine($"Admin is changing password for user with ID {id}...");
+                await _userService.AdminChangePasswordAsync(id, adminChangePasswordDto.NewPassword);
+                Console.WriteLine($"Password for user with ID {id} changed successfully by admin.");
                 return Ok(new { message = "Password changed successfully by admin.", userId = id });
             }
             catch (ArgumentException ex)
             {
+                Console.WriteLine($"AdminChangePassword: Error - {ex.Message}");
                 return BadRequest(new { message = ex.Message });
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"AdminChangePassword: Unexpected error - {ex.Message}");
                 return StatusCode(500, new { message = "An error occurred while changing the password.", error = ex.Message });
             }
         }
+    }
+
+    // DTO bổ sung nếu chưa có trong mã nguồn trước
+    public class ChangeStatusDto
+    {
+        public string Status { get; set; }
+    }
+
+    public class AdminChangePasswordDto
+    {
+        public string NewPassword { get; set; }
     }
 }

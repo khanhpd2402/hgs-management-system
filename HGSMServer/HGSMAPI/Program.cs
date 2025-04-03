@@ -99,6 +99,8 @@ builder.Services.AddSession(options =>
 });
 
 // Đăng ký các dịch vụ và repository
+//Parent Management
+builder.Services.AddScoped<IParentRepository, ParentRepository>();
 // Student Management
 builder.Services.AddScoped<IStudentService, StudentService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
@@ -106,6 +108,8 @@ builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
 builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
 builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
+builder.Services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
+builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
 
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
@@ -157,7 +161,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = "Google";
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Sửa thành JwtBearer
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
@@ -172,7 +176,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = false,
+        ValidateLifetime = true, // Bật lại kiểm tra thời gian hết hạn
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],

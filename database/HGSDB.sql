@@ -119,7 +119,8 @@ CREATE TABLE [dbo].[Parents] (
     [EmailGuardian] NVARCHAR(100) NULL,
     [IdcardNumberGuardian] NVARCHAR(50) NULL,
     PRIMARY KEY CLUSTERED ([ParentID] ASC),
-    UNIQUE NONCLUSTERED ([UserID] ASC)
+    UNIQUE NONCLUSTERED ([UserID] ASC),
+	CONSTRAINT FK_Parents_Users FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users]([UserID])
 );
 
 CREATE TABLE [dbo].[Students] (
@@ -232,7 +233,7 @@ CREATE TABLE [dbo].[Grades] (
     [AssessmentsTypeName] NVARCHAR(100) NOT NULL,
     [TeacherComment] NVARCHAR(MAX) NULL,
     PRIMARY KEY CLUSTERED ([GradeID] ASC),
-    FOREIGN KEY ([BatchID]) REFERENCES [dbo].[GradeBatches] ([BatchID]),
+    FOREIGN KEY ([BatchID]) REFERENCES [dbo].[GradeBatches ] ([BatchID]),
     FOREIGN KEY ([StudentClassID]) REFERENCES [dbo].[StudentClasses] ([ID]) ON DELETE NO ACTION,
     FOREIGN KEY ([AssignmentID]) REFERENCES [dbo].[TeachingAssignments] ([AssignmentID]) ON DELETE NO ACTION
 );

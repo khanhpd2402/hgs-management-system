@@ -13,6 +13,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
+import AddStudent from "@/pages/Student/Profile/AddStudent";
+import SubjectManagement from "@/pages/Principal/SubjectManagement/SubjectManagement";
+import ClassManagement from "@/pages/Principal/ClassManagement/ClassManagement";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -60,10 +63,26 @@ const authRoutes = [
 
 const adminRouter = [
   {
-    path: "/principal/user",
+    path: "/system/user",
     element: (
       <ProtectedRoute requiredRoles={["Principal"]}>
         <UserManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/subject",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <SubjectManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/class",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <ClassManagement />
       </ProtectedRoute>
     ),
   },
@@ -161,6 +180,14 @@ const studentRouter = [
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <StudentProfile />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/student/profile/create-student",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AddStudent />
       </Suspense>
     ),
   },

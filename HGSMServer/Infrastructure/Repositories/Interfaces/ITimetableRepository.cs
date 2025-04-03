@@ -9,6 +9,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<bool> UpdateDetailAsync(TimetableDetail detail);
         Task<bool> DeleteDetailAsync(int detailId);
         Task<bool> IsConflictAsync(TimetableDetail detail);
-        Task<Timetable> AddAsync(Timetable timetable);
+        Task<Timetable> CreateTimetableAsync(Timetable timetable);
+        Task<TimetableDetail> AddTimetableDetailAsync(TimetableDetail detail);
     }
 }

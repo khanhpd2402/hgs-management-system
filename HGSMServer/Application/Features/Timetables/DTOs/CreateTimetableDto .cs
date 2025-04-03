@@ -4,6 +4,7 @@
     {
         public int SemesterId { get; set; }
         public DateOnly EffectiveDate { get; set; }
+        public string Status { get; set; } 
         public List<TimetableDetailDto> Details { get; set; } = new();
     }
 

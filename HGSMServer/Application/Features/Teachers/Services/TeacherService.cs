@@ -104,9 +104,21 @@ namespace Application.Features.Teachers.Services
             await _teacherRepository.UpdateAsync(teacher);
         }
 
-        public async Task DeleteTeacherAsync(int id)
+        public async Task<bool> DeleteTeacherAsync(int id)
         {
+            var teacher = await _teacherRepository.GetByIdAsync(id);
+            if (teacher == null)
+                return false; // Trả về false nếu không tìm thấy
+
+            // Xử lý xóa liên quan (nếu có)
+            var teacherSubjects = await _teacherRepository.GetTeacherSubjectsAsync(id);
+            if (teacherSubjects?.Any() == true)
+            {
+                await _teacherRepository.DeleteTeacherSubjectsAsync(id);
+            }
+
             await _teacherRepository.DeleteAsync(id);
+            return true; // Trả về true nếu xóa thành công
         }
         
         public async Task ImportTeachersFromExcelAsync(IFormFile file)

@@ -11,6 +11,7 @@ namespace Application.Features.Timetables.DTOs
         public int TimetableId { get; set; }
         public int SemesterId { get; set; }
         public DateOnly EffectiveDate { get; set; }
+        public string Status { get; set; } // Trạng thái của thời khóa biểu
         public List<TimetableDetailDto> Details { get; set; } = new();
     }
 

@@ -109,45 +109,42 @@ export default function AttendanceTable() {
 
       {/* Hiển thị dữ liệu phù hợp với chế độ xem */}
       <div className="relative">
-        <div className="max-h-[400px] overflow-auto border border-gray-300">
+        <div className="max-h-[500px] overflow-auto rounded-md border border-gray-200 shadow-sm">
           <div className="min-w-max">
             {viewMode === "day" && (
               <Table className="w-full">
-                <TableHeader className="bg-gray-100">
+                <TableHeader className="bg-gray-50">
                   <TableRow>
-                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                    <TableHead className="min-w-[80px] border border-gray-200 text-center font-medium text-gray-700">
                       ID
                     </TableHead>
-                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                    <TableHead className="min-w-[200px] border border-gray-200 text-center font-medium text-gray-700">
                       Họ và Tên
                     </TableHead>
-                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                    <TableHead className="min-w-[150px] border border-gray-200 text-center font-medium text-gray-700">
                       Trạng Thái
                     </TableHead>
-                    <TableHead className="border border-gray-300 text-center whitespace-nowrap">
+                    <TableHead className="min-w-[250px] border border-gray-200 text-center font-medium text-gray-700">
                       Lí do
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
                   {students.map((student) => (
-                    <TableRow
-                      key={student.id}
-                      className="divide-x divide-gray-300"
-                    >
-                      <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
+                    <TableRow key={student.id} className="hover:bg-gray-50">
+                      <TableCell className="h-16 border border-gray-200 text-center">
                         {student.id}
                       </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
+                      <TableCell className="h-16 border border-gray-200 font-medium">
                         {student.name}
                       </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
+                      <TableCell className="h-16 border border-gray-200 text-center">
                         <select
                           value={student.attendance}
                           onChange={(e) =>
                             updateStatus(student.id, e.target.value)
                           }
-                          className="rounded border px-2 py-1"
+                          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
                         >
                           <option value="C">Có mặt</option>
                           <option value="P">Nghỉ có phép</option>
@@ -155,8 +152,12 @@ export default function AttendanceTable() {
                           <option value="K">Lí do khác</option>
                         </select>
                       </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                        <Input type="text" disabled={student.status !== "K"} />
+                      <TableCell className="h-16 border border-gray-200">
+                        <Input
+                          type="text"
+                          disabled={student.status !== "K"}
+                          className="disabled:bg-gray-100"
+                        />
                       </TableCell>
                     </TableRow>
                   ))}
@@ -285,8 +286,16 @@ export default function AttendanceTable() {
         {/* Thanh cuộn ngang luôn hiển thị */}
       </div>
 
-      <div className="mt-4 flex justify-end">
-        <Button>Lưu điểm danh</Button>
+      <div className="mt-6 flex justify-end">
+        <Button
+          className="min-w-[150px] bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500"
+          onClick={() => {
+            // Add your save logic here
+            console.log("Saving attendance data:", students);
+          }}
+        >
+          Lưu điểm danh
+        </Button>
       </div>
     </Card>
   );

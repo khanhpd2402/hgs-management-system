@@ -55,7 +55,8 @@ namespace Infrastructure.Repositories
         {
             return await _context.GradeBatches
                 .Include(gb => gb.Semester)
-                .Include(gb => gb.Grades)
+                .Include(gb => gb.Grades).ThenInclude(g => g.Assignment)
+                .ThenInclude(a => a.Subject)
                 .FirstOrDefaultAsync(gb => gb.BatchId == batchId)
                 ?? throw new Exception("Grade Batch not found");
         }

@@ -18,10 +18,23 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Add(TimetableDto dto)
+        public async Task<IActionResult> CreateTimetable([FromBody] CreateTimetableDto dto)
         {
-            var result = await _service.AddAsync(dto);
-            return Ok(result);
+            if (dto == null)
+            {
+                return BadRequest("Timetable data is required.");
+            }
+
+            try
+            {
+                var createdTimetable = await _service.CreateTimetableAsync(dto);
+                return Ok(createdTimetable);
+            }
+            catch (Exception ex)
+            {
+                // Log exception nếu cần
+                return StatusCode(500, $"An error occurred while creating the timetable: {ex.Message}");
+            }
         }
 
         [HttpGet("student/{studentId}")]
