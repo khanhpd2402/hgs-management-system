@@ -91,6 +91,7 @@ public class TeacherService : ITeacherService
 
     public async Task AddTeacherAsync(TeacherListDto teacherDto)
     {
+        // Kiểm tra thông tin bắt buộc
         if (string.IsNullOrEmpty(teacherDto.FullName) || teacherDto.Dob == default ||
             string.IsNullOrEmpty(teacherDto.Gender) || string.IsNullOrEmpty(teacherDto.IdcardNumber) ||
             string.IsNullOrEmpty(teacherDto.InsuranceNumber) || string.IsNullOrEmpty(teacherDto.Department) ||
@@ -99,29 +100,63 @@ public class TeacherService : ITeacherService
             throw new Exception("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
         }
 
+        // Kiểm tra trùng lặp IdcardNumber
         if (await _teacherRepository.ExistsAsync(teacherDto.IdcardNumber))
         {
             throw new Exception($"Giáo viên với CMND/CCCD {teacherDto.IdcardNumber} đã tồn tại.");
         }
 
+        // Kiểm tra trùng lặp Email hoặc PhoneNumber
         if (await _teacherRepository.IsEmailOrPhoneExistsAsync(teacherDto.Email, teacherDto.PhoneNumber))
         {
             throw new Exception($"Email {teacherDto.Email} hoặc số điện thoại {teacherDto.PhoneNumber} đã tồn tại.");
         }
 
-        var username = await GenerateUniqueUsernameAsync(teacherDto.FullName);
+        // Ánh xạ DTO sang Teacher, chưa gán username ngay
         var teacher = _mapper.Map<Teacher>(teacherDto);
         teacher.User = new User
         {
             Email = teacherDto.Email,
             PhoneNumber = teacherDto.PhoneNumber,
             RoleId = 4,
-            Username = username,
+            Username = "tempuser", // Username tạm thời
             PasswordHash = PasswordHasher.HashPassword("12345678"),
             Status = "Active"
         };
 
+        // Thêm giáo viên vào DB để lấy UserId
         await _teacherRepository.AddAsync(teacher);
+
+        // Sinh username dựa trên UserId vừa tạo
+        var username = await GenerateUniqueUsernameAsync(teacherDto.FullName);
+        teacher.User.Username = username;
+        await _teacherRepository.UpdateUserAsync(teacher.User);
+
+        // Xử lý danh sách môn học (nếu có)
+        var subjects = teacherDto.Subjects ?? new List<SubjectDto>();
+        if (subjects.Any())
+        {
+            var teacherSubjects = new List<TeacherSubject>();
+            foreach (var subjectDto in subjects)
+            {
+                // Kiểm tra môn học có tồn tại không
+                var subject = await _subjectRepository.GetByIdAsync(subjectDto.SubjectId);
+                if (subject == null)
+                {
+                    throw new Exception($"Môn học với ID {subjectDto.SubjectId} không tồn tại.");
+                }
+
+                teacherSubjects.Add(new TeacherSubject
+                {
+                    TeacherId = teacher.TeacherId,
+                    SubjectId = subjectDto.SubjectId,
+                    IsMainSubject = subjectDto.IsMainSubject
+                });
+            }
+
+            // Thêm tất cả TeacherSubjects
+            await _teacherRepository.AddTeacherSubjectsRangeAsync(teacherSubjects);
+        }
     }
 
     public async Task<string> GenerateUniqueUsernameAsync(string fullName)
@@ -138,9 +173,74 @@ public class TeacherService : ITeacherService
 
     public async Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto)
     {
-        var teacher = _mapper.Map<Teacher>(teacherDto);
-        teacher.TeacherId = id;
-        await _teacherRepository.UpdateAsync(teacher);
+        // Kiểm tra giáo viên có tồn tại không
+        var existingTeacher = await _teacherRepository.GetByIdWithUserAsync(id);
+        if (existingTeacher == null)
+        {
+            throw new Exception($"Không tìm thấy giáo viên với ID {id}.");
+        }
+
+        // Kiểm tra TeacherId trong DTO có khớp với URL không
+        if (teacherDto.TeacherId != id)
+        {
+            throw new Exception($"TeacherId trong DTO ({teacherDto.TeacherId}) không khớp với TeacherId trong URL ({id}).");
+        }
+
+        // Cập nhật thông tin bảng Teachers trực tiếp trên existingTeacher
+        _mapper.Map(teacherDto, existingTeacher); // Ánh xạ từ DTO sang entity đã có
+        existingTeacher.TeacherId = id; // Đảm bảo giữ nguyên TeacherId
+        await _teacherRepository.UpdateAsync(existingTeacher);
+
+        // Cập nhật thông tin bảng Users (email, phone)
+        if (existingTeacher.User != null)
+        {
+            existingTeacher.User.Email = teacherDto.Email;
+            existingTeacher.User.PhoneNumber = teacherDto.PhoneNumber;
+            await _teacherRepository.UpdateUserAsync(existingTeacher.User);
+        }
+
+        // Xử lý danh sách môn học (TeacherSubjects)
+        var existingSubjects = await _teacherRepository.GetTeacherSubjectsAsync(id);
+        var newSubjects = teacherDto.Subjects ?? new List<SubjectDto>();
+
+        // Xóa các môn học cũ không còn trong danh sách mới
+        var subjectsToRemove = existingSubjects
+            .Where(es => !newSubjects.Any(ns => ns.SubjectId == es.SubjectId))
+            .ToList();
+        if (subjectsToRemove.Any())
+        {
+            await _teacherRepository.DeleteTeacherSubjectsRangeAsync(subjectsToRemove);
+        }
+
+        // Thêm hoặc cập nhật các môn học mới
+        foreach (var subjectDto in newSubjects)
+        {
+            var existingSubject = existingSubjects.FirstOrDefault(es => es.SubjectId == subjectDto.SubjectId);
+            if (existingSubject == null)
+            {
+                // Kiểm tra xem SubjectId có tồn tại trong bảng Subjects không
+                var subject = await _subjectRepository.GetByIdAsync(subjectDto.SubjectId);
+                if (subject == null)
+                {
+                    throw new Exception($"Môn học với ID {subjectDto.SubjectId} không tồn tại.");
+                }
+
+                // Thêm mới TeacherSubject
+                var teacherSubject = new TeacherSubject
+                {
+                    TeacherId = id,
+                    SubjectId = subjectDto.SubjectId,
+                    IsMainSubject = subjectDto.IsMainSubject
+                };
+                await _teacherRepository.AddTeacherSubjectAsync(teacherSubject);
+            }
+            else if (existingSubject.IsMainSubject != subjectDto.IsMainSubject)
+            {
+                // Cập nhật IsMainSubject nếu thay đổi
+                existingSubject.IsMainSubject = subjectDto.IsMainSubject;
+                await _teacherRepository.UpdateTeacherSubjectAsync(existingSubject);
+            }
+        }
     }
 
     public async Task<bool> DeleteTeacherAsync(int id)
