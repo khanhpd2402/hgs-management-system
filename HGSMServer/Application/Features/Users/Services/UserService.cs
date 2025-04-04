@@ -1,5 +1,6 @@
 using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
+using Common.Utils;
 using Domain.Models;
 using Infrastructure.Repositories.Implementations;
 using Infrastructure.Repositories.Interfaces;
@@ -118,7 +119,7 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"Role with ID {userDto.RoleId} not found.");
 
             // Kiểm tra các trường bắt buộc cho Teacher và các role khác
-            if (userDto.RoleId != 6)
+            if (userDto.RoleId != 6) // Không phải Parent
             {
                 if (string.IsNullOrEmpty(userDto.FullName))
                     throw new ArgumentException("FullName is required for non-Parent roles.");
@@ -133,7 +134,7 @@ namespace Application.Features.Users.Services
             // Tạo User với Username tạm thời
             var user = new User
             {
-                Username = $"{roleName.ToLower()}temp", // Gán tạm để tránh lỗi NOT NULL
+                Username = "tempuser", // Username tạm thời
                 PasswordHash = passwordHash,
                 Email = userDto.RoleId == 6
                     ? (userDto.Email ?? userDto.EmailFather ?? userDto.EmailMother ?? userDto.EmailGuardian)
@@ -169,8 +170,11 @@ namespace Application.Features.Users.Services
             await _userRepository.AddAsync(user);
             Console.WriteLine($"Created new user with UserID: {user.UserId}");
 
-            // Sinh Username theo RoleName + UserId
-            string finalUsername = $"{roleName.ToLower()}{user.UserId}";
+            // Sinh Username bằng FormatUserName dựa trên FullName và UserId
+            string fullNameForUsername = userDto.RoleId == 6
+                ? (userDto.FullNameFather ?? userDto.FullNameMother ?? userDto.FullNameGuardian ?? "user")
+                : userDto.FullName;
+            string finalUsername = FormatUserName.GenerateUsername(fullNameForUsername, user.UserId);
             var existingUserByUsername = await _userRepository.GetByUsernameAsync(finalUsername);
             if (existingUserByUsername != null)
             {
@@ -198,7 +202,6 @@ namespace Application.Features.Users.Services
                     EmploymentType = userDto.EmploymentType,
                     Position = userDto.Position,
                     Department = userDto.Department,
-                    AdditionalDuties = userDto.AdditionalDuties,
                     IsHeadOfDepartment = userDto.IsHeadOfDepartment ?? false,
                     EmploymentStatus = userDto.EmploymentStatus,
                     RecruitmentAgency = userDto.RecruitmentAgency,

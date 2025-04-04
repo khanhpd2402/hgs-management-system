@@ -18,6 +18,9 @@ import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 import RequestLessonPlan from "@/pages/RequestLessonPlan/RequestLessonPlan";
 import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 import ReviewDetail from "@/pages/RequestLessonPlan/ReviewList/ReviewDetail";
+import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
+import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
+import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -182,7 +185,14 @@ const teacherRouter = [
       </Suspense>
     ),
   },
-
+  {
+    path: "/teacher/leave-request",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <TeacherLeaveRequest />
+      </Suspense>
+    ),
+  },
 ];
 
 const studentRouter = [
@@ -248,6 +258,14 @@ const systemRouter = [
       {
         path: "/system/schedule",
         element: <ScheduleTable />,
+      },
+      {
+        path: "/system/leave-request",
+        element: <ListLeaveRequest />,
+      },
+      {
+        path: "/system/leave-request/:id",
+        element: <LeaveRequestDetail />,
       },
     ],
   },

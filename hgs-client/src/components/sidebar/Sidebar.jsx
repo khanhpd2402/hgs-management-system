@@ -22,6 +22,7 @@ const menuItems = [
     children: [
       { label: "Quản lý người dùng", path: "/principal/user" },
       { label: "Thời khóa biểu", path: "/system/schedule" },
+      { label: "Đơn xin nghỉ", path: "/system/leave-request" },
       // { label: "Quản lý môn học", path: "/admin/subject" },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
@@ -61,7 +62,10 @@ const menuItems = [
         label: "Đề xuất giảng dạy",
         path: "/teacher/request-lesson-plan",
       },
-
+      {
+        label: "Đơn xin nghỉ",
+        path: "/teacher/leave-request",
+      },
 
     ],
   },

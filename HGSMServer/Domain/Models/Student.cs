@@ -35,8 +35,6 @@ public partial class Student
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
-
     public virtual Parent? Parent { get; set; }
 
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
