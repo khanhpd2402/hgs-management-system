@@ -12,8 +12,8 @@ using Application.Features.Semesters.DTOs;
 using Application.Features.LeaveRequests.DTOs;
 using Application.Features.LessonPlans.DTOs;
 using Application.Features.Exams.DTOs;
-
 using Application.Features.Timetables.DTOs;
+
 namespace HGSMAPI.AutoMapper
 {
     public class MappingProfile : Profile
@@ -24,20 +24,24 @@ namespace HGSMAPI.AutoMapper
             CreateMap<TeacherDetailDto, Teacher>()
                 .ForMember(dest => dest.User, opt => opt.Ignore());
 
+            // Ánh xạ Teacher sang TeacherDetailDto
             CreateMap<Teacher, TeacherDetailDto>()
-                .ForMember(dest => dest.UserId, opt => opt.MapFrom(src => src.User != null ? src.User.UserId : (int?)null));
+                .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId))
+                .ForMember(dest => dest.Dob, opt => opt.MapFrom(src => src.Dob)) // Gán trực tiếp DateOnly
+                .ForMember(dest => dest.HiringDate, opt => opt.MapFrom(src => src.HiringDate)) // Gán trực tiếp DateOnly?
+                .ForMember(dest => dest.PermanentEmploymentDate, opt => opt.MapFrom(src => src.PermanentEmploymentDate)) // Gán trực tiếp DateOnly?
+                .ForMember(dest => dest.SchoolJoinDate, opt => opt.MapFrom(src => src.SchoolJoinDate)); // Gán trực tiếp DateOnly
 
             CreateMap<TeacherListDto, Teacher>()
-                .ForMember(dest => dest.TeacherId, opt => opt.Ignore()); // Ignore TeacherId during mapping
+                .ForMember(dest => dest.TeacherId, opt => opt.Ignore());
 
-            // Ánh xạ cho Teacher sang TeacherListDto (đã có trong yêu cầu trước)
             CreateMap<Teacher, TeacherListDto>()
                 .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId));
 
             CreateMap<Student, StudentDto>()
-            .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
-            .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.Grade))
-            .ForMember(dest => dest.Parent, opt => opt.Ignore());
+                .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
+                .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.Grade))
+                .ForMember(dest => dest.Parent, opt => opt.Ignore());
 
             CreateMap<Parent, ParentDto>()
                 .ForMember(dest => dest.ParentId, opt => opt.MapFrom(src => src.ParentId))
@@ -70,13 +74,13 @@ namespace HGSMAPI.AutoMapper
             CreateMap<GradeBatch, GradeBatchDto>().ReverseMap();
 
             CreateMap<Grade, GradeRespondDto>()
-            .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentClass.StudentId))
-            .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.StudentClass.Student.FullName))
-            .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Assignment.Subject.SubjectName))
-            .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score))
-            .ForMember(dest => dest.AssessmentType, opt => opt.MapFrom(src => src.AssessmentsTypeName))
-            .ForMember(dest => dest.TeacherComment, opt => opt.MapFrom(src => src.TeacherComment))
-            .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Assignment.Teacher.FullName)); // Lấy tên giáo viên
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentClass.StudentId))
+                .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.StudentClass.Student.FullName))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Assignment.Subject.SubjectName))
+                .ForMember(dest => dest.Score, opt => opt.MapFrom(src => src.Score))
+                .ForMember(dest => dest.AssessmentType, opt => opt.MapFrom(src => src.AssessmentsTypeName))
+                .ForMember(dest => dest.TeacherComment, opt => opt.MapFrom(src => src.TeacherComment))
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Assignment.Teacher.FullName));
 
             CreateMap<Subject, SubjectDto>();
             CreateMap<CreateSubjectDto, Subject>();
@@ -99,28 +103,27 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<Timetable, TimetableDto>().ReverseMap();
             CreateMap<TimetableDetail, TimetableDetailDto>().ReverseMap();
-            // Map từ CreateTimetableDto sang Timetable
-            CreateMap<CreateTimetableDto, Timetable>()
-                .ForMember(dest => dest.TimetableId, opt => opt.Ignore()) // Ignore vì ID do DB sinh
-                .ForMember(dest => dest.Semester, opt => opt.Ignore())    // Ignore navigation property
-                .ForMember(dest => dest.TimetableDetails, opt => opt.Ignore()); // Ignore vì sẽ thêm sau
 
-            // Map từ CreateTimetableDetailDto sang TimetableDetail
+            CreateMap<CreateTimetableDto, Timetable>()
+                .ForMember(dest => dest.TimetableId, opt => opt.Ignore())
+                .ForMember(dest => dest.Semester, opt => opt.Ignore())
+                .ForMember(dest => dest.TimetableDetails, opt => opt.Ignore());
+
             CreateMap<CreateTimetableDetailDto, TimetableDetail>()
-                .ForMember(dest => dest.TimetableDetailId, opt => opt.Ignore()) // Ignore vì ID do DB sinh
-                .ForMember(dest => dest.TimetableId, opt => opt.Ignore())       // Ignore vì gán thủ công
+                .ForMember(dest => dest.TimetableDetailId, opt => opt.Ignore())
+                .ForMember(dest => dest.TimetableId, opt => opt.Ignore())
                 .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => (byte)src.DayOfWeek))
                 .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (byte)src.Shift))
                 .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (byte)src.Period))
-                .ForMember(dest => dest.Class, opt => opt.Ignore())    // Ignore navigation property
-                .ForMember(dest => dest.Subject, opt => opt.Ignore())  // Ignore navigation property
-                .ForMember(dest => dest.Teacher, opt => opt.Ignore())  // Ignore navigation property
+                .ForMember(dest => dest.Class, opt => opt.Ignore())
+                .ForMember(dest => dest.Subject, opt => opt.Ignore())
+                .ForMember(dest => dest.Teacher, opt => opt.Ignore())
                 .ForMember(dest => dest.Timetable, opt => opt.Ignore());
+
             CreateMap<Question, QuestionDto>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
             CreateMap<QuestionDto, Question>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
-            CreateMap<ExamProposal, ExamProposalDto>();
             CreateMap<ExamProposal, ExamProposalDto>();
         }
     }
