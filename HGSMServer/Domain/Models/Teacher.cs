@@ -31,8 +31,6 @@ public partial class Teacher
 
     public string? Department { get; set; }
 
-    public string? MainSubject { get; set; }
-
     public bool? IsHeadOfDepartment { get; set; }
 
     public string? EmploymentStatus { get; set; }

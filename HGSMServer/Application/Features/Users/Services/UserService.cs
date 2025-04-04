@@ -202,7 +202,6 @@ namespace Application.Features.Users.Services
                     EmploymentType = userDto.EmploymentType,
                     Position = userDto.Position,
                     Department = userDto.Department,
-                    MainSubject = userDto.MainSubject, // Thay AdditionalDuties
                     IsHeadOfDepartment = userDto.IsHeadOfDepartment ?? false,
                     EmploymentStatus = userDto.EmploymentStatus,
                     RecruitmentAgency = userDto.RecruitmentAgency,

@@ -3,20 +3,26 @@ using Application.Features.Teachers.Interfaces;
 using AutoMapper;
 using Common.Utils;
 using Domain.Models;
+using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 
 public class TeacherService : ITeacherService
 {
     private readonly ITeacherRepository _teacherRepository;
     private readonly ITeacherClassRepository _teacherClassRepository;
+    private readonly ISubjectRepository _subjectRepository;
     private readonly IMapper _mapper;
 
-    public TeacherService(ITeacherRepository teacherRepository, ITeacherClassRepository teacherClassRepository, IMapper mapper)
+    public TeacherService(ITeacherRepository teacherRepository, ITeacherClassRepository teacherClassRepository, IMapper mapper, ISubjectRepository subjectRepository)
     {
         _teacherRepository = teacherRepository;
         _teacherClassRepository = teacherClassRepository;
         _mapper = mapper;
+        _subjectRepository = subjectRepository;
     }
 
     public async Task<TeacherListResponseDto> GetAllTeachersAsync()
@@ -38,7 +44,6 @@ public class TeacherService : ITeacherService
 
     public async Task AddTeacherAsync(TeacherListDto teacherDto)
     {
-        // Kiểm tra dữ liệu đầu vào
         if (string.IsNullOrEmpty(teacherDto.FullName) || teacherDto.Dob == default ||
             string.IsNullOrEmpty(teacherDto.Gender) || string.IsNullOrEmpty(teacherDto.IdcardNumber) ||
             string.IsNullOrEmpty(teacherDto.InsuranceNumber) || string.IsNullOrEmpty(teacherDto.Department) ||
@@ -47,28 +52,23 @@ public class TeacherService : ITeacherService
             throw new Exception("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
         }
 
-        // Kiểm tra trùng lặp IDCardNumber hoặc InsuranceNumber
         if (await _teacherRepository.ExistsAsync(teacherDto.IdcardNumber))
         {
             throw new Exception($"Giáo viên với CMND/CCCD {teacherDto.IdcardNumber} đã tồn tại.");
         }
 
-        // Kiểm tra email hoặc số điện thoại đã tồn tại
         if (await _teacherRepository.IsEmailOrPhoneExistsAsync(teacherDto.Email, teacherDto.PhoneNumber))
         {
             throw new Exception($"Email {teacherDto.Email} hoặc số điện thoại {teacherDto.PhoneNumber} đã tồn tại.");
         }
 
-        // Tạo username duy nhất
         var username = await GenerateUniqueUsernameAsync(teacherDto.FullName);
-
-        // Map DTO sang entity
         var teacher = _mapper.Map<Teacher>(teacherDto);
         teacher.User = new User
         {
             Email = teacherDto.Email,
             PhoneNumber = teacherDto.PhoneNumber,
-            RoleId = 2, // Vai trò giáo viên
+            RoleId = 2,
             Username = username,
             PasswordHash = PasswordHasher.HashPassword("DefaultPassword@123")
         };
@@ -91,7 +91,7 @@ public class TeacherService : ITeacherService
     public async Task UpdateTeacherAsync(int id, TeacherDetailDto teacherDto)
     {
         var teacher = _mapper.Map<Teacher>(teacherDto);
-        teacher.TeacherId = id; // Giữ nguyên ID
+        teacher.TeacherId = id;
         await _teacherRepository.UpdateAsync(teacher);
     }
 
@@ -112,8 +112,12 @@ public class TeacherService : ITeacherService
 
     public async Task ImportTeachersFromExcelAsync(IFormFile file)
     {
+        if (file == null || file.Length == 0)
+            throw new ArgumentException("Vui lòng chọn file Excel!");
+
         var data = ExcelImportHelper.ReadExcelData(file);
-        var teachers = new List<Teacher>();
+        var teachers = new Dictionary<string, Teacher>(); // Dùng Dictionary để gộp giáo viên trùng
+        var teacherSubjects = new List<TeacherSubject>();
 
         foreach (var row in data)
         {
@@ -124,56 +128,106 @@ public class TeacherService : ITeacherService
                 throw new Exception("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
             }
 
-            if (await _teacherRepository.IsEmailOrPhoneExistsAsync(row["Email"], row["Số điện thoại"]))
-            {
-                throw new Exception($"Email {row["Email"]} hoặc số điện thoại {row["Số điện thoại"]} đã tồn tại.");
-            }
-
             var idCardNumber = row["CMND/CCCD"].Trim();
-            if (await _teacherRepository.ExistsAsync(idCardNumber))
+
+            // Nếu giáo viên chưa tồn tại trong Dictionary, tạo mới
+            if (!teachers.TryGetValue(idCardNumber, out var teacher))
             {
-                throw new Exception($"Giáo viên với CMND/CCCD {idCardNumber} đã tồn tại.");
+                if (await _teacherRepository.ExistsAsync(idCardNumber))
+                {
+                    throw new Exception($"Giáo viên với CMND/CCCD {idCardNumber} đã tồn tại trong hệ thống.");
+                }
+
+                if (await _teacherRepository.IsEmailOrPhoneExistsAsync(row["Email"], row["Số điện thoại"]))
+                {
+                    throw new Exception($"Email {row["Email"]} hoặc số điện thoại {row["Số điện thoại"]} đã tồn tại.");
+                }
+
+                var username = await GenerateUniqueUsernameAsync(row["Họ và tên"]);
+                var user = new User
+                {
+                    Email = row["Email"],
+                    PhoneNumber = row["Số điện thoại"],
+                    RoleId = 2,
+                    Username = username,
+                    PasswordHash = PasswordHasher.HashPassword("DefaultPassword@123")
+                };
+
+                teacher = new Teacher
+                {
+                    FullName = row["Họ và tên"],
+                    Dob = DateHelper.ParseDate(row["Ngày sinh"]),
+                    Gender = row["Giới tính"],
+                    Ethnicity = row["Dân tộc"],
+                    Religion = row["Tôn giáo"],
+                    MaritalStatus = row["Tình trạng hôn nhân"],
+                    IdcardNumber = idCardNumber,
+                    InsuranceNumber = row["Số sổ bảo hiểm"],
+                    EmploymentType = row["Hình thức hợp đồng"],
+                    Position = row["Vị trí việc làm"],
+                    Department = row["Tổ bộ môn"],
+                    IsHeadOfDepartment = row.TryGetValue("Là tổ trưởng", out var isHead) && isHead == "Có",
+                    EmploymentStatus = row.TryGetValue("Trạng thái cán bộ", out var status) ? status : "Đang làm việc",
+                    RecruitmentAgency = row.TryGetValue("Cơ quan tuyển dụng", out var agency) ? agency : null,
+                    HiringDate = row.TryGetValue("Ngày tuyển dụng", out var hiringDateStr) ? DateHelper.ParseDate(hiringDateStr) : null,
+                    PermanentEmploymentDate = row.TryGetValue("Ngày vào biên chế", out var permDateStr) ? DateHelper.ParseDate(permDateStr) : null,
+                    SchoolJoinDate = DateHelper.ParseDate(row["Ngày vào trường"]),
+                    PermanentAddress = row.TryGetValue("Địa chỉ thường trú", out var permAddress) ? permAddress : null,
+                    Hometown = row.TryGetValue("Quê quán", out var hometown) ? hometown : null,
+                    User = user
+                };
+
+                teachers[idCardNumber] = teacher;
             }
 
-            var username = await GenerateUniqueUsernameAsync(row["Họ và tên"]);
-            var user = new User
+            // Xử lý cột "Môn dạy"
+            var subjectsInput = row.TryGetValue("Môn dạy", out var subjects) ? subjects : null;
+            if (!string.IsNullOrEmpty(subjectsInput))
             {
-                Email = row["Email"],
-                PhoneNumber = row["Số điện thoại"],
-                RoleId = 2,
-                Username = username,
-                PasswordHash = PasswordHasher.HashPassword("DefaultPassword@123")
-            };
+                var subjectParts = subjectsInput.Split(',', StringSplitOptions.RemoveEmptyEntries);
+                foreach (var part in subjectParts)
+                {
+                    var subjectName = part.Trim();
+                    bool isMainSubject = subjectName.Contains("*"); // Dùng "*" để xác định môn chính
+                    if (isMainSubject)
+                    {
+                        subjectName = subjectName.Replace("*", "").Trim(); // Loại bỏ dấu "*"
+                    }
 
-            var teacher = new Teacher
-            {
-                FullName = row["Họ và tên"],
-                Dob = DateHelper.ParseDate(row["Ngày sinh"]),
-                Gender = row["Giới tính"],
-                Ethnicity = row["Dân tộc"],
-                Religion = row["Tôn giáo"],
-                MaritalStatus = row["Tình trạng hôn nhân"],
-                IdcardNumber = idCardNumber,
-                InsuranceNumber = row["Số sổ bảo hiểm"],
-                EmploymentType = row["Hình thức hợp đồng"],
-                Position = row["Vị trí việc làm"],
-                Department = row["Tổ bộ môn"],
-                MainSubject = row["Môn dạy chính"], // Thêm môn dạy chính
-                IsHeadOfDepartment = row["Là tổ trưởng"] == "Có",
-                EmploymentStatus = row["Trạng thái cán bộ"],
-                RecruitmentAgency = row["Cơ quan tuyển dụng"],
-                HiringDate = DateHelper.ParseDate(row["Ngày tuyển dụng"]),
-                PermanentEmploymentDate = DateHelper.ParseDate(row["Ngày vào biên chế"]),
-                SchoolJoinDate = DateHelper.ParseDate(row["Ngày vào trường"]),
-                PermanentAddress = row["Địa chỉ thường trú"],
-                Hometown = row["Quê quán"],
-                User = user
-            };
+                    var subject = await _subjectRepository.GetByNameAsync(subjectName);
+                    if (subject == null)
+                    {
+                        throw new Exception($"Môn học '{subjectName}' không tồn tại trong bảng Subjects.");
+                    }
 
-            teachers.Add(teacher);
+                    // Thêm vào TeacherSubjects
+                    teacherSubjects.Add(new TeacherSubject
+                    {
+                        TeacherId = 0, // Sẽ được cập nhật sau
+                        SubjectId = subject.SubjectId,
+                        IsMainSubject = isMainSubject
+                    });
+                }
+            }
         }
 
-        await _teacherRepository.AddRangeAsync(teachers);
+        // Thêm tất cả giáo viên vào bảng Teachers
+        await _teacherRepository.AddRangeAsync(teachers.Values);
+
+        // Cập nhật TeacherId cho teacherSubjects
+        foreach (var teacher in teachers.Values)
+        {
+            foreach (var ts in teacherSubjects.Where(ts => ts.TeacherId == 0))
+            {
+                ts.TeacherId = teacher.TeacherId;
+            }
+        }
+
+        // Thêm tất cả TeacherSubjects
+        if (teacherSubjects.Any())
+        {
+            await _teacherRepository.AddTeacherSubjectsRangeAsync(teacherSubjects);
+        }
     }
 
     public async Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto)
