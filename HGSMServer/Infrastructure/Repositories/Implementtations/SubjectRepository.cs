@@ -60,6 +60,10 @@ namespace Infrastructure.Repositories.Implementtations
             _context.Subjects.Add(subject);
             await _context.SaveChangesAsync();
         }
+        public async Task<Subject> GetByIdAsync(int subjectId)
+        {
+            return await _context.Subjects.FindAsync(subjectId);
+        }
     }
 
 }
