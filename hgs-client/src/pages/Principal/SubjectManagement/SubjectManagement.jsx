@@ -44,6 +44,10 @@ export default function SubjectManagement() {
       coefficient: 2,
       periodsHK1: 5,
       periodsHK2: 5,
+      dgtxhk1: 4,
+      dgtxhk2: 4,
+      dggk: 1,
+      dgck: 1,
     },
     {
       id: 2,
@@ -52,6 +56,10 @@ export default function SubjectManagement() {
       coefficient: 1,
       periodsHK1: 3,
       periodsHK2: 3,
+      dgtxhk11: 4,
+      dgtxhk2: 4,
+      dggk: 1,
+      dgck: 1,
     },
     {
       id: 3,
@@ -60,6 +68,10 @@ export default function SubjectManagement() {
       coefficient: 1,
       periodsHK1: 2,
       periodsHK2: 2,
+      dgtxhk11: 4,
+      dgtxhk2: 4,
+      dggk: 1,
+      dgck: 1,
     },
     {
       id: 4,
@@ -68,6 +80,10 @@ export default function SubjectManagement() {
       coefficient: 1,
       periodsHK1: 2,
       periodsHK2: 2,
+      dgtxhk11: 4,
+      dgtxhk2: 4,
+      dggk: 1,
+      dgck: 1,
     },
     {
       id: 5,
@@ -76,6 +92,10 @@ export default function SubjectManagement() {
       coefficient: 1,
       periodsHK1: 3,
       periodsHK2: 3,
+      dgtxhk11: 4,
+      dgtxhk2: 4,
+      dggk: 1,
+      dgck: 1,
     },
   ]);
 
@@ -181,6 +201,10 @@ export default function SubjectManagement() {
                 <TableHead className="text-center">Hệ số</TableHead>
                 <TableHead className="text-center">Số tiết/tuần HK1</TableHead>
                 <TableHead className="text-center">Số tiết/tuần HK2</TableHead>
+                <TableHead className="text-center">ĐGTX-HK1</TableHead>
+                <TableHead className="text-center">ĐGTX-HK2</TableHead>
+                <TableHead className="text-center">ĐGgk</TableHead>
+                <TableHead className="text-center">ĐGck</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -231,6 +255,34 @@ export default function SubjectManagement() {
                   <TableCell className="text-center">
                     <Input
                       value={subject.periodsHK2}
+                      type="text"
+                      className="mx-auto max-w-[80px] text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input
+                      value={subject.dgtxhk1}
+                      type="text"
+                      className="mx-auto max-w-[80px] text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input
+                      value={subject.dgtxhk2}
+                      type="text"
+                      className="mx-auto max-w-[80px] text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input
+                      value={subject.dggk}
+                      type="text"
+                      className="mx-auto max-w-[80px] text-center"
+                    />
+                  </TableCell>
+                  <TableCell className="text-center">
+                    <Input
+                      value={subject.dgck}
                       type="text"
                       className="mx-auto max-w-[80px] text-center"
                     />
