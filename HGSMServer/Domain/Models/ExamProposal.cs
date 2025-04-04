@@ -18,12 +18,4 @@ public partial class ExamProposal
     public int CreatedBy { get; set; }
 
     public DateTime? CreatedDate { get; set; }
-
-    public virtual Teacher CreatedByNavigation { get; set; } = null!;
-
-    public virtual ICollection<ExamProposalQuestion> ExamProposalQuestions { get; set; } = new List<ExamProposalQuestion>();
-
-    public virtual Semester Semester { get; set; } = null!;
-
-    public virtual Subject Subject { get; set; } = null!;
 }

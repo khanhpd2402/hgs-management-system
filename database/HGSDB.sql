@@ -40,6 +40,16 @@ CREATE TABLE [dbo].[Classes] (
     [GradeLevelId] INT NOT NULL,
     CONSTRAINT FK_Classes_GradeLevels FOREIGN KEY ([GradeLevelId]) REFERENCES [GradeLevels]([GradeLevelId])
 );
+
+
+CREATE TABLE [dbo].[Subjects] (
+    [SubjectID] INT IDENTITY(1,1) NOT NULL,
+    [SubjectName] NVARCHAR(100) NOT NULL,
+    [SubjectCategory] NVARCHAR(50) NOT NULL,
+    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'	Tính điểm', N'Nhận xét')),
+    PRIMARY KEY CLUSTERED ([SubjectID] ASC),
+    UNIQUE NONCLUSTERED ([SubjectName] ASC)
+)
 CREATE TABLE GradeLevelSubjects (
     GradeLevelSubjectID INT IDENTITY(1,1) PRIMARY KEY,
     GradeLevelID INT NOT NULL,
@@ -57,16 +67,6 @@ CREATE TABLE GradeLevelSubjects (
         REFERENCES Subjects(SubjectID),
     CONSTRAINT UQ_GradeLevel_Subject UNIQUE (GradeLevelID, SubjectID) -- để tránh nhập trùng
 );
-
-CREATE TABLE [dbo].[Subjects] (
-    [SubjectID] INT IDENTITY(1,1) NOT NULL,
-    [SubjectName] NVARCHAR(100) NOT NULL,
-    [SubjectCategory] NVARCHAR(50) NOT NULL,
-    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'	Tính điểm', N'Nhận xét')),
-    PRIMARY KEY CLUSTERED ([SubjectID] ASC),
-    UNIQUE NONCLUSTERED ([SubjectName] ASC)
-)
-
 CREATE TABLE [dbo].[Roles] (
     [RoleID] INT IDENTITY(1,1) NOT NULL,
     [RoleName] NVARCHAR(50) NOT NULL,
@@ -88,6 +88,7 @@ CREATE TABLE [dbo].[Users] (
 );
 CREATE NONCLUSTERED INDEX [IX_Users_Email] ON [dbo].[Users] ([Email]);
 CREATE NONCLUSTERED INDEX [IX_Users_PhoneNumber] ON [dbo].[Users] ([PhoneNumber]);
+
 CREATE TABLE [dbo].[Teachers] (
     [TeacherID] INT IDENTITY(1,1) NOT NULL,
     [UserID] INT NULL, -- Liên kết với bảng Users
@@ -116,6 +117,7 @@ CREATE TABLE [dbo].[Teachers] (
     UNIQUE NONCLUSTERED ([IDCardNumber] ASC),
     UNIQUE NONCLUSTERED ([UserID] ASC)
 );
+
 CREATE TABLE [dbo].[Parents] (
     [ParentID] INT IDENTITY(1,1) NOT NULL,
     [UserID] INT NULL,
@@ -257,19 +259,42 @@ CREATE TABLE [dbo].[Grades] (
     FOREIGN KEY ([AssignmentID]) REFERENCES [dbo].[TeachingAssignments] ([AssignmentID]) ON DELETE NO ACTION
 );
 
-CREATE TABLE [dbo].[Exams] (
-    [ExamID] INT IDENTITY(1,1) NOT NULL,
-    [SubjectID] INT NOT NULL,
-    [CreatedBy] INT NOT NULL,
-    [ExamContent] NVARCHAR(max) NOT NULL,
-    [CreatedDate] DATETIME NULL DEFAULT GETDATE(),
-    [SemesterID] INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([ExamID] ASC),
-    CONSTRAINT [FK_Exams_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Exams_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Exams_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]) ON DELETE CASCADE
-)
-
+/****** Object:  Table [dbo].[ExamProposalQuestions]    Script Date: 4/3/2025 12:42:06 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ExamProposalQuestions](
+	[ID] [int] IDENTITY(1,1) NOT NULL,
+	[ProposalID] [int] NOT NULL,
+	[QuestionID] [int] NOT NULL,
+	[OrderNumber] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[ExamProposals]    Script Date: 4/3/2025 12:42:06 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[ExamProposals](
+	[ProposalID] [int] IDENTITY(1,1) NOT NULL,
+	[SubjectID] [int] NOT NULL,
+	[Grade] [int] NOT NULL,
+	[Title] [nvarchar](255) NOT NULL,
+	[SemesterID] [int] NOT NULL,
+	[CreatedBy] [int] NOT NULL,
+	[CreatedDate] [datetime] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[ProposalID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[GradeBatches]    Script Date: 4/3/2025 12:42:06 AM ******/
 CREATE TABLE [dbo].[LeaveRequests] (
     [RequestID] INT IDENTITY(1,1) NOT NULL,
     [TeacherID] INT NOT NULL,
@@ -282,18 +307,31 @@ CREATE TABLE [dbo].[LeaveRequests] (
     CONSTRAINT [FK_LeaveRequests_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE
 )
 
-CREATE TABLE [dbo].[LessonPlans] (
-    [PlanID] INT IDENTITY(1,1) NOT NULL,
-    [TeacherID] INT NOT NULL,
-    [SubjectID] INT NOT NULL,
-    [PlanContent] NVARCHAR(max) NOT NULL,
-    [Status] NVARCHAR(20) NULL,
-    [SemesterID] INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([PlanID] ASC),
-    CONSTRAINT [FK_LessonPlans_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_LessonPlans_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_LessonPlans_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]) ON DELETE CASCADE
-)
+/****** Object:  Table [dbo].[LessonPlans]    Script Date: 4/3/2025 12:42:06 AM ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[LessonPlans](
+	[PlanID] [int] IDENTITY(1,1) NOT NULL,
+	[TeacherID] [int] NOT NULL,
+	[SubjectID] [int] NOT NULL,
+	[PlanContent] [nvarchar](max) NOT NULL,
+	[Status] [nvarchar](20) NULL,
+	[SemesterID] [int] NOT NULL,
+	[Title] [nvarchar](255) NULL,
+	[AttachmentUrl] [nvarchar](500) NULL,
+	[Feedback] [nvarchar](max) NULL,
+	[SubmittedDate] [datetime] NULL,
+	[ReviewedDate] [datetime] NULL,
+	[ReviewerId] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[PlanID] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Notifications]    Script Date: 4/3/2025 12:42:06 AM ******/
 
 CREATE TABLE [dbo].[Notifications] (
     [NotificationID] INT IDENTITY(1,1) NOT NULL,
@@ -345,15 +383,3 @@ CREATE TABLE [dbo].[Attendances] (
     CONSTRAINT [FK_Attendances_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]) ON DELETE CASCADE,
     CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [Date], [Shift], [SemesterID])
 )
-ALTER TABLE [dbo].[LessonPlans]
-ADD
-    [Title] NVARCHAR(255) NULL,
-    [AttachmentUrl] NVARCHAR(500) NULL,
-    [Feedback] NVARCHAR(max) NULL,
-    [SubmittedDate] DATETIME NULL DEFAULT GETDATE(),
-    [ReviewedDate] DATETIME NULL,
-    [ReviewerId] INT NULL;
-
--- Thêm ràng buộc FOREIGN KEY cho ReviewerId
-ALTER TABLE [dbo].[LessonPlans]
-ADD CONSTRAINT [FK_LessonPlans_Reviewer_Teachers] FOREIGN KEY ([ReviewerId]) REFERENCES [dbo].[Teachers] ([TeacherID]);

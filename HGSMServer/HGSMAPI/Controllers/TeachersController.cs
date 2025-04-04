@@ -1,86 +1,80 @@
 ﻿using Application.Features.Teachers.DTOs;
 using Application.Features.Teachers.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
-namespace HGSMAPI.Controllers
+[Route("api/[controller]")]
+[ApiController]
+public class TeachersController : ControllerBase
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class TeachersController : ControllerBase
+    private readonly ITeacherService _teacherService;
+
+    public TeachersController(ITeacherService teacherService)
     {
-        private readonly ITeacherService _teacherService;
+        _teacherService = teacherService;
+    }
 
-        public TeachersController(ITeacherService teacherService)
+    [HttpGet]
+    [EnableQuery]
+    public async Task<IActionResult> GetAllTeachers()
+    {
+        var result = await _teacherService.GetAllTeachersAsync();
+        return Ok(result);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<ActionResult<TeacherDetailDto>> GetTeacherById(int id)
+    {
+        var teacher = await _teacherService.GetTeacherByIdAsync(id);
+        if (teacher == null) return NotFound(new { Message = "Không tìm thấy giáo viên" });
+        return Ok(teacher);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
+    {
+        if (teacherDto == null) return BadRequest("Dữ liệu không hợp lệ");
+        await _teacherService.AddTeacherAsync(teacherDto);
+        return CreatedAtAction(nameof(GetTeacherById), new { id = teacherDto.TeacherId }, teacherDto);
+    }
+
+    [HttpPut("{id}")]
+    public async Task<IActionResult> UpdateTeacher(int id, [FromBody] TeacherDetailDto teacherDto)
+    {
+        await _teacherService.UpdateTeacherAsync(id, teacherDto);
+
+        var updatedTeacher = await _teacherService.GetTeacherByIdAsync(id);
+        if (updatedTeacher == null)
         {
-            _teacherService = teacherService;
+            return NotFound(); 
         }
 
-     
-        [HttpGet]
-        [EnableQuery]
-        public async Task<IActionResult> GetAllTeachers()
-        {        
-                var result = await _teacherService.GetAllTeachersAsync();
-                return Ok(result);   
-        }
+        return Ok(updatedTeacher); 
+    }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<TeacherDetailDto>> GetTeacherById(int id)
+    
+    [HttpDelete("{id}")]
+    public async Task<IActionResult> DeleteTeacher(int id)
+    {
+        var result = await _teacherService.DeleteTeacherAsync(id);
+        if (!result)
         {
-            var teacher = await _teacherService.GetTeacherByIdAsync(id);
-            if (teacher == null)
-                return NotFound("Không tìm thấy giáo viên");
-
-            return Ok(teacher);
+            return NotFound(new { Message = $"Không tìm thấy giáo viên với ID {id} để xóa." });
         }
 
-        [HttpPost]
-        public async Task<ActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
+        return Ok(new { Message = $"Giáo viên với ID {id} và tài khoản User liên quan đã được xóa thành công." });
+    }
+
+
+    [HttpPost("import")]
+    public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
+    {
+        var (success, errors) = await _teacherService.ImportTeachersFromExcelAsync(file);
+        if (!success)
         {
-            if (teacherDto == null)
-                return BadRequest("Dữ liệu không hợp lệ");
-
-            await _teacherService.AddTeacherAsync(teacherDto);
-            return CreatedAtAction(nameof(GetTeacherById), new { id = teacherDto.TeacherId }, teacherDto);
+            return BadRequest(new { Errors = errors });
         }
 
-        /// <summary>
-        /// Cập nhật thông tin giáo viên
-        /// </summary>
-        [HttpPut("{id}")]
-        public async Task<ActionResult> UpdateTeacher(int id, [FromBody] TeacherDetailDto teacherDto)
-        {
-            if (teacherDto == null)
-                return BadRequest("Dữ liệu không hợp lệ");
-
-            await _teacherService.UpdateTeacherAsync(id, teacherDto);
-            return NoContent();
-        }
-
-        /// <summary>
-        /// Xóa giáo viên theo ID
-        /// </summary>
-        [HttpDelete("{id}")]
-        public async Task<ActionResult> DeleteTeacher(int id)
-        {
-            var result = await _teacherService.DeleteTeacherAsync(id);
-            if (!result)
-                return NotFound("Không tìm thấy giáo viên với ID này"); // 404
-
-            return Ok(new { Message = "Xóa giáo viên thành công" });
-        }
-
-        [HttpPost("import")]
-        public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
-        {
-            if (file == null || file.Length == 0)
-                return BadRequest("Vui lòng chọn file Excel!");
-
-            await _teacherService.ImportTeachersFromExcelAsync(file);
-            return Ok("Import thành công!");
-        }
-
+        return Ok(new { Message = "Import giáo viên thành công." });
     }
 }
