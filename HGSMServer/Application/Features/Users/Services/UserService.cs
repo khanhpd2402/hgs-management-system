@@ -119,7 +119,7 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"Role with ID {userDto.RoleId} not found.");
 
             // Kiểm tra các trường bắt buộc cho Teacher và các role khác
-            if (userDto.RoleId != 6)
+            if (userDto.RoleId != 6) // Không phải Parent
             {
                 if (string.IsNullOrEmpty(userDto.FullName))
                     throw new ArgumentException("FullName is required for non-Parent roles.");
@@ -202,7 +202,7 @@ namespace Application.Features.Users.Services
                     EmploymentType = userDto.EmploymentType,
                     Position = userDto.Position,
                     Department = userDto.Department,
-                    AdditionalDuties = userDto.AdditionalDuties,
+                    MainSubject = userDto.MainSubject, // Thay AdditionalDuties
                     IsHeadOfDepartment = userDto.IsHeadOfDepartment ?? false,
                     EmploymentStatus = userDto.EmploymentStatus,
                     RecruitmentAgency = userDto.RecruitmentAgency,
