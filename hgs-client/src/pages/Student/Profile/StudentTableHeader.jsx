@@ -14,6 +14,7 @@ const StudentTableHeader = ({
   setVisibleColumns,
   visibleColumns,
   columns,
+  data,
 }) => {
   const [isColumnConfigOpen, setIsColumnConfigOpen] = useState(false);
   const navigate = useNavigate();
@@ -23,7 +24,11 @@ const StudentTableHeader = ({
       <div className="flex gap-2">
         <StudentFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />
-        <ExportExcelByColumn type={type} visibleColumns={columns} />
+        <ExportExcelByColumn
+          type={type}
+          visibleColumns={columns}
+          allData={data}
+        />
         <Button
           variant="outline"
           onClick={() => navigate("/student/profile/create-student")}
@@ -57,6 +62,7 @@ StudentTableHeader.propTypes = {
   setVisibleColumns: PropTypes.func.isRequired,
   visibleColumns: PropTypes.array.isRequired,
   columns: PropTypes.array.isRequired,
+  data: PropTypes.array.isRequired,
 };
 
 export default StudentTableHeader;

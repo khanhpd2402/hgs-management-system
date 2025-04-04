@@ -57,7 +57,7 @@ namespace Application.Features.Users.DTOs
         public string? EmploymentType { get; set; }
         public string? Position { get; set; }
         public string? Department { get; set; }
-        public string? AdditionalDuties { get; set; }
+        public string? MainSubject { get; set; }
         public bool? IsHeadOfDepartment { get; set; }
         public string? EmploymentStatus { get; set; }
         public string? RecruitmentAgency { get; set; }
