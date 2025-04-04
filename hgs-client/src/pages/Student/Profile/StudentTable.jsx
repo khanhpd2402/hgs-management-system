@@ -32,22 +32,57 @@ export default function StudentTable() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
-    sort: "",
-    order: "asc",
+    grade: "",
+    className: "",
     search: "",
   });
 
   // Define all available columns
   const allColumns = [
     { id: "actions", label: "Thao tác", width: "100px" },
-    { id: "studentId", label: "ID", width: "80px" },
     { id: "fullName", label: "Họ và tên", width: "200px" },
     { id: "gender", label: "Giới tính", width: "120px" },
     { id: "ethnicity", label: "Dân tộc", width: "120px" },
     { id: "grade", label: "Khối", width: "100px" },
-    { id: "class", label: "Lớp", width: "100px" },
+    { id: "className", label: "Lớp", width: "100px" },
     { id: "status", label: "Trạng thái", width: "150px" },
     { id: "dob", label: "Ngày sinh", width: "150px" },
+    { id: "enrollmentType", label: "Hình thức trúng tuyển", width: "150px" },
+    { id: "idcardNumber", label: "Số CCCD", width: "150px" },
+    { id: "permanentAddress", label: "Địa chỉ thường trú", width: "250px" },
+    { id: "religion", label: "Tôn giáo", width: "100px" },
+    { id: "repeatingYear", label: "Lưu ban", width: "100px" },
+    { id: "status", label: "Trạng thái", width: "150px" },
+    { id: "fullNameFather", label: "Họ tên cha", width: "200px" },
+    { id: "phoneNumberFather", label: "SĐT cha", width: "150px" },
+    { id: "occupationFather", label: "Nghề nghiệp cha", width: "150px" },
+    { id: "emailFather", label: "Email cha", width: "150px" },
+    { id: "yearOfBirthFather", label: "Ngày sinh cha", width: "150px" },
+    { id: "idcardNumberFather", label: "Số CCCD cha", width: "150px" },
+    { id: "fullNameMother", label: "Họ tên mẹ", width: "200px" },
+    { id: "phoneNumberMother", label: "SĐT mẹ", width: "150px" },
+    { id: "occupationMother", label: "Nghề nghiệp mẹ", width: "150px" },
+    { id: "emailMother", label: "Email mẹ", width: "150px" },
+    { id: "yearOfBirthMother", label: "Ngày sinh mẹ", width: "150px" },
+    { id: "idcardNumberMother", label: "Số CCCD mẹ", width: "150px" },
+    { id: "fullNameGuardian", label: "Họ tên người bảo hộ", width: "200px" },
+    { id: "phoneNumberGuardian", label: "SĐT người bảo hộ", width: "150px" },
+    {
+      id: "occupationGuardian",
+      label: "Nghề nghiệp người bảo hộ",
+      width: "150px",
+    },
+    { id: "emailGuardian", label: "Email người bảo hộ", width: "150px" },
+    {
+      id: "yearOfBirthGuardian",
+      label: "Ngày sinh người bảo hộ",
+      width: "150px",
+    },
+    {
+      id: "idcardNumberGuardian",
+      label: "Số CCCD người bảo hộ",
+      width: "150px",
+    },
   ];
 
   // Initialize with all columns visible
@@ -59,30 +94,27 @@ export default function StudentTable() {
   ).academicYearID;
 
   const { data, isPending, error, isError } = useStudents(academicYearId);
+  console.log(data);
 
   //phan trang
-  const { page, pageSize, search } = filter;
+  const { page, pageSize, grade, className, search } = filter;
 
   const filteredData =
-    data?.students?.filter((teacher) => {
-      // // Filter by department
-      // if (department && teacher.department !== department) {
-      //   return false;
-      // }
+    data?.students?.filter((student) => {
+      // Filter by grade
+      if (grade && student.grade != grade) {
+        return false;
+      }
 
-      // // Filter by contract type
-      // if (contract && teacher.employmentType !== contract) {
-      //   return false;
-      // }
+      // Filter by class
+      if (className && student.className != className) {
+        return false;
+      }
 
       // Filter by search term (case insensitive)
       if (search) {
         const searchLower = search.toLowerCase();
-        return (
-          teacher.fullName?.toLowerCase().includes(searchLower) ||
-          teacher.email?.toLowerCase().includes(searchLower) ||
-          teacher.phoneNumber?.toLowerCase().includes(searchLower)
-        );
+        return student.fullName?.toLowerCase().includes(searchLower);
       }
 
       return true;
@@ -144,6 +176,7 @@ export default function StudentTable() {
         setVisibleColumns={setVisibleColumns}
         visibleColumns={visibleColumns}
         columns={allColumns}
+        data={data?.students}
       />
 
       <div className="max-h-[400px] overflow-auto border border-gray-200">
@@ -195,12 +228,6 @@ export default function StudentTable() {
                         </TableCell>
                       )}
 
-                      {visibleColumns.some((col) => col.id === "studentId") && (
-                        <TableCell className="h-16 border border-gray-300 text-center">
-                          {student.studentId}
-                        </TableCell>
-                      )}
-
                       {visibleColumns.some((col) => col.id === "fullName") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.fullName}
@@ -225,7 +252,7 @@ export default function StudentTable() {
                         </TableCell>
                       )}
 
-                      {visibleColumns.some((col) => col.id === "class") && (
+                      {visibleColumns.some((col) => col.id === "className") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
                           {student.className}
                         </TableCell>
@@ -244,10 +271,174 @@ export default function StudentTable() {
                       )}
 
                       {visibleColumns.some(
-                        (col) => col.id === "educationLevel",
+                        (col) => col.id === "enrollmentType",
                       ) && (
                         <TableCell className="h-16 border border-gray-300 text-center">
-                          {student.educationLevel}
+                          {student.enrollmentType}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "idcardNumber",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.idcardNumber}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "permanentAddress",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.permanentAddress}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some((col) => col.id === "religion") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.religion}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "repeatingYear",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.repeatingYear === true ? "Có" : "Không"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some((col) => col.id === "status") && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.status}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "fullNameFather",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.fullNameFather || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "phoneNumberFather",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.phoneNumberFather || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "occupationFather",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.occupationFather || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "emailFather",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.emailFather || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "yearOfBirthFather",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.yearOfBirthFather || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "idcardNumberFather",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.idcardNumberFather || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "fullNameMother",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.fullNameMother || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "phoneNumberMother",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.phoneNumberMother || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "occupationMother",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.occupationMother || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "emailMother",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.emailMother || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "yearOfBirthMother",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.yearOfBirthMother || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "idcardNumberMother",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.idcardNumberMother || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "fullNameGuardian",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.fullNameGuardian || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "phoneNumberGuardian",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.phoneNumberGuardian || "-"}
+                        </TableCell>
+                      )}
+
+                      {visibleColumns.some(
+                        (col) => col.id === "occupationGuardian",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.occupationGuardian || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "emailGuardian",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.emailGuardian || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "yearOfBirthGuardian",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.yearOfBirthGuardian || "-"}
+                        </TableCell>
+                      )}
+                      {visibleColumns.some(
+                        (col) => col.id === "idcardNumberGuardian",
+                      ) && (
+                        <TableCell className="h-16 border border-gray-300 text-center">
+                          {student.parent?.idcardNumberGuardian || "-"}
                         </TableCell>
                       )}
                     </TableRow>
