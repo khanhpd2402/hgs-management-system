@@ -1,6 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import './LessonPlanList.scss';
+import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } from 'antd';
+import { Link } from 'react-router-dom';
+import { EyeOutlined } from '@ant-design/icons';
+import dayjs from 'dayjs';
+
+const { Option } = Select;
 
 const LessonPlanList = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
@@ -10,6 +16,8 @@ const LessonPlanList = () => {
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 10;
+    const [isModalVisible, setIsModalVisible] = useState(false);
+    const [selectedRequest, setSelectedRequest] = useState(null);
 
     const fetchLessonPlans = async (page, status) => {
         try {
@@ -85,6 +93,162 @@ const LessonPlanList = () => {
         );
     });
 
+    const showDetailModal = (record) => {
+        setSelectedRequest(record);
+        setIsModalVisible(true);
+    };
+
+    const DetailModal = () => (
+        <Modal
+            title="Chi tiết kế hoạch giảng dạy"
+            open={isModalVisible}
+            onCancel={() => setIsModalVisible(false)}
+            width={1000}
+            style={{ 
+                top: 20,
+                maxHeight: 'calc(100vh - 40px)',
+                overflow: 'auto'
+            }}
+            footer={[
+                <Button key="close" onClick={() => setIsModalVisible(false)}>
+                    Đóng
+                </Button>
+            ]}
+        >
+            {selectedRequest && (
+                <div className="lesson-plan-detail">
+                    <div className="detail-section">
+                        <h2>Thông tin kế hoạch</h2>
+                        <Card bordered={false}>
+                            <Descriptions bordered column={2}>
+                                <Descriptions.Item label="ID Kế hoạch" span={2}>
+                                    {selectedRequest.planId}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Giáo viên" span={2}>
+                                    {selectedRequest.teacherName}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Môn học" span={2}>
+                                    {selectedRequest.subjectName}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Nội dung" span={2}>
+                                    {selectedRequest.planContent}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Trạng thái">
+                                    <Tag color={getStatusClass(selectedRequest.status)}>
+                                        {getStatusText(selectedRequest.status)}
+                                    </Tag>
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Ngày nộp">
+                                    {formatDate(selectedRequest.submittedDate)}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Người duyệt">
+                                    {selectedRequest.reviewerName}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Ngày duyệt">
+                                    {formatDate(selectedRequest.reviewedDate)}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Phản hồi">
+                                    {selectedRequest.feedback || 'Chưa có phản hồi'}
+                                </Descriptions.Item>
+                            </Descriptions>
+                        </Card>
+                    </div>
+
+                    {selectedRequest.attachmentUrl && (
+                        <div className="attachment-section">
+                            <h2>File đính kèm</h2>
+                            <div className="file-preview">
+                                <iframe
+                                    src={selectedRequest.attachmentUrl}
+                                    title="File đính kèm"
+                                    width="100%"
+                                    height="600px"
+                                    style={{
+                                        border: '1px solid #d9d9d9',
+                                        borderRadius: '4px'
+                                    }}
+                                />
+                            </div>
+                        </div>
+                    )}
+                </div>
+            )}
+        </Modal>
+    );
+
+    const columns = [
+        {
+            title: 'ID',
+            dataIndex: 'planId',
+            key: 'planId',
+        },
+        {
+            title: 'Giáo viên',
+            dataIndex: 'teacherName',
+            key: 'teacherName',
+        },
+        {
+            title: 'Môn học',
+            dataIndex: 'subjectName',
+            key: 'subjectName',
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'planContent',
+            key: 'planContent',
+        },
+        {
+            title: 'Trạng thái',
+            dataIndex: 'status',
+            key: 'status',
+            render: (status) => (
+                <span className={`status-badge ${getStatusClass(status)}`}>
+                    {getStatusText(status)}
+                </span>
+            ),
+        },
+        {
+            title: 'Ngày nộp',
+            dataIndex: 'submittedDate',
+            key: 'submittedDate',
+            render: (date) => formatDate(date),
+        },
+        {
+            title: 'Người duyệt',
+            dataIndex: 'reviewerName',
+            key: 'reviewerName',
+        },
+        {
+            title: 'Ngày duyệt',
+            dataIndex: 'reviewedDate',
+            key: 'reviewedDate',
+            render: (date) => formatDate(date),
+        },
+        {
+            title: 'Phản hồi',
+            dataIndex: 'feedback',
+            key: 'feedback',
+        },
+        {
+            title: 'Hành động',
+            key: 'action',
+            render: (_, record) => (
+                <Space>
+                    <Button
+                        type="primary"
+                        icon={<EyeOutlined />}
+                        onClick={() => showDetailModal(record)}
+                    >
+                        Xem chi tiết
+                    </Button>
+                    <Link to={`/system/lesson-plan/${record.planId}`}>
+                        <Button>Cập nhật</Button>
+                    </Link>
+                </Space>
+            ),
+        },
+    ];
+
     if (loading) {
         return <div className="loading">Đang tải dữ liệu...</div>;
     }
@@ -120,57 +284,23 @@ const LessonPlanList = () => {
             </div>
 
             <div className="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Giáo viên</th>
-                            <th>Môn học</th>
-                            <th>Nội dung</th>
-                            <th>Trạng thái</th>
-                            <th>Ngày nộp</th>
-                            <th>Người duyệt</th>
-                            <th>Ngày duyệt</th>
-                            <th>Phản hồi</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {filteredLessonPlans.map(plan => (
-                            <tr key={plan.planId}>
-                                <td>{plan.planId}</td>
-                                <td>{plan.teacherName}</td>
-                                <td>{plan.subjectName}</td>
-                                <td className="content-cell">{plan.planContent}</td>
-                                <td>
-                                    <span className={`status-badge ${getStatusClass(plan.status)}`}>
-                                        {getStatusText(plan.status)}
-                                    </span>
-                                </td>
-                                <td>{formatDate(plan.submittedDate)}</td>
-                                <td>{plan.reviewerName}</td>
-                                <td>{formatDate(plan.reviewedDate)}</td>
-                                <td>{plan.feedback || 'Chưa có phản hồi'}</td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
+                <Table
+                    columns={columns}
+                    dataSource={filteredLessonPlans}
+                    loading={loading}
+                    rowKey="planId"
+                    pagination={{
+                        pageSize: pageSize,
+                        total: totalPages * pageSize,
+                        current: currentPage,
+                        onChange: (page) => {
+                            setCurrentPage(page);
+                        },
+                    }}
+                />
             </div>
 
-            <div className="pagination">
-                <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                >
-                    Trước
-                </button>
-                <span>Trang {currentPage} / {totalPages}</span>
-                <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                >
-                    Sau
-                </button>
-            </div>
+            <DetailModal />
         </div>
     );
 };

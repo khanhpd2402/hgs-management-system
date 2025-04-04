@@ -40,7 +40,7 @@ const HTATable = lazy(
 const StudentScore = lazy(
   () => import("@/pages/Student/SummaryScore/StudentScore"),
 );
-
+const Contact = lazy(() => import("@/pages/contact/Contact"));
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes, ...systemRouter];
   // const routes = authRoutes;
@@ -267,6 +267,11 @@ const systemRouter = [
         path: "/system/leave-request/:id",
         element: <LeaveRequestDetail />,
       },
+      {
+        path: "/system/contact",
+        element: <Contact />
+      },
+
     ],
   },
 ];
