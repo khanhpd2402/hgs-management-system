@@ -28,21 +28,41 @@ CREATE TABLE [dbo].[Semesters] (
     CONSTRAINT [UQ_Semesters] UNIQUE ([AcademicYearID], [SemesterName])
 )
 
+CREATE TABLE [dbo].[GradeLevels] (
+    [GradeLevelId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [GradeName] NVARCHAR(20) NOT NULL
+);
 
 
 CREATE TABLE [dbo].[Classes] (
-    [ClassID] INT IDENTITY(1,1) NOT NULL,
-    [ClassName] NVARCHAR(50) NOT NULL,
-    [Grade] INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([ClassID] ASC),
-    UNIQUE NONCLUSTERED ([ClassName] ASC)
-)
+    [ClassID] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [ClassName] NVARCHAR(50) NOT NULL UNIQUE,
+    [GradeLevelId] INT NOT NULL,
+    CONSTRAINT FK_Classes_GradeLevels FOREIGN KEY ([GradeLevelId]) REFERENCES [GradeLevels]([GradeLevelId])
+);
+CREATE TABLE GradeLevelSubjects (
+    GradeLevelSubjectID INT IDENTITY(1,1) PRIMARY KEY,
+    GradeLevelID INT NOT NULL,
+    SubjectID INT NOT NULL,
+
+    PeriodsPerWeek_HKI INT NOT NULL DEFAULT 0,
+    PeriodsPerWeek_HKII INT NOT NULL DEFAULT 0,
+
+    ContinuousAssessments_HKI INT NOT NULL DEFAULT 0,
+    ContinuousAssessments_HKII INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT FK_GLS_GradeLevel FOREIGN KEY (GradeLevelID)
+        REFERENCES GradeLevels(GradeLevelID),
+    CONSTRAINT FK_GLS_Subject FOREIGN KEY (SubjectID)
+        REFERENCES Subjects(SubjectID),
+    CONSTRAINT UQ_GradeLevel_Subject UNIQUE (GradeLevelID, SubjectID) -- để tránh nhập trùng
+);
 
 CREATE TABLE [dbo].[Subjects] (
     [SubjectID] INT IDENTITY(1,1) NOT NULL,
     [SubjectName] NVARCHAR(100) NOT NULL,
     [SubjectCategory] NVARCHAR(50) NOT NULL,
-    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'Numeric', N'PassFail', N'Qualitative')),
+    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'	Tính điểm', N'Nhận xét')),
     PRIMARY KEY CLUSTERED ([SubjectID] ASC),
     UNIQUE NONCLUSTERED ([SubjectName] ASC)
 )
@@ -68,35 +88,34 @@ CREATE TABLE [dbo].[Users] (
 );
 CREATE NONCLUSTERED INDEX [IX_Users_Email] ON [dbo].[Users] ([Email]);
 CREATE NONCLUSTERED INDEX [IX_Users_PhoneNumber] ON [dbo].[Users] ([PhoneNumber]);
-
 CREATE TABLE [dbo].[Teachers] (
     [TeacherID] INT IDENTITY(1,1) NOT NULL,
-    [UserID] INT NULL,
-    [FullName] NVARCHAR(100) NOT NULL,
-    [DOB] DATE NOT NULL,
-    [Gender] NVARCHAR(10) NOT NULL,
-    [Ethnicity] NVARCHAR(50) NULL,
-    [Religion] NVARCHAR(50) NULL,
-    [MaritalStatus] NVARCHAR(50) NULL,
-    [IDCardNumber] NVARCHAR(20) NULL,
-    [InsuranceNumber] NVARCHAR(20) NULL,
-    [EmploymentType] NVARCHAR(100) NULL,
-    [Position] NVARCHAR(100) NULL,
-    [Department] NVARCHAR(100) NULL,
-    [AdditionalDuties] NVARCHAR(255) NULL,
-    [IsHeadOfDepartment] BIT NULL DEFAULT 0,
-    [EmploymentStatus] NVARCHAR(50) NULL,
-    [RecruitmentAgency] NVARCHAR(255) NULL,
-    [HiringDate] DATE NULL,
-    [PermanentEmploymentDate] DATE NULL,
-    [SchoolJoinDate] DATE NOT NULL,
-    [PermanentAddress] NVARCHAR(255) NULL,
-    [Hometown] NVARCHAR(255) NULL,
+    [UserID] INT NULL, -- Liên kết với bảng Users
+    [FullName] NVARCHAR(100) NOT NULL, -- Họ và tên
+    [DOB] DATE NOT NULL, -- Ngày sinh
+    [Gender] NVARCHAR(10) NOT NULL, -- Giới tính
+    [Ethnicity] NVARCHAR(50) NULL, -- Dân tộc
+    [Religion] NVARCHAR(50) NULL, -- Tôn giáo
+    [MaritalStatus] NVARCHAR(50) NULL, -- Tình trạng hôn nhân
+    [IDCardNumber] NVARCHAR(20) NULL, -- CMND/CCCD
+    [InsuranceNumber] NVARCHAR(20) NULL, -- Số sổ bảo hiểm
+    [EmploymentType] NVARCHAR(100) NULL, -- Hình thức hợp đồng
+    [Position] NVARCHAR(100) NULL, -- Vị trí việc làm
+    [Department] NVARCHAR(100) NULL, -- Tổ bộ môn
+    [MainSubject] NVARCHAR(100) NULL, -- Môn dạy chính (thay cho AdditionalDuties)
+    [IsHeadOfDepartment] BIT NULL DEFAULT 0, -- Là tổ trưởng
+    [EmploymentStatus] NVARCHAR(50) NULL, -- Trạng thái cán bộ
+    [RecruitmentAgency] NVARCHAR(255) NULL, -- Cơ quan tuyển dụng
+    [HiringDate] DATE NULL, -- Ngày tuyển dụng
+    [PermanentEmploymentDate] DATE NULL, -- Ngày vào biên chế
+    [SchoolJoinDate] DATE NOT NULL, -- Ngày vào trường
+    [PermanentAddress] NVARCHAR(255) NULL, -- Địa chỉ thường trú
+    [Hometown] NVARCHAR(255) NULL, -- Quê quán
     PRIMARY KEY CLUSTERED ([TeacherID] ASC),
     CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE CASCADE,
-    UNIQUE NONCLUSTERED ([UserID] ASC),
-    UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
-)
+    UNIQUE NONCLUSTERED ([IDCardNumber] ASC),
+    UNIQUE NONCLUSTERED ([UserID] ASC)
+);
 CREATE TABLE [dbo].[Parents] (
     [ParentID] INT IDENTITY(1,1) NOT NULL,
     [UserID] INT NULL,

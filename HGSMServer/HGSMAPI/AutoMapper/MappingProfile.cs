@@ -97,8 +97,24 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject != null ? src.Subject.SubjectName : "Unknown"))
                 .ForMember(dest => dest.ReviewerName, opt => opt.MapFrom(src => src.Reviewer != null ? src.Reviewer.FullName : "N/A"));
 
-            CreateMap<Timetable, TimetableDto>().ReverseMap();
-            CreateMap<TimetableDetail, TimetableDetailDto>().ReverseMap();
+            // Map Timetable -> TimetableDto và ngược lại
+            CreateMap<Timetable, TimetableDto>()
+                .ForMember(dest => dest.Details, opt => opt.MapFrom(src => src.TimetableDetails))
+                .ReverseMap()
+                .ForMember(dest => dest.Semester, opt => opt.Ignore()) // Ignore navigation property
+                .ForMember(dest => dest.TimetableDetails, opt => opt.MapFrom(src => src.Details));
+
+            // Map TimetableDetail -> TimetableDetailDto và ngược lại
+            CreateMap<TimetableDetail, TimetableDetailDto>()
+                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (int)src.Shift)) // byte -> int
+                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (int)src.Period)) // byte -> int
+                .ReverseMap()
+                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (byte)src.Shift)) // int -> byte
+                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (byte)src.Period)) // int -> byte
+                .ForMember(dest => dest.Class, opt => opt.Ignore())    // Ignore navigation property
+                .ForMember(dest => dest.Subject, opt => opt.Ignore())  // Ignore navigation property
+                .ForMember(dest => dest.Teacher, opt => opt.Ignore())  // Ignore navigation property
+                .ForMember(dest => dest.Timetable, opt => opt.Ignore()); // Ignore navigation property
             // Map từ CreateTimetableDto sang Timetable
             CreateMap<CreateTimetableDto, Timetable>()
                 .ForMember(dest => dest.TimetableId, opt => opt.Ignore()) // Ignore vì ID do DB sinh
@@ -109,14 +125,15 @@ namespace HGSMAPI.AutoMapper
             CreateMap<CreateTimetableDetailDto, TimetableDetail>()
                 .ForMember(dest => dest.TimetableDetailId, opt => opt.Ignore()) // Ignore vì ID do DB sinh
                 .ForMember(dest => dest.TimetableId, opt => opt.Ignore())       // Ignore vì gán thủ công
-                .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => (byte)src.DayOfWeek))
-                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (byte)src.Shift))
-                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (byte)src.Period))
+                .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => src.DayOfWeek)) // Cả hai đều là byte, không cần cast
+                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (byte)src.Shift))   // Chuyển int sang byte
+                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (byte)src.Period)) // Chuyển int sang byte
                 .ForMember(dest => dest.Class, opt => opt.Ignore())    // Ignore navigation property
                 .ForMember(dest => dest.Subject, opt => opt.Ignore())  // Ignore navigation property
                 .ForMember(dest => dest.Teacher, opt => opt.Ignore())  // Ignore navigation property
-                .ForMember(dest => dest.Timetable, opt => opt.Ignore());
-            CreateMap<Question, QuestionDto>()
+                .ForMember(dest => dest.Timetable, opt => opt.Ignore()); // Ignore navigation property
+        
+        CreateMap<Question, QuestionDto>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
             CreateMap<QuestionDto, Question>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
