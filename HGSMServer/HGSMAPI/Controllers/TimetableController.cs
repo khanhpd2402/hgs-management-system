@@ -8,157 +8,68 @@ namespace HGSMAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class TimetableController : ControllerBase
+    public class TimetablesController : ControllerBase
     {
-        private readonly TimetableService _timetableService;
+        private readonly ITimetableService _service;
 
-        public TimetableController(TimetableService timetableService)
+        public TimetablesController(ITimetableService service)
         {
-            _timetableService = timetableService;
+            _service = service;
         }
 
-        [HttpPost("generate")]
-        public async Task<ActionResult<ScheduleResponseDto>> GenerateTimetable([FromBody] TimetableRequest request)
+        [HttpPost]
+        public async Task<IActionResult> CreateTimetable([FromBody] CreateTimetableDto dto)
         {
+            if (dto == null)
+            {
+                return BadRequest("Timetable data is required.");
+            }
+
             try
             {
-                var timetable = await _timetableService.GenerateTimetableAsync(request);
-                return Ok(timetable);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
+                var createdTimetable = await _service.CreateTimetableAsync(dto);
+                return Ok(createdTimetable);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
-        }
-        [HttpPost("save-generated")]
-        public async Task<IActionResult> SaveGeneratedTimetable([FromBody] List<ManualTimetableDto> timetableDtos)
-        {
-            try
-            {
-                await _timetableService.SaveGeneratedTimetableAsync(timetableDtos);
-                return Ok(new { Message = "Timetable saved successfully." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
-        } 
-        // Thêm thủ công
-        [HttpPost("manual")]
-        public async Task<IActionResult> AddManualTimetable([FromBody] ManualTimetableDto dto)
-        {
-            try
-            {
-                await _timetableService.AddManualTimetableAsync(dto);
-                return Ok(new { Message = "Timetable added successfully." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
+                // Log exception nếu cần
+                return StatusCode(500, $"An error occurred while creating the timetable: {ex.Message}");
             }
         }
 
-        // Sửa thời khóa biểu
-        [HttpPut("{timetableId}")]
-        public async Task<IActionResult> UpdateTimetable(int timetableId, [FromBody] ManualTimetableDto dto)
+        [HttpGet("student/{studentId}")]
+        public async Task<IActionResult> GetByStudent(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
         {
-            try
-            {
-                await _timetableService.UpdateTimetableAsync(timetableId, dto);
-                return Ok(new { Message = "Timetable updated successfully." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
-        }
-
-        // Xóa thời khóa biểu
-        [HttpDelete("{timetableId}")]
-        public async Task<IActionResult> DeleteTimetable(int timetableId)
-        {
-            try
-            {
-                await _timetableService.DeleteTimetableAsync(timetableId);
-                return Ok(new { Message = "Timetable deleted successfully." });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
-        }
-
-        [HttpGet("parent/{studentId}")]
-        public async Task<ActionResult<List<RoleBasedTimetableDto>>> GetTimetableForParent(int studentId, [FromQuery] string schoolYear, [FromQuery] int semester, [FromQuery] string? effectiveDate = null)
-        {
-            try
-            {
-                DateOnly? date = effectiveDate != null ? DateOnly.Parse(effectiveDate) : null;
-                var timetable = await _timetableService.GetTimetableForParentAsync(studentId, schoolYear, semester, date);
-                return Ok(timetable);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
+            var result = await _service.GetTimetableByStudentAsync(studentId, semesterId, effectiveDate);
+            return Ok(result);
         }
 
         [HttpGet("teacher/{teacherId}")]
-        public async Task<ActionResult<List<RoleBasedTimetableDto>>> GetTimetableForTeacher(int teacherId, [FromQuery] string schoolYear, [FromQuery] int semester, [FromQuery] string? effectiveDate = null)
+        public async Task<IActionResult> GetByTeacher(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
         {
-            try
-            {
-                DateOnly? date = effectiveDate != null ? DateOnly.Parse(effectiveDate) : null;
-                var timetable = await _timetableService.GetTimetableForTeacherAsync(teacherId, schoolYear, semester, date);
-                return Ok(timetable);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(new { Message = ex.Message });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
+            var result = await _service.GetTimetableByTeacherAsync(teacherId, semesterId, effectiveDate);
+            return Ok(result);
         }
 
-        [HttpGet("principal")]
-        public async Task<ActionResult<List<RoleBasedTimetableDto>>> GetTimetableForPrincipal([FromQuery] string schoolYear, [FromQuery] int semester, [FromQuery] string? effectiveDate = null)
+        [HttpPut("detail")]
+        public async Task<IActionResult> UpdateDetail(TimetableDetailDto dto)
         {
-            try
-            {
-                DateOnly? date = effectiveDate != null ? DateOnly.Parse(effectiveDate) : null;
-                var timetable = await _timetableService.GetTimetableForPrincipalAsync(schoolYear, semester, date);
-                return Ok(timetable);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { Message = "An error occurred.", Details = ex.Message });
-            }
+            var success = await _service.UpdateDetailAsync(dto);
+            return success ? Ok() : BadRequest();
+        }
+
+        [HttpDelete("detail/{detailId}")]
+        public async Task<IActionResult> DeleteDetail(int detailId)
+        {
+            var success = await _service.DeleteDetailAsync(detailId);
+            return success ? Ok() : NotFound();
+        }
+
+        [HttpPost("check-conflict")]
+        public async Task<IActionResult> CheckConflict(TimetableDetailDto dto)
+        {
+            var conflict = await _service.IsConflictAsync(dto);
+            return Ok(new { conflict });
         }
     }
 }

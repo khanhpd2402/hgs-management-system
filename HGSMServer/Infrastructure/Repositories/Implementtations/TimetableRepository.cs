@@ -13,45 +13,75 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<List<Timetable>> GetTimetableByClassAsync(int classId, DateOnly effectiveDate)
+        public async Task<IEnumerable<TimetableDetail>> GetByStudentIdAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
         {
-            return await _context.Timetables
-                .Include(t => t.Class)
-                .Include(t => t.Subject)
-                .Include(t => t.Teacher)
-                .Where(t => t.ClassId == classId && t.EffectiveDate == effectiveDate)
-                .ToListAsync();
+            var query = _context.TimetableDetails
+                .Include(x => x.Timetable)
+                .Where(x => _context.StudentClasses.Any(sc => sc.ClassId == x.ClassId && sc.StudentId == studentId));
+
+            if (semesterId.HasValue)
+                query = query.Where(x => x.Timetable.SemesterId == semesterId);
+
+            if (effectiveDate.HasValue)
+                query = query.Where(x => x.Timetable.EffectiveDate == effectiveDate);
+
+            return await query.ToListAsync();
         }
 
-        public async Task<Timetable?> GetTimetableByIdAsync(int timetableId)
+        public async Task<IEnumerable<TimetableDetail>> GetByTeacherIdAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
         {
-            return await _context.Timetables
-                .Include(t => t.Class)
-                .Include(t => t.Subject)
-                .Include(t => t.Teacher)
-                .FirstOrDefaultAsync(t => t.TimetableId == timetableId);
+            var query = _context.TimetableDetails
+                .Include(x => x.Timetable)
+                .Where(x => x.TeacherId == teacherId);
+
+            if (semesterId.HasValue)
+                query = query.Where(x => x.Timetable.SemesterId == semesterId);
+
+            if (effectiveDate.HasValue)
+                query = query.Where(x => x.Timetable.EffectiveDate == effectiveDate);
+
+            return await query.ToListAsync();
         }
 
-        public async Task<Timetable> AddTimetableAsync(Timetable timetable)
+        public async Task<bool> UpdateDetailAsync(TimetableDetail detail)
+        {
+            _context.TimetableDetails.Update(detail);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> DeleteDetailAsync(int detailId)
+        {
+            var detail = await _context.TimetableDetails.FindAsync(detailId);
+            if (detail == null) return false;
+            _context.TimetableDetails.Remove(detail);
+            return await _context.SaveChangesAsync() > 0;
+        }
+
+        public async Task<bool> IsConflictAsync(TimetableDetail detail)
+        {
+            return await _context.TimetableDetails.AnyAsync(x =>
+                x.ClassId == detail.ClassId &&
+                x.DayOfWeek == detail.DayOfWeek &&
+                x.Shift == detail.Shift &&
+                x.Period == detail.Period &&
+                x.Timetable.EffectiveDate == detail.Timetable.EffectiveDate &&
+                x.Timetable.SemesterId == detail.Timetable.SemesterId &&
+                x.TimetableId == detail.TimetableId);
+        }
+
+        public async Task<Timetable> CreateTimetableAsync(Timetable timetable)
         {
             _context.Timetables.Add(timetable);
-            await _context.SaveChangesAsync();
+            await _context.SaveChangesAsync(); // Lưu để có TimetableId
             return timetable;
         }
 
-        public async Task<bool> UpdateTimetableAsync(Timetable timetable)
+        public async Task<TimetableDetail> AddTimetableDetailAsync(TimetableDetail detail)
         {
-            _context.Timetables.Update(timetable);
-            return await _context.SaveChangesAsync() > 0;
+            _context.TimetableDetails.Add(detail);
+            await _context.SaveChangesAsync();
+            return detail;
         }
 
-        public async Task<bool> DeleteTimetableAsync(int timetableId)
-        {
-            var timetable = await _context.Timetables.FindAsync(timetableId);
-            if (timetable == null) return false;
-
-            _context.Timetables.Remove(timetable);
-            return await _context.SaveChangesAsync() > 0;
-        }
     }
 }

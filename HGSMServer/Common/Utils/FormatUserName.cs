@@ -22,7 +22,7 @@ namespace Common.Utils
             middleChars = RemoveDiacritics(middleChars);
             firstChar = RemoveDiacritics(firstChar);
 
-            return $"{lastName}{firstChar}{middleChars}{id}";
+            return $"{lastName}{firstChar}{middleChars}" + $"{id}";
         }
 
         public static string RemoveDiacritics(string text)
