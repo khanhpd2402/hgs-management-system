@@ -26,6 +26,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task UpdateTeacherSubjectAsync(TeacherSubject teacherSubject);
         Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects);
         Task UpdateUserAsync(User user);
+        Task DeleteUserAsync(int userId);
 
     }
 }
