@@ -124,8 +124,7 @@ namespace Application.Features.TeachingAssignments.Services
                     .Select(s => new SubjectDto
                     {
                         SubjectId = s.SubjectId,
-                        SubjectName = s.SubjectName,
-                        SubjectCategory = s.SubjectCategory
+                        SubjectName = s.SubjectName
                     })
                     .ToListAsync(),
 
