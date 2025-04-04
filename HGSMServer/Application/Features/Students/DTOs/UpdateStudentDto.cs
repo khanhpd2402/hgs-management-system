@@ -5,7 +5,7 @@ namespace Application.Features.Students.DTOs
 {
     public class UpdateStudentDto : IParentInfoDto
     {
-        public int StudentId { get; set; } // Bắt buộc cần ID khi update
+        //public int StudentId { get; set; } 
         public string FullName { get; set; } = null!;
         public DateOnly Dob { get; set; }
         public string Gender { get; set; } = null!;

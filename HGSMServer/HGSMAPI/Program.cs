@@ -119,6 +119,8 @@ builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
 builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
 builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
+builder.Services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
+builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
 
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();

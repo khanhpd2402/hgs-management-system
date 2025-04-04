@@ -11,13 +11,11 @@ public partial class Class
 
     public int Grade { get; set; }
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
-
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
 
     public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 
-    public virtual ICollection<Timetable> Timetables { get; set; } = new List<Timetable>();
+    public virtual ICollection<TimetableDetail> TimetableDetails { get; set; } = new List<TimetableDetail>();
 }
