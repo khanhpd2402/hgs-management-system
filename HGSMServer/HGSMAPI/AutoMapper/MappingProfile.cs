@@ -40,7 +40,7 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<Student, StudentDto>()
                 .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
-                .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.Grade))
+                .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.GradeLevel))
                 .ForMember(dest => dest.Parent, opt => opt.Ignore());
 
             CreateMap<Parent, ParentDto>()

@@ -9,7 +9,7 @@ namespace Application.Features.Classes.DTOs
     public class ClassDto
     {
         public int ClassId { get; set; }
-        public string ClassName { get; set; } = null!;
-        public int Grade { get; set; }
+        public string ClassName { get; set; } = string.Empty;
+        public int GradeLevelId { get; set; }
     }
 }
