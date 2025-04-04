@@ -13,7 +13,7 @@
         public int ClassId { get; set; }
         public int SubjectId { get; set; }
         public int TeacherId { get; set; }
-        public DayOfWeek DayOfWeek { get; set; }
+        public byte DayOfWeek { get; set; }
         public int Shift { get; set; }
         public int Period { get; set; }
     }
