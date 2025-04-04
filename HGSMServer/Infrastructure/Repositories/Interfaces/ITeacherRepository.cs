@@ -23,6 +23,9 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects);
         Task<Teacher?> GetByIdWithUserAsync(int id);
         Task<IEnumerable<Teacher>> GetAllWithUserAsync();
+        Task UpdateTeacherSubjectAsync(TeacherSubject teacherSubject);
+        Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects);
+        Task UpdateUserAsync(User user);
 
     }
 }
