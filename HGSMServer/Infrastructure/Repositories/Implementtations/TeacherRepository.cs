@@ -116,5 +116,21 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(t => t.User)
                 .ToListAsync();
         }
+        public async Task UpdateTeacherSubjectAsync(TeacherSubject teacherSubject)
+        {
+            _context.TeacherSubjects.Update(teacherSubject);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects)
+        {
+            _context.TeacherSubjects.RemoveRange(teacherSubjects);
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateUserAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
     }
 }
