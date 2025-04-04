@@ -12,4 +12,8 @@ public partial class ExamProposalQuestion
     public int QuestionId { get; set; }
 
     public int OrderNumber { get; set; }
+
+    public virtual ExamProposal Proposal { get; set; } = null!;
+
+    public virtual Question Question { get; set; } = null!;
 }
