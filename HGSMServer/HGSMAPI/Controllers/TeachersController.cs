@@ -39,11 +39,17 @@ public class TeachersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    public async Task<ActionResult> UpdateTeacher(int id, [FromBody] TeacherDetailDto teacherDto)
+    public async Task<IActionResult> UpdateTeacher(int id, [FromBody] TeacherDetailDto teacherDto)
     {
-        if (teacherDto == null) return BadRequest("Dữ liệu không hợp lệ");
         await _teacherService.UpdateTeacherAsync(id, teacherDto);
-        return NoContent();
+
+        var updatedTeacher = await _teacherService.GetTeacherByIdAsync(id);
+        if (updatedTeacher == null)
+        {
+            return NotFound(); 
+        }
+
+        return Ok(updatedTeacher); 
     }
 
     [HttpDelete("{id}")]
