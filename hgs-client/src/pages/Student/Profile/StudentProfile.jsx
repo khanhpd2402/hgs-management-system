@@ -381,17 +381,12 @@ export default function StudentProfile() {
       setShowMotherInfo(!!student?.parent?.fullNameMother);
       setShowGuardianInfo(!!student?.parent?.fullNameGuardian);
 
-      console.log(
-        classQuery?.data?.filter((c) => c.className === student.className)
-          .classId,
-      );
-
       // Reset form with student data
       reset({
         fullName: student.fullName || "",
         gender: student.gender || "",
         enrollmentType: student.enrollmentType || "",
-        classId: classQuery?.data?.filter(
+        classId: classQuery?.data?.find(
           (c) => c.className === student.className,
         ).classId,
         dob: student.dob ? new Date(student.dob) : null,
@@ -464,11 +459,14 @@ export default function StudentProfile() {
         : null,
     };
     console.log(formattedData);
-    mutate(formattedData, {
-      onSuccess: () => {
-        // reset();
+    mutate(
+      { id, data: formattedData },
+      {
+        onSuccess: () => {
+          reset();
+        },
       },
-    });
+    );
   };
 
   // Form field component

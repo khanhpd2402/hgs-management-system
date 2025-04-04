@@ -74,8 +74,8 @@ const ColumnConfigModal = ({
         </div>
 
         {/* Danh sách cột */}
-        <ScrollArea className="max-h-[300px] pr-4">
-          <div className="space-y-3 py-2">
+        <ScrollArea className="h-[300px] pr-4">
+          <div className="grid grid-cols-2 gap-4 py-2">
             {columns.map((column) => (
               <div key={column.id} className="flex items-center space-x-2">
                 <Checkbox
