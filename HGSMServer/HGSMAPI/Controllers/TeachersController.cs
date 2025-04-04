@@ -54,11 +54,16 @@ public class TeachersController : ControllerBase
         return Ok(new { Message = "Xóa giáo viên thành công" });
     }
 
+    
     [HttpPost("import")]
     public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
     {
-        if (file == null || file.Length == 0) return BadRequest("Vui lòng chọn file Excel!");
-        await _teacherService.ImportTeachersFromExcelAsync(file);
-        return Ok("Import thành công!");
+        var (success, errors) = await _teacherService.ImportTeachersFromExcelAsync(file);
+        if (!success)
+        {
+            return BadRequest(new { Errors = errors });
+        }
+
+        return Ok(new { Message = "Import giáo viên thành công." });
     }
 }
