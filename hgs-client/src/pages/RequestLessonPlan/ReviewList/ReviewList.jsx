@@ -1,15 +1,19 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Table, Card, Button, Space, Tag, Input, Typography } from 'antd';
+import { SearchOutlined, CheckCircleOutlined, EyeOutlined } from '@ant-design/icons';
 import axios from 'axios';
+import dayjs from 'dayjs';
 import './ReviewList.scss';
+
+const { Title } = Typography;
 
 const ReviewList = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const pageSize = 10;
+    const [searchText, setSearchText] = useState('');
     const navigate = useNavigate();
+    const pageSize = 10;
 
     const fetchProcessingPlans = async (page) => {
         try {
@@ -20,9 +24,7 @@ const ReviewList = () => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
             );
-            console.log("token", token);
             setLessonPlans(response.data.lessonPlans);
-            setTotalPages(Math.ceil(response.data.totalCount / pageSize));
             setLoading(false);
         } catch (error) {
             console.error('Lỗi khi tải danh sách:', error);
@@ -31,81 +33,111 @@ const ReviewList = () => {
     };
 
     useEffect(() => {
-        fetchProcessingPlans(currentPage);
-    }, [currentPage]);
+        fetchProcessingPlans(1);
+    }, []);
 
     const handleReviewClick = (planId) => {
         navigate(`/teacher/review-detail/${planId}`);
     };
 
-    const formatDate = (dateString) => {
-        if (!dateString) return 'N/A';
-        return new Date(dateString).toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric',
-            hour: '2-digit',
-            minute: '2-digit'
-        });
+    const handlePreviewClick = (planId) => {
+        // Thêm logic xem trước ở đây
+        console.log('Xem trước:', planId);
     };
 
-    if (loading) {
-        return <div className="loading">Đang tải dữ liệu...</div>;
-    }
+    const filteredPlans = lessonPlans.filter(plan => 
+        plan.teacherName?.toLowerCase().includes(searchText.toLowerCase()) ||
+        plan.subjectName?.toLowerCase().includes(searchText.toLowerCase()) ||
+        plan.planContent?.toLowerCase().includes(searchText.toLowerCase()) ||
+        plan.planId.toString().includes(searchText)
+    );
+
+    const columns = [
+        {
+            title: 'ID',
+            dataIndex: 'planId',
+            key: 'planId',
+            width: 80,
+        },
+        {
+            title: 'Giáo viên',
+            dataIndex: 'teacherName',
+            key: 'teacherName',
+            render: (text) => (
+                <Tag color="blue">{text}</Tag>
+            ),
+        },
+        {
+            title: 'Môn học',
+            dataIndex: 'subjectName',
+            key: 'subjectName',
+            render: (text) => (
+                <Tag color="cyan">{text}</Tag>
+            ),
+        },
+        {
+            title: 'Nội dung',
+            dataIndex: 'planContent',
+            key: 'planContent',
+            width: '30%',
+            render: (text) => (
+                <div className="content-ellipsis">{text}</div>
+            ),
+        },
+        {
+            title: 'Ngày nộp',
+            dataIndex: 'submittedDate',
+            key: 'submittedDate',
+            render: (date) => (
+                <span>{dayjs(date).format('DD/MM/YYYY HH:mm')}</span>
+            ),
+        },
+        {
+            title: 'Thao tác',
+            key: 'action',
+            render: (_, record) => (
+                <Space size="middle">
+                   
+                    <Button
+                        type="primary"
+                        icon={<CheckCircleOutlined />}
+                        onClick={() => handleReviewClick(record.planId)}
+                        style={{ backgroundColor: '#52c41a', borderColor: '#52c41a' }}
+                    >
+                        Phê duyệt
+                    </Button>
+                </Space>
+            ),
+        },
+    ];
 
     return (
-        <div className="review-list">
-            <h2>Danh sách kế hoạch cần phê duyệt</h2>
+        <div className="review-list-container">
+            <Card className="review-list-card">
+                <div className="review-list-header">
+                    <Title level={2}>Danh sách kế hoạch cần phê duyệt</Title>
+                    <Input
+                        placeholder="Tìm kiếm..."
+                        prefix={<SearchOutlined />}
+                        value={searchText}
+                        onChange={e => setSearchText(e.target.value)}
+                        style={{ width: 300, marginBottom: 16 }}
+                    />
+                </div>
 
-            <div className="table-container">
-                <table>
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Giáo viên</th>
-                            <th>Môn học</th>
-                            <th>Nội dung</th>
-                            <th>Ngày nộp</th>
-                            <th>Thao tác</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {lessonPlans.map(plan => (
-                            <tr key={plan.planId}>
-                                <td>{plan.planId}</td>
-                                <td>{plan.teacherName}</td>
-                                <td>{plan.subjectName}</td>
-                                <td className="content-cell">{plan.planContent}</td>
-                                <td>{formatDate(plan.submittedDate)}</td>
-                                <td>
-                                    <button
-                                        className="review-button"
-                                        onClick={() => handleReviewClick(plan.planId)}
-                                    >
-                                        Phê duyệt
-                                    </button>
-                                </td>
-                            </tr>
-                        ))}
-                    </tbody>
-                </table>
-            </div>
-
-            <div className="pagination">
-                <button
-                    onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
-                    disabled={currentPage === 1}
-                >
-                    Trước
-                </button>
-                <span>Trang {currentPage} / {totalPages}</span>
-                <button
-                    onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
-                >
-                    Sau
-                </button>
-            </div>
+                <Table
+                    columns={columns}
+                    dataSource={filteredPlans}
+                    rowKey="planId"
+                    loading={loading}
+                    pagination={{
+                        pageSize: pageSize,
+                        showSizeChanger: false,
+                        showTotal: (total) => `Tổng số ${total} kế hoạch`,
+                    }}
+                    className="review-table"
+                />
+            </Card>
         </div>
     );
 };

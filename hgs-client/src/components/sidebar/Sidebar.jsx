@@ -23,6 +23,7 @@ const menuItems = [
       { label: "Quản lý người dùng", path: "/principal/user" },
       { label: "Thời khóa biểu", path: "/system/schedule" },
       { label: "Đơn xin nghỉ", path: "/system/leave-request" },
+      { label: "Liên hệ", path: "/system/contact" },
       // { label: "Quản lý môn học", path: "/admin/subject" },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
