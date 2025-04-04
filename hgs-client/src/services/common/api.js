@@ -30,3 +30,8 @@ export const login = async ({ username, password }) => {
   });
   return response.data;
 };
+
+export const getRoles = async () => {
+  const response = await axiosInstance.get("/roles");
+  return response.data;
+};

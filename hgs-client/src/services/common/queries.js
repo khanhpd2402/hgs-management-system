@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getAcademicYears,
   getClasses,
+  getRoles,
   getSemestersByAcademicYear,
   getSubjects,
 } from "./api";
@@ -40,5 +41,14 @@ export function useSemestersByAcademicYear(academicYearId) {
       return getSemestersByAcademicYear(academicYearId);
     },
     enabled: !!academicYearId,
+  });
+}
+
+export function useRoles() {
+  return useQuery({
+    queryKey: ["roles"],
+    queryFn: () => {
+      return getRoles();
+    },
   });
 }
