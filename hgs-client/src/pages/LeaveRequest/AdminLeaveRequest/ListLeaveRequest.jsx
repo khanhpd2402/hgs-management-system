@@ -1,18 +1,43 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Space, Tag } from 'antd';
+import { Table, Space, Tag, Select, Form, Card } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
+
+const { Option } = Select;
 
 const ListLeaveRequest = () => {
   const [leaveRequests, setLeaveRequests] = useState([]);
   const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState([]);
+  const [filteredData, setFilteredData] = useState([]);
+  const [filters, setFilters] = useState({
+    status: 'all',
+    teacherId: 'all'
+  });
 
   useEffect(() => {
     fetchLeaveRequests();
     fetchTeachers();
   }, []);
+
+  useEffect(() => {
+    filterData();
+  }, [filters, leaveRequests]);
+
+  const filterData = () => {
+    let result = [...leaveRequests];
+
+    if (filters.status !== 'all') {
+      result = result.filter(item => item.status === filters.status);
+    }
+
+    if (filters.teacherId !== 'all') {
+      result = result.filter(item => item.teacherId === filters.teacherId);
+    }
+
+    setFilteredData(result);
+  };
 
   const fetchLeaveRequests = async () => {
     try {
@@ -68,6 +93,49 @@ const ListLeaveRequest = () => {
     return `ID: ${teacherId}`;
   };
 
+  const handleFilterChange = (filterName, value) => {
+    setFilters(prev => ({
+      ...prev,
+      [filterName]: value
+    }));
+  };
+
+  const FilterSection = () => (
+    <Card style={{ marginBottom: 16 }}>
+      <Form layout="inline">
+        <Form.Item label="Trạng thái">
+          <Select
+            style={{ width: 200 }}
+            value={filters.status}
+            onChange={(value) => handleFilterChange('status', value)}
+          >
+            <Option value="all">Tất cả trạng thái</Option>
+            <Option value="Pending">Đang chờ duyệt</Option>
+            <Option value="Approved">Đã phê duyệt</Option>
+            <Option value="Rejected">Đã từ chối</Option>
+          </Select>
+        </Form.Item>
+
+        <Form.Item label="Giáo viên">
+          <Select
+            style={{ width: 200 }}
+            value={filters.teacherId}
+            onChange={(value) => handleFilterChange('teacherId', value)}
+            showSearch
+            optionFilterProp="children"
+          >
+            <Option value="all">Tất cả giáo viên</Option>
+            {teachers.map(teacher => (
+              <Option key={teacher.teacherId} value={teacher.teacherId}>
+                {teacher.fullName} - {teacher.teacherId}
+              </Option>
+            ))}
+          </Select>
+        </Form.Item>
+      </Form>
+    </Card>
+  );
+
   const columns = [
     {
       title: 'ID',
@@ -108,8 +176,14 @@ const ListLeaveRequest = () => {
       dataIndex: 'status',
       key: 'status',
       render: (status) => (
-        <Tag color={status === 'Pending' ? 'gold' : status === 'Approved' ? 'green' : 'red'}>
-          {status}
+        <Tag color={
+          status === 'Pending' ? 'gold' 
+          : status === 'Approved' ? 'green' 
+          : 'red'
+        }>
+          {status === 'Pending' ? 'Đang chờ duyệt'
+           : status === 'Approved' ? 'Đã phê duyệt'
+           : 'Đã từ chối'}
         </Tag>
       ),
     },
@@ -126,9 +200,12 @@ const ListLeaveRequest = () => {
   return (
     <div style={{ padding: '24px' }}>
       <h1>Danh sách yêu cầu nghỉ phép</h1>
+      
+      <FilterSection />
+
       <Table
         columns={columns}
-        dataSource={leaveRequests}
+        dataSource={filteredData}
         loading={loading}
         rowKey="requestId"
         pagination={{
