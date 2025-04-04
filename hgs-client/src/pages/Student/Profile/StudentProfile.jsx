@@ -1,5 +1,4 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,24 +13,98 @@ import {
 } from "@/components/ui/select";
 
 import { useParams } from "react-router";
-import { useStudent } from "@/services/student/queries";
+import { useStudent, useStudents } from "@/services/student/queries";
 import { useUpdateStudent } from "@/services/student/mutation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import { formatDate } from "@/helpers/formatDate";
+import { useClasses } from "@/services/common/queries";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function StudentProfile() {
   const { id } = useParams();
   const { currentYear } = useLayout();
-  const academicYearId = currentYear?.academicYearID;
+  const academicYearId = currentYear?.academicYearID || null;
+  const classQuery = useClasses();
   const studentQuery = useStudent({ id, academicYearId });
   const { mutate, isPending: isUpdating } = useUpdateStudent();
 
   const [showFatherInfo, setShowFatherInfo] = useState(false);
   const [showMotherInfo, setShowMotherInfo] = useState(false);
   const [showGuardianInfo, setShowGuardianInfo] = useState(false);
+  const [showSiblingsModal, setShowSiblingsModal] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const studentsQuery = useStudents(academicYearId);
+  const filteredStudents = studentsQuery.data?.students?.filter((student) =>
+    student.fullName.toLowerCase().includes(searchQuery.toLowerCase()),
+  );
+
+  const handleChangeSibling = (student) => {
+    const currentValues = watch();
+    const parentInfo = {};
+
+    if (student?.parent?.fullNameFather) {
+      setShowFatherInfo(true);
+      Object.assign(parentInfo, {
+        fullNameFather: student.parent.fullNameFather,
+        yearOfBirthFather: student.parent.yearOfBirthFather
+          ? new Date(student.parent.yearOfBirthFather)
+          : null,
+        occupationFather: student.parent.occupationFather || "",
+        phoneNumberFather: student.parent.phoneNumberFather || "",
+        emailFather: student.parent.emailFather || "",
+        idcardNumberFather: student.parent.idcardNumberFather || "",
+      });
+    } else {
+      setShowFatherInfo(false);
+    }
+
+    if (student?.parent?.fullNameMother) {
+      setShowMotherInfo(true);
+      Object.assign(parentInfo, {
+        fullNameMother: student.parent.fullNameMother,
+        yearOfBirthMother: student.parent.yearOfBirthMother
+          ? new Date(student.parent.yearOfBirthMother)
+          : null,
+        occupationMother: student.parent.occupationMother || "",
+        phoneNumberMother: student.parent.phoneNumberMother || "",
+        emailMother: student.parent.emailMother || "",
+        idcardNumberMother: student.parent.idcardNumberMother || "",
+      });
+    } else {
+      setShowMotherInfo(false);
+    }
+
+    if (student?.parent?.fullNameGuardian) {
+      setShowGuardianInfo(true);
+      Object.assign(parentInfo, {
+        fullNameGuardian: student.parent.fullNameGuardian,
+        yearOfBirthGuardian: student.parent.yearOfBirthGuardian
+          ? new Date(student.parent.yearOfBirthGuardian)
+          : null,
+        occupationGuardian: student.parent.occupationGuardian || "",
+        phoneNumberGuardian: student.parent.phoneNumberGuardian || "",
+        emailGuardian: student.parent.emailGuardian || "",
+        idcardNumberGuardian: student.parent.idcardNumberGuardian || "",
+      });
+    } else {
+      setShowGuardianInfo(false);
+    }
+
+    // Reset form with all parent info at once
+    reset({
+      ...currentValues,
+      ...parentInfo,
+    });
+  };
 
   const studentSchema = z
     .object({
@@ -259,89 +332,141 @@ export default function StudentProfile() {
   const {
     register,
     handleSubmit,
-    setValue,
     watch,
     control,
     reset,
+    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(studentSchema),
     defaultValues: {
-      studentId: 0,
       fullName: "",
       gender: "",
-      classId: 0,
       enrollmentType: "",
+      classId: 0,
+      dob: null,
+      admissionDate: null,
+
+      permanentAddress: "",
       repeatingYear: false,
       status: "",
       // Father information
       fullNameFather: "",
-      yearOfBirthFather: "",
       occupationFather: "",
       phoneNumberFather: "",
       emailFather: "",
       idcardNumberFather: "",
+      yearOfBirthFather: null,
       // Mother information
       fullNameMother: "",
-      yearOfBirthMother: "",
       occupationMother: "",
       phoneNumberMother: "",
       emailMother: "",
-      idcardNumberMother: "",
+      yearOfBirthMother: null,
       // Guardian information
       fullNameGuardian: "",
-      yearOfBirthGuardian: "",
       occupationGuardian: "",
       phoneNumberGuardian: "",
       emailGuardian: "",
-      idcardNumberGuardian: "",
+      yearOfBirthGuardian: null,
     },
   });
 
-  // Initialize form when studentQuery.data is loaded
   useEffect(() => {
-    if (studentQuery.data) {
-      // Set form values from studentQuery.data
-      Object.keys(studentQuery.data).forEach((key) => {
-        // Handle date fields separately
-        if (["dob", "admissionDate"].includes(key) && studentQuery.data[key]) {
-          try {
-            setValue(key, new Date(studentQuery.data[key]));
-          } catch (e) {
-            console.error(`Error parsing date for ${key}:`, e);
-            setValue(key, null);
-          }
-        } else {
-          setValue(key, studentQuery.data[key]);
-        }
-      });
+    if (studentQuery.data && classQuery.data) {
+      const student = studentQuery.data;
 
-      // Handle parent dates
-      if (studentQuery.data.parents) {
-        studentQuery.data.parents.forEach((parent, index) => {
-          if (parent.dob) {
-            try {
-              setValue(`parents.${index}.dob`, new Date(parent.dob));
-            } catch (e) {
-              console.error(`Error parsing parent date of birth:`, e);
-              setValue(`parents.${index}.dob`, null);
-            }
-          }
-        });
-      }
+      // Set parent info checkboxes
+      setShowFatherInfo(!!student?.parent?.fullNameFather);
+      setShowMotherInfo(!!student?.parent?.fullNameMother);
+      setShowGuardianInfo(!!student?.parent?.fullNameGuardian);
+
+      // Reset form with student data
+      reset({
+        fullName: student.fullName || "",
+        gender: student.gender || "",
+        enrollmentType: student.enrollmentType || "",
+        classId: classQuery?.data?.find(
+          (c) => c.className === student.className,
+        ).classId,
+        dob: student.dob ? new Date(student.dob) : null,
+        admissionDate: student.admissionDate
+          ? new Date(student.admissionDate)
+          : null,
+        ethnicity: student.ethnicity || "",
+        religion: student.religion || "",
+        idcardNumber: student.idcardNumber || "",
+        permanentAddress: student.permanentAddress || "",
+        birthPlace: student.birthPlace || "",
+        repeatingYear: student.repeatingYear || false,
+        status: student.status || "",
+
+        // Father information
+        fullNameFather: student.parent?.fullNameFather || "",
+        yearOfBirthFather: student.parent?.yearOfBirthFather
+          ? new Date(student.parent.yearOfBirthFather)
+          : null,
+        occupationFather: student.parent?.occupationFather || "",
+        phoneNumberFather: student.parent?.phoneNumberFather || "",
+        emailFather: student.parent?.emailFather || "",
+        idcardNumberFather: student.parent?.idcardNumberFather || "",
+
+        // Mother information
+        fullNameMother: student.parent?.fullNameMother || "",
+        yearOfBirthMother: student.parent?.yearOfBirthMother
+          ? new Date(student.parent.yearOfBirthMother)
+          : null,
+        occupationMother: student.parent?.occupationMother || "",
+        phoneNumberMother: student.parent?.phoneNumberMother || "",
+        emailMother: student.parent?.emailMother || "",
+        idcardNumberMother: student.parent?.idcardNumberMother || "",
+
+        // Guardian information
+        fullNameGuardian: student.parent?.fullNameGuardian || "",
+        yearOfBirthGuardian: student.parent?.yearOfBirthGuardian
+          ? new Date(student.parent.yearOfBirthGuardian)
+          : null,
+        occupationGuardian: student.parent?.occupationGuardian || "",
+        phoneNumberGuardian: student.parent?.phoneNumberGuardian || "",
+        emailGuardian: student.parent?.emailGuardian || "",
+        idcardNumberGuardian: student.parent?.idcardNumberGuardian || "",
+      });
     }
-  }, [studentQuery.data, setValue]);
+  }, [studentQuery.data, classQuery.data, reset]);
 
   if (studentQuery.isPending) return <Spinner />;
 
   // Submit handler
   const onSubmit = (formData) => {
-    const processedData = {
+    console.log("submit");
+    // if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
+    //   return;
+    // }
+    const formattedData = {
       ...formData,
-      dob: formData.dob ? formData.dob.toISOString().split("T")[0] : null,
+      dob: formData.dob ? formatDate(formData.dob) : null,
+      admissionDate: formData.admissionDate
+        ? formatDate(formData.admissionDate)
+        : null,
+      yearOfBirthFather: formData.yearOfBirthFather
+        ? formatDate(formData.yearOfBirthFather)
+        : null,
+      yearOfBirthMother: formData.yearOfBirthMother
+        ? formatDate(formData.yearOfBirthMother)
+        : null,
+      yearOfBirthGuardian: formData.yearOfBirthGuardian
+        ? formatDate(formData.yearOfBirthGuardian)
+        : null,
     };
-
-    mutate({ id, data: processedData });
+    console.log(formattedData);
+    mutate(
+      { id, data: formattedData },
+      {
+        onSuccess: () => {
+          reset();
+        },
+      },
+    );
   };
 
   // Form field component
@@ -360,10 +485,10 @@ export default function StudentProfile() {
             render={({ field }) => (
               <Select onValueChange={field.onChange} value={field.value}>
                 <SelectTrigger>
-                  <SelectValue placeholder={`Chọn ${label.toLowerCase()}`} />
+                  <SelectValue placeholder={`Chọn ${label?.toLowerCase()}`} />
                 </SelectTrigger>
                 <SelectContent>
-                  {options?.map((option) => (
+                  {options.map((option) => (
                     <SelectItem key={option} value={option}>
                       {option}
                     </SelectItem>
@@ -405,149 +530,280 @@ export default function StudentProfile() {
   };
 
   return (
-    <form
-      onSubmit={handleSubmit(onSubmit)}
-      className="container mx-auto space-y-6 py-6"
-    >
-      {/* Header with title and save button */}
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
-        <Button type="submit" disabled={isUpdating}>
-          {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
-        </Button>
-      </div>
-      {/* Basic Student Info Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin học sinh</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="flex items-center gap-4 md:col-span-2">
-            <Avatar className="h-20 w-20">
-              <AvatarImage
-                src="/placeholder-avatar.jpg"
-                alt={studentQuery.data?.fullName}
-              />
-              <AvatarFallback className="text-2xl">
-                {studentQuery.data?.fullName?.split(" ").pop()?.charAt(0) ||
-                  "A"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <FormField
-                name="fullName"
-                label="Họ và tên"
-                defaultValue={studentQuery.data?.fullName}
-              />
-            </div>
-          </div>
-          <FormField name="dob" label="Ngày sinh" type="date" />
-          <FormField
-            name="gender"
-            label="Giới tính"
-            type="select"
-            options={["Nam", "Nữ", "Khác"]}
-            defaultValue={studentQuery.data?.gender}
-          />
-          <FormField
-            name="ethnicity"
-            label="Dân tộc"
-            defaultValue={studentQuery.data?.ethnicity}
-          />
-          <FormField
-            name="religion"
-            label="Tôn giáo"
-            defaultValue={studentQuery.data?.religion}
-          />
-          <FormField
-            name="idcardNumber"
-            label="CCCD/CMND"
-            defaultValue={studentQuery.data?.idcardNumber}
-          />
-          <FormField
-            name="grade"
-            label="Khối"
-            defaultValue={studentQuery.data?.grade}
-          />
-          <FormField
-            name="className"
-            label="Lớp"
-            defaultValue={studentQuery.data?.className}
-          />
-          <FormField
-            name="status"
-            label="Trạng thái"
-            type="select"
-            options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
-            defaultValue={studentQuery.data?.status}
-          />
-          <FormField
-            name="enrollmentType"
-            label="Hình thức trúng tuyển"
-            defaultValue={studentQuery.data?.enrollmentType}
-          />
-          <FormField
-            type="date"
-            name="admissionDate"
-            label="Ngày nhập học"
-            defaultValue={studentQuery.data?.admissionDate}
-          />
-          <FormField
-            name="birthPlace"
-            label="Nơi sinh"
-            defaultValue={studentQuery.data?.birthPlace}
-          />
-          <FormField
-            name="permanentAddress"
-            label="Địa chỉ thường trú"
-            defaultValue={studentQuery.data?.permanentAddress}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Father Information */}
-      {studentQuery.data?.parents?.map((parent, index) => (
-        <Card key={parent.parentId || index}>
+    <>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        className="container mx-auto space-y-6 py-6"
+      >
+        {/* Header with title and save button */}
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
+          <Button type="submit" disabled={isUpdating}>
+            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+          </Button>
+        </div>
+        {/* Basic Student Info Card */}
+        <Card>
           <CardHeader>
-            <CardTitle>Thông tin {parent.relationship.toLowerCase()}</CardTitle>
+            <CardTitle>Thông tin học sinh</CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+            <div className="flex items-center gap-4 md:col-span-2">
+              <div className="flex-1">
+                <FormField name="fullName" label="Họ và tên" />
+              </div>
+            </div>
+            <FormField name="dob" label="Ngày sinh" type="date" />
             <FormField
-              name={`parents.${index}.fullName`}
-              label="Họ và tên"
-              defaultValue={parent.fullName}
+              name="gender"
+              label="Giới tính"
+              type="select"
+              options={["Nam", "Nữ", "Khác"]}
             />
+            <FormField name="ethnicity" label="Dân tộc" />
+            <FormField name="religion" label="Tôn giáo" />
+            <FormField name="idcardNumber" label="CCCD/CMND" />
+            <div className="space-y-2">
+              <Label htmlFor="classId">Lớp</Label>
+              <Controller
+                name="classId"
+                control={control}
+                render={({ field }) => (
+                  <Select
+                    onValueChange={(value) => field.onChange(parseInt(value))}
+                    value={
+                      field.value && field.value !== 0
+                        ? field.value.toString()
+                        : undefined
+                    }
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Chọn lớp" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {classQuery.data?.map((c) => (
+                        <SelectItem
+                          key={c.classId}
+                          value={c.classId.toString()}
+                        >
+                          {c.className}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              />
+              {errors.classId && (
+                <p className="text-sm text-red-500">{errors.classId.message}</p>
+              )}
+            </div>
             <FormField
-              name={`parents.${index}.occupation`}
-              label="Nghề nghiệp"
-              defaultValue={parent.occupation}
+              name="status"
+              label="Trạng thái"
+              type="select"
+              options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
             />
-            <FormField
-              name={`parents.${index}.phoneNumber`}
-              label="Số điện thoại"
-              defaultValue={parent.phoneNumber}
-            />
-            <FormField
-              name={`parents.${index}.dob`}
-              label="Ngày sinh"
-              type="date"
-              defaultValue={parent.dob}
-            />
-            <FormField
-              name={`parents.${index}.email`}
-              label="Email"
-              defaultValue={parent.email}
-            />
+            <FormField name="enrollmentType" label="Hình thức trúng tuyển" />
+            <FormField name="admissionDate" label="Ngày nhập học" type="date" />
+            <FormField name="birthPlace" label="Nơi sinh" />
+            <FormField name="permanentAddress" label="Địa chỉ thường trú" />
+            <div className="flex items-center space-x-2">
+              <input
+                type="checkbox"
+                id="repeatingYear"
+                {...register("repeatingYear")}
+                className="h-4 w-4 rounded border-gray-300"
+              />
+              <Label htmlFor="repeatingYear">Học sinh lưu ban</Label>
+            </div>
           </CardContent>
         </Card>
-      ))}
 
-      {/* Submit button at bottom for convenience */}
-      <div className="flex justify-end">
-        <Button type="submit" disabled={isUpdating} size="lg">
-          {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
-        </Button>
-      </div>
-    </form>
+        {/* Family Information Section */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Thông tin gia đình</CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-6">
+            {/* Checkbox selection */}
+            <div className="flex flex-wrap gap-4">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showFatherInfo"
+                  checked={showFatherInfo}
+                  onChange={(e) => setShowFatherInfo(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="showFatherInfo">Thông tin cha</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showMotherInfo"
+                  checked={showMotherInfo}
+                  onChange={(e) => setShowMotherInfo(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="showMotherInfo">Thông tin mẹ</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  id="showGuardianInfo"
+                  checked={showGuardianInfo}
+                  onChange={(e) => setShowGuardianInfo(e.target.checked)}
+                  className="h-4 w-4 rounded border-gray-300"
+                />
+                <Label htmlFor="showGuardianInfo">Thông tin người bảo hộ</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowSiblingsModal(true)}
+                >
+                  Có anh/chị/em đang học
+                </Button>
+              </div>
+            </div>
+            {errors.familyInfoRequired && (
+              <p className="text-sm text-red-500">
+                {errors.familyInfoRequired.message}
+              </p>
+            )}
+
+            {/* Father Information - chỉ hiển thị khi checkbox được chọn */}
+            {showFatherInfo && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">Thông tin cha</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField name="fullNameFather" label="Họ và tên" />
+                  <FormField
+                    name="yearOfBirthFather"
+                    label="Năm sinh"
+                    type="date"
+                  />
+                  <FormField name="occupationFather" label="Nghề nghiệp" />
+                  <FormField name="phoneNumberFather" label="Số điện thoại" />
+                  <FormField name="emailFather" label="Email" />
+                  <FormField name="idcardNumberFather" label="CCCD/CMND" />
+                </div>
+              </div>
+            )}
+
+            {/* Mother Information - chỉ hiển thị khi checkbox được chọn */}
+            {showMotherInfo && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">Thông tin mẹ</h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField name="fullNameMother" label="Họ và tên" />
+                  <FormField
+                    name="yearOfBirthMother"
+                    label="Năm sinh"
+                    type="date"
+                  />
+                  <FormField name="occupationMother" label="Nghề nghiệp" />
+                  <FormField name="phoneNumberMother" label="Số điện thoại" />
+                  <FormField name="emailMother" label="Email" />
+                  <FormField name="idcardNumberMother" label="CCCD/CMND" />
+                </div>
+              </div>
+            )}
+
+            {/* Guardian Information - chỉ hiển thị khi checkbox được chọn */}
+            {showGuardianInfo && (
+              <div className="rounded-lg border p-4">
+                <h3 className="mb-4 text-lg font-semibold">
+                  Thông tin người giám hộ
+                </h3>
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                  <FormField name="fullNameGuardian" label="Họ và tên" />
+                  <FormField
+                    name="yearOfBirthGuardian"
+                    label="Năm sinh"
+                    type="date"
+                  />
+                  <FormField name="occupationGuardian" label="Nghề nghiệp" />
+                  <FormField name="phoneNumberGuardian" label="Số điện thoại" />
+                  <FormField name="emailGuardian" label="Email" />
+                  <FormField name="idcardNumberGuardian" label="CCCD/CMND" />
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+
+        {/* Submit button at bottom for convenience */}
+        <div className="flex justify-end">
+          <Button type="submit" disabled={isUpdating} size="lg">
+            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+          </Button>
+        </div>
+      </form>
+      <Dialog open={showSiblingsModal} onOpenChange={setShowSiblingsModal}>
+        <DialogContent className="!w-full !max-w-fit">
+          <DialogHeader>
+            <DialogTitle>Danh sách học sinh</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Input
+              placeholder="Tìm kiếm theo tên..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="mt-2"
+            />
+            <div className="max-h-[400px] overflow-y-auto">
+              <table className="w-full">
+                <thead className="">
+                  <tr className="bg-background sticky top-0 z-10 border-b">
+                    <th className="p-2 text-left">Họ và tên</th>
+                    <th className="p-2 text-left">Lớp</th>
+                    <th className="p-2 text-left">Họ tên cha</th>
+                    <th className="p-2 text-left">Họ tên mẹ</th>
+                    <th className="p-2 text-left">Họ tên người bảo hộ</th>
+                    <th className="p-2 text-left">Thao tác</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {filteredStudents && filteredStudents.length > 0 ? (
+                    filteredStudents?.map((student) => (
+                      <tr key={student.studentId} className="border-b">
+                        <td className="w-50 p-2">{student.fullName}</td>
+                        <td className="w-14 p-2">{student.className}</td>
+                        <td className="w-50 p-2">
+                          {student?.parent?.fullNameFather}
+                        </td>
+                        <td className="w-50 p-2">
+                          {student?.parent?.fullNameMother}
+                        </td>
+                        <td className="w-50 p-2">
+                          {student?.parent?.fullNameGuardian}
+                        </td>
+                        <td className="w-30 p-2">
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setShowSiblingsModal(false);
+                              handleChangeSibling(student);
+                            }}
+                          >
+                            Chọn
+                          </Button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <td colSpan={10}>Đang tải dữ liệu</td>
+                  )}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </>
   );
 }
