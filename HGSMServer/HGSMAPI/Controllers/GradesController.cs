@@ -18,7 +18,7 @@ namespace HGSMAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetGrades(int classId, int subjectId, int semesterId)
         {
-            var grades = await _gradeService.GetGradesByClassSubjectSemesterAsync(classId, subjectId, semesterId);
+            var grades = await _gradeService.GetGradesForStudentAsync(classId, subjectId);
             return Ok(grades);
         }
         [HttpPut("update-multiple-scores")]

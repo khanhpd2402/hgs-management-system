@@ -17,10 +17,11 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Classes
                 .Include(c => c.StudentClasses)
-                    .ThenInclude(sc => sc.Student) // Nếu cần thông tin học sinh
+                    .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.Timetables)
+                .Include(c => c.TimetableDetails) // ← đúng
+                    .ThenInclude(td => td.Timetable)
                 .ToListAsync();
         }
 
@@ -28,10 +29,11 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Classes
                 .Include(c => c.StudentClasses)
-                    .ThenInclude(sc => sc.Student) // Nếu cần thông tin học sinh
+                    .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.Timetables)
+                .Include(c => c.TimetableDetails) // ← đúng
+                    .ThenInclude(td => td.Timetable)
                 .FirstOrDefaultAsync(c => c.ClassId == id)
                 ?? throw new Exception("Class not found");
         }

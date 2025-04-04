@@ -61,15 +61,15 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        // PUT: api/Student/5
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDto updateStudentDto)
         {
-            if (id != updateStudentDto.StudentId) return BadRequest("Student ID mismatch.");
+            if (updateStudentDto == null) return BadRequest("Student data cannot be null.");
 
             try
             {
-                await _studentService.UpdateStudentAsync(updateStudentDto);
+                // Truyền id từ URL trực tiếp vào UpdateStudentAsync
+                await _studentService.UpdateStudentAsync(id, updateStudentDto);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
@@ -151,37 +151,37 @@ namespace HGSMAPI.Controllers
                 }
 
 
-                worksheet.Cell(2, 1).Value = "Nguyễn Thị Mai";
+                worksheet.Cell(2, 1).Value = "Giàng A Páo";
                 worksheet.Cell(2, 2).Value = "15-08-2010";
                 worksheet.Cell(2, 3).Value = "Nữ";
-                worksheet.Cell(2, 4).Value = "10-09-2022"; // Ngày nhập học hợp lệ
+                worksheet.Cell(2, 4).Value = "10-09-2022"; 
                 worksheet.Cell(2, 5).Value = "Thi tuyển";
                 worksheet.Cell(2, 6).Value = "Kinh";
                 worksheet.Cell(2, 7).Value = "456 Đường XYZ, Quận 2";
                 worksheet.Cell(2, 8).Value = "TP. Hồ Chí Minh";
                 worksheet.Cell(2, 9).Value = "Không";
                 worksheet.Cell(2, 10).Value = "Không";
-                worksheet.Cell(2, 11).Value = "987654321012";
+                worksheet.Cell(2, 11).Value = "987004321012";
                 worksheet.Cell(2, 12).Value = "Đang học";
                 worksheet.Cell(2, 13).Value = "7B";
-                worksheet.Cell(2, 14).Value = "Trần Văn An";
+                worksheet.Cell(2, 14).Value = "Giàng Giàng Giàng";
                 worksheet.Cell(2, 15).Value = "20-05-1985";
                 worksheet.Cell(2, 16).Value = "Kỹ sư";
-                worksheet.Cell(2, 17).Value = "0912345678"; // SĐT hợp lệ 10 số
-                worksheet.Cell(2, 18).Value = "tranvanan@example.com";
-                worksheet.Cell(2, 19).Value = "123456789876";
-                worksheet.Cell(2, 20).Value = "Lê Thị Hồng";
-                worksheet.Cell(2, 21).Value = "12-11-1987";
-                worksheet.Cell(2, 22).Value = "Nhân viên văn phòng";
-                worksheet.Cell(2, 23).Value = "0987654321"; // SĐT hợp lệ 10 số
-                worksheet.Cell(2, 24).Value = "lethihong@example.com";
-                worksheet.Cell(2, 25).Value = "789456123654";
-                worksheet.Cell(2, 26).Value = "Phạm Văn Bình";
-                worksheet.Cell(2, 27).Value = "25-07-1982";
-                worksheet.Cell(2, 28).Value = "Doanh nhân";
-                worksheet.Cell(2, 29).Value = "0965124789"; // SĐT hợp lệ 10 số
-                worksheet.Cell(2, 30).Value = "phamvanbinh@example.com";
-                worksheet.Cell(2, 31).Value = "321654987123"; // Căn cước công dân mới
+                worksheet.Cell(2, 17).Value = "0012115678"; // SĐT hợp lệ 10 số
+                worksheet.Cell(2, 18).Value = "tranvananaaa@example.com";
+                worksheet.Cell(2, 19).Value = "120056789876";
+                //worksheet.Cell(2, 20).Value = "Lê Thị Hồng";
+                //worksheet.Cell(2, 21).Value = "12-11-1987";
+                //worksheet.Cell(2, 22).Value = "Nhân viên văn phòng";
+                //worksheet.Cell(2, 23).Value = "0987654321"; // SĐT hợp lệ 10 số
+                //worksheet.Cell(2, 24).Value = "lethihong@example.com";
+                //worksheet.Cell(2, 25).Value = "789456123654";
+                //worksheet.Cell(2, 26).Value = "Phạm Văn Bình";
+                //worksheet.Cell(2, 27).Value = "25-07-1982";
+                //worksheet.Cell(2, 28).Value = "Doanh nhân";
+                //worksheet.Cell(2, 29).Value = "0965124789"; // SĐT hợp lệ 10 số
+                //worksheet.Cell(2, 30).Value = "phamvanbinh@example.com";
+                //worksheet.Cell(2, 31).Value = "321654987123"; // Căn cước công dân mới
 
 
                 worksheet.Columns().AdjustToContents();
