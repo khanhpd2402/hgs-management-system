@@ -362,10 +362,7 @@ export default function TeacherTable() {
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={visibleColumns.length}
-                    className="p-4 text-center"
-                  >
+                  <TableCell colSpan={visibleColumns.length} className="p-4">
                     Không có dữ liệu
                   </TableCell>
                 </TableRow>
