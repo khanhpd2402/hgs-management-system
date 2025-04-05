@@ -15,7 +15,7 @@ public partial class Subject
 
     public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    public virtual ICollection<GradeLevelSubject> GradeLevelSubjects { get; set; } = new List<GradeLevelSubject>();
 
     public virtual ICollection<LessonPlan> LessonPlans { get; set; } = new List<LessonPlan>();
 
@@ -25,5 +25,5 @@ public partial class Subject
 
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 
-    public virtual ICollection<Timetable> Timetables { get; set; } = new List<Timetable>();
+    public virtual ICollection<TimetableDetail> TimetableDetails { get; set; } = new List<TimetableDetail>();
 }

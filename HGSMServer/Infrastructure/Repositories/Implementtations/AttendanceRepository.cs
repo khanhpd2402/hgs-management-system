@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Infrastructure.Repositories.Implementtations // Sửa lỗi chính tả từ "Implementtations" thành "Implementations"
+namespace Infrastructure.Repositories.Implementtations
 {
     public class AttendanceRepository : IAttendanceRepository
     {

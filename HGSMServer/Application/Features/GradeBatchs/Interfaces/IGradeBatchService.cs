@@ -12,7 +12,8 @@ namespace Application.Features.GradeBatchs.Interfaces
         Task<IEnumerable<GradeBatchDto>> GetAllAsync();
         Task<GradeBatchDto?> GetByIdAsync(int id);
         Task<GradeBatchDto> CreateAsync(GradeBatchDto gradeBatchDto, List<int> subjectIds, List<string> assessmentTypes);
-        Task<bool> UpdateAsync(GradeBatchDto gradeBatchDto);
         Task<bool> DeleteAsync(int id);
+        Task<GradeBatchDetailResponseDto> GetGradeBatchDetailAsync(int batchId);
+        Task<GradeBatchDto> UpdateAsync(GradeBatchToCreateDto request);
     }
 }

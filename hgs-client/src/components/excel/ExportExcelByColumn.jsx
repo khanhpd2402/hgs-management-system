@@ -49,7 +49,16 @@ const ExportExcelByColumn = ({
       allData.forEach((row) => {
         const filteredRow = {};
         selectedColumns.forEach(({ id }) => {
-          filteredRow[id] = row[id] || "";
+          // Handle parent information
+          if (
+            id.includes("Father") ||
+            id.includes("Mother") ||
+            id.includes("Guardian")
+          ) {
+            filteredRow[id] = row.parent?.[id] || "";
+          } else {
+            filteredRow[id] = row[id] || "";
+          }
         });
         worksheet.addRow(filteredRow);
       });
@@ -128,10 +137,10 @@ const ExportExcelByColumn = ({
             </Button>
           </div>
 
-          <ScrollArea className="max-h-[300px] pr-4">
-            <div className="space-y-3 py-2">
+          <ScrollArea className="h-[300px] pr-4">
+            <div className="grid grid-cols-2 gap-4 py-2">
               {visibleColumns
-                .filter((col) => col.id !== "actions") // Ẩn cột "actions"
+                .filter((col) => col.id !== "actions")
                 .map((col) => (
                   <div key={col.id} className="flex items-center space-x-2">
                     <Checkbox

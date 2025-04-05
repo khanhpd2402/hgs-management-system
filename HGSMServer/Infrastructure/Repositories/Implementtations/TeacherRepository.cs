@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Infrastructure.Repositories.Implementtations
@@ -25,7 +24,6 @@ namespace Infrastructure.Repositories.Implementtations
 
         public async Task<Teacher?> GetByIdAsync(int id)
         {
-
             return await _context.Teachers.Include(t => t.User)
                                           .FirstOrDefaultAsync(t => t.TeacherId == id);
         }
@@ -51,9 +49,10 @@ namespace Infrastructure.Repositories.Implementtations
                 await _context.SaveChangesAsync();
             }
         }
-        public async Task<bool> ExistsAsync(string idCard, string insuranceNumber)
+
+        public async Task<bool> ExistsAsync(string idCard)
         {
-            return await _context.Teachers.AnyAsync(t => t.IdcardNumber == idCard || t.InsuranceNumber == insuranceNumber);
+            return await _context.Teachers.AnyAsync(t => t.IdcardNumber == idCard);
         }
 
         public async Task AddRangeAsync(IEnumerable<Teacher> teachers)
@@ -61,14 +60,17 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.Teachers.AddRangeAsync(teachers);
             await _context.SaveChangesAsync();
         }
+
         public async Task<Teacher> GetByUserIdAsync(int userId)
         {
             return await _context.Teachers
                 .FirstOrDefaultAsync(t => t.UserId == userId);
         }
-        public async Task<IEnumerable<TeacherSubject>> GetTeacherSubjectsAsync(int teacherId)
+
+        public async Task<List<TeacherSubject>?> GetTeacherSubjectsAsync(int teacherId)
         {
             return await _context.TeacherSubjects
+                .Include(ts => ts.Subject)
                 .Where(ts => ts.TeacherId == teacherId)
                 .ToListAsync();
         }
@@ -81,6 +83,63 @@ namespace Infrastructure.Repositories.Implementtations
 
             _context.TeacherSubjects.RemoveRange(subjects);
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<bool> IsUsernameExistsAsync(string username)
+        {
+            return await _context.Users.AnyAsync(t => t.Username == username);
+        }
+
+        public async Task<bool> IsEmailOrPhoneExistsAsync(string email, string phoneNumber)
+        {
+            return await _context.Users.AnyAsync(u => u.Email == email || u.PhoneNumber == phoneNumber);
+        }
+        public async Task AddTeacherSubjectAsync(TeacherSubject teacherSubject)
+        {
+            await _context.TeacherSubjects.AddAsync(teacherSubject);
+            await _context.SaveChangesAsync();
+        }
+        public async Task AddTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects)
+        {
+            await _context.TeacherSubjects.AddRangeAsync(teacherSubjects);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<Teacher?> GetByIdWithUserAsync(int id)
+        {
+            return await _context.Teachers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TeacherId == id);
+        }
+        public async Task<IEnumerable<Teacher>> GetAllWithUserAsync()
+        {
+            return await _context.Teachers
+                .Include(t => t.User)
+                .ToListAsync();
+        }
+        public async Task UpdateTeacherSubjectAsync(TeacherSubject teacherSubject)
+        {
+            _context.TeacherSubjects.Update(teacherSubject);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects)
+        {
+            _context.TeacherSubjects.RemoveRange(teacherSubjects);
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateUserAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -18,10 +18,11 @@ const menuItems = [
   {
     label: "Quản trị",
     icon: Settings,
-    path: "/principal",
+    path: "/system",
     children: [
-      { label: "Quản lý người dùng", path: "/principal/user" },
-      // { label: "Quản lý môn học", path: "/admin/subject" },
+      { label: "Quản lý người dùng", path: "/system/user" },
+      { label: "Quản lý lớp", path: "/system/class" },
+      { label: "Quản lý môn học", path: "/system/subject" },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
     ],

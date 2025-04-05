@@ -16,7 +16,7 @@ using Application.Features.Students.Services;
 using Application.Features.Users.Interfaces;
 using Application.Features.Users.Services;
 using Application.Features.Teachers.Interfaces;
-using Application.Features.Teachers.Services;
+//using Application.Features.Teachers.Services;
 using Application.Features.Role.Interfaces;
 using Application.Features.Role.Services;
 using Common.Utils;
@@ -119,6 +119,8 @@ builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
 builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
 builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
+builder.Services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
+builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
 
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
@@ -134,6 +136,7 @@ builder.Services.AddScoped<IClassRepository, ClassRepository>();
 builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
+builder.Services.AddScoped<ITimetableService, TimetableService>();
 
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();

@@ -124,8 +124,7 @@ namespace Application.Features.TeachingAssignments.Services
                     .Select(s => new SubjectDto
                     {
                         SubjectId = s.SubjectId,
-                        SubjectName = s.SubjectName,
-                        SubjectCategory = s.SubjectCategory
+                        SubjectName = s.SubjectName
                     })
                     .ToListAsync(),
 
@@ -178,23 +177,23 @@ namespace Application.Features.TeachingAssignments.Services
                     throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
                 }
 
-                // Tính số tiết/tuần thực tế từ Timetables
-                int actualPeriodsPerWeekHK1 = await _context.Timetables
-                    .Where(t => t.TeacherId == dto.TeacherId &&
-                                t.SubjectId == dto.SubjectId &&
-                                t.ClassId == classAssignment.ClassId &&
-                                t.SemesterId == dto.SemesterId &&
-                                t.Semester.SemesterName == "Học kỳ 1")
-                    .GroupBy(t => t.DayOfWeek)
+                // Tính số tiết/tuần thực tế từ TimetableDetails
+                int actualPeriodsPerWeekHK1 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == dto.TeacherId &&
+                                 td.SubjectId == dto.SubjectId &&
+                                 td.ClassId == classAssignment.ClassId &&
+                                 td.Timetable.SemesterId == dto.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 1")
+                    .GroupBy(td => td.DayOfWeek)
                     .CountAsync();
 
-                int actualPeriodsPerWeekHK2 = await _context.Timetables
-                    .Where(t => t.TeacherId == dto.TeacherId &&
-                                t.SubjectId == dto.SubjectId &&
-                                t.ClassId == classAssignment.ClassId &&
-                                t.SemesterId == dto.SemesterId &&
-                                t.Semester.SemesterName == "Học kỳ 2")
-                    .GroupBy(t => t.DayOfWeek)
+                int actualPeriodsPerWeekHK2 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == dto.TeacherId &&
+                                 td.SubjectId == dto.SubjectId &&
+                                 td.ClassId == classAssignment.ClassId &&
+                                 td.Timetable.SemesterId == dto.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 2")
+                    .GroupBy(td => td.DayOfWeek)
                     .CountAsync();
 
                 result.Add(new TeachingAssignmentResponseDto
@@ -216,6 +215,7 @@ namespace Application.Features.TeachingAssignments.Services
             return result;
         }
 
+
         public async Task<List<TeachingAssignmentResponseDto>> SearchTeachingAssignmentsAsync(TeachingAssignmentFilterDto filter)
         {
             var userRole = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
@@ -229,7 +229,7 @@ namespace Application.Features.TeachingAssignments.Services
                 .Include(ta => ta.Semester)
                 .AsQueryable();
 
-            // Nếu là giáo viên, chỉ được xem phân công của bản thân
+            // Nếu là giáo viên, chỉ xem phân công của bản thân
             if (userRole == "Teacher")
             {
                 var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
@@ -243,45 +243,55 @@ namespace Application.Features.TeachingAssignments.Services
                 }
             }
 
-            // Lọc theo các tiêu chí
+            // Apply Filters
             if (filter.TeacherId.HasValue)
-            {
                 query = query.Where(ta => ta.TeacherId == filter.TeacherId.Value);
-            }
 
             if (!string.IsNullOrEmpty(filter.TeacherName))
-            {
                 query = query.Where(ta => ta.Teacher.FullName.Contains(filter.TeacherName));
-            }
 
             if (filter.SubjectId.HasValue)
-            {
                 query = query.Where(ta => ta.SubjectId == filter.SubjectId.Value);
-            }
 
             if (!string.IsNullOrEmpty(filter.SubjectName))
-            {
                 query = query.Where(ta => ta.Subject.SubjectName.Contains(filter.SubjectName));
-            }
 
             if (filter.ClassId.HasValue)
-            {
                 query = query.Where(ta => ta.ClassId == filter.ClassId.Value);
-            }
 
             if (!string.IsNullOrEmpty(filter.ClassName))
-            {
                 query = query.Where(ta => ta.Class.ClassName.Contains(filter.ClassName));
-            }
 
             if (filter.SemesterId.HasValue)
-            {
                 query = query.Where(ta => ta.SemesterId == filter.SemesterId.Value);
-            }
 
-            // Tính số tiết/tuần thực tế từ Timetables
-            var result = await query
-                .Select(ta => new TeachingAssignmentResponseDto
+            var assignmentList = await query.ToListAsync();
+
+            var result = new List<TeachingAssignmentResponseDto>();
+
+            foreach (var ta in assignmentList)
+            {
+                var actualPeriodsHK1 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == ta.TeacherId &&
+                                 td.SubjectId == ta.SubjectId &&
+                                 td.ClassId == ta.ClassId &&
+                                 td.Timetable.SemesterId == ta.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 1")
+                    .Select(td => new { td.DayOfWeek, td.Period })
+                    .Distinct()
+                    .CountAsync();
+
+                var actualPeriodsHK2 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == ta.TeacherId &&
+                                 td.SubjectId == ta.SubjectId &&
+                                 td.ClassId == ta.ClassId &&
+                                 td.Timetable.SemesterId == ta.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 2")
+                    .Select(td => new { td.DayOfWeek, td.Period })
+                    .Distinct()
+                    .CountAsync();
+
+                result.Add(new TeachingAssignmentResponseDto
                 {
                     AssignmentId = ta.AssignmentId,
                     TeacherId = ta.TeacherId,
@@ -292,24 +302,10 @@ namespace Application.Features.TeachingAssignments.Services
                     ClassName = ta.Class.ClassName,
                     SemesterId = ta.SemesterId,
                     SemesterName = ta.Semester.SemesterName,
-                    ActualPeriodsPerWeekHK1 = _context.Timetables
-                        .Where(t => t.TeacherId == ta.TeacherId &&
-                                    t.SubjectId == ta.SubjectId &&
-                                    t.ClassId == ta.ClassId &&
-                                    t.SemesterId == ta.SemesterId &&
-                                    t.Semester.SemesterName == "Học kỳ 1")
-                        .GroupBy(t => t.DayOfWeek)
-                        .Count(),
-                    ActualPeriodsPerWeekHK2 = _context.Timetables
-                        .Where(t => t.TeacherId == ta.TeacherId &&
-                                    t.SubjectId == ta.SubjectId &&
-                                    t.ClassId == ta.ClassId &&
-                                    t.SemesterId == ta.SemesterId &&
-                                    t.Semester.SemesterName == "Học kỳ 2")
-                        .GroupBy(t => t.DayOfWeek)
-                        .Count()
-                })
-                .ToListAsync();
+                    ActualPeriodsPerWeekHK1 = actualPeriodsHK1,
+                    ActualPeriodsPerWeekHK2 = actualPeriodsHK2
+                });
+            }
 
             return result;
         }
