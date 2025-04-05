@@ -15,11 +15,18 @@ namespace Infrastructure.Repositories.Interfaces
         Task<bool> ExistsAsync(string idCard);
         Task AddRangeAsync(IEnumerable<Teacher> teachers);
         Task<Teacher> GetByUserIdAsync(int userId);
-        Task<IEnumerable<TeacherSubject>> GetTeacherSubjectsAsync(int teacherId);
+        Task<List<TeacherSubject>?> GetTeacherSubjectsAsync(int teacherId);
         Task DeleteTeacherSubjectsAsync(int teacherId);
         Task<bool> IsUsernameExistsAsync(string username);
         Task<bool> IsEmailOrPhoneExistsAsync(string email, string phoneNumber);
         Task AddTeacherSubjectAsync(TeacherSubject teacherSubject);
         Task AddTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects);
+        Task<Teacher?> GetByIdWithUserAsync(int id);
+        Task<IEnumerable<Teacher>> GetAllWithUserAsync();
+        Task UpdateTeacherSubjectAsync(TeacherSubject teacherSubject);
+        Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects);
+        Task UpdateUserAsync(User user);
+        Task DeleteUserAsync(int userId);
+
     }
 }

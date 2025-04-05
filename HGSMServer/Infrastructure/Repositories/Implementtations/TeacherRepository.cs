@@ -67,9 +67,10 @@ namespace Infrastructure.Repositories.Implementtations
                 .FirstOrDefaultAsync(t => t.UserId == userId);
         }
 
-        public async Task<IEnumerable<TeacherSubject>> GetTeacherSubjectsAsync(int teacherId)
+        public async Task<List<TeacherSubject>?> GetTeacherSubjectsAsync(int teacherId)
         {
             return await _context.TeacherSubjects
+                .Include(ts => ts.Subject)
                 .Where(ts => ts.TeacherId == teacherId)
                 .ToListAsync();
         }
@@ -102,6 +103,43 @@ namespace Infrastructure.Repositories.Implementtations
         {
             await _context.TeacherSubjects.AddRangeAsync(teacherSubjects);
             await _context.SaveChangesAsync();
+        }
+        public async Task<Teacher?> GetByIdWithUserAsync(int id)
+        {
+            return await _context.Teachers
+                .Include(t => t.User)
+                .FirstOrDefaultAsync(t => t.TeacherId == id);
+        }
+        public async Task<IEnumerable<Teacher>> GetAllWithUserAsync()
+        {
+            return await _context.Teachers
+                .Include(t => t.User)
+                .ToListAsync();
+        }
+        public async Task UpdateTeacherSubjectAsync(TeacherSubject teacherSubject)
+        {
+            _context.TeacherSubjects.Update(teacherSubject);
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects)
+        {
+            _context.TeacherSubjects.RemoveRange(teacherSubjects);
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateUserAsync(User user)
+        {
+            _context.Users.Update(user);
+            await _context.SaveChangesAsync();
+        }
+        public async Task DeleteUserAsync(int userId)
+        {
+            var user = await _context.Users.FindAsync(userId);
+            if (user != null)
+            {
+                _context.Users.Remove(user);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }
