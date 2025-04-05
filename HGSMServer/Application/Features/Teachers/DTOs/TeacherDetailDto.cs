@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Application.Features.Subjects.DTOs;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,7 +10,7 @@ namespace Application.Features.Teachers.DTOs
     public class TeacherDetailDto
     {
         public int TeacherId { get; set; }
-        public int? UserId { get; set; }
+        //public int? UserId { get; set; }
         public string FullName { get; set; } = null!;
         public DateOnly Dob { get; set; }
         public string Gender { get; set; } = null!;
@@ -21,7 +22,6 @@ namespace Application.Features.Teachers.DTOs
         public string? EmploymentType { get; set; }
         public string? Position { get; set; }
         public string? Department { get; set; }
-        public string? MainSubject { get; set; } // Thay AdditionalDuties
         public bool? IsHeadOfDepartment { get; set; }
         public string? EmploymentStatus { get; set; }
         public string? RecruitmentAgency { get; set; }
@@ -30,6 +30,9 @@ namespace Application.Features.Teachers.DTOs
         public DateOnly SchoolJoinDate { get; set; }
         public string? PermanentAddress { get; set; }
         public string? Hometown { get; set; }
+        public string Email { get; set; } = null!;
+        public string PhoneNumber { get; set; } = null!;
+        public List<SubjectDto> Subjects { get; set; } = new List<SubjectDto>();
     }
 
 }

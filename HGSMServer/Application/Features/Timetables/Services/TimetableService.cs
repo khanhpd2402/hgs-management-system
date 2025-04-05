@@ -42,18 +42,22 @@ namespace Application.Features.Timetables.Services
             return createdTimetable;
         }
 
-        public async Task<IEnumerable<TimetableDetailDto>> GetTimetableByStudentAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<TimetableDto>> GetTimetableByStudentAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
         {
-            var details = await _repository.GetByStudentIdAsync(studentId, semesterId, effectiveDate);
-            return _mapper.Map<IEnumerable<TimetableDetailDto>>(details);
+            var timetables = await _repository.GetByStudentIdAsync(studentId, semesterId, effectiveDate);
+            return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
-        public async Task<IEnumerable<TimetableDetailDto>> GetTimetableByTeacherAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<TimetableDto>> GetTimetableByTeacherAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
         {
-            var details = await _repository.GetByTeacherIdAsync(teacherId, semesterId, effectiveDate);
-            return _mapper.Map<IEnumerable<TimetableDetailDto>>(details);
+            var timetables = await _repository.GetByTeacherIdAsync(teacherId, semesterId, effectiveDate);
+            return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
-
+        public async Task<IEnumerable<TimetableDto>> GetTimetableByClassAsync(int classId, int? semesterId = null, DateOnly? effectiveDate = null)
+        {
+            var timetables = await _repository.GetByClassIdAsync(classId, semesterId, effectiveDate);
+            return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
+        }
         public async Task<bool> UpdateDetailAsync(TimetableDetailDto detailDto)
         {
             var detail = _mapper.Map<TimetableDetail>(detailDto);
