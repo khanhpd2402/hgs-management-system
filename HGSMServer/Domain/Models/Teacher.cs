@@ -31,8 +31,6 @@ public partial class Teacher
 
     public string? Department { get; set; }
 
-    public string? AdditionalDuties { get; set; }
-
     public bool? IsHeadOfDepartment { get; set; }
 
     public string? EmploymentStatus { get; set; }
@@ -67,7 +65,7 @@ public partial class Teacher
 
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 
-    public virtual ICollection<Timetable> Timetables { get; set; } = new List<Timetable>();
+    public virtual ICollection<TimetableDetail> TimetableDetails { get; set; } = new List<TimetableDetail>();
 
     public virtual User? User { get; set; }
 }

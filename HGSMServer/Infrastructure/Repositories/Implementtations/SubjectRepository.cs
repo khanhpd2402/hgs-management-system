@@ -49,6 +49,21 @@ namespace Infrastructure.Repositories.Implementtations
             _context.Subjects.Remove(subject);
             return await _context.SaveChangesAsync() > 0;
         }
+        public async Task<Subject> GetByNameAsync(string subjectName)
+        {
+            return await _context.Subjects
+                .FirstOrDefaultAsync(s => s.SubjectName == subjectName);
+        }
+
+        public async Task AddAsync(Subject subject)
+        {
+            _context.Subjects.Add(subject);
+            await _context.SaveChangesAsync();
+        }
+        public async Task<Subject> GetByIdAsync(int subjectId)
+        {
+            return await _context.Subjects.FindAsync(subjectId);
+        }
     }
 
 }

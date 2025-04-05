@@ -17,5 +17,7 @@ public partial class StudentClass
 
     public virtual Class Class { get; set; } = null!;
 
+    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+
     public virtual Student Student { get; set; } = null!;
 }

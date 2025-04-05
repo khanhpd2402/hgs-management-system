@@ -9,9 +9,9 @@ public partial class Class
 
     public string ClassName { get; set; } = null!;
 
-    public int Grade { get; set; }
+    public int GradeLevelId { get; set; }
 
-    public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();
+    public virtual GradeLevel GradeLevel { get; set; } = null!;
 
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
 
@@ -19,5 +19,5 @@ public partial class Class
 
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 
-    public virtual ICollection<Timetable> Timetables { get; set; } = new List<Timetable>();
+    public virtual ICollection<TimetableDetail> TimetableDetails { get; set; } = new List<TimetableDetail>();
 }

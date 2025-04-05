@@ -14,7 +14,7 @@ namespace Application.Features.Students.Interfaces
         Task<StudentListResponseDto> GetAllStudentsWithParentsAsync(int academicYearId);
         Task<StudentDto?> GetStudentByIdAsync(int id, int academicYearId);
         Task<int> AddStudentAsync(CreateStudentDto createStudentDto);
-        Task UpdateStudentAsync(UpdateStudentDto updateStudentDto);
+        Task UpdateStudentAsync(int id, UpdateStudentDto updateStudentDto);
         Task DeleteStudentAsync(int id);
         //Task<byte[]> ExportStudentsFullToExcelAsync();
         //Task<byte[]> ExportStudentsSelectedToExcelAsync(List<string> selectedColumns);
