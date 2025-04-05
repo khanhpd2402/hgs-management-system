@@ -18,13 +18,11 @@ const menuItems = [
   {
     label: "Quản trị",
     icon: Settings,
-    path: "/principal",
+    path: "/system",
     children: [
-      { label: "Quản lý người dùng", path: "/principal/user" },
-      { label: "Thời khóa biểu", path: "/system/schedule" },
-      { label: "Đơn xin nghỉ", path: "/system/leave-request" },
-      { label: "Liên hệ", path: "/system/contact" },
-      // { label: "Quản lý môn học", path: "/admin/subject" },
+      { label: "Quản lý người dùng", path: "/system/user" },
+      { label: "Quản lý lớp", path: "/system/class" },
+      { label: "Quản lý môn học", path: "/system/subject" },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
     ],
@@ -55,19 +53,6 @@ const menuItems = [
         label: "Quản lý đợt nhập điểm",
         path: "/teacher/grade-batch",
       },
-      {
-        label: "Thời khóa biểu",
-        path: "/teacher/schedule",
-      },
-      {
-        label: "Đề xuất giảng dạy",
-        path: "/teacher/request-lesson-plan",
-      },
-      {
-        label: "Đơn xin nghỉ",
-        path: "/teacher/leave-request",
-      },
-
     ],
   },
   {

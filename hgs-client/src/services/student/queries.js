@@ -12,12 +12,12 @@ export function useStudents(academicId) {
   });
 }
 
-export function useStudent(id) {
+export function useStudent({ id, academicYearId }) {
   return useQuery({
-    queryKey: ["student", id],
+    queryKey: ["student", { id, academicYearId }],
     queryFn: () => {
-      return getStudent(id);
+      return getStudent(id, academicYearId);
     },
-    enabled: !!id,
+    enabled: !!id && !!academicYearId,
   });
 }

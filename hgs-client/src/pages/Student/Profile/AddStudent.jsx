@@ -2,7 +2,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Spinner } from "@/components/Spinner";
 import DatePicker from "@/components/DatePicker";
 import {
   Select,
@@ -11,32 +10,29 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-
-import { useParams } from "react-router";
-import { useStudent, useStudents } from "@/services/student/queries";
-import { useUpdateStudent } from "@/services/student/mutation";
-import { useForm, Controller } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
-import { useEffect, useState } from "react";
-import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
-import { formatDate } from "@/helpers/formatDate";
-import { useClasses } from "@/services/common/queries";
 import {
   Dialog,
   DialogContent,
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useCreateStudent } from "@/services/student/mutation";
+import { useForm, Controller } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import { useClasses } from "@/services/common/queries";
+import { formatDate } from "@/helpers/formatDate";
+import { useState } from "react";
+import { useStudents } from "@/services/student/queries";
 
-export default function StudentProfile() {
-  const { id } = useParams();
+export default function AddStudent() {
   const { currentYear } = useLayout();
-  const academicYearId = currentYear?.academicYearID || null;
   const classQuery = useClasses();
-  const studentQuery = useStudent({ id, academicYearId });
-  const { mutate, isPending: isUpdating } = useUpdateStudent();
+  const academicYearId = currentYear?.academicYearID;
+  const { mutate, isPending: isUpdating } = useCreateStudent();
 
+  // State để lưu trữ checkbox nào được chọn
   const [showFatherInfo, setShowFatherInfo] = useState(false);
   const [showMotherInfo, setShowMotherInfo] = useState(false);
   const [showGuardianInfo, setShowGuardianInfo] = useState(false);
@@ -335,7 +331,6 @@ export default function StudentProfile() {
     watch,
     control,
     reset,
-    setValue,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(studentSchema),
@@ -372,70 +367,6 @@ export default function StudentProfile() {
     },
   });
 
-  useEffect(() => {
-    if (studentQuery.data && classQuery.data) {
-      const student = studentQuery.data;
-
-      // Set parent info checkboxes
-      setShowFatherInfo(!!student?.parent?.fullNameFather);
-      setShowMotherInfo(!!student?.parent?.fullNameMother);
-      setShowGuardianInfo(!!student?.parent?.fullNameGuardian);
-
-      // Reset form with student data
-      reset({
-        fullName: student.fullName || "",
-        gender: student.gender || "",
-        enrollmentType: student.enrollmentType || "",
-        classId: classQuery?.data?.find(
-          (c) => c.className === student.className,
-        ).classId,
-        dob: student.dob ? new Date(student.dob) : null,
-        admissionDate: student.admissionDate
-          ? new Date(student.admissionDate)
-          : null,
-        ethnicity: student.ethnicity || "",
-        religion: student.religion || "",
-        idcardNumber: student.idcardNumber || "",
-        permanentAddress: student.permanentAddress || "",
-        birthPlace: student.birthPlace || "",
-        repeatingYear: student.repeatingYear || false,
-        status: student.status || "",
-
-        // Father information
-        fullNameFather: student.parent?.fullNameFather || "",
-        yearOfBirthFather: student.parent?.yearOfBirthFather
-          ? new Date(student.parent.yearOfBirthFather)
-          : null,
-        occupationFather: student.parent?.occupationFather || "",
-        phoneNumberFather: student.parent?.phoneNumberFather || "",
-        emailFather: student.parent?.emailFather || "",
-        idcardNumberFather: student.parent?.idcardNumberFather || "",
-
-        // Mother information
-        fullNameMother: student.parent?.fullNameMother || "",
-        yearOfBirthMother: student.parent?.yearOfBirthMother
-          ? new Date(student.parent.yearOfBirthMother)
-          : null,
-        occupationMother: student.parent?.occupationMother || "",
-        phoneNumberMother: student.parent?.phoneNumberMother || "",
-        emailMother: student.parent?.emailMother || "",
-        idcardNumberMother: student.parent?.idcardNumberMother || "",
-
-        // Guardian information
-        fullNameGuardian: student.parent?.fullNameGuardian || "",
-        yearOfBirthGuardian: student.parent?.yearOfBirthGuardian
-          ? new Date(student.parent.yearOfBirthGuardian)
-          : null,
-        occupationGuardian: student.parent?.occupationGuardian || "",
-        phoneNumberGuardian: student.parent?.phoneNumberGuardian || "",
-        emailGuardian: student.parent?.emailGuardian || "",
-        idcardNumberGuardian: student.parent?.idcardNumberGuardian || "",
-      });
-    }
-  }, [studentQuery.data, classQuery.data, reset]);
-
-  if (studentQuery.isPending) return <Spinner />;
-
   // Submit handler
   const onSubmit = (formData) => {
     console.log("submit");
@@ -459,14 +390,11 @@ export default function StudentProfile() {
         : null,
     };
     console.log(formattedData);
-    mutate(
-      { id, data: formattedData },
-      {
-        onSuccess: () => {
-          reset();
-        },
+    mutate(formattedData, {
+      onSuccess: () => {
+        reset();
       },
-    );
+    });
   };
 
   // Form field component
@@ -539,7 +467,7 @@ export default function StudentProfile() {
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
           <Button type="submit" disabled={isUpdating}>
-            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+            {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>
         {/* Basic Student Info Card */}
@@ -737,7 +665,7 @@ export default function StudentProfile() {
         {/* Submit button at bottom for convenience */}
         <div className="flex justify-end">
           <Button type="submit" disabled={isUpdating} size="lg">
-            {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+            {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>
       </form>

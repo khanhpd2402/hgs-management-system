@@ -16,10 +16,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { useCreateTeacher } from "@/services/teacher/mutation";
 import { useNavigate } from "react-router-dom";
+import { formatDate } from "@/helpers/formatDate";
 
 export default function AddTeacher() {
   const navigate = useNavigate();
   const { mutate, isPending: isCreating } = useCreateTeacher();
+  const employmentTypes = [
+    "Hợp đồng lao động dưới 1 năm",
+    "Viên chức HĐLV không xác định thời hạn",
+    "Hợp đồng thuê khoán",
+  ];
 
   const teacherSchema = z.object({
     // Basic info
@@ -30,11 +36,11 @@ export default function AddTeacher() {
         /^[\p{L}\s]+$/u,
         "Họ và tên không được chứa số hoặc ký tự đặc biệt",
       ),
-    position: z.string().optional(),
-    department: z.string().optional(),
+    position: z.string().min(1, "Vui lòng điền vị trí việc làm"),
+    department: z.string().min(1, "Vui lòng chọn tổ bộ môn"),
 
     // Personal information
-    gender: z.enum(["Nam", "Nữ", "Khác"]).optional(),
+    gender: z.string().min(1, "Vui lòng chọn giới tính"),
     dob: z
       .date()
       .nullable()
@@ -48,8 +54,9 @@ export default function AddTeacher() {
       }),
     idcardNumber: z
       .string()
-      .length(12, "Số CMND/CCCD phải có đúng 12 chữ số")
-      .regex(/^\d{12}$/, "Số CMND/CCCD chỉ được chứa chữ số"),
+      .min(1, "Số CCCD không được để trống")
+      .refine((val) => val.length === 12, "Số CCCD phải có chính xác 12 chữ số")
+      .refine((val) => /^\d+$/.test(val), "Số CCCD chỉ được chứa chữ số"),
     hometown: z
       .string()
       .min(1, "Quê quán không được để trống")
@@ -68,25 +75,20 @@ export default function AddTeacher() {
         /^[\p{L}\s]+$/u,
         "Tôn giáo không được chứa số hoặc ký tự đặc biệt",
       ),
-    maritalStatus: z
-      .enum(["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"])
-      .optional(),
+    maritalStatus: z.string().min(1, "Vui lòng chọn tình trạng hôn nhân"),
+
     permanentAddress: z
       .string()
       .min(1, "Địa chỉ không được để trống")
       .regex(/^[\p{L}\d\s,]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
 
     // Employment information
-    additionalDuties: z.string().optional(),
+    mainSubject: z.string().optional(),
     isHeadOfDepartment: z.boolean().optional().default(false),
-    employmentType: z
-      .enum(["Biên chế", "Hợp đồng dài hạn", "Hợp đồng ngắn hạn", "Cơ hữu"])
-      .optional(),
-    employmentStatus: z
-      .enum(["Đang làm việc", "Nghỉ phép", "Đã nghỉ việc"])
-      .optional(),
-    recruitmentAgency: z.string().optional(),
-    insuranceNumber: z.string().optional(),
+    employmentType: z.string().min(1, "Vui lòng chọn loại hợp đồng"),
+    employmentStatus: z.string().min(1, "Vui lòng chọn trạng thái"),
+    recruitmentAgency: z.string().min(1, "Vui nhập cơ quan tuyển dụng"),
+    insuranceNumber: z.string().min(1, "Vui nhập số bảo hiểm"),
 
     // Employment dates
     hiringDate: z
@@ -145,18 +147,18 @@ export default function AddTeacher() {
       fullName: "",
       position: "",
       department: "",
-      gender: "Nam",
+      gender: "",
       dob: null,
       idcardNumber: "",
       hometown: "",
       ethnicity: "",
       religion: "",
-      maritalStatus: "Độc thân",
+      maritalStatus: "",
       permanentAddress: "",
-      additionalDuties: "",
+      mainSubject: "",
       isHeadOfDepartment: false,
-      employmentType: "Hợp đồng dài hạn",
-      employmentStatus: "Đang làm việc",
+      employmentType: "",
+      employmentStatus: "",
       recruitmentAgency: "",
       insuranceNumber: "",
       hiringDate: null,
@@ -171,18 +173,16 @@ export default function AddTeacher() {
   const onSubmit = (formData) => {
     const processedData = {
       ...formData,
-      dob: formData.dob ? formData.dob.toISOString().split("T")[0] : null,
-      hiringDate: formData.hiringDate
-        ? formData.hiringDate.toISOString().split("T")[0]
-        : null,
+      dob: formData.dob ? formatDate(formData.dob) : null,
+      hiringDate: formData.hiringDate ? formatDate(formData.hiringDate) : null,
       schoolJoinDate: formData.schoolJoinDate
-        ? formData.schoolJoinDate.toISOString().split("T")[0]
+        ? formatDate(formData.schoolJoinDate)
         : null,
       permanentEmploymentDate: formData.permanentEmploymentDate
-        ? formData.permanentEmploymentDate.toISOString().split("T")[0]
+        ? formatDate(formData.permanentEmploymentDate)
         : null,
     };
-    const data = mutate(processedData, {
+    mutate(processedData, {
       onSuccess: () => {
         reset();
       },
@@ -190,14 +190,31 @@ export default function AddTeacher() {
   };
 
   // Form field component
-  const FormField = ({ name, label, type = "text", options }) => {
+  const FormField = ({
+    name,
+    label,
+    type = "text",
+    options,
+    isRequired = false,
+    note,
+  }) => {
     const error = errors[name];
+
+    const renderLabel = () => (
+      <Label htmlFor={name} className="flex items-center gap-2">
+        <span>
+          {label}
+          {isRequired && <span className="ml-1 text-red-500">*</span>}
+        </span>
+        {note && <span className="text-sm text-gray-500">({note})</span>}
+      </Label>
+    );
 
     // Select field
     if (type === "select" && Array.isArray(options)) {
       return (
         <div className="space-y-2">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
@@ -225,7 +242,7 @@ export default function AddTeacher() {
     if (type === "boolean") {
       return (
         <div className="flex items-center justify-between">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
@@ -246,7 +263,7 @@ export default function AddTeacher() {
     if (type === "date") {
       return (
         <div className="space-y-2">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
@@ -262,13 +279,12 @@ export default function AddTeacher() {
     // Default text input
     return (
       <div className="space-y-2">
-        <Label htmlFor={name}>{label}</Label>
+        {renderLabel()}
         <Input id={name} {...register(name)} />
         {error && <p className="text-sm text-red-500">{error.message}</p>}
       </div>
     );
   };
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -291,46 +307,47 @@ export default function AddTeacher() {
         </div>
       </div>
 
-      {/* Basic Info Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin cơ bản</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="md:col-span-2">
-            <FormField name="fullName" label="Họ và tên" />
-          </div>
-          <FormField name="position" label="Vị trí" />
-          <FormField name="department" label="Bộ môn" />
-        </CardContent>
-      </Card>
-
       {/* Personal Information */}
       <Card>
         <CardHeader>
           <CardTitle>Thông tin cá nhân</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField name="fullName" label="Họ và tên" isRequired />
+          <FormField name="position" label="Vị trí việc làm" isRequired />
+          <FormField
+            name="department"
+            label="Tổ bộ môn"
+            type="select"
+            options={["KHXH", "KHTN"]}
+            isRequired
+          />
           <FormField
             name="gender"
             label="Giới tính"
             type="select"
             options={["Nam", "Nữ", "Khác"]}
+            isRequired
           />
-          <FormField name="dob" label="Ngày sinh" type="date" />
-          <FormField name="phoneNumber" label="Số điện thoại" />{" "}
-          <FormField name="email" label="Email" />
-          <FormField name="idcardNumber" label="Số CMND/CCCD" />
-          <FormField name="hometown" label="Quê quán" />
-          <FormField name="ethnicity" label="Dân tộc" />
-          <FormField name="religion" label="Tôn giáo" />
+          <FormField name="dob" label="Ngày sinh" type="date" isRequired />
+          <FormField name="phoneNumber" label="Số điện thoại" isRequired />{" "}
+          <FormField name="email" label="Email" isRequired />
+          <FormField name="idcardNumber" label="Số CMND/CCCD" isRequired />
+          <FormField name="hometown" label="Quê quán" isRequired />
+          <FormField name="ethnicity" label="Dân tộc" isRequired />
+          <FormField name="religion" label="Tôn giáo" isRequired />
           <FormField
             name="maritalStatus"
             label="Tình trạng hôn nhân"
             type="select"
             options={["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"]}
+            isRequired
           />
-          <FormField name="permanentAddress" label="Địa chỉ thường trú" />
+          <FormField
+            name="permanentAddress"
+            label="Địa chỉ thường trú"
+            isRequired
+          />
         </CardContent>
       </Card>
 
@@ -340,7 +357,11 @@ export default function AddTeacher() {
           <CardTitle>Thông tin công việc</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <FormField name="additionalDuties" label="Nhiệm vụ bổ sung" />
+          <FormField
+            name="mainSubject"
+            label="Môn dạy"
+            note="Môn dạy chính có dấu * ở cuối, mỗi môn học cách nhau bằng với phẩy. Ví dụ: Toán*, Văn"
+          />
           <FormField
             name="isHeadOfDepartment"
             label="Tổ trưởng bộ môn"
@@ -350,43 +371,40 @@ export default function AddTeacher() {
             name="employmentType"
             label="Loại hợp đồng"
             type="select"
-            options={[
-              "Biên chế",
-              "Hợp đồng dài hạn",
-              "Hợp đồng ngắn hạn",
-              "Cơ hữu",
-            ]}
+            options={employmentTypes}
+            isRequired
           />
           <FormField
             name="employmentStatus"
             label="Trạng thái"
             type="select"
-            options={["Đang làm việc", "Nghỉ phép", "Đã nghỉ việc"]}
+            options={["Đang làm việc", "Đã nghỉ việc"]}
+            isRequired
           />
-          <FormField name="recruitmentAgency" label="Cơ quan tuyển dụng" />
-          <FormField name="insuranceNumber" label="Số bảo hiểm" />
-        </CardContent>
-      </Card>
-
-      {/* Employment Dates */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin ngày tháng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <FormField name="hiringDate" label="Ngày tuyển dụng" type="date" />
-            <FormField
-              name="schoolJoinDate"
-              label="Ngày vào trường"
-              type="date"
-            />
-            <FormField
-              name="permanentEmploymentDate"
-              label="Ngày vào biên chế"
-              type="date"
-            />
-          </div>
+          <FormField
+            name="recruitmentAgency"
+            label="Cơ quan tuyển dụng"
+            isRequired
+          />
+          <FormField name="insuranceNumber" label="Số bảo hiểm" isRequired />
+          <FormField
+            name="hiringDate"
+            label="Ngày tuyển dụng"
+            type="date"
+            isRequired
+          />
+          <FormField
+            name="schoolJoinDate"
+            label="Ngày vào trường"
+            type="date"
+            isRequired
+          />
+          <FormField
+            name="permanentEmploymentDate"
+            label="Ngày vào biên chế"
+            type="date"
+            isRequired
+          />
         </CardContent>
       </Card>
 

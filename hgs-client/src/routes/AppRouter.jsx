@@ -13,14 +13,9 @@ import { ErrorBoundary } from "react-error-boundary";
 import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
-import ScheduleTable from "@/pages/Schedule/ScheduleSymtem/Schedule";
-import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
-import RequestLessonPlan from "@/pages/RequestLessonPlan/RequestLessonPlan";
-import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
-import ReviewDetail from "@/pages/RequestLessonPlan/ReviewList/ReviewDetail";
-import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
-import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
-import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
+import AddStudent from "@/pages/Student/Profile/AddStudent";
+import SubjectManagement from "@/pages/Principal/SubjectManagement/SubjectManagement";
+import ClassManagement from "@/pages/Principal/ClassManagement/ClassManagement";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -40,9 +35,9 @@ const HTATable = lazy(
 const StudentScore = lazy(
   () => import("@/pages/Student/SummaryScore/StudentScore"),
 );
-const Contact = lazy(() => import("@/pages/contact/Contact"));
+
 const AppRouter = () => {
-  const routes = [...privateRouter, ...authRoutes, ...systemRouter];
+  const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
 
   const router = createBrowserRouter([...routes]);
@@ -68,10 +63,26 @@ const authRoutes = [
 
 const adminRouter = [
   {
-    path: "/principal/user",
+    path: "/system/user",
     element: (
       <ProtectedRoute requiredRoles={["Principal"]}>
         <UserManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/subject",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <SubjectManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/class",
+    element: (
+      <ProtectedRoute requiredRoles={["Principal"]}>
+        <ClassManagement />
       </ProtectedRoute>
     ),
   },
@@ -153,46 +164,6 @@ const teacherRouter = [
       </Suspense>
     ),
   },
-  {
-    path: "/teacher/schedule",
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <ScheduleTeacher />
-      </Suspense>
-    ),
-  },
-  {
-    path: "/teacher/request-lesson-plan",
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <RequestLessonPlan />
-      </Suspense>
-    ),
-  },
-  {
-    path: "/teacher/upload-lesson-plan",
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <UploadLessonPlan />
-      </Suspense>
-    ),
-  },
-  {
-    path: "/teacher/review-detail/:planId",
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <ReviewDetail />
-      </Suspense>
-    ),
-  },
-  {
-    path: "/teacher/leave-request",
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <TeacherLeaveRequest />
-      </Suspense>
-    ),
-  },
 ];
 
 const studentRouter = [
@@ -209,6 +180,14 @@ const studentRouter = [
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <StudentProfile />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/student/profile/create-student",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <AddStudent />
       </Suspense>
     ),
   },
@@ -245,33 +224,6 @@ const privateRouter = [
       ...studentRouter,
       ...adminRouter,
       ...teacherRouter,
-    ],
-  },
-];
-
-const systemRouter = [
-  {
-    element: (
-      <DefaultLayout />
-    ),
-    children: [
-      {
-        path: "/system/schedule",
-        element: <ScheduleTable />,
-      },
-      {
-        path: "/system/leave-request",
-        element: <ListLeaveRequest />,
-      },
-      {
-        path: "/system/leave-request/:id",
-        element: <LeaveRequestDetail />,
-      },
-      {
-        path: "/system/contact",
-        element: <Contact />
-      },
-
     ],
   },
 ];
