@@ -37,7 +37,6 @@ export default function StudentFilter({ setFilter }) {
 
   const { data } = useClasses();
   const currentClasses = data?.filter((c) => c.grade == grade);
-  console.log(currentClasses);
 
   const handleGradeChange = (value) => {
     setGrade(value);
