@@ -38,19 +38,45 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("student/{studentId}")]
-        public async Task<IActionResult> GetByStudent(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IActionResult> GetTimetableByStudent(int studentId, [FromQuery] int? semesterId = null, [FromQuery] DateOnly? effectiveDate = null)
         {
-            var result = await _service.GetTimetableByStudentAsync(studentId, semesterId, effectiveDate);
-            return Ok(result);
+            try
+            {
+                var timetables = await _service.GetTimetableByStudentAsync(studentId, semesterId, effectiveDate);
+                return Ok(timetables);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
         }
 
         [HttpGet("teacher/{teacherId}")]
-        public async Task<IActionResult> GetByTeacher(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IActionResult> GetTimetableByTeacher(int teacherId, [FromQuery] int? semesterId = null, [FromQuery] DateOnly? effectiveDate = null)
         {
-            var result = await _service.GetTimetableByTeacherAsync(teacherId, semesterId, effectiveDate);
-            return Ok(result);
+            try
+            {
+                var timetables = await _service.GetTimetableByTeacherAsync(teacherId, semesterId, effectiveDate);
+                return Ok(timetables);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
         }
-
+        [HttpGet("class/{classId}")]
+        public async Task<IActionResult> GetTimetableByClass(int classId, [FromQuery] int? semesterId = null, [FromQuery] DateOnly? effectiveDate = null)
+        {
+            try
+            {
+                var timetables = await _service.GetTimetableByClassAsync(classId, semesterId, effectiveDate);
+                return Ok(timetables);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error: {ex.Message}");
+            }
+        }
         [HttpPut("detail")]
         public async Task<IActionResult> UpdateDetail(TimetableDetailDto dto)
         {

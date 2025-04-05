@@ -245,16 +245,29 @@ public class TeacherService : ITeacherService
 
     public async Task<bool> DeleteTeacherAsync(int id)
     {
-        var teacher = await _teacherRepository.GetByIdAsync(id);
-        if (teacher == null) return false;
+        
+        var teacher = await _teacherRepository.GetByIdWithUserAsync(id);
+        if (teacher == null)
+        {
+            return false; 
+        }
 
+        
         var teacherSubjects = await _teacherRepository.GetTeacherSubjectsAsync(id);
         if (teacherSubjects?.Any() == true)
         {
             await _teacherRepository.DeleteTeacherSubjectsAsync(id);
         }
 
+        
         await _teacherRepository.DeleteAsync(id);
+
+        
+        if (teacher.UserId.HasValue)
+        {
+            await _teacherRepository.DeleteUserAsync(teacher.UserId.Value);
+        }
+
         return true;
     }
 

@@ -9,7 +9,7 @@ namespace Application.Features.Teachers.DTOs
 {
     public class TeacherDetailDto
     {
-        //public int TeacherId { get; set; }
+        public int TeacherId { get; set; }
         //public int? UserId { get; set; }
         public string FullName { get; set; } = null!;
         public DateOnly Dob { get; set; }

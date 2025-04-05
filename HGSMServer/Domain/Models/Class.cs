@@ -9,7 +9,9 @@ public partial class Class
 
     public string ClassName { get; set; } = null!;
 
-    public int Grade { get; set; }
+    public int GradeLevelId { get; set; }
+
+    public virtual GradeLevel GradeLevel { get; set; } = null!;
 
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
 

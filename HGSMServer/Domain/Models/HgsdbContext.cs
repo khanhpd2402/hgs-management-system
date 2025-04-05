@@ -1,7 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Domain.Models;
 
@@ -29,6 +28,10 @@ public partial class HgsdbContext : DbContext
     public virtual DbSet<Grade> Grades { get; set; }
 
     public virtual DbSet<GradeBatch> GradeBatches { get; set; }
+
+    public virtual DbSet<GradeLevel> GradeLevels { get; set; }
+
+    public virtual DbSet<GradeLevelSubject> GradeLevelSubjects { get; set; }
 
     public virtual DbSet<LeaveRequest> LeaveRequests { get; set; }
 
@@ -65,20 +68,16 @@ public partial class HgsdbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-    {
-        var builder = new ConfigurationBuilder()
-     .SetBasePath(Directory.GetCurrentDirectory())
-     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
-        IConfigurationRoot configuration = builder.Build();
-        optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
-    }
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("server =DUYKHANH; database = HGSDB;Trusted_Connection=True;TrustServerCertificate=true");
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AcademicYear>(entity =>
         {
-            entity.HasKey(e => e.AcademicYearId).HasName("PK__Academic__C54C7A21837547A1");
+            entity.HasKey(e => e.AcademicYearId).HasName("PK__Academic__C54C7A214E441F0D");
 
-            entity.HasIndex(e => e.YearName, "UQ__Academic__294C4DA9D714FBB7").IsUnique();
+            entity.HasIndex(e => e.YearName, "UQ__Academic__294C4DA978B6BAD1").IsUnique();
 
             entity.Property(e => e.AcademicYearId).HasColumnName("AcademicYearID");
             entity.Property(e => e.YearName)
@@ -88,7 +87,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Attendance>(entity =>
         {
-            entity.HasKey(e => e.AttendanceId).HasName("PK__Attendan__8B69263CEA174006");
+            entity.HasKey(e => e.AttendanceId).HasName("PK__Attendan__8B69263C81D9F57B");
 
             entity.HasIndex(e => new { e.StudentId, e.Date, e.Shift, e.SemesterId }, "UQ_Attendance").IsUnique();
 
@@ -118,17 +117,22 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Class>(entity =>
         {
-            entity.HasKey(e => e.ClassId).HasName("PK__Classes__CB1927A0EA9BD6FA");
+            entity.HasKey(e => e.ClassId).HasName("PK__Classes__CB1927A06BBAC221");
 
-            entity.HasIndex(e => e.ClassName, "UQ__Classes__F8BF561B6A2F149B").IsUnique();
+            entity.HasIndex(e => e.ClassName, "UQ__Classes__F8BF561BA5081EE9").IsUnique();
 
             entity.Property(e => e.ClassId).HasColumnName("ClassID");
             entity.Property(e => e.ClassName).HasMaxLength(50);
+
+            entity.HasOne(d => d.GradeLevel).WithMany(p => p.Classes)
+                .HasForeignKey(d => d.GradeLevelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Classes_GradeLevels");
         });
 
         modelBuilder.Entity<ExamProposal>(entity =>
         {
-            entity.HasKey(e => e.ProposalId).HasName("PK__ExamProp__6F39E100100D9A29");
+            entity.HasKey(e => e.ProposalId).HasName("PK__ExamProp__6F39E100C196C7E7");
 
             entity.Property(e => e.ProposalId).HasColumnName("ProposalID");
             entity.Property(e => e.CreatedDate)
@@ -156,7 +160,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<ExamProposalQuestion>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__ExamProp__3214EC2785EDF195");
+            entity.HasKey(e => e.Id).HasName("PK__ExamProp__3214EC27E8674EC7");
 
             entity.HasIndex(e => new { e.ProposalId, e.QuestionId }, "UQ_Proposal_Question").IsUnique();
 
@@ -176,7 +180,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Grade>(entity =>
         {
-            entity.HasKey(e => e.GradeId).HasName("PK__Grades__54F87A37730C35C0");
+            entity.HasKey(e => e.GradeId).HasName("PK__Grades__54F87A37CF2E0C8C");
 
             entity.Property(e => e.GradeId).HasColumnName("GradeID");
             entity.Property(e => e.AssessmentsTypeName).HasMaxLength(100);
@@ -187,20 +191,20 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Assignment).WithMany(p => p.Grades)
                 .HasForeignKey(d => d.AssignmentId)
-                .HasConstraintName("FK__Grades__Assignme__787EE5A0");
+                .HasConstraintName("FK__Grades__Assignme__03F0984C");
 
             entity.HasOne(d => d.Batch).WithMany(p => p.Grades)
                 .HasForeignKey(d => d.BatchId)
-                .HasConstraintName("FK__Grades__BatchID__76969D2E");
+                .HasConstraintName("FK__Grades__BatchID__02084FDA");
 
             entity.HasOne(d => d.StudentClass).WithMany(p => p.Grades)
                 .HasForeignKey(d => d.StudentClassId)
-                .HasConstraintName("FK__Grades__StudentC__778AC167");
+                .HasConstraintName("FK__Grades__StudentC__02FC7413");
         });
 
         modelBuilder.Entity<GradeBatch>(entity =>
         {
-            entity.HasKey(e => e.BatchId).HasName("PK__GradeBat__5D55CE3830B9259F");
+            entity.HasKey(e => e.BatchId).HasName("PK__GradeBat__5D55CE38A7B378E8");
 
             entity.Property(e => e.BatchId).HasColumnName("BatchID");
             entity.Property(e => e.BatchName).HasMaxLength(255);
@@ -215,9 +219,41 @@ public partial class HgsdbContext : DbContext
                 .HasConstraintName("FK_GradeBatches_Semesters");
         });
 
+        modelBuilder.Entity<GradeLevel>(entity =>
+        {
+            entity.HasKey(e => e.GradeLevelId).HasName("PK__GradeLev__A200CF130C701C0C");
+
+            entity.Property(e => e.GradeName).HasMaxLength(20);
+        });
+
+        modelBuilder.Entity<GradeLevelSubject>(entity =>
+        {
+            entity.HasKey(e => e.GradeLevelSubjectId).HasName("PK__GradeLev__6AF17C408A211281");
+
+            entity.HasIndex(e => new { e.GradeLevelId, e.SubjectId }, "UQ_GradeLevel_Subject").IsUnique();
+
+            entity.Property(e => e.GradeLevelSubjectId).HasColumnName("GradeLevelSubjectID");
+            entity.Property(e => e.ContinuousAssessmentsHki).HasColumnName("ContinuousAssessments_HKI");
+            entity.Property(e => e.ContinuousAssessmentsHkii).HasColumnName("ContinuousAssessments_HKII");
+            entity.Property(e => e.GradeLevelId).HasColumnName("GradeLevelID");
+            entity.Property(e => e.PeriodsPerWeekHki).HasColumnName("PeriodsPerWeek_HKI");
+            entity.Property(e => e.PeriodsPerWeekHkii).HasColumnName("PeriodsPerWeek_HKII");
+            entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
+
+            entity.HasOne(d => d.GradeLevel).WithMany(p => p.GradeLevelSubjects)
+                .HasForeignKey(d => d.GradeLevelId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GLS_GradeLevel");
+
+            entity.HasOne(d => d.Subject).WithMany(p => p.GradeLevelSubjects)
+                .HasForeignKey(d => d.SubjectId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_GLS_Subject");
+        });
+
         modelBuilder.Entity<LeaveRequest>(entity =>
         {
-            entity.HasKey(e => e.RequestId).HasName("PK__LeaveReq__33A8519AB8AFA333");
+            entity.HasKey(e => e.RequestId).HasName("PK__LeaveReq__33A8519A86A5041E");
 
             entity.Property(e => e.RequestId).HasColumnName("RequestID");
             entity.Property(e => e.Status).HasMaxLength(20);
@@ -230,7 +266,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<LessonPlan>(entity =>
         {
-            entity.HasKey(e => e.PlanId).HasName("PK__LessonPl__755C22D79984B179");
+            entity.HasKey(e => e.PlanId).HasName("PK__LessonPl__755C22D75CA6B571");
 
             entity.Property(e => e.PlanId).HasColumnName("PlanID");
             entity.Property(e => e.AttachmentUrl).HasMaxLength(500);
@@ -263,7 +299,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Notification>(entity =>
         {
-            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32BAB8BDCA");
+            entity.HasKey(e => e.NotificationId).HasName("PK__Notifica__20CF2E32A9CC76A3");
 
             entity.Property(e => e.NotificationId).HasColumnName("NotificationID");
             entity.Property(e => e.CreateDate)
@@ -275,9 +311,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Parent>(entity =>
         {
-            entity.HasKey(e => e.ParentId).HasName("PK__Parents__D339510F13907295");
+            entity.HasKey(e => e.ParentId).HasName("PK__Parents__D339510FBD3977AD");
 
-            entity.HasIndex(e => e.UserId, "UQ__Parents__1788CCADB06CAE01").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__Parents__1788CCAD2CB25690").IsUnique();
 
             entity.Property(e => e.ParentId).HasColumnName("ParentID");
             entity.Property(e => e.EmailFather).HasMaxLength(100);
@@ -304,7 +340,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Question>(entity =>
         {
-            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8CE98CED05");
+            entity.HasKey(e => e.QuestionId).HasName("PK__Question__0DC06F8C2817FCFF");
 
             entity.Property(e => e.QuestionId).HasColumnName("QuestionID");
             entity.Property(e => e.CorrectAnswer).HasMaxLength(255);
@@ -329,9 +365,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Role>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3A8B7F610B");
+            entity.HasKey(e => e.RoleId).HasName("PK__Roles__8AFACE3AAAA4204F");
 
-            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B6160EAC08DBC").IsUnique();
+            entity.HasIndex(e => e.RoleName, "UQ__Roles__8A2B6160C6D0AA87").IsUnique();
 
             entity.Property(e => e.RoleId).HasColumnName("RoleID");
             entity.Property(e => e.RoleName).HasMaxLength(50);
@@ -339,7 +375,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Semester>(entity =>
         {
-            entity.HasKey(e => e.SemesterId).HasName("PK__Semester__043301BD3E14CD5B");
+            entity.HasKey(e => e.SemesterId).HasName("PK__Semester__043301BDAA102B20");
 
             entity.HasIndex(e => new { e.AcademicYearId, e.SemesterName }, "UQ_Semesters").IsUnique();
 
@@ -354,9 +390,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Student>(entity =>
         {
-            entity.HasKey(e => e.StudentId).HasName("PK__Students__32C52A792E3A0B6C");
+            entity.HasKey(e => e.StudentId).HasName("PK__Students__32C52A797A973052");
 
-            entity.HasIndex(e => e.IdcardNumber, "UQ__Students__2CEB9836E7B015DA").IsUnique();
+            entity.HasIndex(e => e.IdcardNumber, "UQ__Students__2CEB9836C1303BFC").IsUnique();
 
             entity.Property(e => e.StudentId).HasColumnName("StudentID");
             entity.Property(e => e.BirthPlace).HasMaxLength(255);
@@ -384,9 +420,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<StudentClass>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__StudentC__3214EC27A9A3DDE4");
+            entity.HasKey(e => e.Id).HasName("PK__StudentC__3214EC279E7152C4");
 
-            entity.HasIndex(e => new { e.StudentId, e.AcademicYearId }, "UQ__StudentC__3E91EDDA83669245").IsUnique();
+            entity.HasIndex(e => new { e.StudentId, e.AcademicYearId }, "UQ__StudentC__3E91EDDA46BFC971").IsUnique();
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.AcademicYearId).HasColumnName("AcademicYearID");
@@ -409,9 +445,9 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Subject>(entity =>
         {
-            entity.HasKey(e => e.SubjectId).HasName("PK__Subjects__AC1BA388193F80F2");
+            entity.HasKey(e => e.SubjectId).HasName("PK__Subjects__AC1BA3885C171282");
 
-            entity.HasIndex(e => e.SubjectName, "UQ__Subjects__4C5A7D5589481423").IsUnique();
+            entity.HasIndex(e => e.SubjectName, "UQ__Subjects__4C5A7D5585A3F67E").IsUnique();
 
             entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
             entity.Property(e => e.SubjectCategory).HasMaxLength(50);
@@ -421,11 +457,11 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Teacher>(entity =>
         {
-            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF25944F3BF070B");
+            entity.HasKey(e => e.TeacherId).HasName("PK__Teachers__EDF25944AA18CE74");
 
-            entity.HasIndex(e => e.UserId, "UQ__Teachers__1788CCAD4299D6BF").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__Teachers__1788CCAD5BB17532").IsUnique();
 
-            entity.HasIndex(e => e.IdcardNumber, "UQ__Teachers__2CEB98368611E367").IsUnique();
+            entity.HasIndex(e => e.IdcardNumber, "UQ__Teachers__2CEB98368C37EE46").IsUnique();
 
             entity.Property(e => e.TeacherId).HasColumnName("TeacherID");
             entity.Property(e => e.Department).HasMaxLength(100);
@@ -456,7 +492,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<TeacherClass>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TeacherC__3214EC278C8F0888");
+            entity.HasKey(e => e.Id).HasName("PK__TeacherC__3214EC2727DE10FF");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.AcademicYearId).HasColumnName("AcademicYearID");
@@ -480,7 +516,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<TeacherSubject>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__TeacherS__3214EC272A2FA5AA");
+            entity.HasKey(e => e.Id).HasName("PK__TeacherS__3214EC27AF2CE3F4");
 
             entity.Property(e => e.Id).HasColumnName("ID");
             entity.Property(e => e.IsMainSubject).HasDefaultValue(false);
@@ -500,7 +536,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<TeachingAssignment>(entity =>
         {
-            entity.HasKey(e => e.AssignmentId).HasName("PK__Teaching__32499E579DC558CA");
+            entity.HasKey(e => e.AssignmentId).HasName("PK__Teaching__32499E578A86941E");
 
             entity.Property(e => e.AssignmentId).HasColumnName("AssignmentID");
             entity.Property(e => e.ClassId).HasColumnName("ClassID");
@@ -527,7 +563,7 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Timetable>(entity =>
         {
-            entity.HasKey(e => e.TimetableId).HasName("PK__Timetabl__68413F609C7EC188");
+            entity.HasKey(e => e.TimetableId).HasName("PK__Timetabl__68413F604FBF9ADF");
 
             entity.Property(e => e.Status)
                 .HasMaxLength(10)
@@ -535,38 +571,38 @@ public partial class HgsdbContext : DbContext
 
             entity.HasOne(d => d.Semester).WithMany(p => p.Timetables)
                 .HasForeignKey(d => d.SemesterId)
-                .HasConstraintName("FK__Timetable__Semes__1BC821DD");
+                .HasConstraintName("FK__Timetable__Statu__2739D489");
         });
 
         modelBuilder.Entity<TimetableDetail>(entity =>
         {
-            entity.HasKey(e => e.TimetableDetailId).HasName("PK__Timetabl__56B983EA73C4AD1A");
+            entity.HasKey(e => e.TimetableDetailId).HasName("PK__Timetabl__56B983EAD426E940");
 
             entity.HasOne(d => d.Class).WithMany(p => p.TimetableDetails)
                 .HasForeignKey(d => d.ClassId)
-                .HasConstraintName("FK__Timetable__Class__22751F6C");
+                .HasConstraintName("FK__Timetable__Class__2DE6D218");
 
             entity.HasOne(d => d.Subject).WithMany(p => p.TimetableDetails)
                 .HasForeignKey(d => d.SubjectId)
-                .HasConstraintName("FK__Timetable__Subje__236943A5");
+                .HasConstraintName("FK__Timetable__Subje__2EDAF651");
 
             entity.HasOne(d => d.Teacher).WithMany(p => p.TimetableDetails)
                 .HasForeignKey(d => d.TeacherId)
-                .HasConstraintName("FK__Timetable__Teach__245D67DE");
+                .HasConstraintName("FK__Timetable__Teach__2FCF1A8A");
 
             entity.HasOne(d => d.Timetable).WithMany(p => p.TimetableDetails)
                 .HasForeignKey(d => d.TimetableId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK__Timetable__Timet__2180FB33");
+                .HasConstraintName("FK__Timetable__Timet__2CF2ADDF");
         });
 
         modelBuilder.Entity<User>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCACF9B56EB0");
+            entity.HasKey(e => e.UserId).HasName("PK__Users__1788CCACABFB84A9");
 
-            entity.HasIndex(e => e.Username, "UQ__Users__536C85E40BFC4DDE").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Users__536C85E45029B16D").IsUnique();
 
-            entity.HasIndex(e => e.Username, "UQ__Users__536C85E4F71877CC").IsUnique();
+            entity.HasIndex(e => e.Username, "UQ__Users__536C85E46A21C31C").IsUnique();
 
             entity.Property(e => e.UserId).HasColumnName("UserID");
             entity.Property(e => e.Email).HasMaxLength(100);
