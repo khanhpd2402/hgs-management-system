@@ -25,6 +25,7 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router";
 import ConfirmDeleteModal from "@/components/modal/ConfirmDeleteModal";
 import { useDeleteTeacher } from "@/services/teacher/mutation";
+import { formatDateString } from "@/helpers/formatDate";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
@@ -53,6 +54,22 @@ export default function TeacherTable() {
     { id: "position", label: "Chức vụ", width: "150px" },
     { id: "department", label: "Tổ bộ môn", width: "150px" },
     { id: "employmentType", label: "Hình thức hợp đồng", width: "180px" },
+    { id: "idcardNumber", label: "Số CCCD", width: "180px" },
+    { id: "insuranceNumber", label: "Số bảo hiểm", width: "180px" },
+    { id: "maritalStatus", label: "Tình trạng hôn nhân", width: "200px" },
+    { id: "permanentAddress", label: "Địa chỉ thường trú", width: "180px" },
+    { id: "recruitmentAgency", label: "Cơ quan tuyển dụng", width: "180px" },
+    { id: "schoolJoinDate", label: "Ngày vào trường", width: "150px" },
+    {
+      id: "permanentEmploymentDate",
+      label: "Ngày vào biên chế",
+      width: "150px",
+    },
+    {
+      id: "hiringDate",
+      label: "Ngày tuyển dụng",
+      width: "150px",
+    },
   ];
 
   // Initialize with all columns visible
@@ -62,6 +79,7 @@ export default function TeacherTable() {
 
   const { data, isPending, error, isError } = useTeachers();
   const teacherMutation = useDeleteTeacher();
+  console.log(data);
 
   //phan trang
   const { page, pageSize, department, contract, search } = filter;
@@ -245,7 +263,7 @@ export default function TeacherTable() {
 
                     {visibleColumns.some((col) => col.id === "dob") && (
                       <TableCell className="h-16 border border-gray-300 text-center">
-                        {teacher.dob}
+                        {formatDateString(teacher.dob)}
                       </TableCell>
                     )}
 
@@ -280,14 +298,71 @@ export default function TeacherTable() {
                         {teacher.employmentType}
                       </TableCell>
                     )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "idcardNumber",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.idcardNumber}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "insuranceNumber",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.insuranceNumber}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "maritalStatus",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.maritalStatus}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "permanentAddress",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.permanentAddress}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "recruitmentAgency",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {teacher.recruitmentAgency}
+                      </TableCell>
+                    )}
+                    {visibleColumns.some(
+                      (col) => col.id === "schoolJoinDate",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {formatDateString(teacher.schoolJoinDate)}
+                      </TableCell>
+                    )}
+
+                    {visibleColumns.some(
+                      (col) => col.id === "permanentEmploymentDate",
+                    ) && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {formatDateString(teacher.permanentEmploymentDate)}
+                      </TableCell>
+                    )}
+                    {visibleColumns.some((col) => col.id === "hiringDate") && (
+                      <TableCell className="h-16 border border-gray-300 text-center">
+                        {formatDateString(teacher.hiringDate)}
+                      </TableCell>
+                    )}
                   </TableRow>
                 ))
               ) : (
                 <TableRow>
-                  <TableCell
-                    colSpan={visibleColumns.length}
-                    className="p-4 text-center"
-                  >
+                  <TableCell colSpan={visibleColumns.length} className="p-4">
                     Không có dữ liệu
                   </TableCell>
                 </TableRow>

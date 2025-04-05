@@ -5,6 +5,11 @@ export const getSubjects = async () => {
   return response.data;
 };
 
+export const getClasses = async () => {
+  const response = await axiosInstance.get("/classes");
+  return response.data;
+};
+
 export const getAcademicYears = async () => {
   const response = await axiosInstance.get("/AcademicYear");
   return response.data;
@@ -23,5 +28,10 @@ export const login = async ({ username, password }) => {
     username,
     password,
   });
+  return response.data;
+};
+
+export const getRoles = async () => {
+  const response = await axiosInstance.get("/roles");
   return response.data;
 };

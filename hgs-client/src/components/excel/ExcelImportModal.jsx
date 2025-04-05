@@ -34,12 +34,14 @@ export default function ExcelImportModal({ type }) {
       queryClient.invalidateQueries(["teachers"]); // Làm mới danh sách giáo viên
       setIsOpen(false); // Đóng modal
     },
-    onError: () => {
-      toast.error("Có lỗi xảy ra khi import dữ liệu!");
-    },
+    // onError: () => {
+    //   toast.error("Có lỗi xảy ra khi import dữ liệu!");
+    // },
 
     onSettled: (data, error) => {
       console.log(error);
+      console.log(error?.response?.data?.errors);
+      toast.error(error?.response?.data?.errors);
     },
   });
 
