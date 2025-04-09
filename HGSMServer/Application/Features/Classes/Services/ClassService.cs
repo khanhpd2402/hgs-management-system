@@ -14,7 +14,7 @@ namespace Application.Features.Classes.Services
     public class ClassService : IClassService
     {
         private readonly IClassRepository _classRepository;
-        private readonly IMapper _mapper; // Sử dụng AutoMapper để map giữa Entity và DTO
+        private readonly IMapper _mapper;
 
         public ClassService(IClassRepository classRepository, IMapper mapper)
         {

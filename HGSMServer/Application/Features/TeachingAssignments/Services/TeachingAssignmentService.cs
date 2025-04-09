@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Features.TeachingAssignments.Services
@@ -28,7 +27,7 @@ namespace Application.Features.TeachingAssignments.Services
 
         private async Task<bool> HasPermissionAsync()
         {
-            var userRole = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
             var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
             return allowedRoles.Contains(userRole);
         }
@@ -205,21 +204,18 @@ namespace Application.Features.TeachingAssignments.Services
                     ClassId = classAssignment.ClassId,
                     ClassName = classEntity.ClassName,
                     SemesterId = dto.SemesterId,
-                    SemesterName = semester.SemesterName,
-                    ActualPeriodsPerWeekHK1 = actualPeriodsPerWeekHK1,
-                    ActualPeriodsPerWeekHK2 = actualPeriodsPerWeekHK2
+                    SemesterName = semester.SemesterName
                 });
             }
 
             return result;
         }
 
-
         public async Task<List<TeachingAssignmentResponseDto>> SearchTeachingAssignmentsAsync(TeachingAssignmentFilterDto filter)
         {
-            var userRole = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-            var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = userIdClaim != null ? int.Parse(userIdClaim) : (int?)null;
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = userIdClaim != null ? int.Parse(userIdClaim) : null;
 
             var query = _context.TeachingAssignments
                 .Include(ta => ta.Teacher)
@@ -242,7 +238,7 @@ namespace Application.Features.TeachingAssignments.Services
                 }
             }
 
-            // Apply Filters
+            // Áp dụng bộ lọc
             if (filter.TeacherId.HasValue)
                 query = query.Where(ta => ta.TeacherId == filter.TeacherId.Value);
 
@@ -301,8 +297,8 @@ namespace Application.Features.TeachingAssignments.Services
                     ClassName = ta.Class.ClassName,
                     SemesterId = ta.SemesterId,
                     SemesterName = ta.Semester.SemesterName,
-                    ActualPeriodsPerWeekHK1 = actualPeriodsHK1,
-                    ActualPeriodsPerWeekHK2 = actualPeriodsHK2
+                    //ActualPeriodsPerWeekHK1 = actualPeriodsHK1,
+                    //ActualPeriodsPerWeekHK2 = actualPeriodsHK2
                 });
             }
 

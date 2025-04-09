@@ -20,7 +20,7 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.TimetableDetails) // ← đúng
+                .Include(c => c.TimetableDetails) 
                     .ThenInclude(td => td.Timetable)
                 .ToListAsync();
         }
@@ -32,7 +32,7 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.TimetableDetails) // ← đúng
+                .Include(c => c.TimetableDetails) 
                     .ThenInclude(td => td.Timetable)
                 .FirstOrDefaultAsync(c => c.ClassId == id)
                 ?? throw new Exception("Class not found");
