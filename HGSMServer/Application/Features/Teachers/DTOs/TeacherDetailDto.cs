@@ -32,7 +32,7 @@ namespace Application.Features.Teachers.DTOs
         public string? Hometown { get; set; }
         public string Email { get; set; } = null!;
         public string PhoneNumber { get; set; } = null!;
-        public List<SubjectDto> Subjects { get; set; } = new List<SubjectDto>();
+        public List<SubjectTeacherDto> Subjects { get; set; } = new List<SubjectTeacherDto>();
     }
 
 }
