@@ -8,7 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 using NLog;
-using Infrastructure.Repositories.Implementations;
+using Infrastructure.Repositories.Implementations; // Sửa namespace
 using Infrastructure.Repositories.Interfaces;
 using Common.Constants;
 using Application.Features.Students.Interfaces;
@@ -21,7 +21,7 @@ using Application.Features.Role.Interfaces;
 using Application.Features.Role.Services;
 using Common.Utils;
 using Application.Features.Timetables.Services;
-using Application.Features.Timetables.Interfaces;
+using Application.Features.Timetables.Interfaces; // Thêm namespace cho ITimetableService
 using Application.Features.Classes.Interfaces;
 using Application.Features.Classes.Services;
 using Microsoft.EntityFrameworkCore;
@@ -43,12 +43,7 @@ using Application.Features.LessonPlans.Interfaces;
 using Application.Features.LessonPlans.Services;
 using Application.Features.TeachingAssignments.Interfaces;
 using Application.Features.TeachingAssignments.Services;
-using Application.Features.Exams.Interfaces;
-using Application.Features.Exams.Services;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.DependencyInjection;
 using Application.Features.Attendances.DTOs;
-using HGSMAPI;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories;
 using Application.Features.Exams.Interfaces;
@@ -70,8 +65,7 @@ if (string.IsNullOrEmpty(encryptionKey))
 
 // Đăng ký SecurityHelper vào DI container
 builder.Services.AddSingleton(new SecurityHelper(encryptionKey));
-
-// Đọc cấu hình EmailSettings từ appsettings.json và đăng ký EmailService
+//config email sending
 var emailSettings = builder.Configuration.GetSection("EmailSettings");
 builder.Services.AddSingleton(new EmailService(
     smtpHost: emailSettings["SmtpHost"],
@@ -92,7 +86,6 @@ builder.Services.AddCors(options =>
                .AllowAnyHeader();
     });
 });
-
 // Thiết lập culture mặc định cho ứng dụng
 var cultureInfo = new System.Globalization.CultureInfo("vi-VN");
 System.Globalization.CultureInfo.DefaultThreadCurrentCulture = cultureInfo;
@@ -114,7 +107,7 @@ builder.Services.AddDbContext<HgsdbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 // Thêm Session
-builder.Services.AddDistributedMemoryCache();
+builder.Services.AddDistributedMemoryCache(); // Sử dụng bộ nhớ trong để lưu session (cho dev/test)
 builder.Services.AddSession(options =>
 {
     options.IdleTimeout = TimeSpan.FromMinutes(30);
@@ -124,11 +117,11 @@ builder.Services.AddSession(options =>
 });
 
 // Đăng ký các dịch vụ và repository
-// Exam, Question Management
+//Exam, Question Management
 builder.Services.AddScoped<IQuestionService, QuestionService>();
 builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
 builder.Services.AddScoped<GoogleDriveService>();
-// Parent Management
+//Parent Management
 builder.Services.AddScoped<IParentRepository, ParentRepository>();
 // Student Management
 builder.Services.AddScoped<IStudentService, StudentService>();
@@ -139,6 +132,8 @@ builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
 builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
 builder.Services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
 builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
+builder.Services.AddScoped<IGradeLevelSubjectRepository, GradeLevelSubjectRepository>();
+builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
 
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
@@ -147,6 +142,7 @@ builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
+
 // Class & Timetable Management
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
@@ -154,21 +150,25 @@ builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
+
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
 builder.Services.AddScoped<ISemesterService, SemesterService>();
 builder.Services.AddScoped<ISemesterRepository, SemesterRepository>();
+
 // Attendance & Leave Management
 builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+
 // User & Role Management
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IRoleService, RoleService>();
 builder.Services.AddScoped<IRoleRepository, RoleRepository>();
+
 // System & Utility Services
 builder.Services.AddScoped<ITokenService, TokenService>();
 builder.Services.AddScoped<ISmsService, TwilioSmsService>();
@@ -186,7 +186,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddAuthentication(options =>
 {
     options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
-    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme; // Sửa thành JwtBearer
     options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
 })
 .AddCookie(CookieAuthenticationDefaults.AuthenticationScheme, options =>
@@ -201,7 +201,7 @@ builder.Services.AddAuthentication(options =>
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true,
+        ValidateLifetime = true, // Bật lại kiểm tra thời gian hết hạn
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
