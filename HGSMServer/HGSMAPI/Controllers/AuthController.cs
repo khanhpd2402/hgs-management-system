@@ -136,7 +136,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("assign-role")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> AssignRole([FromBody] AssignRoleDto assignRoleDto)
         {
             if (assignRoleDto == null || assignRoleDto.UserId <= 0 || assignRoleDto.RoleId <= 0)
@@ -145,7 +145,7 @@ namespace HGSMAPI.Controllers
             }
 
             var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
-            if (string.IsNullOrEmpty(currentUserRole) || !new[] { "Principal", "AdministrativeOfficer" }.Contains(currentUserRole))
+            if (string.IsNullOrEmpty(currentUserRole) || !new[] { "Hiệu trưởng", "Cán bộ văn thư" }.Contains(currentUserRole))
             {
                 return StatusCode(403, new { message = "You do not have permission to assign roles." });
             }
@@ -178,7 +178,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("assign-homeroom")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto assignHomeroomDto)
         {
             if (assignHomeroomDto == null || assignHomeroomDto.TeacherId <= 0 || assignHomeroomDto.ClassId <= 0 ||
