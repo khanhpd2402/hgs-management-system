@@ -18,7 +18,6 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Classes
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
-                .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
                 .Include(c => c.TimetableDetails) 
                     .ThenInclude(td => td.Timetable)
@@ -30,7 +29,6 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Classes
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
-                .Include(c => c.TeacherClasses)
                 .Include(c => c.TeachingAssignments)
                 .Include(c => c.TimetableDetails) 
                     .ThenInclude(td => td.Timetable)

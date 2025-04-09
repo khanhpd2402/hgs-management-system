@@ -177,38 +177,7 @@ namespace HGSMAPI.Controllers
             return Ok(new { message = "Role assigned successfully.", userId = assignRoleDto.UserId, newRoleId = assignRoleDto.RoleId });
         }
 
-        [HttpPost("assign-homeroom")]
-        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
-        public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto assignHomeroomDto)
-        {
-            if (assignHomeroomDto == null || assignHomeroomDto.TeacherId <= 0 || assignHomeroomDto.ClassId <= 0 ||
-                assignHomeroomDto.AcademicYearId <= 0 || assignHomeroomDto.SemesterId <= 0)
-            {
-                return BadRequest(new { message = "All IDs (TeacherId, ClassId, AcademicYearId, SemesterId) are required and must be positive." });
-            }
-
-            var hasHomeroomTeacher = await _teacherService.HasHomeroomTeacherAsync(assignHomeroomDto.ClassId, assignHomeroomDto.AcademicYearId);
-            if (hasHomeroomTeacher)
-            {
-                return BadRequest(new { message = $"Class with ID {assignHomeroomDto.ClassId} already has a homeroom teacher in academic year {assignHomeroomDto.AcademicYearId}." });
-            }
-
-            var isAssigned = await _teacherService.IsHomeroomAssignedAsync(assignHomeroomDto.TeacherId, assignHomeroomDto.ClassId, assignHomeroomDto.AcademicYearId);
-            if (isAssigned)
-            {
-                return BadRequest(new { message = "This teacher is already assigned as homeroom teacher for this class in the specified academic year." });
-            }
-
-            try
-            {
-                await _teacherService.AssignHomeroomAsync(assignHomeroomDto);
-                return Ok(new { message = "Homeroom teacher assigned successfully.", teacherId = assignHomeroomDto.TeacherId, classId = assignHomeroomDto.ClassId });
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, new { message = "An error occurred while assigning homeroom teacher.", error = ex.Message });
-            }
-        }
+        
 
         private bool VerifyPassword(string inputPassword, string storedHash)
         {
