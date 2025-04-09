@@ -72,7 +72,7 @@ public class TeachersController : ControllerBase
 
 
     [HttpPost("import")]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    //[Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
     {
         var (success, errors) = await _teacherService.ImportTeachersFromExcelAsync(file);
