@@ -32,8 +32,8 @@ namespace Infrastructure.Repositories.Implementations
         public async Task<LessonPlan> GetLessonPlanByIdAsync(int planId)
         {
             return await _context.LessonPlans
-                .Include(lp => lp.Teacher) // Bao gồm thông tin giáo viên nếu cần
-                .Include(lp => lp.Subject) // Bao gồm thông tin môn học nếu cần
+                .Include(lp => lp.Teacher) 
+                .Include(lp => lp.Subject) 
                 .FirstOrDefaultAsync(lp => lp.PlanId == planId);
         }
 
