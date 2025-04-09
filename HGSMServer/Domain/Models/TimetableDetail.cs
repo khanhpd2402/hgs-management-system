@@ -15,13 +15,15 @@ public partial class TimetableDetail
 
     public int TeacherId { get; set; }
 
-    public byte DayOfWeek { get; set; }
+    public DateOnly Date { get; set; }
 
-    public byte Shift { get; set; }
+    public int PeriodId { get; set; }
 
-    public byte Period { get; set; }
+    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
 
     public virtual Class Class { get; set; } = null!;
+
+    public virtual Period Period { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;
 
