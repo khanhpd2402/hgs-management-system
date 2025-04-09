@@ -176,6 +176,24 @@ namespace Application.Features.TeachingAssignments.Services
                     throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
                 }
 
+                // Tính số tiết/tuần thực tế từ TimetableDetails
+                int actualPeriodsPerWeekHK1 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == dto.TeacherId &&
+                                 td.SubjectId == dto.SubjectId &&
+                                 td.ClassId == classAssignment.ClassId &&
+                                 td.Timetable.SemesterId == dto.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 1")
+                    .CountAsync();
+
+                int actualPeriodsPerWeekHK2 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == dto.TeacherId &&
+                                 td.SubjectId == dto.SubjectId &&
+                                 td.ClassId == classAssignment.ClassId &&
+                                 td.Timetable.SemesterId == dto.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 2")
+                   
+                    .CountAsync();
+
                 result.Add(new TeachingAssignmentResponseDto
                 {
                     AssignmentId = 0, // Chưa có AssignmentId vì chưa lưu
@@ -244,18 +262,45 @@ namespace Application.Features.TeachingAssignments.Services
 
             var assignmentList = await query.ToListAsync();
 
-            var result = assignmentList.Select(ta => new TeachingAssignmentResponseDto
+            var result = new List<TeachingAssignmentResponseDto>();
+
+            foreach (var ta in assignmentList)
             {
-                AssignmentId = ta.AssignmentId,
-                TeacherId = ta.TeacherId,
-                TeacherName = ta.Teacher.FullName,
-                SubjectId = ta.SubjectId,
-                SubjectName = ta.Subject.SubjectName,
-                ClassId = ta.ClassId,
-                ClassName = ta.Class.ClassName,
-                SemesterId = ta.SemesterId,
-                SemesterName = ta.Semester.SemesterName
-            }).ToList();
+                var actualPeriodsHK1 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == ta.TeacherId &&
+                                 td.SubjectId == ta.SubjectId &&
+                                 td.ClassId == ta.ClassId &&
+                                 td.Timetable.SemesterId == ta.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 1")
+                    .Select(td => new {  td.Period })
+                    .Distinct()
+                    .CountAsync();
+
+                var actualPeriodsHK2 = await _context.TimetableDetails
+                    .Where(td => td.TeacherId == ta.TeacherId &&
+                                 td.SubjectId == ta.SubjectId &&
+                                 td.ClassId == ta.ClassId &&
+                                 td.Timetable.SemesterId == ta.SemesterId &&
+                                 td.Timetable.Semester.SemesterName == "Học kỳ 2")
+                    .Select(td => new {  td.Period })
+                    .Distinct()
+                    .CountAsync();
+
+                result.Add(new TeachingAssignmentResponseDto
+                {
+                    AssignmentId = ta.AssignmentId,
+                    TeacherId = ta.TeacherId,
+                    TeacherName = ta.Teacher.FullName,
+                    SubjectId = ta.SubjectId,
+                    SubjectName = ta.Subject.SubjectName,
+                    ClassId = ta.ClassId,
+                    ClassName = ta.Class.ClassName,
+                    SemesterId = ta.SemesterId,
+                    SemesterName = ta.Semester.SemesterName,
+                    //ActualPeriodsPerWeekHK1 = actualPeriodsHK1,
+                    //ActualPeriodsPerWeekHK2 = actualPeriodsHK2
+                });
+            }
 
             return result;
         }

@@ -19,5 +19,12 @@ namespace Infrastructure.Repositories.Implementtations
                                  .Where(ta => ta.ClassId == classId && ta.SubjectId == subjectId && ta.SemesterId == semesterId)
                                  .FirstOrDefaultAsync();
         }
+        public async Task<IEnumerable<TeachingAssignment>> GetBySemesterIdAsync(int semesterId)
+        {
+            return await _context.TeachingAssignments
+                .Where(t => t.SemesterId == semesterId)
+                .Include(t => t.Class)
+                .ToListAsync();
+        }
     }
 }
