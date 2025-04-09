@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Common.Constants;
+using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,11 +13,13 @@ namespace Infrastructure.Repositories.Implementtations
         {
             _context = context;
         }
-        public async Task<IEnumerable<StudentClass>> GetByClassIdAsync(int classId)
+        public async Task<IEnumerable<StudentClass>> GetByClassIdAndAcademicYearAsync(int classId, int academicYearId)
         {
             return await _context.StudentClasses
-                .Where(sc => sc.ClassId == classId)
                 .Include(sc => sc.Student)
+                .Where(sc => sc.ClassId == classId
+                             && sc.AcademicYearId == academicYearId
+                             && sc.Student.Status == AppConstants.StudentStatus.STUDYING)
                 .ToListAsync();
         }
 

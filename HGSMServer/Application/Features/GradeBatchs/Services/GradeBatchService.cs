@@ -1,4 +1,6 @@
-﻿using Application.Features.GradeBatchs.Interfaces;
+﻿using Application.Features.GradeBatchs.DTOs;
+using Application.Features.GradeBatchs.Interfaces;
+using AutoMapper;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Infrastructure.Repositories.UnitOfWork;
@@ -8,10 +10,24 @@ namespace Application.Services
     public class GradeBatchService : IGradeBatchService
     {
         private readonly IGradeUnitOfWork _unitOfWork;
+        private readonly IMapper _mapper;
 
-        public GradeBatchService(IGradeUnitOfWork unitOfWork)
+        public GradeBatchService(IGradeUnitOfWork unitOfWork, IMapper mapper)
         {
             _unitOfWork = unitOfWork;
+            _mapper = mapper;
+        }
+        public async Task<GradeBatchDto?> GetByIdAsync(int id)
+        {
+            var batch = await _unitOfWork.GradeBatchRepository.GetByIdAsync(id);
+            return batch == null ? null : _mapper.Map<GradeBatchDto>(batch);
+        }
+
+        public async Task<IEnumerable<GradeBatchDto>> GetByAcademicYearIdAsync(int academicYearId)
+        {
+            var list = await _unitOfWork.GradeBatchRepository.GetAllAsync();
+            var result = list.Where(b => b.Semester!.AcademicYearId == academicYearId);
+            return _mapper.Map<IEnumerable<GradeBatchDto>>(result);
         }
 
         public async Task<int> CreateBatchAndInsertGradesAsync(string batchName, int semesterId, DateOnly start, DateOnly end, string status)
@@ -32,6 +48,11 @@ namespace Application.Services
             // 2. Lấy danh sách phân công giảng dạy
             var assignments = await _unitOfWork.TeachingAssignmentRepository.GetBySemesterIdAsync(semesterId);
             var semester = await _unitOfWork.SemesterRepository.GetByIdAsync(semesterId);
+            var academicYearId = 0;
+            if (semester != null)
+            {
+                academicYearId = semester.AcademicYearId;
+            }
             var allGrades = new List<Grade>();
 
             foreach (var assignment in assignments)
@@ -39,7 +60,7 @@ namespace Application.Services
                 var classId = assignment.ClassId;
                 var subjectId = assignment.SubjectId;
 
-                var studentClasses = await _unitOfWork.StudentClassRepository.GetByClassIdAsync(classId);
+                var studentClasses = await _unitOfWork.StudentClassRepository.GetByClassIdAndAcademicYearAsync(classId, academicYearId);
                 var gls = await _unitOfWork.GradeLevelSubjectRepository.GetByGradeAndSubjectAsync(assignment.Class.GradeLevelId, subjectId);
                 if (gls == null) continue;
 
@@ -54,7 +75,7 @@ namespace Application.Services
                 if (gls.MidtermAssessments > 0)
                     assessments.Add("ĐĐG GK");
 
-                if ( gls.FinalAssessments > 0)
+                if (gls.FinalAssessments > 0)
                     assessments.Add("ĐĐG CK");
 
                 // Tạo điểm rỗng
@@ -76,6 +97,17 @@ namespace Application.Services
             }
             await _unitOfWork.GradeRepository.AddRangeAsync(allGrades);
             return batchId;
+        }
+        public async Task<UpdateGradeBatchDto?> UpdateAsync(int id, UpdateGradeBatchDto dto)
+        {
+            var existing = await _unitOfWork.GradeBatchRepository.GetByIdAsync(id);
+            if (existing == null) return null;
+
+            _mapper.Map(dto, existing); // Tự động cập nhật thuộc tính
+
+            await _unitOfWork.GradeBatchRepository.UpdateAsync(existing);
+
+            return _mapper.Map<UpdateGradeBatchDto>(existing); // Trả lại DTO sau khi update
         }
     }
 }
