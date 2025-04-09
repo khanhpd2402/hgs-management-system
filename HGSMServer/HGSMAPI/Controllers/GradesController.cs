@@ -15,11 +15,28 @@ namespace HGSMAPI.Controllers
             _gradeService = gradesService;
         }
 
-        [HttpGet]
-        public async Task<IActionResult> GetGrades(int classId, int subjectId, int semesterId)
+        // Học sinh xem điểm
+        [HttpGet("student")]
+        public async Task<IActionResult> GetGradesForStudent(int studentId, int semesterId)
         {
-            var grades = await _gradeService.GetGradesForStudentAsync(classId, subjectId);
-            return Ok(grades);
+            var result = await _gradeService.GetGradesForStudentAsync(studentId, semesterId);
+            return Ok(result);
+        }
+
+        // Giáo viên xem điểm theo lớp - môn - học kỳ
+        [HttpGet("teacher")]
+        public async Task<IActionResult> GetGradesForTeacher(int teacherId, int classId, int subjectId, int semesterId)
+        {
+            var result = await _gradeService.GetGradesForTeacherAsync(teacherId, classId, subjectId, semesterId);
+            return Ok(result);
+        }
+
+        // Hiệu trưởng xem điểm toàn trường theo lớp - môn - học kỳ
+        [HttpGet("school")]
+        public async Task<IActionResult> GetGradesForPrincipal(int classId, int subjectId, int semesterId)
+        {
+            var result = await _gradeService.GetGradesForPrincipalAsync(classId, subjectId, semesterId);
+            return Ok(result);
         }
         [HttpPut("update-multiple-scores")]
         public async Task<IActionResult> UpdateMultipleGrades([FromBody] UpdateMultipleGradesDto dto)

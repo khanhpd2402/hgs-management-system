@@ -1,7 +1,5 @@
 ﻿using Domain.Models;
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
-using System.Threading.Tasks;
 using Infrastructure.Repositories.Interfaces;
 
 namespace Infrastructure.Repositories
@@ -17,7 +15,7 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<GradeBatch>> GetAllAsync()
         {
-            return await _context.GradeBatches.ToListAsync();
+            return await _context.GradeBatches.Include(gb => gb.Semester).ToListAsync();
         }
 
         public async Task<GradeBatch?> GetByIdAsync(int id)
@@ -25,40 +23,19 @@ namespace Infrastructure.Repositories
             return await _context.GradeBatches.FindAsync(id);
         }
 
-        public async Task<GradeBatch> AddAsync(GradeBatch gradeBatch)
+        public async Task<GradeBatch> AddAsync(GradeBatch entity)
         {
-            _context.GradeBatches.Add(gradeBatch);
+            _context.GradeBatches.Add(entity);
             await _context.SaveChangesAsync();
-            return gradeBatch;
+            return entity;
         }
 
-        public async Task<bool> UpdateAsync(GradeBatch gradeBatch)
+        public async Task<GradeBatch> UpdateAsync(GradeBatch entity)
         {
-            var existingBatch = await _context.GradeBatches.FindAsync(gradeBatch.BatchId);
-            if (existingBatch == null) return false;
-
-            _context.Entry(existingBatch).CurrentValues.SetValues(gradeBatch);
+            _context.GradeBatches.Update(entity);
             await _context.SaveChangesAsync();
-            return true;
+            return entity;
         }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var batch = await _context.GradeBatches.FindAsync(id);
-            if (batch == null) return false;
-
-            _context.GradeBatches.Remove(batch);
-            await _context.SaveChangesAsync();
-            return true;
-        }
-        public async Task<GradeBatch> GetGradeBatchWithGradesAsync(int batchId)
-        {
-            return await _context.GradeBatches
-                .Include(gb => gb.Semester)
-                .Include(gb => gb.Grades).ThenInclude(g => g.Assignment)
-                .ThenInclude(a => a.Subject)
-                .FirstOrDefaultAsync(gb => gb.BatchId == batchId)
-                ?? throw new Exception("Grade Batch not found");
-        }
+       
     }
 }

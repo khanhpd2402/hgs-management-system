@@ -15,6 +15,8 @@ public partial class TeachingAssignment
 
     public int SemesterId { get; set; }
 
+    public bool? IsHomeroomTeacher { get; set; }
+
     public virtual Class Class { get; set; } = null!;
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();

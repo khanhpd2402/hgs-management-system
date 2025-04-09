@@ -31,13 +31,10 @@ namespace Application.Features.Attendances.Services
             var attendance = new Attendance
             {
                 StudentId = request.StudentID,
-                Date = request.Date,
                 Status = request.Status,
                 Note = request.Note,
                 CreatedAt = DateTime.Now,
-                CreatedBy = 1,
                 //GetCurrentTeacherId()
-                Shift = request.Shift
             };
 
             var result = await _attendanceRepository.AddAttendance(attendance);

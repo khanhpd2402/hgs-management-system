@@ -15,8 +15,6 @@ public partial class Class
 
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
 
-    public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
-
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();
 
     public virtual ICollection<TimetableDetail> TimetableDetails { get; set; } = new List<TimetableDetail>();

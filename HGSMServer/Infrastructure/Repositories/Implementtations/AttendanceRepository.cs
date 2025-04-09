@@ -40,8 +40,7 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Attendances
                 .Where(a => a.Student.StudentClasses.Any(sc => sc.ClassId == classId)
-                         && a.Date == date
-                         && a.Shift == shift)
+                       )
                 .ToListAsync();
         }
 

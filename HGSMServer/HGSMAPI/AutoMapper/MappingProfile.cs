@@ -13,6 +13,8 @@ using Application.Features.LeaveRequests.DTOs;
 using Application.Features.LessonPlans.DTOs;
 using Application.Features.Exams.DTOs;
 using Application.Features.Timetables.DTOs;
+using Application.Features.GradeLevelSubjects.DTOs;
+using Application.Features.GradeLevels.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -40,7 +42,8 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<Student, StudentDto>()
                 .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
-                .ForMember(dest => dest.Grade, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.GradeLevel))
+                .ForMember(dest => dest.GradeId, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.GradeLevelId))
+                .ForMember(dest => dest.GradeName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.GradeLevel.GradeName))
                 .ForMember(dest => dest.Parent, opt => opt.Ignore());
 
             CreateMap<Parent, ParentDto>()
@@ -71,7 +74,6 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.StudentId, opt => opt.Ignore());
 
             CreateMap<Class, ClassDto>().ReverseMap();
-            CreateMap<GradeBatch, GradeBatchDto>().ReverseMap();
 
             CreateMap<Grade, GradeRespondDto>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentClass.StudentId))
@@ -81,6 +83,9 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.AssessmentType, opt => opt.MapFrom(src => src.AssessmentsTypeName))
                 .ForMember(dest => dest.TeacherComment, opt => opt.MapFrom(src => src.TeacherComment))
                 .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Assignment.Teacher.FullName));
+
+            CreateMap<GradeBatch, UpdateGradeBatchDto>().ReverseMap();
+            CreateMap<GradeBatch, GradeBatchDto>();
 
             CreateMap<Subject, SubjectDto>();
             CreateMap<CreateSubjectDto, Subject>();
@@ -108,39 +113,30 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.Semester, opt => opt.Ignore()) // Ignore navigation property
                 .ForMember(dest => dest.TimetableDetails, opt => opt.MapFrom(src => src.Details));
 
-            // Map TimetableDetail -> TimetableDetailDto và ngược lại
-            CreateMap<TimetableDetail, TimetableDetailDto>()
-                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (int)src.Shift)) // byte -> int
-                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (int)src.Period)) // byte -> int
-                .ReverseMap()
-                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (byte)src.Shift)) // int -> byte
-                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (byte)src.Period)) // int -> byte
-                .ForMember(dest => dest.Class, opt => opt.Ignore())    // Ignore navigation property
-                .ForMember(dest => dest.Subject, opt => opt.Ignore())  // Ignore navigation property
-                .ForMember(dest => dest.Teacher, opt => opt.Ignore())  // Ignore navigation property
-                .ForMember(dest => dest.Timetable, opt => opt.Ignore()); // Ignore navigation property
+           
             // Map từ CreateTimetableDto sang Timetable
             CreateMap<CreateTimetableDto, Timetable>()
                 .ForMember(dest => dest.TimetableId, opt => opt.Ignore())
                 .ForMember(dest => dest.Semester, opt => opt.Ignore())
                 .ForMember(dest => dest.TimetableDetails, opt => opt.Ignore());
 
-            CreateMap<CreateTimetableDetailDto, TimetableDetail>()
-                .ForMember(dest => dest.TimetableDetailId, opt => opt.Ignore()) // Ignore vì ID do DB sinh
-                .ForMember(dest => dest.TimetableId, opt => opt.Ignore())       // Ignore vì gán thủ công
-                .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => src.DayOfWeek)) // Cả hai đều là byte, không cần cast
-                .ForMember(dest => dest.Shift, opt => opt.MapFrom(src => (byte)src.Shift))   // Chuyển int sang byte
-                .ForMember(dest => dest.Period, opt => opt.MapFrom(src => (byte)src.Period)) // Chuyển int sang byte
-                .ForMember(dest => dest.Class, opt => opt.Ignore())    // Ignore navigation property
-                .ForMember(dest => dest.Subject, opt => opt.Ignore())  // Ignore navigation property
-                .ForMember(dest => dest.Teacher, opt => opt.Ignore())  // Ignore navigation property
-                .ForMember(dest => dest.Timetable, opt => opt.Ignore()); // Ignore navigation property
-        
+            
         CreateMap<Question, QuestionDto>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
             CreateMap<QuestionDto, Question>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
             CreateMap<ExamProposal, ExamProposalDto>();
+
+            CreateMap<GradeLevelSubject, GradeLevelSubjectDto>()
+                .ForMember(dest => dest.GradeLevelName,
+                    opt => opt.MapFrom(src => src.GradeLevel.GradeName))
+                .ForMember(dest => dest.SubjectName,
+                    opt => opt.MapFrom(src => src.Subject.SubjectName));
+
+            CreateMap<GradeLevelSubject, GradeLevelSubjectCreateAndUpdateDto>().ReverseMap();
+
+            CreateMap<GradeLevel, GradeLevelDto>();
+            CreateMap<GradeLevel, GradeLevelCreateAndUpdateDto>().ReverseMap();
         }
     }
 }

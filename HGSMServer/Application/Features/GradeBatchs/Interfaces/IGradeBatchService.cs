@@ -1,4 +1,5 @@
 ﻿using Application.Features.GradeBatchs.DTOs;
+using Domain.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,11 +10,9 @@ namespace Application.Features.GradeBatchs.Interfaces
 {
     public interface IGradeBatchService
     {
-        Task<IEnumerable<GradeBatchDto>> GetAllAsync();
         Task<GradeBatchDto?> GetByIdAsync(int id);
-        Task<GradeBatchDto> CreateAsync(GradeBatchDto gradeBatchDto, List<int> subjectIds, List<string> assessmentTypes);
-        Task<bool> DeleteAsync(int id);
-        Task<GradeBatchDetailResponseDto> GetGradeBatchDetailAsync(int batchId);
-        Task<GradeBatchDto> UpdateAsync(GradeBatchToCreateDto request);
+        Task<IEnumerable<GradeBatchDto>> GetByAcademicYearIdAsync(int academicYearId);
+        Task<int> CreateBatchAndInsertGradesAsync(string batchName, int semesterId, DateOnly start, DateOnly end, string status);
+        Task<UpdateGradeBatchDto?> UpdateAsync(int id, UpdateGradeBatchDto dto);
     }
 }
