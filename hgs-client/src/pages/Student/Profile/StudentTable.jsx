@@ -94,7 +94,6 @@ export default function StudentTable() {
   ).academicYearID;
 
   const { data, isPending, error, isError } = useStudents(academicYearId);
-  console.log(data);
 
   //phan trang
   const { page, pageSize, grade, className, search } = filter;

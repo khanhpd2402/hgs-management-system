@@ -17,7 +17,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("create")]
-        [Authorize(Roles = "Principal,VicePrincipal,HeadOfDepartment,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> CreateTeachingAssignment([FromBody] TeachingAssignmentCreateDto dto)
         {
             try
@@ -32,7 +32,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("filter-data")]
-        [Authorize(Roles = "Principal,VicePrincipal,HeadOfDepartment,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> GetFilterData()
         {
             try
@@ -47,7 +47,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("get-assignments-for-creation")]
-        [Authorize(Roles = "Principal,VicePrincipal,HeadOfDepartment,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> GetAssignmentsForCreation([FromBody] TeachingAssignmentCreateDto dto)
         {
             try
@@ -62,13 +62,28 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("search")]
-        [Authorize(Roles = "Principal,VicePrincipal,HeadOfDepartment,AdministrativeOfficer,Teacher")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> SearchTeachingAssignments([FromQuery] TeachingAssignmentFilterDto filter)
         {
             try
             {
                 var result = await _teachingAssignmentService.SearchTeachingAssignmentsAsync(filter);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPost("assign-homeroom")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")] 
+        public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto dto)
+        {
+            try
+            {
+                await _teachingAssignmentService.AssignHomeroomAsync(dto);
+                return Ok(new { message = "Homeroom teacher assigned successfully.", teacherId = dto.TeacherId, classId = dto.ClassId });
             }
             catch (Exception ex)
             {
