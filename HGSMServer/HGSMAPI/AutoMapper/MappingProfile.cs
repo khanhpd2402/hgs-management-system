@@ -13,6 +13,8 @@ using Application.Features.LeaveRequests.DTOs;
 using Application.Features.LessonPlans.DTOs;
 using Application.Features.Exams.DTOs;
 using Application.Features.Timetables.DTOs;
+using Application.Features.GradeLevelSubjects.DTOs;
+using Application.Features.GradeLevels.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -71,7 +73,6 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.StudentId, opt => opt.Ignore());
 
             CreateMap<Class, ClassDto>().ReverseMap();
-            CreateMap<GradeBatch, GradeBatchDto>().ReverseMap();
 
             CreateMap<Grade, GradeRespondDto>()
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentClass.StudentId))
@@ -81,6 +82,9 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.AssessmentType, opt => opt.MapFrom(src => src.AssessmentsTypeName))
                 .ForMember(dest => dest.TeacherComment, opt => opt.MapFrom(src => src.TeacherComment))
                 .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Assignment.Teacher.FullName));
+
+            CreateMap<GradeBatch, UpdateGradeBatchDto>().ReverseMap();
+            CreateMap<GradeBatch, GradeBatchDto>();
 
             CreateMap<Subject, SubjectDto>();
             CreateMap<CreateSubjectDto, Subject>();
@@ -121,6 +125,17 @@ namespace HGSMAPI.AutoMapper
             CreateMap<QuestionDto, Question>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
             CreateMap<ExamProposal, ExamProposalDto>();
+
+            CreateMap<GradeLevelSubject, GradeLevelSubjectDto>()
+                .ForMember(dest => dest.GradeLevelName,
+                    opt => opt.MapFrom(src => src.GradeLevel.GradeName))
+                .ForMember(dest => dest.SubjectName,
+                    opt => opt.MapFrom(src => src.Subject.SubjectName));
+
+            CreateMap<GradeLevelSubject, GradeLevelSubjectCreateAndUpdateDto>().ReverseMap();
+
+            CreateMap<GradeLevel, GradeLevelDto>();
+            CreateMap<GradeLevel, GradeLevelCreateAndUpdateDto>().ReverseMap();
         }
     }
 }

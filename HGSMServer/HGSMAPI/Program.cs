@@ -50,6 +50,10 @@ using Application.Features.Exams.Interfaces;
 using Application.Features.Exams.Services;
 using HGSMAPI;
 using Infrastructure.Repositories.UnitOfWork;
+using Application.Features.GradeLevelSubjects.Interfaces;
+using Application.Features.GradeLevelSubjects.Services;
+using Application.Features.GradeLevels.Interfaces;
+using Application.Features.GradeLevels.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -123,6 +127,7 @@ builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
 builder.Services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
 builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
 builder.Services.AddScoped<IGradeLevelSubjectRepository, GradeLevelSubjectRepository>();
+builder.Services.AddScoped<IGradeLevelSubjectService, GradeLevelSubjectService>();
 builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
 
 // Teacher Management
@@ -140,7 +145,8 @@ builder.Services.AddScoped<ISubjectService, SubjectService>();
 builder.Services.AddScoped<ISubjectRepository, SubjectRepository>();
 builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
-
+builder.Services.AddScoped<IGradeLevelService, GradeLevelService>();
+builder.Services.AddScoped<IGradeLevelRepository, GradeLevelRepository>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();

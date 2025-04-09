@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories
 
         public async Task<IEnumerable<GradeBatch>> GetAllAsync()
         {
-            return await _context.GradeBatches.ToListAsync();
+            return await _context.GradeBatches.Include(gb => gb.Semester).ToListAsync();
         }
 
         public async Task<GradeBatch?> GetByIdAsync(int id)
@@ -36,15 +36,6 @@ namespace Infrastructure.Repositories
             await _context.SaveChangesAsync();
             return entity;
         }
-
-        public async Task DeleteAsync(int id)
-        {
-            var entity = await GetByIdAsync(id);
-            if (entity != null)
-            {
-                _context.GradeBatches.Remove(entity);
-                await _context.SaveChangesAsync();
-            }
-        }
+       
     }
 }
