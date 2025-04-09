@@ -8,5 +8,6 @@ namespace Application.Features.TeachingAssignments.Interfaces
         Task<TeachingAssignmentFilterDataDto> GetFilterDataAsync();
         Task<List<TeachingAssignmentResponseDto>> GetAssignmentsForCreationAsync(TeachingAssignmentCreateDto dto);
         Task<List<TeachingAssignmentResponseDto>> SearchTeachingAssignmentsAsync(TeachingAssignmentFilterDto filter);
+        Task AssignHomeroomAsync(AssignHomeroomDto dto);
     }
 }
