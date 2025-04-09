@@ -51,6 +51,10 @@ using Application.Features.Attendances.DTOs;
 using HGSMAPI;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories;
+using Application.Features.Exams.Interfaces;
+using Application.Features.Exams.Services;
+using HGSMAPI;
+using Infrastructure.Repositories.UnitOfWork;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -135,6 +139,7 @@ builder.Services.AddScoped<IGradeBatchService, GradeBatchService>();
 builder.Services.AddScoped<IGradeBatchRepository, GradeBatchRepository>();
 builder.Services.AddScoped<ITeachingAssignmentRepository, TeachingAssignmentRepository>();
 builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
+
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();

@@ -75,8 +75,7 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.TimetableDetails.AnyAsync(x =>
                 x.ClassId == detail.ClassId &&
-                x.DayOfWeek == detail.DayOfWeek &&
-                x.Shift == detail.Shift &&
+              
                 x.Period == detail.Period &&
                 x.Timetable.EffectiveDate == detail.Timetable.EffectiveDate &&
                 x.Timetable.SemesterId == detail.Timetable.SemesterId &&
