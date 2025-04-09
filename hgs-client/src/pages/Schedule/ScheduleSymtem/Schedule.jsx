@@ -51,7 +51,21 @@ const ScheduleTable = () => {
     const [showTeacherName, setShowTeacherName] = useState(true);
     const [originalScheduleData, setOriginalScheduleData] = useState(scheduleData);
 
+    // Thêm state để theo dõi việc kéo thả
+    const [draggedItem, setDraggedItem] = useState(null);
+    const [draggedOverItem, setDraggedOverItem] = useState(null);
 
+    // Thêm state để theo dõi việc chỉnh sửa
+    const [editingCell, setEditingCell] = useState(null);
+
+    // Thêm state để quản lý popup
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedPeriodInfo, setSelectedPeriodInfo] = useState(null);
+    const [selectedModalSubject, setSelectedModalSubject] = useState("");
+    const [selectedModalTeacher, setSelectedModalTeacher] = useState("");
+
+    // Thêm state để theo dõi vị trí kéo thả
+    const [isDraggingOverTrash, setIsDraggingOverTrash] = useState(false);
 
 
 
@@ -200,10 +214,316 @@ const ScheduleTable = () => {
         setOriginalScheduleData(scheduleData);
     };
 
+    // Hàm xử lý khi bắt đầu kéo
+    const handleDragStart = (day, session, periodIndex, grade, className, period) => {
+        if (!period) return; // Không cho phép kéo ô trống
+        setDraggedItem({
+            day,
+            session,
+            periodIndex,
+            grade,
+            className,
+            period
+        });
+    };
+
+    // Hàm xử lý khi kéo qua một ô khác
+    const handleDragOver = (e, day, session, periodIndex, grade, className) => {
+        e.preventDefault();
+        if (draggedItem && draggedItem.grade === grade && draggedItem.className === className) {
+            setDraggedOverItem({ day, session, periodIndex });
+        }
+    };
+
+    const checkDuplicate = (newScheduleData, grade, className, day, session, period) => {
+        const allClassesInGrade = Object.keys(newScheduleData[grade] || {});
+
+        for (const currentClassName of allClassesInGrade) {
+
+            const existingPeriods = newScheduleData[grade][currentClassName][day][session] || [];
+
+            // Kiểm tra xem có trùng giáo viên không
+            const hasTeacherDuplicate = existingPeriods.some(
+                (existingPeriod) =>
+                    existingPeriod &&
+                    period &&
+                    existingPeriod.teacher_id === period.teacher_id
+            );
+
+            if (hasTeacherDuplicate) {
+                return {
+                    isDuplicate: true,
+                    message: `Giáo viên này đã có tiết dạy ở lớp ${currentClassName} trong cùng khung giờ!`
+                };
+            }
+        }
+
+        return {
+            isDuplicate: false,
+            message: ""
+        };
+    };
+
+    // Chỉnh sửa hàm handleDrop
+    const handleDrop = (e, day, session, periodIndex, grade, className) => {
+        e.preventDefault();
+
+        if (!draggedItem || draggedItem.grade !== grade || draggedItem.className !== className) {
+            return;
+        }
+
+        // Tạo bản sao của dữ liệu
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        // Kiểm tra trùng lặp trước khi thực hiện kéo thả
+        const duplicateCheck = checkDuplicate(
+            newScheduleData,
+            grade,
+            className,
+            day,
+            session,
+            draggedItem.period
+        );
+
+        if (duplicateCheck.isDuplicate) {
+            alert(duplicateCheck.message);
+            setDraggedItem(null);
+            setDraggedOverItem(null);
+            return;
+        }
+
+        // Lấy tiết học ở vị trí đích
+        const targetPeriod = newScheduleData[grade][className][day][session][periodIndex];
+
+        // Hoán đổi vị trí giữa hai tiết học
+        newScheduleData[grade][className][draggedItem.day][draggedItem.session][draggedItem.periodIndex] = targetPeriod;
+        newScheduleData[grade][className][day][session][periodIndex] = draggedItem.period;
+
+        // Cập nhật state
+        setOriginalScheduleData(newScheduleData);
+        setDraggedItem(null);
+        setDraggedOverItem(null);
+    };
+
+    // Thêm hàm xử lý khi thay đổi môn học và giáo viên
+    const handleSubjectChange = (day, session, periodIndex, grade, className, subjectId) => {
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        if (!newScheduleData[grade][className][day][session]) {
+            newScheduleData[grade][className][day][session] = [];
+        }
+
+        // Lấy thông tin giáo viên hiện tại (nếu có)
+        const currentTeacherId = newScheduleData[grade][className][day][session][periodIndex]?.teacher_id || "";
+
+        // Tạo hoặc cập nhật period, giữ nguyên teacher_id
+        if (!newScheduleData[grade][className][day][session][periodIndex]) {
+            newScheduleData[grade][className][day][session][periodIndex] = {
+                subject_Id: subjectId,
+                teacher_id: currentTeacherId
+            };
+        } else {
+            newScheduleData[grade][className][day][session][periodIndex] = {
+                ...newScheduleData[grade][className][day][session][periodIndex],
+                subject_Id: subjectId
+            };
+        }
+
+        setOriginalScheduleData(newScheduleData);
+    };
+
+    const handleTeacherChange = (day, session, periodIndex, grade, className, teacherId) => {
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        if (!newScheduleData[grade][className][day][session]) {
+            newScheduleData[grade][className][day][session] = [];
+        }
+
+        if (!newScheduleData[grade][className][day][session][periodIndex]) {
+            newScheduleData[grade][className][day][session][periodIndex] = {
+                subject_Id: "",
+                teacher_id: teacherId
+            };
+        } else {
+            newScheduleData[grade][className][day][session][periodIndex].teacher_id = teacherId;
+        }
+
+        setOriginalScheduleData(newScheduleData);
+    };
+
+    // Thêm hàm để mở popup khi click vào ô trống
+    const handleEmptyCellClick = (day, session, periodIndex, grade, className) => {
+        setSelectedPeriodInfo({ day, session, periodIndex, grade, className });
+        setSelectedModalSubject("");
+        setSelectedModalTeacher("");
+        setIsModalOpen(true);
+    };
+
+    // Thêm hàm kiểm tra trùng lặp trong cùng hàng cho modal
+    const checkDuplicateInRowForModal = (scheduleData, grade, className, day, session, periodIndex, teacherId) => {
+        // Kiểm tra tất cả các lớp trong cùng khối
+        const allClassesInGrade = Object.keys(scheduleData[grade]);
+
+        for (const currentClassName of allClassesInGrade) {
+            // Bỏ qua việc kiểm tra với chính lớp đang thêm
+            if (currentClassName === className) continue;
+
+            const currentPeriod = scheduleData[grade][currentClassName][day][session][periodIndex];
+
+            // Kiểm tra nếu có cùng giáo viên trong cùng tiết
+            if (currentPeriod && currentPeriod.teacher_id === teacherId) {
+                return {
+                    isDuplicate: true,
+                    message: `Giáo viên này đã có tiết dạy ở lớp ${currentClassName} trong cùng thời điểm!`
+                };
+            }
+        }
+
+        return {
+            isDuplicate: false,
+            message: ""
+        };
+    };
+
+    // Chỉnh sửa hàm handleModalConfirm
+    const handleModalConfirm = () => {
+        if (!selectedModalSubject) {
+            alert("Vui lòng chọn môn học!");
+            return;
+        }
+        if (!selectedModalTeacher) {
+            alert("Vui lòng chọn giáo viên!");
+            return;
+        }
+
+        const { day, session, periodIndex, grade, className } = selectedPeriodInfo;
+
+        // Kiểm tra trùng lặp trước khi thêm tiết học mới
+        const duplicateCheck = checkDuplicateInRowForModal(
+            originalScheduleData,
+            grade,
+            className,
+            day,
+            session,
+            periodIndex,
+            selectedModalTeacher
+        );
+
+        if (duplicateCheck.isDuplicate) {
+            alert(duplicateCheck.message);
+            return;
+        }
+
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        if (!newScheduleData[grade][className][day][session]) {
+            newScheduleData[grade][className][day][session] = [];
+        }
+
+        newScheduleData[grade][className][day][session][periodIndex] = {
+            subject_Id: selectedModalSubject,
+            teacher_id: selectedModalTeacher
+        };
+
+        setOriginalScheduleData(newScheduleData);
+        setIsModalOpen(false);
+    };
+
+    // Component Modal
+    const ScheduleModal = ({ isOpen, onClose, onConfirm }) => {
+        if (!isOpen) return null;
+
+        return (
+            <div className="modal-overlay">
+                <div className="modal-content">
+                    <h3>Thêm tiết học mới</h3>
+                    <div className="modal-form">
+                        <div className="form-group">
+                            <label>Chọn môn học:</label>
+                            <select
+                                value={selectedModalSubject}
+                                onChange={(e) => setSelectedModalSubject(e.target.value)}
+                            >
+                                <option value="">-- Chọn môn học --</option>
+                                {subjectData.map((subject) => (
+                                    <option key={subject.subject_Id} value={subject.subject_Id}>
+                                        {subject.subject_name}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        {selectedModalSubject && (
+                            <div className="form-group">
+                                <label>Chọn giáo viên:</label>
+                                <select
+                                    value={selectedModalTeacher}
+                                    onChange={(e) => setSelectedModalTeacher(e.target.value)}
+                                >
+                                    <option value="">-- Chọn giáo viên --</option>
+                                    {teacherData.map((teacher) => (
+                                        <option key={teacher.teacher_id} value={teacher.teacher_id}>
+                                            {teacher.teacher_name}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        )}
+                    </div>
+                    <div className="modal-actions">
+                        <button onClick={onConfirm}>Xác nhận</button>
+                        <button onClick={onClose}>Hủy</button>
+                    </div>
+                </div>
+            </div>
+        );
+    };
+
+    // Hàm xử lý khi kéo qua thùng rác
+    const handleTrashDragOver = (e) => {
+        e.preventDefault();
+        if (draggedItem) {
+            setIsDraggingOverTrash(true);
+        }
+    };
+
+    // Hàm xử lý khi kéo ra khỏi thùng rác
+    const handleTrashDragLeave = () => {
+        setIsDraggingOverTrash(false);
+    };
+
+    // Hàm xử lý khi thả vào thùng rác
+    const handleTrashDrop = (e) => {
+        e.preventDefault();
+        if (!draggedItem) return;
+
+        const { day, session, periodIndex, grade, className } = draggedItem;
+        const newScheduleData = JSON.parse(JSON.stringify(originalScheduleData));
+
+        // Xóa tiết học
+        newScheduleData[grade][className][day][session][periodIndex] = null;
+
+        setOriginalScheduleData(newScheduleData);
+        setDraggedItem(null);
+        setIsDraggingOverTrash(false);
+    };
 
     return (
         <div>
-            <h2 style={{ textAlign: "center" }}>Thời Khóa Biểu</h2>
+            <h2
+                style={{
+                    textAlign: "center",
+                    fontSize: "28px",
+                    fontWeight: "bold",
+                    color: "#727CF5",
+                    padding: "10px",
+                    borderBottom: "3px solid #727CF5",
+                    display: "inline-block",
+                    marginBottom: "20px",
+                }}
+            >
+                Thời Khóa Biểu
+            </h2>
 
             <div className="filter-container">
                 {/* Hàng 1: Học kỳ, Ngày áp dụng, Giáo viên */}
@@ -340,14 +660,33 @@ const ScheduleTable = () => {
                     <thead>
                         <tr>
                             <th className="sticky-header" colSpan={3}>Lịch học</th>
+                            {/* Nhóm các lớp theo khối và hiển thị */}
+                            {Object.entries(
+                                filteredClasses.reduce((acc, { grade, className }) => {
+                                    if (!acc[grade]) acc[grade] = [];
+                                    acc[grade].push(className);
+                                    return acc;
+                                }, {})
+                            ).map(([grade, classes]) => (
+                                <th key={grade} colSpan={classes.length}>Khối {grade}</th>
+                            ))}
                         </tr>
                         <tr>
                             <th className="sticky-col col-1">Thứ</th>
                             <th className="sticky-col col-2">Buổi</th>
                             <th className="sticky-col col-3">Tiết</th>
-                            {filteredClasses.map(({ grade, className }) => (
-                                <th key={`${grade}-${className}`}>Khối {grade} - {className}</th>
-                            ))}
+                            {/* Hiển thị tên lớp theo thứ tự khối */}
+                            {Object.entries(
+                                filteredClasses.reduce((acc, { grade, className }) => {
+                                    if (!acc[grade]) acc[grade] = [];
+                                    acc[grade].push(className);
+                                    return acc;
+                                }, {})
+                            ).flatMap(([_, classes]) =>
+                                classes.map(className => (
+                                    <th key={className}>{className}</th>
+                                ))
+                            )}
                         </tr>
                     </thead>
                     <tbody>
@@ -415,10 +754,31 @@ const ScheduleTable = () => {
                                                     {filteredClasses.map(({ grade, className }) => {
                                                         const period = filteredScheduleData[grade][className]?.[day]?.[session]?.[periodIndex];
                                                         return (
-                                                            <td key={`${grade}-${className}-${day}-${session}-${periodIndex}`}>
-                                                                {period
-                                                                    ? `${getSubjectName(period.subject_Id)}${showTeacherName ? " - " + getTeacherName(period.teacher_id) : ""}`
-                                                                    : " "}
+                                                            <td
+                                                                key={`${grade}-${className}-${day}-${session}-${periodIndex}`}
+                                                                draggable={!!period}
+                                                                onDragStart={() => handleDragStart(day, session, periodIndex, grade, className, period)}
+                                                                onDragOver={(e) => handleDragOver(e, day, session, periodIndex, grade, className)}
+                                                                onDrop={(e) => handleDrop(e, day, session, periodIndex, grade, className)}
+                                                                style={{
+                                                                    cursor: period ? 'move' : 'default',
+                                                                    backgroundColor:
+                                                                        draggedOverItem?.day === day &&
+                                                                            draggedOverItem?.session === session &&
+                                                                            draggedOverItem?.periodIndex === periodIndex ?
+                                                                            '#e0e0e0' : undefined
+                                                                }}
+                                                            >
+                                                                {period ? (
+                                                                    `${getSubjectName(period.subject_Id)}${showTeacherName ? " - " + getTeacherName(period.teacher_id) : ""}`
+                                                                ) : (
+                                                                    <div
+                                                                        className="empty-cell"
+                                                                        onClick={() => handleEmptyCellClick(day, session, periodIndex, grade, className)}
+                                                                    >
+                                                                        Click để thêm tiết học
+                                                                    </div>
+                                                                )}
                                                             </td>
                                                         );
                                                     })}
@@ -432,7 +792,24 @@ const ScheduleTable = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+
+            <ScheduleModal
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                onConfirm={handleModalConfirm}
+            />
+
+            {/* Thêm thùng rác cố định ở góc màn hình */}
+            <div
+                className={`floating-trash ${isDraggingOverTrash ? 'trash-active' : ''} ${draggedItem ? 'trash-visible' : ''}`}
+                onDragOver={handleTrashDragOver}
+                onDragLeave={handleTrashDragLeave}
+                onDrop={handleTrashDrop}
+                style={{ marginBottom: '30px' }}
+            >
+                <Trash2 size={24} />
+            </div>
+        </div >
     );
 };
 
