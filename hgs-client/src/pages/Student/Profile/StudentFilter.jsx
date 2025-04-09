@@ -16,20 +16,14 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
+import { useClasses } from "@/services/common/queries";
 
 const grades = [
-  { value: "Khối 6", label: "Khối 6" },
-  { value: "Khối 7", label: "Khối 7" },
-  { value: "Khối 8", label: "Khối 8" },
-  { value: "Khối 9", label: "Khối 9" },
+  { value: "6", label: "Khối 6" },
+  { value: "7", label: "Khối 7" },
+  { value: "8", label: "Khối 8" },
+  { value: "9", label: "Khối 9" },
 ];
-
-const classMap = {
-  "Khối 6": ["6A", "6B"],
-  "Khối 7": ["7A", "7B", "7C"],
-  "Khối 8": ["8A", "8B"],
-  "Khối 9": ["9A", "9B"],
-};
 
 StudentFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
@@ -39,7 +33,11 @@ export default function StudentFilter({ setFilter }) {
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [grade, setGrade] = useState("");
-  const [classname, setClassname] = useState("");
+  const [className, setClassname] = useState("");
+
+  const { data } = useClasses();
+  const currentClasses = data?.filter((c) => c.grade == grade);
+  console.log(currentClasses);
 
   const handleGradeChange = (value) => {
     setGrade(value);
@@ -51,9 +49,9 @@ export default function StudentFilter({ setFilter }) {
     setFilter((options) => ({
       ...options,
       page: 1,
-      searchValue: search.trim(),
+      search: search.trim(),
       grade,
-      classname,
+      className,
     }));
     setOpen(false);
   };
@@ -91,17 +89,18 @@ export default function StudentFilter({ setFilter }) {
             {/* Lọc theo lớp */}
             <Select
               onValueChange={setClassname}
-              value={classname}
+              value={className}
               disabled={!grade}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn lớp" />
               </SelectTrigger>
               <SelectContent>
-                {grade &&
-                  classMap[grade].map((c) => (
-                    <SelectItem key={c} value={c}>
-                      {c}
+                {currentClasses &&
+                  currentClasses.length > 0 &&
+                  currentClasses.map((c) => (
+                    <SelectItem key={c.classId} value={c.className}>
+                      {c.className}
                     </SelectItem>
                   ))}
               </SelectContent>

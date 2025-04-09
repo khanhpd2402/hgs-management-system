@@ -10,7 +10,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Features.TeachingAssignments.Services
@@ -28,7 +27,7 @@ namespace Application.Features.TeachingAssignments.Services
 
         private async Task<bool> HasPermissionAsync()
         {
-            var userRole = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
             var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
             return allowedRoles.Contains(userRole);
         }
@@ -177,25 +176,6 @@ namespace Application.Features.TeachingAssignments.Services
                     throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
                 }
 
-                // Tính số tiết/tuần thực tế từ TimetableDetails
-                int actualPeriodsPerWeekHK1 = await _context.TimetableDetails
-                    .Where(td => td.TeacherId == dto.TeacherId &&
-                                 td.SubjectId == dto.SubjectId &&
-                                 td.ClassId == classAssignment.ClassId &&
-                                 td.Timetable.SemesterId == dto.SemesterId &&
-                                 td.Timetable.Semester.SemesterName == "Học kỳ 1")
-                    .GroupBy(td => td.DayOfWeek)
-                    .CountAsync();
-
-                int actualPeriodsPerWeekHK2 = await _context.TimetableDetails
-                    .Where(td => td.TeacherId == dto.TeacherId &&
-                                 td.SubjectId == dto.SubjectId &&
-                                 td.ClassId == classAssignment.ClassId &&
-                                 td.Timetable.SemesterId == dto.SemesterId &&
-                                 td.Timetable.Semester.SemesterName == "Học kỳ 2")
-                    .GroupBy(td => td.DayOfWeek)
-                    .CountAsync();
-
                 result.Add(new TeachingAssignmentResponseDto
                 {
                     AssignmentId = 0, // Chưa có AssignmentId vì chưa lưu
@@ -206,21 +186,18 @@ namespace Application.Features.TeachingAssignments.Services
                     ClassId = classAssignment.ClassId,
                     ClassName = classEntity.ClassName,
                     SemesterId = dto.SemesterId,
-                    SemesterName = semester.SemesterName,
-                    ActualPeriodsPerWeekHK1 = actualPeriodsPerWeekHK1,
-                    ActualPeriodsPerWeekHK2 = actualPeriodsPerWeekHK2
+                    SemesterName = semester.SemesterName
                 });
             }
 
             return result;
         }
 
-
         public async Task<List<TeachingAssignmentResponseDto>> SearchTeachingAssignmentsAsync(TeachingAssignmentFilterDto filter)
         {
-            var userRole = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.Role)?.Value;
-            var userIdClaim = _httpContextAccessor.HttpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            int? userId = userIdClaim != null ? int.Parse(userIdClaim) : (int?)null;
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+            var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            int? userId = userIdClaim != null ? int.Parse(userIdClaim) : null;
 
             var query = _context.TeachingAssignments
                 .Include(ta => ta.Teacher)
@@ -243,7 +220,7 @@ namespace Application.Features.TeachingAssignments.Services
                 }
             }
 
-            // Apply Filters
+            // Áp dụng bộ lọc
             if (filter.TeacherId.HasValue)
                 query = query.Where(ta => ta.TeacherId == filter.TeacherId.Value);
 
@@ -267,45 +244,18 @@ namespace Application.Features.TeachingAssignments.Services
 
             var assignmentList = await query.ToListAsync();
 
-            var result = new List<TeachingAssignmentResponseDto>();
-
-            foreach (var ta in assignmentList)
+            var result = assignmentList.Select(ta => new TeachingAssignmentResponseDto
             {
-                var actualPeriodsHK1 = await _context.TimetableDetails
-                    .Where(td => td.TeacherId == ta.TeacherId &&
-                                 td.SubjectId == ta.SubjectId &&
-                                 td.ClassId == ta.ClassId &&
-                                 td.Timetable.SemesterId == ta.SemesterId &&
-                                 td.Timetable.Semester.SemesterName == "Học kỳ 1")
-                    .Select(td => new { td.DayOfWeek, td.Period })
-                    .Distinct()
-                    .CountAsync();
-
-                var actualPeriodsHK2 = await _context.TimetableDetails
-                    .Where(td => td.TeacherId == ta.TeacherId &&
-                                 td.SubjectId == ta.SubjectId &&
-                                 td.ClassId == ta.ClassId &&
-                                 td.Timetable.SemesterId == ta.SemesterId &&
-                                 td.Timetable.Semester.SemesterName == "Học kỳ 2")
-                    .Select(td => new { td.DayOfWeek, td.Period })
-                    .Distinct()
-                    .CountAsync();
-
-                result.Add(new TeachingAssignmentResponseDto
-                {
-                    AssignmentId = ta.AssignmentId,
-                    TeacherId = ta.TeacherId,
-                    TeacherName = ta.Teacher.FullName,
-                    SubjectId = ta.SubjectId,
-                    SubjectName = ta.Subject.SubjectName,
-                    ClassId = ta.ClassId,
-                    ClassName = ta.Class.ClassName,
-                    SemesterId = ta.SemesterId,
-                    SemesterName = ta.Semester.SemesterName,
-                    ActualPeriodsPerWeekHK1 = actualPeriodsHK1,
-                    ActualPeriodsPerWeekHK2 = actualPeriodsHK2
-                });
-            }
+                AssignmentId = ta.AssignmentId,
+                TeacherId = ta.TeacherId,
+                TeacherName = ta.Teacher.FullName,
+                SubjectId = ta.SubjectId,
+                SubjectName = ta.Subject.SubjectName,
+                ClassId = ta.ClassId,
+                ClassName = ta.Class.ClassName,
+                SemesterId = ta.SemesterId,
+                SemesterName = ta.Semester.SemesterName
+            }).ToList();
 
             return result;
         }
