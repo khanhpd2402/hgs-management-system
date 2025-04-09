@@ -1,5 +1,6 @@
 ﻿using Application.Features.Teachers.DTOs;
 using Application.Features.Teachers.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 
@@ -16,6 +17,7 @@ public class TeachersController : ControllerBase
 
     [HttpGet]
     [EnableQuery]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> GetAllTeachers()
     {
         var result = await _teacherService.GetAllTeachersAsync();
@@ -23,6 +25,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpGet("{id}")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<ActionResult<TeacherDetailDto>> GetTeacherById(int id)
     {
         var teacher = await _teacherService.GetTeacherByIdAsync(id);
@@ -31,6 +34,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpPost]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<ActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
     {
         if (teacherDto == null) return BadRequest("Dữ liệu không hợp lệ");
@@ -54,6 +58,7 @@ public class TeachersController : ControllerBase
 
     
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> DeleteTeacher(int id)
     {
         var result = await _teacherService.DeleteTeacherAsync(id);
@@ -67,6 +72,7 @@ public class TeachersController : ControllerBase
 
 
     [HttpPost("import")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
     {
         var (success, errors) = await _teacherService.ImportTeachersFromExcelAsync(file);
