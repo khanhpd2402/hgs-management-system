@@ -19,6 +19,10 @@ public partial class GradeLevelSubject
 
     public int ContinuousAssessmentsHkii { get; set; }
 
+    public int MidtermAssessments { get; set; }
+
+    public int FinalAssessments { get; set; }
+
     public virtual GradeLevel GradeLevel { get; set; } = null!;
 
     public virtual Subject Subject { get; set; } = null!;

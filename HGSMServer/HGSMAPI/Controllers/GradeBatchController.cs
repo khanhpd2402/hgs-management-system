@@ -15,66 +15,51 @@ namespace HGSMAPI.Controllers
         {
             _gradeBatchService = gradeBatchService;
         }
-
-        [HttpGet]
-        public async Task<ActionResult<IEnumerable<GradeBatchDto>>> GetAll()
-        {
-            var batches = await _gradeBatchService.GetAllAsync();
-            return Ok(batches);
-        }
-
+        // GET: api/GradeBatch/{id}
         [HttpGet("{id}")]
-        public async Task<ActionResult<GradeBatchDto>> GetById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var batch = await _gradeBatchService.GetByIdAsync(id);
-            if (batch == null)
+            var result = await _gradeBatchService.GetByIdAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
+
+        // GET: api/GradeBatch/by-academicyear/{academicYearId}
+        [HttpGet("by-academicyear/{academicYearId}")]
+        public async Task<IActionResult> GetByAcademicYear(int academicYearId)
+        {
+            var result = await _gradeBatchService.GetByAcademicYearIdAsync(academicYearId);
+            return Ok(result);
+        }
+        [HttpPost("create")]
+        public async Task<IActionResult> CreateBatch([FromBody] GradeBatchToCreateDto request)
+        {
+            if (request == null) return BadRequest("Request is null.");
+
+            try
             {
-                return NotFound();
+                var batchId = await _gradeBatchService.CreateBatchAndInsertGradesAsync(
+                    request.BatchName,
+                    request.SemesterId,
+                    request.StartDate,
+                    request.EndDate,
+                    request.Status
+                );
+
+                return Ok(new { BatchId = batchId });
             }
-            return Ok(batch);
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi tạo đợt nhập điểm: {ex.Message}");
+            }
         }
-
-        [HttpPost]
-        public async Task<ActionResult<GradeBatchDto>> Create([FromBody] GradeBatchToCreateDto request)
-        {
-            var createdBatch = await _gradeBatchService.CreateAsync(request.GradeBatch, request.SubjectIds, request.AssessmentTypes);
-            return CreatedAtAction(nameof(GetById), new { id = createdBatch.BatchId }, createdBatch);
-        }
-
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, GradeBatchToCreateDto gradeBatchDto)
+        public async Task<IActionResult> UpdateGradeBatch(int id, [FromBody] UpdateGradeBatchDto dto)
         {
-            if (id != gradeBatchDto.GradeBatch.BatchId)
-            {
-                return BadRequest(new { message = "BatchId không khớp." });
-            }
+            var updated = await _gradeBatchService.UpdateAsync(id, dto);
+            if (updated == null) return NotFound();
 
-            var result = await _gradeBatchService.UpdateAsync(gradeBatchDto);
-
-            if (result == null)
-            {
-                return NotFound(new { message = "GradeBatch không tồn tại." });
-            }
-
-            return Ok(result);
-        }
-
-
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
-        {
-            var deleted = await _gradeBatchService.DeleteAsync(id);
-            if (!deleted)
-            {
-                return NotFound();
-            }
-            return NoContent();
-        }
-        [HttpGet("{id}/detail")]
-        public async Task<IActionResult> GetGradeBatchDetail(int id)
-        {
-            var result = await _gradeBatchService.GetGradeBatchDetailAsync(id);
-            return Ok(result);
+            return Ok(updated);
         }
     }
 }

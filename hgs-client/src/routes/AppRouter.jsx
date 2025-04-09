@@ -65,7 +65,7 @@ const adminRouter = [
   {
     path: "/system/user",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <UserManagement />
       </ProtectedRoute>
     ),
@@ -73,7 +73,7 @@ const adminRouter = [
   {
     path: "/system/subject",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <SubjectManagement />
       </ProtectedRoute>
     ),
@@ -81,7 +81,7 @@ const adminRouter = [
   {
     path: "/system/class",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <ClassManagement />
       </ProtectedRoute>
     ),
@@ -92,7 +92,7 @@ const teacherRouter = [
   {
     path: "/teacher/profile",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <ErrorBoundary fallback={<FallbackErrorBoundary />}>
           <Suspense fallback={<div>Loading...</div>}>
             <TeacherTable />
@@ -149,7 +149,7 @@ const teacherRouter = [
   {
     path: "/teacher/mark-report",
     element: (
-      <ProtectedRoute requiredRoles={["Teacher"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <MarkReportTable />
         </Suspense>
@@ -204,7 +204,7 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Principal", "Teacher"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên"]}>
         <DefaultLayout />
       </ProtectedRoute>
     ),

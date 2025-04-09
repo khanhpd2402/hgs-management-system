@@ -19,10 +19,10 @@ import { DialogDescription } from "@radix-ui/react-dialog";
 import { useClasses } from "@/services/common/queries";
 
 const grades = [
-  { value: "6", label: "Khối 6" },
-  { value: "7", label: "Khối 7" },
-  { value: "8", label: "Khối 8" },
-  { value: "9", label: "Khối 9" },
+  { value: "Khối 6", label: "Khối 6" },
+  { value: "Khối 7", label: "Khối 7" },
+  { value: "Khối 8", label: "Khối 8" },
+  { value: "Khối 9", label: "Khối 9" },
 ];
 
 StudentFilter.propTypes = {

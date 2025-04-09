@@ -16,6 +16,4 @@ public partial class AcademicYear
     public virtual ICollection<Semester> Semesters { get; set; } = new List<Semester>();
 
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
-
-    public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 }

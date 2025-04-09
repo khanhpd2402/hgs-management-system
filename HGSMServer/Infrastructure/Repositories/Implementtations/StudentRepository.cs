@@ -19,12 +19,12 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<IEnumerable<Student>> GetAllWithParentsAsync(int academicYearId)
         {
             return await _context.Students
-                .Include(s => s.Parent) // Lấy thông tin Parent qua ParentId
-                    .ThenInclude(p => p.User) // Lấy thông tin User của Parent
-                .Include(s => s.StudentClasses)
-                    .ThenInclude(sc => sc.Class)
-                .Where(s => s.StudentClasses.Any(sc => sc.AcademicYearId == academicYearId)) // Lọc theo năm học
-                .ToListAsync();
+        .Include(s => s.StudentClasses)
+            .ThenInclude(sc => sc.Class)
+                .ThenInclude(c => c.GradeLevel) // Include GradeLevel để lấy GradeName
+        .Include(s => s.Parent)
+        .Where(s => s.StudentClasses.Any(sc => sc.AcademicYearId == academicYearId))
+        .ToListAsync();
         }
 
         public async Task<int> GetAcademicYearIdAsync(int semesterId)
@@ -53,7 +53,7 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(s => s.Parent) // Lấy thông tin Parent qua ParentId
                     .ThenInclude(p => p.User) // Lấy thông tin User của Parent
                 .Include(s => s.StudentClasses)
-                    .ThenInclude(sc => sc.Class)
+                    .ThenInclude(sc => sc.Class).ThenInclude(c => c.GradeLevel)
                 .Where(s => s.StudentId == id && s.StudentClasses.Any(sc => sc.AcademicYearId == academicYearId)) // Lọc theo năm học
                 .FirstOrDefaultAsync();
         }

@@ -47,8 +47,6 @@ public partial class Teacher
 
     public string? Hometown { get; set; }
 
-    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
-
     public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
@@ -58,8 +56,6 @@ public partial class Teacher
     public virtual ICollection<LessonPlan> LessonPlanTeachers { get; set; } = new List<LessonPlan>();
 
     public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
-
-    public virtual ICollection<TeacherClass> TeacherClasses { get; set; } = new List<TeacherClass>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 

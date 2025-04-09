@@ -18,7 +18,8 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("upload")]
-        [Authorize(Roles = "Teacher, HeadOfDepartment")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
+        //[Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> UploadLessonPlan([FromBody] LessonPlanUploadDto lessonPlanDto)
         {
             try
@@ -34,7 +35,7 @@ namespace HGSMAPI.Controllers
 
 
         [HttpPost("review")]
-        [Authorize(Roles = "HeadOfDepartment")]
+        [Authorize(Roles = "Trưởng bộ môn,Hiệu trưởng")]
         public async Task<IActionResult> ReviewLessonPlan([FromBody] LessonPlanReviewDto reviewDto)
         {
             try
@@ -49,7 +50,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("all")]
-        [Authorize(Roles = "Teacher, HeadOfDepartment, Principal")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn,Hiệu trưởng")]
         public async Task<IActionResult> GetAllLessonPlans([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
@@ -64,7 +65,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("{planId}")]
-        [Authorize(Roles = "Teacher, HeadOfDepartment, Principal")] 
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn,Hiệu trưởng")] 
         public async Task<IActionResult> GetLessonPlanById(int planId)
         {
             try
@@ -79,7 +80,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("filter-by-status")]
-        [Authorize(Roles = "Teacher, HeadOfDepartment, Principal")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn,Hiệu trưởng")]
         public async Task<IActionResult> GetLessonPlansByStatus([FromQuery] string status, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             try
