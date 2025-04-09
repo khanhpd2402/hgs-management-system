@@ -525,7 +525,7 @@ namespace Application.Features.Students.Services
                     var user = await _userRepository.GetByIdAsync(parent.UserId);
                     if (user != null)
                     {
-                        // Tìm số điện thoại hoặc email hợp lệ từ cha, mẹ, hoặc người bảo hộ
+                        // Lấy thông tin mới từ DTO
                         string newPhoneNumber = null;
                         if (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberFather) && updateStudentDto.PhoneNumberFather != "string")
                             newPhoneNumber = updateStudentDto.PhoneNumberFather;
@@ -542,6 +542,41 @@ namespace Application.Features.Students.Services
                         else if (!string.IsNullOrEmpty(updateStudentDto.EmailGuardian) && updateStudentDto.EmailGuardian != "string")
                             newEmail = updateStudentDto.EmailGuardian;
 
+                        // Kiểm tra xem thông tin cha mẹ mới có hoàn toàn giống với thông tin cha mẹ đã tồn tại nào không
+                        Parent existingParent = null;
+                        if (newPhoneNumber != null || newEmail != null)
+                        {
+                            existingParent = await _parentRepository.GetParentByDetailsAsync(
+                                updateStudentDto.FullNameFather ?? parent.FullNameFather,
+                                updateStudentDto.YearOfBirthFather ?? parent.YearOfBirthFather,
+                                newPhoneNumber ?? user.PhoneNumber,
+                                newEmail ?? user.Email,
+                                updateStudentDto.IdcardNumberFather ?? parent.IdcardNumberFather
+                            ) ?? await _parentRepository.GetParentByDetailsAsync(
+                                updateStudentDto.FullNameMother ?? parent.FullNameMother,
+                                updateStudentDto.YearOfBirthMother ?? parent.YearOfBirthMother,
+                                newPhoneNumber ?? user.PhoneNumber,
+                                newEmail ?? user.Email,
+                                updateStudentDto.IdcardNumberMother ?? parent.IdcardNumberMother
+                            ) ?? await _parentRepository.GetParentByDetailsAsync(
+                                updateStudentDto.FullNameGuardian ?? parent.FullNameGuardian,
+                                updateStudentDto.YearOfBirthGuardian ?? parent.YearOfBirthGuardian,
+                                newPhoneNumber ?? user.PhoneNumber,
+                                newEmail ?? user.Email,
+                                updateStudentDto.IdcardNumberGuardian ?? parent.IdcardNumberGuardian
+                            );
+                        }
+
+                        if (existingParent != null && existingParent.ParentId != parent.ParentId)
+                        {
+                            // Nếu tìm thấy phụ huynh giống hệt nhưng khác ParentId, liên kết với phụ huynh đó
+                            Console.WriteLine($"Found existing parent with ParentID: {existingParent.ParentId}. Linking to student...");
+                            student.ParentId = existingParent.ParentId;
+                            await _studentRepository.UpdateAsync(student);
+                            return;
+                        }
+
+                        // Kiểm tra trùng lặp số điện thoại
                         if (!string.IsNullOrEmpty(newPhoneNumber) && newPhoneNumber != user.PhoneNumber)
                         {
                             var existingUserByPhone = await _userRepository.GetByPhoneNumberAsync(newPhoneNumber);
@@ -550,6 +585,7 @@ namespace Application.Features.Students.Services
                             user.PhoneNumber = newPhoneNumber;
                         }
 
+                        // Kiểm tra trùng lặp email
                         if (!string.IsNullOrEmpty(newEmail) && newEmail != user.Email)
                         {
                             var existingUserByEmail = await _userRepository.GetByEmailAsync(newEmail);
@@ -558,6 +594,7 @@ namespace Application.Features.Students.Services
                             user.Email = newEmail;
                         }
 
+                        // Cập nhật username nếu có thay đổi tên
                         string fullNameForUsername = null;
                         if (!string.IsNullOrEmpty(updateStudentDto.FullNameFather) && updateStudentDto.FullNameFather != "string")
                             fullNameForUsername = updateStudentDto.FullNameFather;
@@ -631,6 +668,10 @@ namespace Application.Features.Students.Services
                 {
                     await CreateParentAndLinkAsync(student, updateStudentDto);
                 }
+            }
+            else
+            {
+                await CreateParentAndLinkAsync(student, updateStudentDto);
             }
         }
 
