@@ -42,7 +42,6 @@ using Application.Features.LeaveRequests.Services;
 using Application.Features.LessonPlans.Interfaces;
 using Application.Features.LessonPlans.Services;
 using Application.Features.TeachingAssignments.Interfaces;
-using Application.Features.TeachingAssignments.Services;
 using Application.Features.Attendances.DTOs;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories;
@@ -138,7 +137,6 @@ builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
-builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();

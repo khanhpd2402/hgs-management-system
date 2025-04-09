@@ -9,7 +9,8 @@ namespace Application.Features.Students.DTOs
         public DateOnly Dob { get; set; }
         public string Gender { get; set; } = null!;
         public string ClassName { get; set; } = null!;
-        public int Grade { get; set; }
+        public int GradeId { get; set; }
+        public string GradeName { get; set; } = null!;
         public DateOnly AdmissionDate { get; set; }
         public string? EnrollmentType { get; set; }
         public string? Ethnicity { get; set; }
