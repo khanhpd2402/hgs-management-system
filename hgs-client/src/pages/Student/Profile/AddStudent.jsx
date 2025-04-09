@@ -392,7 +392,42 @@ export default function AddStudent() {
     console.log(formattedData);
     mutate(formattedData, {
       onSuccess: () => {
-        reset();
+        // Reset form về giá trị mặc định
+        reset({
+          fullName: "",
+          gender: "",
+          enrollmentType: "",
+          classId: 0,
+          dob: null,
+          admissionDate: null,
+          permanentAddress: "",
+          repeatingYear: false,
+          status: "",
+          // Father information
+          fullNameFather: "",
+          occupationFather: "",
+          phoneNumberFather: "",
+          emailFather: "",
+          idcardNumberFather: "",
+          yearOfBirthFather: null,
+          // Mother information
+          fullNameMother: "",
+          occupationMother: "",
+          phoneNumberMother: "",
+          emailMother: "",
+          yearOfBirthMother: null,
+          // Guardian information
+          fullNameGuardian: "",
+          occupationGuardian: "",
+          phoneNumberGuardian: "",
+          emailGuardian: "",
+          yearOfBirthGuardian: null,
+        });
+        // Reset các state
+        setShowFatherInfo(false);
+        setShowMotherInfo(false);
+        setShowGuardianInfo(false);
+        setSearchQuery("");
       },
     });
   };
@@ -529,7 +564,13 @@ export default function AddStudent() {
               name="status"
               label="Trạng thái"
               type="select"
-              options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
+              options={[
+                "Đang học",
+                "Bảo lưu",
+                "Tốt nghiệp",
+                "Nghỉ học",
+                "Chuyển trường",
+              ]}
             />
             <FormField name="enrollmentType" label="Hình thức trúng tuyển" />
             <FormField name="admissionDate" label="Ngày nhập học" type="date" />

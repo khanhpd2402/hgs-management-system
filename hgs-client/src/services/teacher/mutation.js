@@ -31,9 +31,11 @@ export function useUpdateTeacher() {
       if (error) {
         console.log(error);
         console.log("đã có lỗi xảy ra");
+        toast.error("Đã có lỗi xảy ra");
       } else {
         console.log("cập nhật thành công");
         queryClient.invalidateQueries("teacher", inputData.id);
+        toast.success("Cập nhật thành công");
       }
     },
   });
