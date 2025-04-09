@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -23,17 +23,9 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Label } from "@/components/ui/label";
-import { Check, PlusCircle, Search } from "lucide-react";
+
+import { Check, Search } from "lucide-react";
+import { CreateSubjectModal } from "./CreateSubjectModal";
 
 export default function SubjectManagement() {
   const [subjects, setSubjects] = useState([
@@ -131,65 +123,7 @@ export default function SubjectManagement() {
               <Check className="h-4 w-4" />
               Lưu thay đổi
             </Button>
-            <Dialog>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-1">
-                  <PlusCircle className="h-4 w-4" />
-                  Thêm môn học
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>Thêm môn học mới</DialogTitle>
-                  <DialogDescription>
-                    Điền thông tin môn học mới vào form dưới đây
-                  </DialogDescription>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="name">Tên môn học</Label>
-                    <Input id="name" className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="type">Kiểu môn</Label>
-                    <Select>
-                      <SelectTrigger className="col-span-3">
-                        <SelectValue placeholder="Chọn kiểu môn" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Tính điểm">Tính điểm</SelectItem>
-                        <SelectItem value="Nhận xét">Nhận xét</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="coefficient" className="text-right">
-                      Hệ số
-                    </Label>
-                    <Input
-                      id="coefficient"
-                      type="text"
-                      className="col-span-3"
-                    />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="periodsHK1" className="text-left">
-                      Số tiết/tuần HK1
-                    </Label>
-                    <Input id="periodsHK1" type="text" className="col-span-3" />
-                  </div>
-                  <div className="grid grid-cols-4 items-center gap-4">
-                    <Label htmlFor="periodsHK2" className="text-left">
-                      Số tiết/tuần HK2
-                    </Label>
-                    <Input id="periodsHK2" type="text" className="col-span-3" />
-                  </div>
-                </div>
-                <DialogFooter>
-                  <Button type="button">Thêm môn học</Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog>
+            <CreateSubjectModal />
           </div>
         </CardHeader>
         <CardContent>
