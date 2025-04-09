@@ -184,7 +184,6 @@ namespace Application.Features.TeachingAssignments.Services
                                  td.ClassId == classAssignment.ClassId &&
                                  td.Timetable.SemesterId == dto.SemesterId &&
                                  td.Timetable.Semester.SemesterName == "Học kỳ 1")
-                    .GroupBy(td => td.DayOfWeek)
                     .CountAsync();
 
                 int actualPeriodsPerWeekHK2 = await _context.TimetableDetails
@@ -193,7 +192,7 @@ namespace Application.Features.TeachingAssignments.Services
                                  td.ClassId == classAssignment.ClassId &&
                                  td.Timetable.SemesterId == dto.SemesterId &&
                                  td.Timetable.Semester.SemesterName == "Học kỳ 2")
-                    .GroupBy(td => td.DayOfWeek)
+                   
                     .CountAsync();
 
                 result.Add(new TeachingAssignmentResponseDto
@@ -277,7 +276,7 @@ namespace Application.Features.TeachingAssignments.Services
                                  td.ClassId == ta.ClassId &&
                                  td.Timetable.SemesterId == ta.SemesterId &&
                                  td.Timetable.Semester.SemesterName == "Học kỳ 1")
-                    .Select(td => new { td.DayOfWeek, td.Period })
+                    .Select(td => new {  td.Period })
                     .Distinct()
                     .CountAsync();
 
@@ -287,7 +286,7 @@ namespace Application.Features.TeachingAssignments.Services
                                  td.ClassId == ta.ClassId &&
                                  td.Timetable.SemesterId == ta.SemesterId &&
                                  td.Timetable.Semester.SemesterName == "Học kỳ 2")
-                    .Select(td => new { td.DayOfWeek, td.Period })
+                    .Select(td => new {  td.Period })
                     .Distinct()
                     .CountAsync();
 
