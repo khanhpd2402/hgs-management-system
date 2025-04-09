@@ -14,14 +14,12 @@ using System.Threading.Tasks;
 public class TeacherService : ITeacherService
 {
     private readonly ITeacherRepository _teacherRepository;
-    private readonly ITeacherClassRepository _teacherClassRepository;
     private readonly ISubjectRepository _subjectRepository;
     private readonly IMapper _mapper;
 
-    public TeacherService(ITeacherRepository teacherRepository, ITeacherClassRepository teacherClassRepository, IMapper mapper, ISubjectRepository subjectRepository)
+    public TeacherService(ITeacherRepository teacherRepository, IMapper mapper, ISubjectRepository subjectRepository)
     {
         _teacherRepository = teacherRepository;
-        _teacherClassRepository = teacherClassRepository;
         _mapper = mapper;
         _subjectRepository = subjectRepository;
     }
@@ -410,36 +408,5 @@ public class TeacherService : ITeacherService
         return (true, errors);
     }
 
-    public async Task AssignHomeroomAsync(AssignHomeroomDto assignHomeroomDto)
-    {
-        if (assignHomeroomDto == null) throw new ArgumentNullException(nameof(assignHomeroomDto));
-
-        if (assignHomeroomDto.TeacherId <= 0 || assignHomeroomDto.ClassId <= 0 ||
-            assignHomeroomDto.AcademicYearId <= 0 || assignHomeroomDto.SemesterId <= 0)
-        {
-            throw new ArgumentException("All IDs must be positive.");
-        }
-
-        var isAssigned = await _teacherClassRepository.IsHomeroomAssignedAsync(
-            assignHomeroomDto.TeacherId, assignHomeroomDto.ClassId, assignHomeroomDto.AcademicYearId);
-
-        if (isAssigned)
-        {
-            throw new InvalidOperationException("This teacher is already assigned as homeroom teacher.");
-        }
-
-        await _teacherClassRepository.AssignHomeroomAsync(
-            assignHomeroomDto.TeacherId, assignHomeroomDto.ClassId,
-            assignHomeroomDto.AcademicYearId, assignHomeroomDto.SemesterId);
-    }
-
-    public async Task<bool> IsHomeroomAssignedAsync(int teacherId, int classId, int academicYearId)
-    {
-        return await _teacherClassRepository.IsHomeroomAssignedAsync(teacherId, classId, academicYearId);
-    }
-
-    public async Task<bool> HasHomeroomTeacherAsync(int classId, int academicYearId)
-    {
-        return await _teacherClassRepository.HasHomeroomTeacherAsync(classId, academicYearId);
-    }
+    
 }
