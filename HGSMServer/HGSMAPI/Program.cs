@@ -42,7 +42,6 @@ using Application.Features.LeaveRequests.Services;
 using Application.Features.LessonPlans.Interfaces;
 using Application.Features.LessonPlans.Services;
 using Application.Features.TeachingAssignments.Interfaces;
-using Application.Features.TeachingAssignments.Services;
 using Application.Features.Attendances.DTOs;
 using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories;
@@ -69,6 +68,16 @@ if (string.IsNullOrEmpty(encryptionKey))
 
 // Đăng ký SecurityHelper vào DI container
 builder.Services.AddSingleton(new SecurityHelper(encryptionKey));
+//config email sending
+var emailSettings = builder.Configuration.GetSection("EmailSettings");
+builder.Services.AddSingleton(new EmailService(
+    smtpHost: emailSettings["SmtpHost"],
+    smtpPort: int.Parse(emailSettings["SmtpPort"]),
+    smtpUsername: emailSettings["SmtpUsername"],
+    smtpPassword: emailSettings["SmtpPassword"],
+    fromEmail: emailSettings["FromEmail"],
+    fromName: emailSettings["FromName"]
+));
 
 // Thêm CORS
 builder.Services.AddCors(options =>
@@ -133,7 +142,6 @@ builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
-builder.Services.AddScoped<ITeacherClassRepository, TeacherClassRepository>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
