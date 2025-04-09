@@ -30,8 +30,15 @@ import { useSubjects } from "@/services/common/queries";
 //   { value: "permanent", label: "Viên chức HĐLV không xác định thời hạn" },
 // ];
 const contracts = [
-  { value: "Payroll", label: "Biên chế" },
-  { value: "long term contract", label: "Hợp đồng dài hạn" },
+  {
+    value: "Hợp đồng lao động dưới 1 năm",
+    label: "Hợp đồng lao động dưới 1 năm",
+  },
+  {
+    value: "Viên chức HĐLV không xác định thời hạn",
+    label: "Viên chức HĐLV không xác định thời hạn",
+  },
+  { value: "Hợp đồng thuê khoán", label: "Hợp đồng thuê khoán" },
 ];
 
 TeacherFilter.propTypes = {

@@ -438,10 +438,6 @@ export default function StudentProfile() {
 
   // Submit handler
   const onSubmit = (formData) => {
-    console.log("submit");
-    // if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
-    //   return;
-    // }
     const formattedData = {
       ...formData,
       dob: formData.dob ? formatDate(formData.dob) : null,
@@ -459,14 +455,7 @@ export default function StudentProfile() {
         : null,
     };
     console.log(formattedData);
-    mutate(
-      { id, data: formattedData },
-      {
-        onSuccess: () => {
-          reset();
-        },
-      },
-    );
+    mutate({ id, data: formattedData });
   };
 
   // Form field component
@@ -601,7 +590,13 @@ export default function StudentProfile() {
               name="status"
               label="Trạng thái"
               type="select"
-              options={["Đang học", "Bảo lưu", "Đã tốt nghiệp", "Đã nghỉ học"]}
+              options={[
+                "Đang học",
+                "Bảo lưu",
+                "Tốt nghiệp",
+                "Nghỉ học",
+                "Chuyển trường",
+              ]}
             />
             <FormField name="enrollmentType" label="Hình thức trúng tuyển" />
             <FormField name="admissionDate" label="Ngày nhập học" type="date" />
