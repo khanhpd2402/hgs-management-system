@@ -15,7 +15,22 @@ namespace HGSMAPI.Controllers
         {
             _gradeBatchService = gradeBatchService;
         }
+        // GET: api/GradeBatch/{id}
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetById(int id)
+        {
+            var result = await _gradeBatchService.GetByIdAsync(id);
+            if (result == null) return NotFound();
+            return Ok(result);
+        }
 
+        // GET: api/GradeBatch/by-academicyear/{academicYearId}
+        [HttpGet("by-academicyear/{academicYearId}")]
+        public async Task<IActionResult> GetByAcademicYear(int academicYearId)
+        {
+            var result = await _gradeBatchService.GetByAcademicYearIdAsync(academicYearId);
+            return Ok(result);
+        }
         [HttpPost("create")]
         public async Task<IActionResult> CreateBatch([FromBody] GradeBatchToCreateDto request)
         {
@@ -37,6 +52,14 @@ namespace HGSMAPI.Controllers
             {
                 return StatusCode(500, $"Lỗi tạo đợt nhập điểm: {ex.Message}");
             }
+        }
+        [HttpPut("{id}")]
+        public async Task<IActionResult> UpdateGradeBatch(int id, [FromBody] UpdateGradeBatchDto dto)
+        {
+            var updated = await _gradeBatchService.UpdateAsync(id, dto);
+            if (updated == null) return NotFound();
+
+            return Ok(updated);
         }
     }
 }
