@@ -19,7 +19,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<ActionResult<IEnumerable<UserDTO>>> GetUsers()
         {
             Console.WriteLine("Fetching all users...");
@@ -29,7 +29,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("{id}")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<ActionResult<UserDTO>> GetUser(int id)
         {
             Console.WriteLine($"Fetching user with ID {id}...");
@@ -46,7 +46,7 @@ namespace HGSMAPI.Controllers
 
         
         [HttpPost]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> CreateUser([FromBody] CreateUserDTO userDto)
         {
             if (!ModelState.IsValid)
@@ -64,7 +64,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPut("{id}")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> UpdateUser(int id, [FromBody] UpdateUserDTO userDto)
         {
             if (userDto == null)
@@ -99,7 +99,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> DeleteUser(int id)
         {
             try
@@ -165,7 +165,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("{id}/change-status")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư\"")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeStatusDto changeStatusDto)
         {
             if (changeStatusDto == null || string.IsNullOrEmpty(changeStatusDto.Status))
@@ -207,7 +207,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("{id}/admin-change-password")]
-        [Authorize(Roles = "Principal,AdministrativeOfficer")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> AdminChangePassword(int id, [FromBody] AdminChangePasswordDto adminChangePasswordDto)
         {
             if (!ModelState.IsValid)
