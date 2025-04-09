@@ -25,6 +25,7 @@ import { useClasses } from "@/services/common/queries";
 import { formatDate } from "@/helpers/formatDate";
 import { useState } from "react";
 import { useStudents } from "@/services/student/queries";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function AddStudent() {
   const { currentYear } = useLayout();
@@ -117,12 +118,7 @@ export default function AddStudent() {
           }
         }),
       gender: z.string().min(1, "Vui lòng chọn giới tính"),
-      classId: z.coerce
-        .number()
-        .int()
-        .refine((val) => val > 0, {
-          message: "Vui lòng chọn lớp",
-        }),
+      classId: z.string().min(1, "Vui lòng chọn lớp"),
       admissionDate: z
         .date()
         .nullable()
@@ -137,10 +133,12 @@ export default function AddStudent() {
       enrollmentType: z
         .string()
         .min(1, "Hình thức trúng tuyển không được để trống"),
-      ethnicity: z.string().optional(),
-      permanentAddress: z.string().min(1, "Họ và tên không được để trống"),
-      birthPlace: z.string().min(1, "Họ và tên không được để trống"),
-      religion: z.string().optional(),
+      ethnicity: z.string().min(1, "Dân tộc không được để trống"),
+      permanentAddress: z
+        .string()
+        .min(1, "Địa chỉ thưởng trú không được để trống"),
+      birthPlace: z.string().min(1, "Nơi sinh không được để trống"),
+      religion: z.string().min(1, "Tôn giáo không được để trống"),
       repeatingYear: z.boolean().default(false),
       idcardNumber: z
         .string()
@@ -338,7 +336,7 @@ export default function AddStudent() {
       fullName: "",
       gender: "",
       enrollmentType: "",
-      classId: 0,
+      classId: "",
       dob: null,
       admissionDate: null,
 
@@ -369,12 +367,15 @@ export default function AddStudent() {
 
   // Submit handler
   const onSubmit = (formData) => {
-    console.log("submit");
     // if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
     //   return;
     // }
+
+    const cleanedData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, cleanString(value)]),
+    );
     const formattedData = {
-      ...formData,
+      ...cleanedData,
       dob: formData.dob ? formatDate(formData.dob) : null,
       admissionDate: formData.admissionDate
         ? formatDate(formData.admissionDate)
@@ -433,14 +434,31 @@ export default function AddStudent() {
   };
 
   // Form field component
-  const FormField = ({ name, label, type = "text", options }) => {
+  const FormField = ({
+    name,
+    label,
+    type = "text",
+    options,
+    isRequired = false,
+    note,
+  }) => {
     const error = errors[name];
+
+    const renderLabel = () => (
+      <Label htmlFor={name} className="flex items-center gap-2">
+        <span>
+          {label}
+          {isRequired && <span className="ml-1 text-red-500">*</span>}
+        </span>
+        {note && <span className="text-sm text-gray-500">({note})</span>}
+      </Label>
+    );
 
     // Select field
     if (type === "select" && Array.isArray(options)) {
       return (
         <div className="space-y-2">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
@@ -452,8 +470,11 @@ export default function AddStudent() {
                 </SelectTrigger>
                 <SelectContent>
                   {options.map((option) => (
-                    <SelectItem key={option} value={option}>
-                      {option}
+                    <SelectItem
+                      key={typeof option === "object" ? option.value : option}
+                      value={typeof option === "object" ? option.value : option}
+                    >
+                      {typeof option === "object" ? option.label : option}
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -469,7 +490,7 @@ export default function AddStudent() {
     if (type === "date") {
       return (
         <div className="space-y-2">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
@@ -485,7 +506,7 @@ export default function AddStudent() {
     // Default text input
     return (
       <div className="space-y-2">
-        <Label htmlFor={name}>{label}</Label>
+        {renderLabel()}
         <Input id={name} {...register(name)} />
         {error && <p className="text-sm text-red-500">{error.message}</p>}
       </div>
@@ -500,7 +521,7 @@ export default function AddStudent() {
       >
         {/* Header with title and save button */}
         <div className="flex items-center justify-between">
-          <h1 className="text-3xl font-bold">Hồ sơ học sinh</h1>
+          <h1 className="text-3xl font-bold">Thêm mới hồ sơ học sinh</h1>
           <Button type="submit" disabled={isUpdating}>
             {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
@@ -513,54 +534,34 @@ export default function AddStudent() {
           <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <div className="flex items-center gap-4 md:col-span-2">
               <div className="flex-1">
-                <FormField name="fullName" label="Họ và tên" />
+                <FormField isRequired name="fullName" label="Họ và tên" />
               </div>
             </div>
-            <FormField name="dob" label="Ngày sinh" type="date" />
+            <FormField isRequired name="dob" label="Ngày sinh" type="date" />
             <FormField
+              isRequired
               name="gender"
               label="Giới tính"
               type="select"
               options={["Nam", "Nữ", "Khác"]}
             />
-            <FormField name="ethnicity" label="Dân tộc" />
-            <FormField name="religion" label="Tôn giáo" />
-            <FormField name="idcardNumber" label="CCCD/CMND" />
-            <div className="space-y-2">
-              <Label htmlFor="classId">Lớp</Label>
-              <Controller
-                name="classId"
-                control={control}
-                render={({ field }) => (
-                  <Select
-                    onValueChange={(value) => field.onChange(parseInt(value))}
-                    value={
-                      field.value && field.value !== 0
-                        ? field.value.toString()
-                        : undefined
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Chọn lớp" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {classQuery.data?.map((c) => (
-                        <SelectItem
-                          key={c.classId}
-                          value={c.classId.toString()}
-                        >
-                          {c.className}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                )}
-              />
-              {errors.classId && (
-                <p className="text-sm text-red-500">{errors.classId.message}</p>
-              )}
-            </div>
+            <FormField isRequired name="ethnicity" label="Dân tộc" />
+            <FormField isRequired name="religion" label="Tôn giáo" />
+            <FormField isRequired name="idcardNumber" label="CCCD/CMND" />
             <FormField
+              isRequired
+              name="classId"
+              label="Lớp"
+              type="select"
+              options={
+                classQuery.data?.map((c) => ({
+                  value: c.classId.toString(),
+                  label: c.className,
+                })) || []
+              }
+            />
+            <FormField
+              isRequired
               name="status"
               label="Trạng thái"
               type="select"
@@ -572,10 +573,23 @@ export default function AddStudent() {
                 "Chuyển trường",
               ]}
             />
-            <FormField name="enrollmentType" label="Hình thức trúng tuyển" />
-            <FormField name="admissionDate" label="Ngày nhập học" type="date" />
-            <FormField name="birthPlace" label="Nơi sinh" />
-            <FormField name="permanentAddress" label="Địa chỉ thường trú" />
+            <FormField
+              isRequired
+              name="enrollmentType"
+              label="Hình thức trúng tuyển"
+            />
+            <FormField
+              isRequired
+              name="admissionDate"
+              label="Ngày nhập học"
+              type="date"
+            />
+            <FormField isRequired name="birthPlace" label="Nơi sinh" />
+            <FormField
+              isRequired
+              name="permanentAddress"
+              label="Địa chỉ thường trú"
+            />
             <div className="flex items-center space-x-2">
               <input
                 type="checkbox"
@@ -647,16 +661,33 @@ export default function AddStudent() {
               <div className="rounded-lg border p-4">
                 <h3 className="mb-4 text-lg font-semibold">Thông tin cha</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField name="fullNameFather" label="Họ và tên" />
                   <FormField
+                    isRequired
+                    name="fullNameFather"
+                    label="Họ và tên"
+                  />
+                  <FormField
+                    isRequired
                     name="yearOfBirthFather"
                     label="Năm sinh"
                     type="date"
                   />
-                  <FormField name="occupationFather" label="Nghề nghiệp" />
-                  <FormField name="phoneNumberFather" label="Số điện thoại" />
+                  <FormField
+                    isRequired
+                    name="occupationFather"
+                    label="Nghề nghiệp"
+                  />
+                  <FormField
+                    isRequired
+                    name="phoneNumberFather"
+                    label="Số điện thoại"
+                  />
                   <FormField name="emailFather" label="Email" />
-                  <FormField name="idcardNumberFather" label="CCCD/CMND" />
+                  <FormField
+                    isRequired
+                    name="idcardNumberFather"
+                    label="CCCD/CMND"
+                  />
                 </div>
               </div>
             )}
@@ -666,16 +697,33 @@ export default function AddStudent() {
               <div className="rounded-lg border p-4">
                 <h3 className="mb-4 text-lg font-semibold">Thông tin mẹ</h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField name="fullNameMother" label="Họ và tên" />
                   <FormField
+                    isRequired
+                    name="fullNameMother"
+                    label="Họ và tên"
+                  />
+                  <FormField
+                    isRequired
                     name="yearOfBirthMother"
                     label="Năm sinh"
                     type="date"
                   />
-                  <FormField name="occupationMother" label="Nghề nghiệp" />
-                  <FormField name="phoneNumberMother" label="Số điện thoại" />
+                  <FormField
+                    isRequired
+                    name="occupationMother"
+                    label="Nghề nghiệp"
+                  />
+                  <FormField
+                    isRequired
+                    name="phoneNumberMother"
+                    label="Số điện thoại"
+                  />
                   <FormField name="emailMother" label="Email" />
-                  <FormField name="idcardNumberMother" label="CCCD/CMND" />
+                  <FormField
+                    isRequired
+                    name="idcardNumberMother"
+                    label="CCCD/CMND"
+                  />
                 </div>
               </div>
             )}
@@ -687,16 +735,33 @@ export default function AddStudent() {
                   Thông tin người giám hộ
                 </h3>
                 <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-                  <FormField name="fullNameGuardian" label="Họ và tên" />
                   <FormField
+                    isRequired
+                    name="fullNameGuardian"
+                    label="Họ và tên"
+                  />
+                  <FormField
+                    isRequired
                     name="yearOfBirthGuardian"
                     label="Năm sinh"
                     type="date"
                   />
-                  <FormField name="occupationGuardian" label="Nghề nghiệp" />
-                  <FormField name="phoneNumberGuardian" label="Số điện thoại" />
+                  <FormField
+                    isRequired
+                    name="occupationGuardian"
+                    label="Nghề nghiệp"
+                  />
+                  <FormField
+                    isRequired
+                    name="phoneNumberGuardian"
+                    label="Số điện thoại"
+                  />
                   <FormField name="emailGuardian" label="Email" />
-                  <FormField name="idcardNumberGuardian" label="CCCD/CMND" />
+                  <FormField
+                    isRequired
+                    name="idcardNumberGuardian"
+                    label="CCCD/CMND"
+                  />
                 </div>
               </div>
             )}
