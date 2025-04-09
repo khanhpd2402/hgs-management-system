@@ -39,9 +39,12 @@ export default function ExcelImportModal({ type }) {
     // },
 
     onSettled: (data, error) => {
-      console.log(error);
-      console.log(error?.response?.data?.errors);
-      toast.error(error?.response?.data?.errors);
+      if (error) {
+        console.log(error);
+        toast.error(error?.response?.data?.errors);
+      } else {
+        console.log(data);
+      }
     },
   });
 
