@@ -28,25 +28,45 @@ CREATE TABLE [dbo].[Semesters] (
     CONSTRAINT [UQ_Semesters] UNIQUE ([AcademicYearID], [SemesterName])
 )
 
+CREATE TABLE [dbo].[GradeLevels] (
+    [GradeLevelId] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [GradeName] NVARCHAR(20) NOT NULL
+);
 
 
 CREATE TABLE [dbo].[Classes] (
-    [ClassID] INT IDENTITY(1,1) NOT NULL,
-    [ClassName] NVARCHAR(50) NOT NULL,
-    [Grade] INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([ClassID] ASC),
-    UNIQUE NONCLUSTERED ([ClassName] ASC)
-)
+    [ClassID] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
+    [ClassName] NVARCHAR(50) NOT NULL UNIQUE,
+    [GradeLevelId] INT NOT NULL,
+    CONSTRAINT FK_Classes_GradeLevels FOREIGN KEY ([GradeLevelId]) REFERENCES [GradeLevels]([GradeLevelId])
+);
+
 
 CREATE TABLE [dbo].[Subjects] (
     [SubjectID] INT IDENTITY(1,1) NOT NULL,
     [SubjectName] NVARCHAR(100) NOT NULL,
     [SubjectCategory] NVARCHAR(50) NOT NULL,
-    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'Numeric', N'PassFail', N'Qualitative')),
+    [TypeOfGrade] NVARCHAR(50) NOT NULL CHECK ([TypeOfGrade] IN (N'	Tính điểm', N'Nhận xét')),
     PRIMARY KEY CLUSTERED ([SubjectID] ASC),
     UNIQUE NONCLUSTERED ([SubjectName] ASC)
 )
+CREATE TABLE GradeLevelSubjects (
+    GradeLevelSubjectID INT IDENTITY(1,1) PRIMARY KEY,
+    GradeLevelID INT NOT NULL,
+    SubjectID INT NOT NULL,
 
+    PeriodsPerWeek_HKI INT NOT NULL DEFAULT 0,
+    PeriodsPerWeek_HKII INT NOT NULL DEFAULT 0,
+
+    ContinuousAssessments_HKI INT NOT NULL DEFAULT 0,
+    ContinuousAssessments_HKII INT NOT NULL DEFAULT 0,
+
+    CONSTRAINT FK_GLS_GradeLevel FOREIGN KEY (GradeLevelID)
+        REFERENCES GradeLevels(GradeLevelID),
+    CONSTRAINT FK_GLS_Subject FOREIGN KEY (SubjectID)
+        REFERENCES Subjects(SubjectID),
+    CONSTRAINT UQ_GradeLevel_Subject UNIQUE (GradeLevelID, SubjectID) -- để tránh nhập trùng
+);
 CREATE TABLE [dbo].[Roles] (
     [RoleID] INT IDENTITY(1,1) NOT NULL,
     [RoleName] NVARCHAR(50) NOT NULL,
@@ -65,38 +85,38 @@ CREATE TABLE [dbo].[Users] (
     PRIMARY KEY CLUSTERED ([UserID] ASC),
     CONSTRAINT [FK_Users_Roles] FOREIGN KEY ([RoleID]) REFERENCES [dbo].[Roles] ([RoleID]) ON DELETE CASCADE,
     UNIQUE NONCLUSTERED ([Username] ASC)
-);
-CREATE NONCLUSTERED INDEX [IX_Users_Email] ON [dbo].[Users] ([Email]);
-CREATE NONCLUSTERED INDEX [IX_Users_PhoneNumber] ON [dbo].[Users] ([PhoneNumber]);
+)
+
 
 CREATE TABLE [dbo].[Teachers] (
     [TeacherID] INT IDENTITY(1,1) NOT NULL,
-    [UserID] INT NULL,
-    [FullName] NVARCHAR(100) NOT NULL,
-    [DOB] DATE NOT NULL,
-    [Gender] NVARCHAR(10) NOT NULL,
-    [Ethnicity] NVARCHAR(50) NULL,
-    [Religion] NVARCHAR(50) NULL,
-    [MaritalStatus] NVARCHAR(50) NULL,
-    [IDCardNumber] NVARCHAR(20) NULL,
-    [InsuranceNumber] NVARCHAR(20) NULL,
-    [EmploymentType] NVARCHAR(100) NULL,
-    [Position] NVARCHAR(100) NULL,
-    [Department] NVARCHAR(100) NULL,
-    [AdditionalDuties] NVARCHAR(255) NULL,
-    [IsHeadOfDepartment] BIT NULL DEFAULT 0,
-    [EmploymentStatus] NVARCHAR(50) NULL,
-    [RecruitmentAgency] NVARCHAR(255) NULL,
-    [HiringDate] DATE NULL,
-    [PermanentEmploymentDate] DATE NULL,
-    [SchoolJoinDate] DATE NOT NULL,
-    [PermanentAddress] NVARCHAR(255) NULL,
-    [Hometown] NVARCHAR(255) NULL,
+    [UserID] INT NULL, -- Liên kết với bảng Users
+    [FullName] NVARCHAR(100) NOT NULL, -- Họ và tên
+    [DOB] DATE NOT NULL, -- Ngày sinh
+    [Gender] NVARCHAR(10) NOT NULL, -- Giới tính
+    [Ethnicity] NVARCHAR(50) NULL, -- Dân tộc
+    [Religion] NVARCHAR(50) NULL, -- Tôn giáo
+    [MaritalStatus] NVARCHAR(50) NULL, -- Tình trạng hôn nhân
+    [IDCardNumber] NVARCHAR(20) NULL, -- CMND/CCCD
+    [InsuranceNumber] NVARCHAR(20) NULL, -- Số sổ bảo hiểm
+    [EmploymentType] NVARCHAR(100) NULL, -- Hình thức hợp đồng
+    [Position] NVARCHAR(100) NULL, -- Vị trí việc làm
+    [Department] NVARCHAR(100) NULL, -- Tổ bộ môn
+    --[Subject] NVARCHAR(100) NULL, -- Môn dạy
+    [IsHeadOfDepartment] BIT NULL DEFAULT 0, -- Là tổ trưởng
+    [EmploymentStatus] NVARCHAR(50) NULL, -- Trạng thái cán bộ
+    [RecruitmentAgency] NVARCHAR(255) NULL, -- Cơ quan tuyển dụng
+    [HiringDate] DATE NULL, -- Ngày tuyển dụng
+    [PermanentEmploymentDate] DATE NULL, -- Ngày vào biên chế
+    [SchoolJoinDate] DATE NOT NULL, -- Ngày vào trường
+    [PermanentAddress] NVARCHAR(255) NULL, -- Địa chỉ thường trú
+    [Hometown] NVARCHAR(255) NULL, -- Quê quán
     PRIMARY KEY CLUSTERED ([TeacherID] ASC),
     CONSTRAINT [FK_Teachers_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users] ([UserID]) ON DELETE CASCADE,
-    UNIQUE NONCLUSTERED ([UserID] ASC),
-    UNIQUE NONCLUSTERED ([IDCardNumber] ASC)
-)
+    UNIQUE NONCLUSTERED ([IDCardNumber] ASC),
+    UNIQUE NONCLUSTERED ([UserID] ASC)
+);
+
 CREATE TABLE [dbo].[Parents] (
     [ParentID] INT IDENTITY(1,1) NOT NULL,
     [UserID] INT NULL,
@@ -120,8 +140,8 @@ CREATE TABLE [dbo].[Parents] (
     [IdcardNumberGuardian] NVARCHAR(50) NULL,
     PRIMARY KEY CLUSTERED ([ParentID] ASC),
     UNIQUE NONCLUSTERED ([UserID] ASC),
-	CONSTRAINT FK_Parents_Users FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users]([UserID])
-);
+    CONSTRAINT [FK_Parents_Users] FOREIGN KEY ([UserID]) REFERENCES [dbo].[Users]([UserID])
+)
 
 CREATE TABLE [dbo].[Students] (
     [StudentID] INT IDENTITY(1,1) NOT NULL,
@@ -143,30 +163,6 @@ CREATE TABLE [dbo].[Students] (
     CONSTRAINT [FK_Students_Parents] FOREIGN KEY ([ParentID]) REFERENCES [dbo].[Parents] ([ParentID]) ON DELETE SET NULL
 )
 
--- Tạo chỉ mục UNIQUE cho các trường có giá trị không NULL sau khi tạo bảng
-CREATE UNIQUE NONCLUSTERED INDEX [UQ_Parents_IdcardNumberFather]
-ON [dbo].[Parents] ([IdcardNumberFather])
-WHERE [IdcardNumberFather] IS NOT NULL;
-
-CREATE UNIQUE NONCLUSTERED INDEX [UQ_Parents_IdcardNumberMother]
-ON [dbo].[Parents] ([IdcardNumberMother])
-WHERE [IdcardNumberMother] IS NOT NULL;
-
-CREATE UNIQUE NONCLUSTERED INDEX [UQ_Parents_IdcardNumberGuardian]
-ON [dbo].[Parents] ([IdcardNumberGuardian])
-WHERE [IdcardNumberGuardian] IS NOT NULL;
-
-CREATE UNIQUE NONCLUSTERED INDEX [UQ_Parents_EmailFather]
-ON [dbo].[Parents] ([EmailFather])
-WHERE [EmailFather] IS NOT NULL;
-
-CREATE UNIQUE NONCLUSTERED INDEX [UQ_Parents_EmailMother]
-ON [dbo].[Parents] ([EmailMother])
-WHERE [EmailMother] IS NOT NULL;
-
-CREATE UNIQUE NONCLUSTERED INDEX [UQ_Parents_EmailGuardian]
-ON [dbo].[Parents] ([EmailGuardian])
-WHERE [EmailGuardian] IS NOT NULL;
 
 -- Tạo các bảng phụ thuộc
 CREATE TABLE [dbo].[StudentClasses] (
@@ -238,19 +234,52 @@ CREATE TABLE [dbo].[Grades] (
     FOREIGN KEY ([AssignmentID]) REFERENCES [dbo].[TeachingAssignments] ([AssignmentID]) ON DELETE NO ACTION
 );
 
-CREATE TABLE [dbo].[Exams] (
-    [ExamID] INT IDENTITY(1,1) NOT NULL,
+-- Tạo các bảng liên quan đến đề thi (đúng thứ tự)
+CREATE TABLE [dbo].[Questions] (
+    [QuestionID] INT IDENTITY(1,1) NOT NULL,
     [SubjectID] INT NOT NULL,
+    [Grade] INT NOT NULL,
+    [Content] NVARCHAR(MAX) NOT NULL,
+    [Options] NVARCHAR(MAX) NULL,
+    [CorrectAnswer] NVARCHAR(255) NULL,
+    [Difficulty] NVARCHAR(50) NULL,
+    [QuestionType] NVARCHAR(50) NULL,
+    [ImageUrl] NVARCHAR(500) NULL,
     [CreatedBy] INT NOT NULL,
-    [ExamContent] NVARCHAR(max) NOT NULL,
     [CreatedDate] DATETIME NULL DEFAULT GETDATE(),
-    [SemesterID] INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([ExamID] ASC),
-    CONSTRAINT [FK_Exams_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Exams_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Exams_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]) ON DELETE CASCADE
+    [MathContent] NVARCHAR(MAX) NULL,
+    PRIMARY KEY CLUSTERED ([QuestionID] ASC),
+    CONSTRAINT [FK_Questions_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+    CONSTRAINT [FK_Questions_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]),
+    CONSTRAINT [CHK_Difficulty] CHECK ([Difficulty] IS NULL OR [Difficulty] IN (N'Dễ', N'Trung bình', N'Khó')),
+    CONSTRAINT [CHK_Grade] CHECK ([Grade] IN (6, 7, 8, 9)),
+    CONSTRAINT [CHK_QuestionType] CHECK ([QuestionType] IS NULL OR [QuestionType] IN (N'Trắc nghiệm', N'Tự luận'))
 )
 
+CREATE TABLE [dbo].[ExamProposals] (
+    [ProposalID] INT IDENTITY(1,1) NOT NULL,
+    [SubjectID] INT NOT NULL,
+    [Grade] INT NOT NULL,
+    [Title] NVARCHAR(255) NOT NULL,
+    [SemesterID] INT NOT NULL,
+    [CreatedBy] INT NOT NULL,
+    [CreatedDate] DATETIME NULL DEFAULT GETDATE(),
+    PRIMARY KEY CLUSTERED ([ProposalID] ASC),
+    CONSTRAINT [FK_ExamProposals_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
+    CONSTRAINT [FK_ExamProposals_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]),
+    CONSTRAINT [FK_ExamProposals_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID])
+)
+
+CREATE TABLE [dbo].[ExamProposalQuestions] (
+    [ID] INT IDENTITY(1,1) NOT NULL,
+    [ProposalID] INT NOT NULL,
+    [QuestionID] INT NOT NULL,
+    [OrderNumber] INT NOT NULL,
+    PRIMARY KEY CLUSTERED ([ID] ASC),
+    CONSTRAINT [FK_ExamProposalQuestions_ExamProposals] FOREIGN KEY ([ProposalID]) REFERENCES [dbo].[ExamProposals] ([ProposalID]) ON DELETE CASCADE,
+    CONSTRAINT [FK_ExamProposalQuestions_Questions] FOREIGN KEY ([QuestionID]) REFERENCES [dbo].[Questions] ([QuestionID]),
+    CONSTRAINT [UQ_Proposal_Question] UNIQUE NONCLUSTERED ([ProposalID] ASC, [QuestionID] ASC)
+)
 CREATE TABLE [dbo].[LeaveRequests] (
     [RequestID] INT IDENTITY(1,1) NOT NULL,
     [TeacherID] INT NOT NULL,
@@ -267,7 +296,7 @@ CREATE TABLE [dbo].[LessonPlans] (
     [PlanID] INT IDENTITY(1,1) NOT NULL,
     [TeacherID] INT NOT NULL,
     [SubjectID] INT NOT NULL,
-    [PlanContent] NVARCHAR(max) NOT NULL,
+    [PlanContent] NVARCHAR(MAX) NOT NULL,
     [Status] NVARCHAR(20) NULL,
     [SemesterID] INT NOT NULL,
     PRIMARY KEY CLUSTERED ([PlanID] ASC),
@@ -275,6 +304,21 @@ CREATE TABLE [dbo].[LessonPlans] (
     CONSTRAINT [FK_LessonPlans_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]) ON DELETE CASCADE,
     CONSTRAINT [FK_LessonPlans_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]) ON DELETE CASCADE
 )
+
+-- Thêm các cột vào LessonPlans sau khi bảng được tạo
+ALTER TABLE [dbo].[LessonPlans]
+ADD
+    [Title] NVARCHAR(255) NULL,
+    [AttachmentUrl] NVARCHAR(500) NULL,
+    [Feedback] NVARCHAR(MAX) NULL,
+    [SubmittedDate] DATETIME NULL DEFAULT GETDATE(),
+    [ReviewedDate] DATETIME NULL,
+    [ReviewerId] INT NULL;
+
+ALTER TABLE [dbo].[LessonPlans]
+ADD CONSTRAINT [FK_LessonPlans_Reviewer_Teachers] FOREIGN KEY ([ReviewerId]) REFERENCES [dbo].[Teachers] ([TeacherID]);
+
+/****** Object:  Table [dbo].[Notifications]    Script Date: 4/3/2025 12:42:06 AM ******/
 
 CREATE TABLE [dbo].[Notifications] (
     [NotificationID] INT IDENTITY(1,1) NOT NULL,
@@ -326,15 +370,3 @@ CREATE TABLE [dbo].[Attendances] (
     CONSTRAINT [FK_Attendances_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]) ON DELETE CASCADE,
     CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [Date], [Shift], [SemesterID])
 )
-ALTER TABLE [dbo].[LessonPlans]
-ADD
-    [Title] NVARCHAR(255) NULL,
-    [AttachmentUrl] NVARCHAR(500) NULL,
-    [Feedback] NVARCHAR(max) NULL,
-    [SubmittedDate] DATETIME NULL DEFAULT GETDATE(),
-    [ReviewedDate] DATETIME NULL,
-    [ReviewerId] INT NULL;
-
--- Thêm ràng buộc FOREIGN KEY cho ReviewerId
-ALTER TABLE [dbo].[LessonPlans]
-ADD CONSTRAINT [FK_LessonPlans_Reviewer_Teachers] FOREIGN KEY ([ReviewerId]) REFERENCES [dbo].[Teachers] ([TeacherID]);
