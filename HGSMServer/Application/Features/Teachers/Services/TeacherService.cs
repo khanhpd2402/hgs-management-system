@@ -15,13 +15,15 @@ public class TeacherService : ITeacherService
 {
     private readonly ITeacherRepository _teacherRepository;
     private readonly ISubjectRepository _subjectRepository;
+    private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
 
-    public TeacherService(ITeacherRepository teacherRepository, IMapper mapper, ISubjectRepository subjectRepository)
+    public TeacherService(ITeacherRepository teacherRepository, IMapper mapper, ISubjectRepository subjectRepository, IRoleRepository roleRepository)
     {
         _teacherRepository = teacherRepository;
         _mapper = mapper;
         _subjectRepository = subjectRepository;
+        _roleRepository = roleRepository;
     }
 
     public async Task<TeacherListResponseDto> GetAllTeachersAsync()
@@ -110,13 +112,20 @@ public class TeacherService : ITeacherService
             throw new Exception($"Email {teacherDto.Email} hoặc số điện thoại {teacherDto.PhoneNumber} đã tồn tại.");
         }
 
-        // Ánh xạ DTO sang Teacher, chưa gán username ngay
+        // Lấy RoleId từ tên "giáo viên"
+        var teacherRole = await _roleRepository.GetRoleByNameAsync("Giáo viên");
+        if (teacherRole == null)
+        {
+            throw new Exception("Vai trò 'giáo viên' không tồn tại trong hệ thống.");
+        }
+
+        // Ánh xạ DTO sang Teacher
         var teacher = _mapper.Map<Teacher>(teacherDto);
         teacher.User = new User
         {
             Email = teacherDto.Email,
             PhoneNumber = teacherDto.PhoneNumber,
-            RoleId = 4,
+            RoleId = teacherRole.RoleId, // Sử dụng RoleId từ "giáo viên"
             Username = "tempuser", // Username tạm thời
             PasswordHash = PasswordHasher.HashPassword("12345678"),
             Status = "Active"
@@ -137,7 +146,6 @@ public class TeacherService : ITeacherService
             var teacherSubjects = new List<TeacherSubject>();
             foreach (var subjectDto in subjects)
             {
-                // Kiểm tra môn học có tồn tại không
                 var subject = await _subjectRepository.GetByIdAsync(subjectDto.SubjectId);
                 if (subject == null)
                 {
@@ -151,8 +159,6 @@ public class TeacherService : ITeacherService
                     IsMainSubject = subjectDto.IsMainSubject
                 });
             }
-
-            // Thêm tất cả TeacherSubjects
             await _teacherRepository.AddTeacherSubjectsRangeAsync(teacherSubjects);
         }
     }
@@ -280,12 +286,19 @@ public class TeacherService : ITeacherService
         }
 
         var data = ExcelImportHelper.ReadExcelData(file);
-        var teachers = new Dictionary<string, Teacher>(); // Lưu giáo viên theo IdCardNumber
-        var teacherSubjects = new List<(string IdCardNumber, TeacherSubject TeacherSubject)>(); // Lưu môn học kèm IdCardNumber
+        var teachers = new Dictionary<string, Teacher>();
+        var teacherSubjects = new List<(string IdCardNumber, TeacherSubject TeacherSubject)>();
+
+        // Lấy RoleId từ tên "giáo viên"
+        var teacherRole = await _roleRepository.GetRoleByNameAsync("Giáo viên");
+        if (teacherRole == null)
+        {
+            errors.Add("Vai trò 'giáo viên' không tồn tại trong hệ thống.");
+            return (false, errors);
+        }
 
         foreach (var row in data)
         {
-            // Kiểm tra thông tin bắt buộc
             if (string.IsNullOrEmpty(row["Họ và tên"]) || string.IsNullOrEmpty(row["Ngày sinh"]) ||
                 string.IsNullOrEmpty(row["Giới tính"]) || string.IsNullOrEmpty(row["CMND/CCCD"]) ||
                 string.IsNullOrEmpty(row["Ngày vào trường"]))
@@ -296,7 +309,6 @@ public class TeacherService : ITeacherService
 
             var idCardNumber = row["CMND/CCCD"].Trim();
 
-            // Nếu giáo viên chưa tồn tại trong Dictionary, tạo mới
             if (!teachers.TryGetValue(idCardNumber, out var teacher))
             {
                 if (await _teacherRepository.ExistsAsync(idCardNumber))
@@ -316,7 +328,7 @@ public class TeacherService : ITeacherService
                 {
                     Email = row["Email"],
                     PhoneNumber = row["Số điện thoại"],
-                    RoleId = 4,
+                    RoleId = teacherRole.RoleId, // Sử dụng RoleId từ "giáo viên"
                     Username = username,
                     PasswordHash = PasswordHasher.HashPassword("12345678"),
                     Status = "Active"
@@ -349,7 +361,6 @@ public class TeacherService : ITeacherService
                 teachers[idCardNumber] = teacher;
             }
 
-            // Xử lý cột "Môn dạy"
             var subjectsInput = row.TryGetValue("Môn dạy", out var subjects) ? subjects : null;
             if (!string.IsNullOrEmpty(subjectsInput))
             {
@@ -370,10 +381,9 @@ public class TeacherService : ITeacherService
                         continue;
                     }
 
-                    // Lưu môn học kèm IdCardNumber để ánh xạ TeacherId sau
                     teacherSubjects.Add((idCardNumber, new TeacherSubject
                     {
-                        TeacherId = 0, // Sẽ cập nhật sau
+                        TeacherId = 0,
                         SubjectId = subject.SubjectId,
                         IsMainSubject = isMainSubject
                     }));
@@ -381,16 +391,13 @@ public class TeacherService : ITeacherService
             }
         }
 
-        // Nếu có lỗi, trả về ngay
         if (errors.Any())
         {
             return (false, errors);
         }
 
-        // Thêm tất cả giáo viên vào bảng Teachers
         await _teacherRepository.AddRangeAsync(teachers.Values);
 
-        // Cập nhật TeacherId cho teacherSubjects
         foreach (var teacherSubject in teacherSubjects)
         {
             if (teachers.TryGetValue(teacherSubject.IdCardNumber, out var teacher))
@@ -399,7 +406,6 @@ public class TeacherService : ITeacherService
             }
         }
 
-        // Thêm tất cả TeacherSubjects
         if (teacherSubjects.Any())
         {
             await _teacherRepository.AddTeacherSubjectsRangeAsync(teacherSubjects.Select(ts => ts.TeacherSubject).ToList());
@@ -408,5 +414,5 @@ public class TeacherService : ITeacherService
         return (true, errors);
     }
 
-    
+
 }
