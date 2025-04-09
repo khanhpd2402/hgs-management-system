@@ -22,21 +22,24 @@ namespace Application.Features.Students.Services
         private readonly IUserRepository _userRepository;
         private readonly IParentRepository _parentRepository;
         private readonly IClassRepository _classRepository;
+        private readonly IRoleRepository _roleRepository; 
         private readonly IMapper _mapper;
         private readonly HgsdbContext _context;
 
         public StudentService(
-    IStudentRepository studentRepository,
-    IUserRepository userRepository,
-    IParentRepository parentRepository,
-    IClassRepository classRepository,
-    IMapper mapper,
-    HgsdbContext context)
+            IStudentRepository studentRepository,
+            IUserRepository userRepository,
+            IParentRepository parentRepository,
+            IClassRepository classRepository,
+            IRoleRepository roleRepository, 
+            IMapper mapper,
+            HgsdbContext context)
         {
             _studentRepository = studentRepository ?? throw new ArgumentNullException(nameof(studentRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _parentRepository = parentRepository ?? throw new ArgumentNullException(nameof(parentRepository));
             _classRepository = classRepository ?? throw new ArgumentNullException(nameof(classRepository));
+            _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository)); 
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
@@ -182,14 +185,12 @@ namespace Application.Features.Students.Services
             Console.WriteLine($"Guardian Info - FullName: {parentInfoDto.FullNameGuardian}, YearOfBirth: {parentInfoDto.YearOfBirthGuardian}, Phone: {parentInfoDto.PhoneNumberGuardian}, IDCard: {parentInfoDto.IdcardNumberGuardian}");
             Console.WriteLine($"HasCompleteFatherInfo: {hasCompleteFatherInfo}, HasCompleteMotherInfo: {hasCompleteMotherInfo}, HasCompleteGuardianInfo: {hasCompleteGuardianInfo}");
 
-            // Nếu không có thông tin đầy đủ từ bất kỳ ai, bỏ qua việc tạo phụ huynh
             if (!hasCompleteFatherInfo && !hasCompleteMotherInfo && !hasCompleteGuardianInfo)
             {
                 Console.WriteLine($"Không đủ thông tin để tạo phụ huynh cho StudentID {student.StudentId}. Bỏ qua.");
                 return;
             }
 
-            // Chọn thông tin đầy đủ đầu tiên theo thứ tự ưu tiên: cha -> mẹ -> người bảo hộ
             Parent existingParent = null;
             string primaryFullName = null;
             string primaryPhoneNumber = null;
@@ -227,7 +228,6 @@ namespace Application.Features.Students.Services
                 primaryIdCard = parentInfoDto.IdcardNumberGuardian;
             }
 
-            // Nếu tìm thấy phụ huynh đã tồn tại, liên kết và thoát
             if (existingParent != null)
             {
                 Console.WriteLine($"Phụ huynh đã tồn tại với ParentID: {existingParent.ParentId}. Liên kết với học sinh...");
@@ -235,21 +235,27 @@ namespace Application.Features.Students.Services
                 return;
             }
 
-            // Đảm bảo primaryFullName không null trước khi tiếp tục
             if (string.IsNullOrEmpty(primaryFullName))
             {
                 Console.WriteLine($"Không tìm thấy primaryFullName hợp lệ cho StudentID {student.StudentId}. Bỏ qua việc tạo phụ huynh.");
                 return;
             }
 
-            // Tạo user mới với thông tin đầy đủ nhất
+            // Lấy RoleId của "Phụ huynh" từ IRoleRepository
+            var parentRole = await _roleRepository.GetRoleByNameAsync("Phụ huynh");
+            if (parentRole == null)
+            {
+                throw new Exception("Vai trò 'Phụ huynh' không tồn tại trong hệ thống.");
+            }
+
+            // Tạo user mới với RoleId động
             var user = new User
             {
                 Username = $"temp_{Guid.NewGuid().ToString().Substring(0, 8)}",
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("12345678"),
                 Email = primaryEmail,
                 PhoneNumber = primaryPhoneNumber,
-                RoleId = 6,
+                RoleId = parentRole.RoleId, // Sử dụng RoleId động thay vì hard-code 6
                 Status = "Active"
             };
 
