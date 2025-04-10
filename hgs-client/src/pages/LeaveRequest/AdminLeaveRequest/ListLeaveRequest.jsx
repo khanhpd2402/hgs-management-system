@@ -1,76 +1,114 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Space, Tag, Select, Form, Card } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Space, Tag, Select, Form, Card, Spin, Alert, Input } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
+import { useGetLeaveRequestByAdmin } from '../../../services/leaveRequest/queries';
 
 const { Option } = Select;
 
 const ListLeaveRequest = () => {
-  const [leaveRequests, setLeaveRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({
     status: 'all',
-    teacherId: 'all'
+    teacherId: 'all',
+    searchTerm: ''
   });
+  const debounceTimeoutRef = useRef(null);
+
+  const { data: leaveRequestsData, isLoading: loadingLeaveRequests, error: errorLeaveRequests } = useGetLeaveRequestByAdmin();
 
   useEffect(() => {
-    fetchLeaveRequests();
     fetchTeachers();
   }, []);
 
   useEffect(() => {
-    filterData();
-  }, [filters, leaveRequests]);
+    if (leaveRequestsData) {
+      filterData(leaveRequestsData);
+    } else {
+      setFilteredData([]);
+    }
+  }, [filters, leaveRequestsData, teachers]);
 
-  const filterData = () => {
-    let result = [...leaveRequests];
+  const filterData = (requests) => {
+    const { status, teacherId, searchTerm } = filters;
+    const lowerSearchTerm = searchTerm.toLowerCase();
 
-    if (filters.status !== 'all') {
-      result = result.filter(item => item.status === filters.status);
+    let result = [...requests];
+
+    if (status !== 'all') {
+      result = result.filter(item => item.status === status);
     }
 
-    if (filters.teacherId !== 'all') {
-      result = result.filter(item => item.teacherId === filters.teacherId);
+    if (teacherId !== 'all') {
+      result = result.filter(item => item.teacherId === teacherId);
+    }
+
+    if (lowerSearchTerm) {
+      result = result.filter(item => {
+        const teacherInfo = teachers.find(t => t.teacherId === item.teacherId);
+        const teacherName = teacherInfo ? teacherInfo.fullName.toLowerCase() : '';
+        const reason = item.reason ? item.reason.toLowerCase() : '';
+
+        return teacherName.includes(lowerSearchTerm) || reason.includes(lowerSearchTerm);
+      });
     }
 
     setFilteredData(result);
   };
 
-  const fetchLeaveRequests = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('https://localhost:8386/api/LeaveRequest', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      setLeaveRequests(response.data);
-    } catch (error) {
-      console.error('Error fetching leave requests:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchTeachers = async () => {
+    const token = localStorage.getItem('token');
+    
+    if (!token) {
+      console.error("Không tìm thấy token trong localStorage.");
+      setTeachers([]); 
+      return; 
+    }
+
+    const cleanedToken = token.replace(/^"|"$/g, '');
+    console.log("Cleaned Token:", cleanedToken); 
+
     try {
-      const token = localStorage.getItem('token');
+      console.log("Đang gọi API để lấy danh sách giáo viên...");
       const response = await axios.get('https://localhost:8386/api/Teachers', {
         headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
+          'accept': '*/*',
+          'Authorization': `Bearer ${cleanedToken}`
         }
       });
-      const teachersList = response.data.teachers || response.data || [];
-      setTeachers(teachersList);
+
+      console.log("API Response Data:", response.data); 
+
+      if (response.data && response.data.teachers && Array.isArray(response.data.teachers)) {
+        const formattedTeachers = response.data.teachers.map(teacher => ({
+          teacherId: teacher.teacherId || teacher.id, 
+          fullName: teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim(), 
+          dob: teacher.dob 
+        })).filter(teacher => teacher.teacherId && teacher.fullName); 
+
+        console.log("Formatted Teachers Data:", formattedTeachers); 
+
+        setTeachers(formattedTeachers);
+        console.log("Đã cập nhật state teachers.");
+      } else {
+         console.error("Dữ liệu API không hợp lệ hoặc không chứa mảng 'teachers':", response.data);
+         setTeachers([]); 
+      }
     } catch (error) {
-      console.error('Error fetching teachers:', error);
-      setTeachers([]);
+      console.error("Lỗi nghiêm trọng khi tải danh sách giáo viên:");
+      if (error.response) {
+        console.error("Status:", error.response.status);
+        console.error("Data:", error.response.data);
+        console.error("Headers:", error.response.headers);
+      } else if (error.request) {
+        console.error("Request Error: Không nhận được phản hồi từ server.", error.request);
+      } else {
+        console.error("Error setting up request:", error.message);
+      }
+      console.error("Full Error Object:", error.config);
+      setTeachers([]); 
     }
   };
 
@@ -83,7 +121,7 @@ const ListLeaveRequest = () => {
     if (teacher) {
       return (
         <div>
-          <div><strong>{teacher.fullName}</strong></div>
+          <div><strong>{teacher.fullName} - {teacher.teacherId}</strong></div>
           <div style={{ fontSize: '12px', color: '#666' }}>
             {dayjs(teacher.dob).format('DD/MM/YYYY')}
           </div>
@@ -100,9 +138,34 @@ const ListLeaveRequest = () => {
     }));
   };
 
+  const handleSearchChange = (event) => {
+    const { value } = event.target;
+
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      setFilters(prev => ({
+        ...prev,
+        searchTerm: value
+      }));
+    }, 500);
+  };
+
+  const handleSearchSubmit = (value) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    setFilters(prev => ({
+      ...prev,
+      searchTerm: value
+    }));
+  };
+
   const FilterSection = () => (
     <Card style={{ marginBottom: 16 }}>
-      <Form layout="inline">
+      <Form layout="inline" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
         <Form.Item label="Trạng thái">
           <Select
             style={{ width: 200 }}
@@ -123,6 +186,9 @@ const ListLeaveRequest = () => {
             onChange={(value) => handleFilterChange('teacherId', value)}
             showSearch
             optionFilterProp="children"
+            filterOption={(input, option) =>
+              (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
           >
             <Option value="all">Tất cả giáo viên</Option>
             {teachers.map(teacher => (
@@ -131,6 +197,17 @@ const ListLeaveRequest = () => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+
+        <Form.Item label="Tìm kiếm">
+           <Input.Search
+              placeholder="Nhập tên GV hoặc lý do..."
+              allowClear
+              onChange={handleSearchChange}
+              onSearch={handleSearchSubmit}
+              style={{ width: 240 }}
+              defaultValue={filters.searchTerm}
+           />
         </Form.Item>
       </Form>
     </Card>
@@ -148,6 +225,7 @@ const ListLeaveRequest = () => {
       key: 'teacherId',
       render: (teacherId) => getTeacherInfo(teacherId),
     },
+    
     {
       title: 'Ngày yêu cầu',
       dataIndex: 'requestDate',
@@ -197,6 +275,14 @@ const ListLeaveRequest = () => {
     },
   ];
 
+  if (loadingLeaveRequests) {
+    return <Spin tip="Đang tải dữ liệu..." />;
+  }
+
+  if (errorLeaveRequests) {
+    return <Alert message="Lỗi" description={`Không thể tải danh sách yêu cầu nghỉ phép: ${errorLeaveRequests.message}`} type="error" showIcon />;
+  }
+
   return (
     <div style={{ padding: '24px' }}>
       <h1>Danh sách yêu cầu nghỉ phép</h1>
@@ -206,11 +292,11 @@ const ListLeaveRequest = () => {
       <Table
         columns={columns}
         dataSource={filteredData}
-        loading={loading}
+        loading={loadingLeaveRequests}
         rowKey="requestId"
         pagination={{
           pageSize: 10,
-          showTotal: (total) => `Tổng số ${total} yêu cầu`,
+          showTotal: (total, range) => `Hiển thị ${range[0]}-${range[1]} của ${total} yêu cầu`,
         }}
       />
     </div>
