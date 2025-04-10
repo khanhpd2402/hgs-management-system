@@ -1,14 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Table, Space, Tag, Select, Form, Card } from 'antd';
+import { Table, Space, Tag, Select, Form, Card, Spin, Alert } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
+import { useGetLeaveRequestByAdmin } from '../../../services/leaveRequest/queries';
 
 const { Option } = Select;
 
 const ListLeaveRequest = () => {
-  const [leaveRequests, setLeaveRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [teachers, setTeachers] = useState([]);
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({
@@ -16,17 +15,22 @@ const ListLeaveRequest = () => {
     teacherId: 'all'
   });
 
+  const { data: leaveRequestsData, isLoading: loadingLeaveRequests, error: errorLeaveRequests } = useGetLeaveRequestByAdmin();
+
   useEffect(() => {
-    fetchLeaveRequests();
     fetchTeachers();
   }, []);
 
   useEffect(() => {
-    filterData();
-  }, [filters, leaveRequests]);
+    if (leaveRequestsData) {
+      filterData(leaveRequestsData);
+    } else {
+      setFilteredData([]);
+    }
+  }, [filters, leaveRequestsData]);
 
-  const filterData = () => {
-    let result = [...leaveRequests];
+  const filterData = (requests) => {
+    let result = [...requests];
 
     if (filters.status !== 'all') {
       result = result.filter(item => item.status === filters.status);
@@ -39,24 +43,6 @@ const ListLeaveRequest = () => {
     setFilteredData(result);
   };
 
-  const fetchLeaveRequests = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('https://localhost:8386/api/LeaveRequest', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      setLeaveRequests(response.data);
-    } catch (error) {
-      console.error('Error fetching leave requests:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
-
   const fetchTeachers = async () => {
     try {
       const token = localStorage.getItem('token');
@@ -66,6 +52,7 @@ const ListLeaveRequest = () => {
           'Content-Type': 'application/json'
         }
       });
+      console.log("teacher", response.data)
       const teachersList = response.data.teachers || response.data || [];
       setTeachers(teachersList);
     } catch (error) {
@@ -149,6 +136,12 @@ const ListLeaveRequest = () => {
       render: (teacherId) => getTeacherInfo(teacherId),
     },
     {
+      title: 'Tên giáo viên',
+      dataIndex: 'teacherName',
+      key: 'teacherName',
+      render: (teacherName) => getTeacherInfo(teacherName),
+    },
+    {
       title: 'Ngày yêu cầu',
       dataIndex: 'requestDate',
       key: 'requestDate',
@@ -197,6 +190,14 @@ const ListLeaveRequest = () => {
     },
   ];
 
+  if (loadingLeaveRequests) {
+    return <Spin tip="Đang tải dữ liệu..." />;
+  }
+
+  if (errorLeaveRequests) {
+    return <Alert message="Lỗi" description={`Không thể tải danh sách yêu cầu nghỉ phép: ${errorLeaveRequests.message}`} type="error" showIcon />;
+  }
+
   return (
     <div style={{ padding: '24px' }}>
       <h1>Danh sách yêu cầu nghỉ phép</h1>
@@ -206,7 +207,7 @@ const ListLeaveRequest = () => {
       <Table
         columns={columns}
         dataSource={filteredData}
-        loading={loading}
+        loading={loadingLeaveRequests}
         rowKey="requestId"
         pagination={{
           pageSize: 10,

@@ -1,8 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Table, Tag, Button, Input, Select } from 'antd';
-import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
+import { useGetLeaveRequestByTeacherId } from '../../../services/leaveRequest/queries';
 
 const statusOptions = [
   { value: 'All', label: 'Tất cả trạng thái' },
@@ -12,34 +12,17 @@ const statusOptions = [
 ];
 
 const TeacherLeaveRequest = () => {
-  const [leaveRequests, setLeaveRequests] = useState([]);
-  const [loading, setLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    fetchLeaveRequests();
-  }, []);
+  const teacherId = 1;
+  const { data: leaveRequestsData, isLoading, error } = useGetLeaveRequestByTeacherId(teacherId);
 
-  const fetchLeaveRequests = async () => {
-    try {
-      setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('https://localhost:8386/api/LeaveRequest/by-teacher/1', {
-        headers: {
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json'
-        }
-      });
-      setLeaveRequests(response.data);
-    } catch (error) {
-      console.error('Error fetching leave requests:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
+  if (error) {
+    console.error('Error fetching leave requests:', error);
+  }
 
-  const filteredRequests = leaveRequests.filter(request => {
+  const filteredRequests = (leaveRequestsData || []).filter(request => {
     const statusMatch = statusFilter === 'All' || request.status === statusFilter;
     const searchTermMatch = !searchTerm ||
       request.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -131,7 +114,7 @@ const TeacherLeaveRequest = () => {
       <Table
         columns={columns}
         dataSource={filteredRequests}
-        loading={loading}
+        loading={isLoading}
         rowKey="requestId"
         pagination={{
           pageSize: 10,
