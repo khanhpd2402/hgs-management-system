@@ -21,6 +21,8 @@ import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRe
 import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
 import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
 import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
+import SubstituteTeacherAssignment from "@/pages/LeaveRequest/AdminLeaveRequest/SubstituteTeacherAssignment";
+import Contact from "@/pages/contact/Contact";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -119,6 +121,15 @@ const adminRouter = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/system/contact",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Contact />
+      </ProtectedRoute>
+    ),
+  }
+
 ];
 
 const teacherRouter = [
@@ -223,6 +234,9 @@ const teacherRouter = [
       </ProtectedRoute>
     ),
   },
+  {
+
+  }
 ];
 
 const studentRouter = [

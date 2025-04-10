@@ -25,6 +25,7 @@ const menuItems = [
       { label: "Quản lý môn học", path: "/system/subject" },
       { label: "Quản lý lịch giảng dạy", path: "/system/schedule" },
       { label: "Quản lý đơn xin nghỉ phép", path: "/system/leave-request" },
+      { label: "Liên hệ", path: "/system/contact" },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
     ],
