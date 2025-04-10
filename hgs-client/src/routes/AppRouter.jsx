@@ -23,6 +23,8 @@ import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequ
 import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
 import SubstituteTeacherAssignment from "@/pages/LeaveRequest/AdminLeaveRequest/SubstituteTeacherAssignment";
 import Contact from "@/pages/contact/Contact";
+import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
+import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -235,7 +237,20 @@ const teacherRouter = [
     ),
   },
   {
-
+    path: "/teacher/lesson-plan",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <LessonPlanList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/lesson-plan/create",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <UploadLessonPlan />
+      </ProtectedRoute>
+    ),
   }
 ];
 
