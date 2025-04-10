@@ -16,6 +16,11 @@ import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import SubjectManagement from "@/pages/Principal/SubjectManagement/SubjectManagement";
 import ClassManagement from "@/pages/Principal/ClassManagement/ClassManagement";
+import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
+import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
+import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
+import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -34,6 +39,10 @@ const HTATable = lazy(
 
 const StudentScore = lazy(
   () => import("@/pages/Student/SummaryScore/StudentScore"),
+);
+
+const ScheduleManagement = lazy(
+  () => import("@/pages/Schedule/ScheduleSymtem/Schedule"),
 );
 
 const AppRouter = () => {
@@ -83,6 +92,30 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <ClassManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/schedule",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <ScheduleManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/leave-request",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <ListLeaveRequest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/leave-request/:id",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <LeaveRequestDetail />
       </ProtectedRoute>
     ),
   },
@@ -162,6 +195,32 @@ const teacherRouter = [
       <Suspense fallback={<div>Loading...</div>}>
         <GradeBatch />
       </Suspense>
+    ),
+  },
+  {
+    path: "/teacher/schedule",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ScheduleTeacher />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/leave-request",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <TeacherLeaveRequest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/leave-request/create",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <CreateTeacherLeaveRequest />
+      </ProtectedRoute>
     ),
   },
 ];
