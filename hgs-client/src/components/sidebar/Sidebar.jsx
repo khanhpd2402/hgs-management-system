@@ -64,6 +64,14 @@ const menuItems = [
         label: "Quản lý đơn xin nghỉ phép",
         path: "/teacher/leave-request",
       },
+      {
+        label: "Lịch giảng dạy",
+        path: "/teacher/lesson-plan",
+      },
+      {
+        label: "Tạo lịch giảng dạy",
+        path: "/teacher/lesson-plan/create",
+      },
     ],
   },
   {
