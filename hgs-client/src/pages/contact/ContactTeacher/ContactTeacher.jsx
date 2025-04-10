@@ -16,10 +16,38 @@ const ContactTeacher = () => {
   useEffect(() => {
     const fetchTeachers = async () => {
       try {
-        const response = await axios.get('https://localhost:8386/api/Teachers');
+        // Lấy token từ localStorage (hoặc nơi bạn lưu trữ)
+        const token = localStorage.getItem('token');
+    
+        if (!token) {
+          console.error("Không tìm thấy token trong localStorage.");
+          setTeachers([]); 
+          return; 
+        }
+    
+        const cleanedToken = token.replace(/^"|"$/g, '');
+        console.log("Cleaned Token:", cleanedToken); 
+        if (!token) {
+          console.error('Không tìm thấy token xác thực.');
+          // Có thể xử lý chuyển hướng người dùng về trang đăng nhập ở đây
+          return;
+        }
+
+        const response = await axios.get('https://localhost:8386/api/Teachers', {
+          headers: {
+            // Thêm token vào header Authorization
+            Authorization: `Bearer ${cleanedToken}`
+          }
+        });
         setTeachers(response.data.teachers);
+        console.log(response.data.teachers);
       } catch (error) {
         console.error('Lỗi khi lấy dữ liệu giáo viên:', error);
+        // Xử lý lỗi, ví dụ: nếu lỗi là 401 Unauthorized, có thể token đã hết hạn
+        if (error.response && error.response.status === 401) {
+          console.error('Token không hợp lệ hoặc đã hết hạn.');
+          // Xử lý đăng xuất hoặc yêu cầu đăng nhập lại
+        }
       }
     };
 
@@ -87,9 +115,7 @@ const ContactTeacher = () => {
                 <th className="p-2 text-left">Mã cán bộ</th>
                 <th className="p-2 text-left">Tổ bộ môn</th>
                 <th className="p-2 text-left">Số ĐTDĐ</th>
-                <th className="p-2 text-left">Số tài khoản cá nhân Vnedu</th>
-                <th className="p-2 text-left">Số tài khoản đã nhận thông báo</th>
-                <th className="p-2 text-left">Số tài khoản không muốn cài đặt</th>
+                <th className="p-2 text-left">Email</th>
               </tr>
             </thead>
             <tbody>
@@ -100,9 +126,7 @@ const ContactTeacher = () => {
                   <td className="p-2">{teacher.teacherId}</td>
                   <td className="p-2">{teacher.department}</td>
                   <td className="p-2">{teacher.phoneNumber || 'Chưa cập nhật'}</td>
-                  <td className="p-2">0</td>
-                  <td className="p-2">0</td>
-                  <td className="p-2">0</td>
+                  <td className="p-2">{teacher.email || 'Chưa cập nhật'}</td>
                 </tr>
               ))}
             </tbody>

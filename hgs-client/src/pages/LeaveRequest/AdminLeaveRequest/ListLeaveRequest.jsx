@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Space, Tag, Select, Form, Card, Spin, Alert } from 'antd';
+import React, { useState, useEffect, useRef } from 'react';
+import { Table, Space, Tag, Select, Form, Card, Spin, Alert, Input } from 'antd';
 import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
@@ -12,8 +12,10 @@ const ListLeaveRequest = () => {
   const [filteredData, setFilteredData] = useState([]);
   const [filters, setFilters] = useState({
     status: 'all',
-    teacherId: 'all'
+    teacherId: 'all',
+    searchTerm: ''
   });
+  const debounceTimeoutRef = useRef(null);
 
   const { data: leaveRequestsData, isLoading: loadingLeaveRequests, error: errorLeaveRequests } = useGetLeaveRequestByAdmin();
 
@@ -27,17 +29,30 @@ const ListLeaveRequest = () => {
     } else {
       setFilteredData([]);
     }
-  }, [filters, leaveRequestsData]);
+  }, [filters, leaveRequestsData, teachers]);
 
   const filterData = (requests) => {
+    const { status, teacherId, searchTerm } = filters;
+    const lowerSearchTerm = searchTerm.toLowerCase();
+
     let result = [...requests];
 
-    if (filters.status !== 'all') {
-      result = result.filter(item => item.status === filters.status);
+    if (status !== 'all') {
+      result = result.filter(item => item.status === status);
     }
 
-    if (filters.teacherId !== 'all') {
-      result = result.filter(item => item.teacherId === filters.teacherId);
+    if (teacherId !== 'all') {
+      result = result.filter(item => item.teacherId === teacherId);
+    }
+
+    if (lowerSearchTerm) {
+      result = result.filter(item => {
+        const teacherInfo = teachers.find(t => t.teacherId === item.teacherId);
+        const teacherName = teacherInfo ? teacherInfo.fullName.toLowerCase() : '';
+        const reason = item.reason ? item.reason.toLowerCase() : '';
+
+        return teacherName.includes(lowerSearchTerm) || reason.includes(lowerSearchTerm);
+      });
     }
 
     setFilteredData(result);
@@ -123,9 +138,34 @@ const ListLeaveRequest = () => {
     }));
   };
 
+  const handleSearchChange = (event) => {
+    const { value } = event.target;
+
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+
+    debounceTimeoutRef.current = setTimeout(() => {
+      setFilters(prev => ({
+        ...prev,
+        searchTerm: value
+      }));
+    }, 500);
+  };
+
+  const handleSearchSubmit = (value) => {
+    if (debounceTimeoutRef.current) {
+      clearTimeout(debounceTimeoutRef.current);
+    }
+    setFilters(prev => ({
+      ...prev,
+      searchTerm: value
+    }));
+  };
+
   const FilterSection = () => (
     <Card style={{ marginBottom: 16 }}>
-      <Form layout="inline">
+      <Form layout="inline" style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
         <Form.Item label="Trạng thái">
           <Select
             style={{ width: 200 }}
@@ -146,6 +186,9 @@ const ListLeaveRequest = () => {
             onChange={(value) => handleFilterChange('teacherId', value)}
             showSearch
             optionFilterProp="children"
+            filterOption={(input, option) =>
+              (option?.children ?? '').toLowerCase().includes(input.toLowerCase())
+            }
           >
             <Option value="all">Tất cả giáo viên</Option>
             {teachers.map(teacher => (
@@ -154,6 +197,17 @@ const ListLeaveRequest = () => {
               </Option>
             ))}
           </Select>
+        </Form.Item>
+
+        <Form.Item label="Tìm kiếm">
+           <Input.Search
+              placeholder="Nhập tên GV hoặc lý do..."
+              allowClear
+              onChange={handleSearchChange}
+              onSearch={handleSearchSubmit}
+              style={{ width: 240 }}
+              defaultValue={filters.searchTerm}
+           />
         </Form.Item>
       </Form>
     </Card>
@@ -242,7 +296,7 @@ const ListLeaveRequest = () => {
         rowKey="requestId"
         pagination={{
           pageSize: 10,
-          showTotal: (total) => `Tổng số ${total} yêu cầu`,
+          showTotal: (total, range) => `Hiển thị ${range[0]}-${range[1]} của ${total} yêu cầu`,
         }}
       />
     </div>
