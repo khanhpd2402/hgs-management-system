@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -10,28 +10,41 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
 import { PlusCircle } from "lucide-react";
+import { useCreateSubject } from "@/services/principal/mutation";
+import { useGradeLevels } from "@/services/common/queries";
 
 // Add schema definition
 const subjectSchema = z.object({
   subjectName: z.string().min(1, "Tên môn học không được để trống"),
+  subjectCategory: z.string().min(1, "Vui lòng chọn tổ bộ môn"),
+  typeOfGrade: z.string().min(1, "Vui lòng chọn phương thức tính điểm"),
   gradesData: z.array(
     z.object({
-      khoi: z.number(),
-      soTietHocKy1: z.number().nullable(),
-      soTietHocKy2: z.number().nullable(),
-      DDGTXHK1: z.number().nullable(),
-      DDGTXHK2: z.number().nullable(),
-      DDGGK: z.number().nullable(),
-      DDCK: z.number().nullable(),
+      gradeLevelId: z.number(),
+      periodsPerWeekHKI: z.number().nullable(),
+      periodsPerWeekHKII: z.number().nullable(),
+      continuousAssessmentsHKI: z.number().nullable(),
+      continuousAssessmentsHKII: z.number().nullable(),
+      midtermAssessments: z.number().nullable(),
+      finalAssessments: z.number().nullable(),
     }),
   ),
 });
 
 export const CreateSubjectModal = () => {
+  const gradeLevelsQuery = useGradeLevels();
+
   const {
     register,
     handleSubmit,
@@ -39,84 +52,86 @@ export const CreateSubjectModal = () => {
     setValue,
     trigger,
     watch,
+    reset,
   } = useForm({
     resolver: zodResolver(subjectSchema),
     defaultValues: {
       subjectName: "",
-      gradesData: [
-        {
-          khoi: 6,
-          soTietHocKy1: 4,
-          soTietHocKy2: 4,
-          DDGTXHK1: 4,
-          DDGTXHK2: 4,
-          DDGGK: 1,
-          DDCK: 1,
-        },
-        {
-          khoi: 7,
-          soTietHocKy1: 4,
-          soTietHocKy2: 4,
-          DDGTXHK1: 4,
-          DDGTXHK2: 4,
-          DDGGK: 1,
-          DDCK: 1,
-        },
-        {
-          khoi: 8,
-          soTietHocKy1: 4,
-          soTietHocKy2: 4,
-          DDGTXHK1: 4,
-          DDGTXHK2: 4,
-          DDGGK: 1,
-          DDCK: 1,
-        },
-        {
-          khoi: 9,
-          soTietHocKy1: 4,
-          soTietHocKy2: 4,
-          DDGTXHK1: 4,
-          DDGTXHK2: 4,
-          DDGGK: 1,
-          DDCK: 1,
-        },
-      ],
+      subjectCategory: "",
+      typeOfGrade: "",
+      // gradesData: gradeLevelsQuery?.data?.map((gradeLevel) => ({
+      //   gradeLevelId: gradeLevel.gradeLevelId,
+      //   periodsPerWeekHKI: 4,
+      //   periodsPerWeekHKII: 4,
+      //   continuousAssessmentsHKI: 4,
+      //   continuousAssessmentsHKII: 4,
+      //   midtermAssessments: 1,
+      //   finalAssessments: 1,
+      // })),
     },
   });
 
+  const createSubjectMutation = useCreateSubject();
+
   const gradesData = watch("gradesData");
 
-  const [enabledGrades, setEnabledGrades] = useState({
-    6: true,
-    7: true,
-    8: true,
-    9: true,
-  });
+  const [enabledGrades, setEnabledGrades] = useState(
+    gradeLevelsQuery?.data?.reduce(
+      (acc, gradeLevel) => ({
+        ...acc,
+        [gradeLevel.gradeLevelId]: true,
+      }),
+      {},
+    ) || {},
+  );
 
-  const handleGradeToggle = (khoi) => {
+  useEffect(() => {
+    if (gradeLevelsQuery.data) {
+      reset({
+        subjectName: "",
+        subjectCategory: "",
+        typeOfGrade: "",
+        gradesData: gradeLevelsQuery.data.map((gradeLevel) => ({
+          gradeLevelId: gradeLevel.gradeLevelId,
+          periodsPerWeekHKI: 4,
+          periodsPerWeekHKII: 4,
+          continuousAssessmentsHKI: 4,
+          continuousAssessmentsHKII: 4,
+          midtermAssessments: 1,
+          finalAssessments: 1,
+        })),
+      });
+    }
+  }, [gradeLevelsQuery.data]);
+
+  const handleGradeToggle = (gradeLevelId) => {
     setEnabledGrades((prev) => ({
       ...prev,
-      [khoi]: !prev[khoi],
+      [gradeLevelId]: !prev[gradeLevelId],
     }));
-    // Trigger validation when toggling grades
     trigger("gradesData");
   };
 
   const handleNumericInput = (e, index, field) => {
     const value = e.target.value.replace(/[^0-9]/g, "");
-    setValue(
-      `gradesData.${index}.${field}`,
-      value === "" ? null : parseInt(value) || 0,
-    );
+    const numericValue = value === "" ? null : parseInt(value);
+
+    // Update the specific field in gradesData
+    const updatedGradesData = [...gradesData];
+    updatedGradesData[index] = {
+      ...updatedGradesData[index],
+      [field]: numericValue,
+    };
+
+    setValue("gradesData", updatedGradesData);
     trigger("gradesData");
   };
-
   // Modify onSubmit to include validation
   const onSubmit = (data) => {
     const hasNullInEnabledGrades = data.gradesData.some((grade, index) => {
-      if (!enabledGrades[grade.khoi]) return false;
+      if (!enabledGrades[grade.gradeLevelId]) return false;
       return Object.entries(grade).some(([key, value]) => {
-        return key !== "khoi" && value === null;
+        return key !== "gradeLevelId" && value === null;
       });
     });
 
@@ -127,11 +142,13 @@ export const CreateSubjectModal = () => {
 
     const filteredData = {
       ...data,
-      gradesData: data.gradesData.filter((grade) => enabledGrades[grade.khoi]),
+      gradesData: data.gradesData.filter(
+        (grade) => enabledGrades[grade.gradeLevelId],
+      ),
     };
 
     console.log(filteredData);
-    // Submit data to server
+    createSubjectMutation.mutate(filteredData);
   };
 
   return (
@@ -163,6 +180,49 @@ export const CreateSubjectModal = () => {
             )}
           </div>
 
+          <div className="space-y-2">
+            <Label htmlFor="subject-department">Tổ bộ môn</Label>
+            <Select
+              onValueChange={(value) => setValue("subjectCategory", value)}
+              defaultValue={watch("subjectCategory")}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn tổ bộ môn" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Khoa học tự nhiên">
+                  Khoa học tự nhiên
+                </SelectItem>
+                <SelectItem value="Khoa học xã hội">Khoa học xã hội</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.subjectCategory && (
+              <p className="text-sm text-red-500">
+                {errors.subjectCategory.message}
+              </p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="type-of-grade">Tổ bộ môn</Label>
+            <Select
+              onValueChange={(value) => setValue("typeOfGrade", value)}
+              defaultValue={watch("typeOfGrade")}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="Chọn phương thức tính điểm" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Tính điểm">Tính điểm</SelectItem>
+                <SelectItem value="Nhận xét">Nhận xét</SelectItem>
+              </SelectContent>
+            </Select>
+            {errors.typeOfGrade && (
+              <p className="text-sm text-red-500">
+                {errors.typeOfGrade.message}
+              </p>
+            )}
+          </div>
+
           <div className="overflow-x-auto">
             <table className="w-full border-collapse border text-sm">
               <thead>
@@ -171,17 +231,21 @@ export const CreateSubjectModal = () => {
                   {gradesData &&
                     gradesData.map((grade) => (
                       <th
-                        key={grade.khoi}
+                        key={grade.gradeLevelId}
                         className={`border-r p-2 text-center last:border-r-0 ${
-                          !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                          !enabledGrades[grade.gradeLevelId]
+                            ? "bg-gray-100"
+                            : ""
                         }`}
                       >
                         <label className="flex cursor-pointer items-center justify-center gap-2 select-none">
-                          Khối {grade.khoi}
+                          Khối {grade.gradeLevelId}
                           <input
                             type="checkbox"
-                            checked={enabledGrades[grade.khoi]}
-                            onChange={() => handleGradeToggle(grade.khoi)}
+                            checked={enabledGrades[grade.gradeLevelId]}
+                            onChange={() =>
+                              handleGradeToggle(grade.gradeLevelId)
+                            }
                             className="h-4 w-4"
                           />
                         </label>
@@ -193,28 +257,28 @@ export const CreateSubjectModal = () => {
                 {/* Example for one row, apply to all rows */}
                 <tr className="border-b">
                   <td className="border-r p-2">Số tiết HK1</td>
-                  {gradesData.map((grade, index) => (
+                  {gradesData?.map((grade, index) => (
                     <td
-                      key={`${grade.khoi}-hk1`}
+                      key={`${grade.gradeLevelId}-hk1`}
                       className={`border-r p-2 text-center last:border-r-0 ${
-                        !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                        !enabledGrades[grade.gradeLevelId] ? "bg-gray-100" : ""
                       }`}
                     >
                       <input
                         type="text"
                         className={`h-10 w-20 rounded-md px-3 py-2 text-center text-sm focus-visible:outline-none ${
-                          errors.gradesData?.[index]?.soTietHocKy1 ||
-                          (enabledGrades[grade.khoi] &&
-                            !grade.soTietHocKy1 &&
-                            grade.soTietHocKy1 !== 0)
+                          errors.gradesData?.[index]?.periodsPerWeekHKI ||
+                          (enabledGrades[grade.gradeLevelId] &&
+                            !grade.periodsPerWeekHKI &&
+                            grade.periodsPerWeekHKI !== 0)
                             ? "border-2 border-red-500"
                             : ""
                         }`}
-                        value={grade.soTietHocKy1 ?? ""}
+                        value={grade.periodsPerWeekHKI ?? ""}
                         onChange={(e) =>
-                          handleNumericInput(e, index, "soTietHocKy1")
+                          handleNumericInput(e, index, "periodsPerWeekHKI")
                         }
-                        disabled={!enabledGrades[grade.khoi]}
+                        disabled={!enabledGrades[grade.gradeLevelId]}
                         maxLength={2}
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -224,28 +288,28 @@ export const CreateSubjectModal = () => {
                 </tr>
                 <tr className="border-b">
                   <td className="border-r p-2">Số tiết HK2</td>
-                  {gradesData.map((grade, index) => (
+                  {gradesData?.map((grade, index) => (
                     <td
-                      key={`${grade.khoi}-hk2`}
+                      key={`${grade.gradeLevelId}-hk2`}
                       className={`border-r p-2 text-center last:border-r-0 ${
-                        !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                        !enabledGrades[grade.gradeLevelId] ? "bg-gray-100" : ""
                       }`}
                     >
                       <input
                         type="text"
                         className={`h-10 w-20 rounded-md px-3 py-2 text-center text-sm focus-visible:outline-none ${
-                          errors.gradesData?.[index]?.soTietHocKy2 ||
-                          (enabledGrades[grade.khoi] &&
-                            !grade.soTietHocKy2 &&
-                            grade.soTietHocKy2 !== 0)
+                          errors.gradesData?.[index]?.periodsPerWeekHKII ||
+                          (enabledGrades[grade.gradeLevelId] &&
+                            !grade.periodsPerWeekHKII &&
+                            grade.periodsPerWeekHKII !== 0)
                             ? "border-2 border-red-500"
                             : ""
                         }`}
-                        value={grade.soTietHocKy2 ?? ""}
+                        value={grade.periodsPerWeekHKII ?? ""}
                         onChange={(e) =>
-                          handleNumericInput(e, index, "soTietHocKy2")
+                          handleNumericInput(e, index, "periodsPerWeekHKII")
                         }
-                        disabled={!enabledGrades[grade.khoi]}
+                        disabled={!enabledGrades[grade.gradeLevelId]}
                         maxLength={2}
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -255,28 +319,33 @@ export const CreateSubjectModal = () => {
                 </tr>
                 <tr className="border-b">
                   <td className="border-r p-2">Số điểm ĐGTX HK1</td>
-                  {gradesData.map((grade, index) => (
+                  {gradesData?.map((grade, index) => (
                     <td
-                      key={`${grade.khoi}-dgtx1`}
+                      key={`${grade.gradeLevelId}-dgtx1`}
                       className={`border-r p-2 text-center last:border-r-0 ${
-                        !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                        !enabledGrades[grade.gradeLevelId] ? "bg-gray-100" : ""
                       }`}
                     >
                       <input
                         type="text"
                         className={`h-10 w-20 rounded-md px-3 py-2 text-center text-sm focus-visible:outline-none ${
-                          errors.gradesData?.[index]?.DDGTXHK1 ||
-                          (enabledGrades[grade.khoi] &&
-                            !grade.DDGTXHK1 &&
-                            grade.DDGTXHK1 !== 0)
+                          errors.gradesData?.[index]
+                            ?.continuousAssessmentsHKI ||
+                          (enabledGrades[grade.gradeLevelId] &&
+                            !grade.continuousAssessmentsHKI &&
+                            grade.continuousAssessmentsHKI !== 0)
                             ? "border-2 border-red-500"
                             : ""
                         }`}
-                        value={grade.DDGTXHK1 ?? ""}
+                        value={grade.continuousAssessmentsHKI ?? ""}
                         onChange={(e) =>
-                          handleNumericInput(e, index, "DDGTXHK1")
+                          handleNumericInput(
+                            e,
+                            index,
+                            "continuousAssessmentsHKI",
+                          )
                         }
-                        disabled={!enabledGrades[grade.khoi]}
+                        disabled={!enabledGrades[grade.gradeLevelId]}
                         maxLength={2}
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -286,28 +355,33 @@ export const CreateSubjectModal = () => {
                 </tr>
                 <tr className="border-b">
                   <td className="border-r p-2">Số điểm ĐGTX HK2</td>
-                  {gradesData.map((grade, index) => (
+                  {gradesData?.map((grade, index) => (
                     <td
-                      key={`${grade.khoi}-dgtx2`}
+                      key={`${grade.gradeLevelId}-dgtx2`}
                       className={`border-r p-2 text-center last:border-r-0 ${
-                        !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                        !enabledGrades[grade.gradeLevelId] ? "bg-gray-100" : ""
                       }`}
                     >
                       <input
                         type="text"
                         className={`h-10 w-20 rounded-md px-3 py-2 text-center text-sm focus-visible:outline-none ${
-                          errors.gradesData?.[index]?.DDGTXHK1 ||
-                          (enabledGrades[grade.khoi] &&
-                            !grade.DDGTXHK2 &&
-                            grade.DDGTXHK2 !== 0)
+                          errors.gradesData?.[index]
+                            ?.continuousAssessmentsHKI ||
+                          (enabledGrades[grade.gradeLevelId] &&
+                            !grade.continuousAssessmentsHKII &&
+                            grade.continuousAssessmentsHKII !== 0)
                             ? "border-2 border-red-500"
                             : ""
                         }`}
-                        value={grade.DDGTXHK2 ?? ""}
+                        value={grade.continuousAssessmentsHKII ?? ""}
                         onChange={(e) =>
-                          handleNumericInput(e, index, "DDGTXHK2")
+                          handleNumericInput(
+                            e,
+                            index,
+                            "continuousAssessmentsHKII",
+                          )
                         }
-                        disabled={!enabledGrades[grade.khoi]}
+                        disabled={!enabledGrades[grade.gradeLevelId]}
                         maxLength={2}
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -317,26 +391,28 @@ export const CreateSubjectModal = () => {
                 </tr>
                 <tr className="border-b">
                   <td className="border-r p-2">Số điểm ĐGGK</td>
-                  {gradesData.map((grade, index) => (
+                  {gradesData?.map((grade, index) => (
                     <td
-                      key={`${grade.khoi}-dggk`}
+                      key={`${grade.gradeLevelId}-dggk`}
                       className={`border-r p-2 text-center last:border-r-0 ${
-                        !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                        !enabledGrades[grade.gradeLevelId] ? "bg-gray-100" : ""
                       }`}
                     >
                       <input
                         type="text"
                         className={`h-10 w-20 rounded-md px-3 py-2 text-center text-sm focus-visible:outline-none ${
-                          errors.gradesData?.[index]?.DDGGK ||
-                          (enabledGrades[grade.khoi] &&
-                            !grade.DDGGK &&
-                            grade.DDGGK !== 0)
+                          errors.gradesData?.[index]?.midtermAssessments ||
+                          (enabledGrades[grade.gradeLevelId] &&
+                            !grade.midtermAssessments &&
+                            grade.midtermAssessments !== 0)
                             ? "border-2 border-red-500"
                             : ""
                         }`}
-                        value={grade.DDGGK ?? ""}
-                        onChange={(e) => handleNumericInput(e, index, "DDGGK")}
-                        disabled={!enabledGrades[grade.khoi]}
+                        value={grade.midtermAssessments ?? ""}
+                        onChange={(e) =>
+                          handleNumericInput(e, index, "midtermAssessments")
+                        }
+                        disabled={!enabledGrades[grade.gradeLevelId]}
                         maxLength={2}
                         inputMode="numeric"
                         pattern="[0-9]*"
@@ -346,26 +422,28 @@ export const CreateSubjectModal = () => {
                 </tr>
                 <tr className="border-b">
                   <td className="border-r p-2">Số điểm ĐGCK</td>
-                  {gradesData.map((grade, index) => (
+                  {gradesData?.map((grade, index) => (
                     <td
-                      key={`${grade.khoi}-dgck`}
+                      key={`${grade.gradeLevelId}-dgck`}
                       className={`border-r p-2 text-center last:border-r-0 ${
-                        !enabledGrades[grade.khoi] ? "bg-gray-100" : ""
+                        !enabledGrades[grade.gradeLevelId] ? "bg-gray-100" : ""
                       }`}
                     >
                       <input
                         type="text"
                         className={`h-10 w-20 rounded-md px-3 py-2 text-center text-sm focus-visible:outline-none ${
-                          errors.gradesData?.[index]?.DDCK ||
-                          (enabledGrades[grade.khoi] &&
-                            !grade.DDCK &&
-                            grade.DDCK !== 0)
+                          errors.gradesData?.[index]?.finalAssessments ||
+                          (enabledGrades[grade.gradeLevelId] &&
+                            !grade.finalAssessments &&
+                            grade.finalAssessments !== 0)
                             ? "border-2 border-red-500"
                             : ""
                         }`}
-                        value={grade.DDCK ?? ""}
-                        onChange={(e) => handleNumericInput(e, index, "DDCK")}
-                        disabled={!enabledGrades[grade.khoi]}
+                        value={grade.finalAssessments ?? ""}
+                        onChange={(e) =>
+                          handleNumericInput(e, index, "finalAssessments")
+                        }
+                        disabled={!enabledGrades[grade.gradeLevelId]}
                         maxLength={2}
                         inputMode="numeric"
                         pattern="[0-9]*"

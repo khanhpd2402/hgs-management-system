@@ -32,3 +32,11 @@ export const resetUserPassword = async (userId, newPassword) => {
     newPassword,
   });
 };
+
+export const createSubject = async (data) => {
+  return (await axiosInstance.post(`Subjects`, data)).data;
+};
+
+export const configueSubject = async (data) => {
+  return (await axiosInstance.post(`GradeLevelSubjects`, data)).data;
+};
