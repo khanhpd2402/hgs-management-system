@@ -23,6 +23,7 @@ import toast from "react-hot-toast";
 import { PlusCircle } from "lucide-react";
 import { useCreateSubject } from "@/services/principal/mutation";
 import { useGradeLevels } from "@/services/common/queries";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 // Add schema definition
 const subjectSchema = z.object({
@@ -140,8 +141,12 @@ export const CreateSubjectModal = () => {
       return;
     }
 
+    const cleanedData = Object.fromEntries(
+      Object.entries(data).map(([key, value]) => [key, cleanString(value)]),
+    );
+
     const filteredData = {
-      ...data,
+      ...cleanedData,
       gradesData: data.gradesData.filter(
         (grade) => enabledGrades[grade.gradeLevelId],
       ),
