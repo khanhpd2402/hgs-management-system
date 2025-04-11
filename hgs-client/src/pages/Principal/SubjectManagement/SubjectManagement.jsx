@@ -16,87 +16,17 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 
 import { Check, Search } from "lucide-react";
 import { CreateSubjectModal } from "./CreateSubjectModal";
 
 export default function SubjectManagement() {
-  const [subjects, setSubjects] = useState([
-    {
-      id: 1,
-      name: "Toán",
-      type: "Tính điểm",
-      coefficient: 2,
-      periodsHK1: 5,
-      periodsHK2: 5,
-      dgtxhk1: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 2,
-      name: "Vật lý",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 3,
-      periodsHK2: 3,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 3,
-      name: "Hóa học",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 2,
-      periodsHK2: 2,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 4,
-      name: "Sinh học",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 2,
-      periodsHK2: 2,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 5,
-      name: "Tiếng Anh",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 3,
-      periodsHK2: 3,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-  ]);
-
   const [searchTerm, setSearchTerm] = useState("");
 
-  // Filter subjects based on search term
-  const filteredSubjects = subjects.filter((subject) =>
-    subject.name.toLowerCase().includes(searchTerm.toLowerCase()),
-  );
+  // // Filter subjects based on search term
+  // const filteredSubjects = subjects.filter((subject) =>
+  //   subject.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  // );
 
   return (
     <div className="container mx-auto py-6">
@@ -127,7 +57,7 @@ export default function SubjectManagement() {
           </div>
         </CardHeader>
         <CardContent>
-          <Table>
+          {/* <Table>
             <TableHeader>
               <TableRow>
                 <TableHead className="w-50">Tên môn học</TableHead>
@@ -224,7 +154,7 @@ export default function SubjectManagement() {
                 </TableRow>
               ))}
             </TableBody>
-          </Table>
+          </Table> */}
           <div className="mt-4 flex justify-end">
             <Button type="button" className="flex items-center gap-1">
               <Check className="h-4 w-4" />
