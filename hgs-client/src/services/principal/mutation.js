@@ -1,5 +1,11 @@
 import { useMutation } from "@tanstack/react-query";
-import { addGradeBatch, changeUserStatus, resetUserPassword } from "./api";
+import {
+  addGradeBatch,
+  changeUserStatus,
+  configueSubject,
+  createSubject,
+  resetUserPassword,
+} from "./api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 
@@ -53,6 +59,66 @@ export function useResetPassword() {
       } else {
         console.log(data);
         toast.success("Đặt lại mật khẩu thành công");
+      }
+    },
+  });
+}
+
+// export function useConfigueSubject() {
+//   const queryClient = useQueryClient();
+//   return useMutation({
+//     mutationFn: (data) => {
+//       data.map((item) => {
+//         return configueSubject(item);
+//       });
+//     },
+//     onSettled: (data, error) => {
+//       if (error) {
+//         console.log(error);
+//         toast.error("Cấu hình môn học thất bại");
+//       } else {
+//         console.log(data);
+//         queryClient.invalidateQueries({ queryKey: ["subjects"] });
+//         toast.success("Cấu hình môn học thành công");
+//       }
+//     },
+//   });
+// }
+
+export function useCreateSubject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      const subjectData = {
+        subjectName: data.subjectName,
+        typeOfGrade: data.subjectCode,
+        subjectCategory: data.subjectCategory,
+      };
+      return createSubject(data);
+    },
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Tạo môn học thất bại");
+      } else {
+        console.log(data);
+        const newData = variables?.gradesData.map((item) => {
+          return {
+            subjectId: data.subjectId,
+            ...item,
+          };
+        });
+        for (let i = 0; i < newData.length; i++) {
+          try {
+            console.log(newData[i]);
+            await configueSubject(newData[i]);
+          } catch (error) {
+            console.log(error);
+            toast.error("Cấu hình môn học thất bại");
+          }
+        }
+        queryClient.invalidateQueries({ queryKey: ["subjects"] });
+        toast.success("Tạo môn học thành công");
       }
     },
   });
