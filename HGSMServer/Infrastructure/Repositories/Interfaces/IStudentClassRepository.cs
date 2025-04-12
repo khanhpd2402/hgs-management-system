@@ -16,5 +16,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<StudentClass> UpdateAsync(StudentClass entity);
         Task DeleteAsync(int id);
         Task<StudentClass> GetStudentClassByStudentAndClassIdAsync(int studentId, int classId);
+        Task<StudentClass> GetByStudentAndAcademicYearAsync(int studentId, int academicYearId);
+        Task<IEnumerable<StudentClass>> SearchAsync(int? studentId, int? classId, int? academicYearId, string studentName);
     }
 }
