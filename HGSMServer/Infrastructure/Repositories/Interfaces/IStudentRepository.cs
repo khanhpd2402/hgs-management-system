@@ -8,6 +8,7 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IStudentRepository
     {
+        Task<IEnumerable<Student>> GetAllAsync();
         Task<IEnumerable<Student>> GetAllWithParentsAsync(int academicYearId);
         Task<int> GetAcademicYearIdAsync(int semesterId);
         Task<Student?> GetByIdAsync(int id);
