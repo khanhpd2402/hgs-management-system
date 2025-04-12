@@ -11,7 +11,7 @@ namespace Application.Features.StudentClass.DTOs
 {
     public class StudentClassFilterDataDto
     {
-        public List<StudentDto> Students { get; set; }
+        public List<StudentFilterDto> Students { get; set; }
         public List<ClassDto> Classes { get; set; }
         public List<AcademicYearDto> AcademicYears { get; set; }
     }
