@@ -18,51 +18,54 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<List<Subject>> GetAllSubjectsAsync()
+        public async Task<IEnumerable<Subject>> GetAllAsync()
         {
             return await _context.Subjects.ToListAsync();
         }
 
-        public async Task<Subject?> GetSubjectByIdAsync(int id)
+        public async Task<Subject> GetByIdAsync(int id)
         {
             return await _context.Subjects.FindAsync(id);
         }
 
-        public async Task<Subject> CreateSubjectAsync(Subject subject)
+        public async Task<Subject> CreateAsync(Subject entity)
         {
-            _context.Subjects.Add(subject);
+            // Kiểm tra UNIQUE constraint trước khi thêm
+            if (await _context.Subjects.AnyAsync(s => s.SubjectName == entity.SubjectName))
+            {
+                throw new InvalidOperationException($"Subject with name '{entity.SubjectName}' already exists.");
+            }
+
+            _context.Subjects.Add(entity);
             await _context.SaveChangesAsync();
-            return subject;
+            return entity;
         }
 
-        public async Task<bool> UpdateSubjectAsync(Subject subject)
+        public async Task UpdateAsync(Subject entity)
         {
-            _context.Subjects.Update(subject);
-            return await _context.SaveChangesAsync() > 0;
+            // Kiểm tra UNIQUE constraint cho SubjectName
+            if (await _context.Subjects.AnyAsync(s => s.SubjectName == entity.SubjectName && s.SubjectId != entity.SubjectId))
+            {
+                throw new InvalidOperationException($"Subject with name '{entity.SubjectName}' already exists.");
+            }
+
+            _context.Entry(entity).State = EntityState.Modified;
+            await _context.SaveChangesAsync();
         }
 
-        public async Task<bool> DeleteSubjectAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            var subject = await _context.Subjects.FindAsync(id);
-            if (subject == null) return false;
-
-            _context.Subjects.Remove(subject);
-            return await _context.SaveChangesAsync() > 0;
+            var entity = await _context.Subjects.FindAsync(id);
+            if (entity != null)
+            {
+                _context.Subjects.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
         public async Task<Subject> GetByNameAsync(string subjectName)
         {
             return await _context.Subjects
                 .FirstOrDefaultAsync(s => s.SubjectName == subjectName);
-        }
-
-        public async Task AddAsync(Subject subject)
-        {
-            _context.Subjects.Add(subject);
-            await _context.SaveChangesAsync();
-        }
-        public async Task<Subject> GetByIdAsync(int subjectId)
-        {
-            return await _context.Subjects.FindAsync(subjectId);
         }
     }
 

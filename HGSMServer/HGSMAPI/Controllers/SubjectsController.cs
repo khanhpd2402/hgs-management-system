@@ -9,55 +9,116 @@ namespace HGSMAPI.Controllers
     [ApiController]
     public class SubjectsController : ControllerBase
     {
-        private readonly ISubjectService _subjectService;
+        private readonly ISubjectService _service;
 
-        public SubjectsController(ISubjectService subjectService)
+        public SubjectsController(ISubjectService service)
         {
-            _subjectService = subjectService;
+            _service = service;
         }
 
+        // GET: api/Subjects
         [HttpGet]
-        public async Task<IActionResult> GetAllSubjects()
+        public async Task<IActionResult> GetAll()
         {
-            var subjects = await _subjectService.GetAllSubjectsAsync();
-            return Ok(subjects);
+            try
+            {
+                var subjects = await _service.GetAllAsync();
+                return Ok(subjects);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
+        // GET: api/Subjects/5
         [HttpGet("{id}")]
-        public async Task<IActionResult> GetSubjectById(int id)
+        public async Task<IActionResult> GetById(int id)
         {
-            var subject = await _subjectService.GetSubjectByIdAsync(id);
-            if (subject == null) return NotFound("Subject not found");
-            return Ok(subject);
+            try
+            {
+                var subject = await _service.GetByIdAsync(id);
+                return Ok(subject);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
+        // POST: api/Subjects
         [HttpPost]
-        public async Task<IActionResult> CreateSubject([FromBody] CreateSubjectDto createDto)
+        public async Task<IActionResult> Create([FromBody] SubjectCreateAndUpdateDto dto)
         {
-            if (createDto == null) return BadRequest("Invalid data");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            var createdSubject = await _subjectService.CreateSubjectAsync(createDto);
-            return CreatedAtAction(nameof(GetSubjectById), new { id = createdSubject.SubjectId }, createdSubject);
+            try
+            {
+                var createdSubject = await _service.CreateAsync(dto);
+                return CreatedAtAction(nameof(GetById), new { id = createdSubject.SubjectName }, createdSubject);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message); // Xử lý lỗi UNIQUE constraint
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
+        // PUT: api/Subjects/5
         [HttpPut("{id}")]
-        public async Task<IActionResult> UpdateSubject(int id, [FromBody] UpdateSubjectDto updateDto)
+        public async Task<IActionResult> Update(int id, [FromBody] SubjectCreateAndUpdateDto dto)
         {
-            if (updateDto == null) return BadRequest("Invalid data");
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
 
-            var updated = await _subjectService.UpdateSubjectAsync(id, updateDto);
-            if (!updated) return NotFound("Subject not found");
-
-            return NoContent();
+            try
+            {
+                var updatedSubject = await _service.UpdateAsync(id, dto);
+                return Ok(updatedSubject);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message); // Xử lý lỗi UNIQUE constraint
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
 
+        // DELETE: api/Subjects/5
         [HttpDelete("{id}")]
-        public async Task<IActionResult> DeleteSubject(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            var deleted = await _subjectService.DeleteSubjectAsync(id);
-            if (!deleted) return NotFound("Subject not found");
-
-            return NoContent();
+            try
+            {
+                await _service.DeleteAsync(id);
+                return NoContent();
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }
