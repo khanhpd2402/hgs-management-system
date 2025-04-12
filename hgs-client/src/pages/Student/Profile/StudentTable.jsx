@@ -24,8 +24,11 @@ import {
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router";
 import { formatDateString } from "@/helpers/formatDate";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function StudentTable() {
+  const { currentYear } = useLayout();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
 
@@ -43,7 +46,7 @@ export default function StudentTable() {
     { id: "fullName", label: "Họ và tên", width: "200px" },
     { id: "gender", label: "Giới tính", width: "120px" },
     { id: "ethnicity", label: "Dân tộc", width: "120px" },
-    { id: "grade", label: "Khối", width: "100px" },
+    { id: "gradeName", label: "Khối", width: "100px" },
     { id: "className", label: "Lớp", width: "100px" },
     { id: "status", label: "Trạng thái", width: "150px" },
     { id: "dob", label: "Ngày sinh", width: "150px" },
@@ -89,11 +92,10 @@ export default function StudentTable() {
   const [visibleColumns, setVisibleColumns] = useState(
     allColumns.map((col) => ({ id: col.id, label: col.label })),
   );
-  const academicYearId = JSON.parse(
-    sessionStorage.getItem("currentAcademicYear"),
-  ).academicYearID;
 
-  const { data, isPending, error, isError } = useStudents(academicYearId);
+  const { data, isPending, error, isError } = useStudents(
+    currentYear.academicYearID,
+  );
 
   //phan trang
   const { page, pageSize, grade, className, search } = filter;
@@ -101,7 +103,7 @@ export default function StudentTable() {
   const filteredData =
     data?.students?.filter((student) => {
       // Filter by grade
-      if (grade && student.grade != grade) {
+      if (grade && student.gradeId != grade) {
         return false;
       }
 
@@ -112,7 +114,7 @@ export default function StudentTable() {
 
       // Filter by search term (case insensitive)
       if (search) {
-        const searchLower = search.toLowerCase();
+        const searchLower = cleanString(search.toLowerCase());
         return student.fullName?.toLowerCase().includes(searchLower);
       }
 
@@ -245,9 +247,9 @@ export default function StudentTable() {
                         </TableCell>
                       )}
 
-                      {visibleColumns.some((col) => col.id === "grade") && (
+                      {visibleColumns.some((col) => col.id === "gradeName") && (
                         <TableCell className="h-16 border border-gray-300 text-center">
-                          {student.grade}
+                          {student.gradeName}
                         </TableCell>
                       )}
 
@@ -446,7 +448,7 @@ export default function StudentTable() {
                   <TableRow>
                     <TableCell
                       colSpan={visibleColumns.length}
-                      className="p-4 text-center"
+                      className="p-4 text-left"
                     >
                       Không có dữ liệu
                     </TableCell>

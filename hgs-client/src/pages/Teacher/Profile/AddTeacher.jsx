@@ -17,6 +17,7 @@ import { z } from "zod";
 import { useCreateTeacher } from "@/services/teacher/mutation";
 import { useNavigate } from "react-router-dom";
 import { formatDate } from "@/helpers/formatDate";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function AddTeacher() {
   const navigate = useNavigate();
@@ -171,17 +172,41 @@ export default function AddTeacher() {
 
   // Submit handler
   const onSubmit = (formData) => {
+    // Clean all string data
+    const cleanedData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, cleanString(value)]),
+    );
+
+    const subjects = cleanedData.mainSubject
+      ? cleanedData.mainSubject.split(",").map((s) => {
+          const trimmedSubject = s.trim();
+          if (trimmedSubject.includes("*")) {
+            return {
+              subjectName: trimmedSubject.replace(/\s*\*\s*/g, "").trim(),
+              isMainSubject: true,
+            };
+          }
+          return {
+            subjectName: trimmedSubject,
+            isMainSubject: false,
+          };
+        })
+      : [];
     const processedData = {
-      ...formData,
-      dob: formData.dob ? formatDate(formData.dob) : null,
-      hiringDate: formData.hiringDate ? formatDate(formData.hiringDate) : null,
-      schoolJoinDate: formData.schoolJoinDate
-        ? formatDate(formData.schoolJoinDate)
+      ...cleanedData,
+      subjects,
+      dob: cleanedData.dob ? formatDate(cleanedData.dob) : null,
+      hiringDate: cleanedData.hiringDate
+        ? formatDate(cleanedData.hiringDate)
         : null,
-      permanentEmploymentDate: formData.permanentEmploymentDate
-        ? formatDate(formData.permanentEmploymentDate)
+      schoolJoinDate: cleanedData.schoolJoinDate
+        ? formatDate(cleanedData.schoolJoinDate)
+        : null,
+      permanentEmploymentDate: cleanedData.permanentEmploymentDate
+        ? formatDate(cleanedData.permanentEmploymentDate)
         : null,
     };
+    console.log(processedData);
     mutate(processedData, {
       onSuccess: () => {
         reset();
@@ -319,7 +344,7 @@ export default function AddTeacher() {
             name="department"
             label="Tổ bộ môn"
             type="select"
-            options={["KHXH", "KHTN"]}
+            options={["Khoa học xã hội", "Khoa học tự nhiên"]}
             isRequired
           />
           <FormField

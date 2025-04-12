@@ -43,18 +43,19 @@ const Header = ({ setCurrentYear }) => {
 
   return (
     <>
-      <div className="flex h-20 w-full items-center justify-between bg-[url('/banner.jpg')] bg-cover bg-center px-6">
-        <div className="flex items-center gap-4">
-          <img src="/logo.png" alt="School Logo" className="h-16 w-16" />
-          <div className="text-white">
-            <h1 className="text-2xl font-bold">TRƯỜNG THCS HẢI GIANG</h1>
-            <p className="text-sm">Hải Giang - Hải Hậu - Nam Định</p>
-          </div>
-        </div>
-      </div>
       <header className="flex h-14 items-center border-b px-4 lg:px-6">
         <div className="flex flex-1 items-center justify-between">
-          <div className="font-medium">TRƯỜNG THCS HẢI GIANG</div>
+          <div className="flex items-center gap-4">
+            <img
+              src="https://picsum.photos/200/300"
+              alt="School Logo"
+              className="h-16 w-16 object-cover"
+            />
+            <div className="">
+              <h1 className="text-2xl font-bold">TRƯỜNG THCS HẢI GIANG</h1>
+              <p className="text-sm">Hải Giang - Hải Hậu - Nam Định</p>
+            </div>
+          </div>
 
           <div className="flex items-center gap-4">
             <Select

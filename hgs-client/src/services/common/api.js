@@ -35,3 +35,8 @@ export const getRoles = async () => {
   const response = await axiosInstance.get("/roles");
   return response.data;
 };
+
+export const getGradeLevels = async () => {
+  const response = await axiosInstance.get("/GradeLevels");
+  return response.data;
+};

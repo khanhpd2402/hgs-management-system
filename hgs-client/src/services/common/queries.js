@@ -2,6 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getAcademicYears,
   getClasses,
+  getGradeLevels,
   getRoles,
   getSemestersByAcademicYear,
   getSubjects,
@@ -49,6 +50,15 @@ export function useRoles() {
     queryKey: ["roles"],
     queryFn: () => {
       return getRoles();
+    },
+  });
+}
+
+export function useGradeLevels() {
+  return useQuery({
+    queryKey: ["gradeLevels"],
+    queryFn: () => {
+      return getGradeLevels();
     },
   });
 }

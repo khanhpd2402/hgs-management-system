@@ -1,13 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 
-import { data, useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useTeacher } from "@/services/teacher/queries";
-import { Spinner } from "@/components/Spinner";
 import { useUpdateTeacher } from "@/services/teacher/mutation";
 import { useForm, Controller } from "react-hook-form";
 import { Button } from "@/components/ui/button";
-import { useEffect } from "react";
 import DatePicker from "@/components/DatePicker";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -21,11 +18,21 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
+import { formatDate } from "@/helpers/formatDate";
+import { useEffect } from "react";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function TeacherProfile() {
   const { id } = useParams();
+  const navigate = useNavigate();
+
   const teacherQuery = useTeacher(id);
   const { mutate, isPending: isUpdating } = useUpdateTeacher();
+  const employmentTypes = [
+    "Hợp đồng lao động dưới 1 năm",
+    "Viên chức HĐLV không xác định thời hạn",
+    "Hợp đồng thuê khoán",
+  ];
 
   const teacherSchema = z.object({
     // Basic info
@@ -36,22 +43,27 @@ export default function TeacherProfile() {
         /^[\p{L}\s]+$/u,
         "Họ và tên không được chứa số hoặc ký tự đặc biệt",
       ),
-    position: z.string().optional(),
-    department: z.string().optional(),
+    position: z.string().min(1, "Vui lòng điền vị trí việc làm"),
+    department: z.string().min(1, "Vui lòng chọn tổ bộ môn"),
 
     // Personal information
-    gender: z.enum(["Nam", "Nữ", "Khác"]).optional(),
-    dob: z.date().nullable(),
+    gender: z.string().min(1, "Vui lòng chọn giới tính"),
+    dob: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày sinh",
+          });
+        }
+      }),
     idcardNumber: z
       .string()
-      .refine(
-        (val) => !val || val.length === 8 || val.length === 12,
-        "Số CMND/CCCD phải có 8 hoặc 12 chữ số",
-      )
-      .refine(
-        (val) => !val || /^\d+$/.test(val),
-        "Số CMND/CCCD chỉ được chứa chữ số",
-      ),
+      .min(1, "Số CCCD không được để trống")
+      .refine((val) => val.length === 12, "Số CCCD phải có chính xác 12 chữ số")
+      .refine((val) => /^\d+$/.test(val), "Số CCCD chỉ được chứa chữ số"),
     hometown: z
       .string()
       .min(1, "Quê quán không được để trống")
@@ -70,108 +82,201 @@ export default function TeacherProfile() {
         /^[\p{L}\s]+$/u,
         "Tôn giáo không được chứa số hoặc ký tự đặc biệt",
       ),
-    maritalStatus: z
-      .enum(["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"])
-      .optional(),
+    maritalStatus: z.string().min(1, "Vui lòng chọn tình trạng hôn nhân"),
+
     permanentAddress: z
       .string()
       .min(1, "Địa chỉ không được để trống")
       .regex(/^[\p{L}\d\s,]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
 
     // Employment information
-    additionalDuties: z.string().optional(),
+    mainSubject: z.string().optional(),
     isHeadOfDepartment: z.boolean().optional().default(false),
-    employmentType: z
-      .enum(["Biên chế", "Hợp đồng dài hạn", "Hợp đồng ngắn hạn", "Cơ hữu"])
-      .optional(),
-    employmentStatus: z
-      .enum(["Đang làm việc", "Nghỉ phép", "Đã nghỉ việc"])
-      .optional(),
-    recruitmentAgency: z.string().optional(),
-    insuranceNumber: z.string().optional(),
+    employmentType: z.string().min(1, "Vui lòng chọn loại hợp đồng"),
+    employmentStatus: z.string().min(1, "Vui lòng chọn trạng thái"),
+    recruitmentAgency: z.string().min(1, "Vui nhập cơ quan tuyển dụng"),
+    insuranceNumber: z.string().min(1, "Vui nhập số bảo hiểm"),
 
     // Employment dates
-    hiringDate: z.date().nullable(),
-    schoolJoinDate: z.date().nullable(),
-    permanentEmploymentDate: z.date().nullable(),
+    hiringDate: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày tuyển dụng",
+          });
+        }
+      }),
+    schoolJoinDate: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày vào trường",
+          });
+        }
+      }),
+    permanentEmploymentDate: z
+      .date()
+      .nullable()
+      .superRefine((val, ctx) => {
+        if (val === null) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Vui lòng chọn ngày vào biên chế",
+          });
+        }
+      }),
+    phoneNumber: z
+      .string()
+      .min(10, "Số điện thoại phải có ít nhất 10 chữ số")
+      .max(11, "Số điện thoại không được quá 11 chữ số")
+      .regex(
+        /^(0[2-9]|84[2-9])\d{8}$/,
+        "Số điện thoại không hợp lệ. Phải bắt đầu bằng 0 hoặc +84 và có 10-11 chữ số",
+      ),
+    email: z.string().email("Email không hợp lệ"),
   });
 
   const {
     register,
     handleSubmit,
-    setValue,
-    watch,
     control,
     reset,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(teacherSchema),
+    defaultValues: {
+      fullName: "",
+      position: "",
+      department: "",
+      gender: "",
+      dob: null,
+      idcardNumber: "",
+      hometown: "",
+      ethnicity: "",
+      religion: "",
+      maritalStatus: "",
+      permanentAddress: "",
+      mainSubject: "",
+      isHeadOfDepartment: false,
+      employmentType: "",
+      employmentStatus: "",
+      recruitmentAgency: "",
+      insuranceNumber: "",
+      hiringDate: null,
+      schoolJoinDate: null,
+      permanentEmploymentDate: null,
+      phoneNumber: "",
+      email: "",
+    },
   });
 
-  // Initialize form when teacherQuery.data is loaded
   useEffect(() => {
     if (teacherQuery.data) {
-      // Set form values from teacherQuery.data
-      Object.keys(teacherQuery.data).forEach((key) => {
-        // Handle date fields separately
-        if (
-          [
-            "dob",
-            "hiringDate",
-            "schoolJoinDate",
-            "permanentEmploymentDate",
-          ].includes(key) &&
-          teacherQuery.data[key]
-        ) {
-          try {
-            setValue(key, new Date(teacherQuery.data[key]));
-          } catch (e) {
-            console.error(`Error parsing date for ${key}:`, e);
-            setValue(key, null);
-          }
-        } else {
-          setValue(key, teacherQuery.data[key]);
-        }
+      const teacher = teacherQuery.data;
+      const mainSubjectString = teacher?.subjects
+        ?.map((s) => (s.isMainSubject ? `${s.subjectName}*` : s.subjectName))
+        .join(", ");
+      reset({
+        ...teacher,
+        mainSubject: mainSubjectString,
+        dob: teacher.dob ? new Date(teacher.dob) : null,
+        hiringDate: teacher.hiringDate ? new Date(teacher.hiringDate) : null,
+        schoolJoinDate: teacher.schoolJoinDate
+          ? new Date(teacher.schoolJoinDate)
+          : null,
+        permanentEmploymentDate: teacher.permanentEmploymentDate
+          ? new Date(teacher.permanentEmploymentDate)
+          : null,
       });
     }
-  }, [teacherQuery.data, setValue]);
-
-  if (teacherQuery.isPending) return <Spinner />;
+  }, [teacherQuery.data, reset]);
 
   // Submit handler
   const onSubmit = (formData) => {
+    // Clean all string data
+    const cleanedData = Object.fromEntries(
+      Object.entries(formData).map(([key, value]) => [key, cleanString(value)]),
+    );
+
+    const subjects = cleanedData.mainSubject
+      ? cleanedData.mainSubject.split(",").map((s) => {
+          const trimmedSubject = s.trim();
+          if (trimmedSubject.includes("*")) {
+            return {
+              subjectName: trimmedSubject.replace(/\s*\*\s*/g, "").trim(),
+              isMainSubject: true,
+            };
+          }
+          return {
+            subjectName: trimmedSubject,
+            isMainSubject: false,
+          };
+        })
+      : [];
+
     const processedData = {
-      ...formData,
-      dob: formData.dob ? formData.dob.toISOString().split("T")[0] : null,
-      hiringDate: formData.hiringDate
-        ? formData.hiringDate.toISOString().split("T")[0]
+      ...cleanedData,
+      teacherId: id,
+      subjects,
+      dob: cleanedData.dob ? formatDate(cleanedData.dob) : null,
+      hiringDate: cleanedData.hiringDate
+        ? formatDate(cleanedData.hiringDate)
         : null,
-      schoolJoinDate: formData.schoolJoinDate
-        ? formData.schoolJoinDate.toISOString().split("T")[0]
+      schoolJoinDate: cleanedData.schoolJoinDate
+        ? formatDate(cleanedData.schoolJoinDate)
         : null,
-      permanentEmploymentDate: formData.permanentEmploymentDate
-        ? formData.permanentEmploymentDate.toISOString().split("T")[0]
+      permanentEmploymentDate: cleanedData.permanentEmploymentDate
+        ? formatDate(cleanedData.permanentEmploymentDate)
         : null,
     };
-
-    mutate({ id, data: processedData });
+    console.log(processedData);
+    mutate(
+      { id, data: processedData },
+      {
+        onSuccess: () => {
+          reset();
+        },
+      },
+    );
   };
 
   // Form field component
-  const FormField = ({ name, label, type = "text", options }) => {
-    const error = errors[name]; // Lấy lỗi của field
+  const FormField = ({
+    name,
+    label,
+    type = "text",
+    options,
+    isRequired = false,
+    note,
+  }) => {
+    const error = errors[name];
+
+    const renderLabel = () => (
+      <Label htmlFor={name} className="flex items-center gap-2">
+        <span>
+          {label}
+          {isRequired && <span className="ml-1 text-red-500">*</span>}
+        </span>
+        {note && <span className="text-sm text-gray-500">({note})</span>}
+      </Label>
+    );
 
     // Select field
     if (type === "select" && Array.isArray(options)) {
       return (
         <div className="space-y-2">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
-            defaultValue={watch(name) || ""}
             render={({ field }) => (
-              <Select onValueChange={field.onChange} value={field.value}>
+              <Select onValueChange={field.onChange} value={field.value || ""}>
                 <SelectTrigger>
                   <SelectValue placeholder={`Chọn ${label.toLowerCase()}`} />
                 </SelectTrigger>
@@ -194,11 +299,10 @@ export default function TeacherProfile() {
     if (type === "boolean") {
       return (
         <div className="flex items-center justify-between">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
-            defaultValue={watch(name) || false}
             render={({ field }) => (
               <Switch
                 id={name}
@@ -216,7 +320,7 @@ export default function TeacherProfile() {
     if (type === "date") {
       return (
         <div className="space-y-2">
-          <Label htmlFor={name}>{label}</Label>
+          {renderLabel()}
           <Controller
             name={name}
             control={control}
@@ -232,13 +336,12 @@ export default function TeacherProfile() {
     // Default text input
     return (
       <div className="space-y-2">
-        <Label htmlFor={name}>{label}</Label>
+        {renderLabel()}
         <Input id={name} {...register(name)} />
         {error && <p className="text-sm text-red-500">{error.message}</p>}
       </div>
     );
   };
-
   return (
     <form
       onSubmit={handleSubmit(onSubmit)}
@@ -246,49 +349,20 @@ export default function TeacherProfile() {
     >
       {/* Header with title and save button */}
       <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold">Hồ sơ giáo viên</h1>
-        <Button type="submit" disabled={isUpdating}>
-          {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
-        </Button>
+        <h1 className="text-3xl font-bold">Thông tin giáo viên</h1>
+        <div className="flex gap-2">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={() => navigate("/teacher/profile")}
+          >
+            Hủy
+          </Button>
+          <Button type="submit" disabled={isUpdating}>
+            {isUpdating ? "Đang thêm..." : "Lưu giáo viên"}
+          </Button>
+        </div>
       </div>
-
-      {/* Basic Info Card */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin cơ bản</CardTitle>
-        </CardHeader>
-        <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          <div className="flex items-center gap-4 md:col-span-2">
-            <Avatar className="h-20 w-20">
-              <AvatarImage
-                src="/placeholder-avatar.jpg"
-                alt={teacherQuery.data?.fullName}
-              />
-              <AvatarFallback className="text-2xl">
-                {teacherQuery.data?.fullName?.split(" ").pop()?.charAt(0) ||
-                  "A"}
-              </AvatarFallback>
-            </Avatar>
-            <div className="flex-1">
-              <FormField
-                name="fullName"
-                label="Họ và tên"
-                defaultValue={teacherQuery.data?.fullName}
-              />
-            </div>
-          </div>
-          <FormField
-            name="position"
-            label="Vị trí"
-            defaultValue={teacherQuery.data?.position}
-          />
-          <FormField
-            name="department"
-            label="Bộ môn"
-            defaultValue={teacherQuery.data?.department}
-          />
-        </CardContent>
-      </Card>
 
       {/* Personal Information */}
       <Card>
@@ -296,45 +370,40 @@ export default function TeacherProfile() {
           <CardTitle>Thông tin cá nhân</CardTitle>
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <FormField name="fullName" label="Họ và tên" isRequired />
+          <FormField name="position" label="Vị trí việc làm" isRequired />
+          <FormField
+            name="department"
+            label="Tổ bộ môn"
+            type="select"
+            options={["Khoa học xã hội", "Khoa học tự nhiên"]}
+            isRequired
+          />
           <FormField
             name="gender"
             label="Giới tính"
             type="select"
             options={["Nam", "Nữ", "Khác"]}
-            defaultValue={teacherQuery.data?.gender}
+            isRequired
           />
-          <FormField name="dob" label="Ngày sinh" type="date" />
-          <FormField
-            name="idcardNumber"
-            label="Số CMND/CCCD"
-            defaultValue={teacherQuery.data?.idcardNumber}
-          />
-          <FormField
-            name="hometown"
-            label="Quê quán"
-            defaultValue={teacherQuery.data?.hometown}
-          />
-          <FormField
-            name="ethnicity"
-            label="Dân tộc"
-            defaultValue={teacherQuery.data?.ethnicity}
-          />
-          <FormField
-            name="religion"
-            label="Tôn giáo"
-            defaultValue={teacherQuery.data?.religion}
-          />
+          <FormField name="dob" label="Ngày sinh" type="date" isRequired />
+          <FormField name="phoneNumber" label="Số điện thoại" isRequired />{" "}
+          <FormField name="email" label="Email" isRequired />
+          <FormField name="idcardNumber" label="Số CMND/CCCD" isRequired />
+          <FormField name="hometown" label="Quê quán" isRequired />
+          <FormField name="ethnicity" label="Dân tộc" isRequired />
+          <FormField name="religion" label="Tôn giáo" isRequired />
           <FormField
             name="maritalStatus"
             label="Tình trạng hôn nhân"
             type="select"
             options={["Độc thân", "Đã kết hôn", "Ly hôn", "Góa"]}
-            defaultValue={teacherQuery.data?.maritalStatus}
+            isRequired
           />
           <FormField
             name="permanentAddress"
             label="Địa chỉ thường trú"
-            defaultValue={teacherQuery.data?.permanentAddress}
+            isRequired
           />
         </CardContent>
       </Card>
@@ -346,9 +415,9 @@ export default function TeacherProfile() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <FormField
-            name="additionalDuties"
-            label="Nhiệm vụ bổ sung"
-            defaultValue={teacherQuery.data?.additionalDuties}
+            name="mainSubject"
+            label="Môn dạy"
+            note="Môn dạy chính có dấu * ở cuối, mỗi môn học cách nhau bằng với phẩy. Ví dụ: Toán*, Văn"
           />
           <FormField
             name="isHeadOfDepartment"
@@ -359,59 +428,54 @@ export default function TeacherProfile() {
             name="employmentType"
             label="Loại hợp đồng"
             type="select"
-            options={[
-              "Biên chế",
-              "Hợp đồng dài hạn",
-              "Hợp đồng ngắn hạn",
-              "Cơ hữu",
-            ]}
-            defaultValue={teacherQuery.data?.employmentType}
+            options={employmentTypes}
+            isRequired
           />
           <FormField
             name="employmentStatus"
             label="Trạng thái"
             type="select"
-            defaultValue={["Đang làm việc", "Nghỉ phép", "Đã nghỉ việc"]}
+            options={["Đang làm việc", "Đã nghỉ việc"]}
+            isRequired
           />
           <FormField
             name="recruitmentAgency"
             label="Cơ quan tuyển dụng"
-            defaultValue={teacherQuery.data?.recruitmentAgency}
+            isRequired
+          />
+          <FormField name="insuranceNumber" label="Số bảo hiểm" isRequired />
+          <FormField
+            name="hiringDate"
+            label="Ngày tuyển dụng"
+            type="date"
+            isRequired
           />
           <FormField
-            name="insuranceNumber"
-            label="Số bảo hiểm"
-            defaultValue={teacherQuery.data?.insuranceNumber}
+            name="schoolJoinDate"
+            label="Ngày vào trường"
+            type="date"
+            isRequired
+          />
+          <FormField
+            name="permanentEmploymentDate"
+            label="Ngày vào biên chế"
+            type="date"
+            isRequired
           />
         </CardContent>
       </Card>
 
-      {/* Employment Dates */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Thông tin ngày tháng</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
-            <FormField name="hiringDate" label="Ngày tuyển dụng" type="date" />
-            <FormField
-              name="schoolJoinDate"
-              label="Ngày vào trường"
-              type="date"
-            />
-            <FormField
-              name="permanentEmploymentDate"
-              label="Ngày vào biên chế"
-              type="date"
-            />
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Submit button at bottom for convenience */}
-      <div className="flex justify-end">
+      {/* Submit buttons at bottom for convenience */}
+      <div className="flex justify-end gap-2">
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => navigate("/teachers")}
+        >
+          Hủy
+        </Button>
         <Button type="submit" disabled={isUpdating} size="lg">
-          {isUpdating ? "Đang lưu..." : "Cập nhật thông tin"}
+          {isUpdating ? "Đang thêm..." : "Lưu giáo viên"}
         </Button>
       </div>
     </form>

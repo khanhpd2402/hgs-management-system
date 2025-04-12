@@ -20,10 +20,11 @@ import {
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import toast from "react-hot-toast";
-import { PlusCircle } from "lucide-react";
+import { Pencil } from "lucide-react";
 import { useCreateSubject } from "@/services/principal/mutation";
 import { useGradeLevels } from "@/services/common/queries";
 import { cleanString } from "@/helpers/removeWhiteSpace";
+import { useSubjectDetail } from "@/services/principal/queries";
 
 // Add schema definition
 const subjectSchema = z.object({
@@ -43,8 +44,17 @@ const subjectSchema = z.object({
   ),
 });
 
-export const CreateSubjectModal = () => {
+export const UpdateSubjectModal = ({
+  subjectId,
+  open,
+  setOpen,
+  setSelectedSubjectId,
+}) => {
   const gradeLevelsQuery = useGradeLevels();
+  const subjectDetailQuery = useSubjectDetail(subjectId, {
+    enabled: open && !!subjectId,
+  });
+  console.log(subjectDetailQuery.data);
 
   const {
     register,
@@ -87,23 +97,43 @@ export const CreateSubjectModal = () => {
   );
 
   useEffect(() => {
-    if (gradeLevelsQuery.data) {
+    if (open && subjectDetailQuery.data && subjectDetailQuery.data.length > 0) {
+      // Get subject info from first item since it's same for all
+      const subjectInfo = subjectDetailQuery.data[0];
+      setValue("subjectName", subjectInfo.subjectName);
+
       reset({
-        subjectName: "",
-        subjectCategory: "",
-        typeOfGrade: "",
-        gradesData: gradeLevelsQuery.data.map((gradeLevel) => ({
-          gradeLevelId: gradeLevel.gradeLevelId,
-          periodsPerWeekHKI: 4,
-          periodsPerWeekHKII: 4,
-          continuousAssessmentsHKI: 4,
-          continuousAssessmentsHKII: 4,
-          midtermAssessments: 1,
-          finalAssessments: 1,
-        })),
+        subjectName: subjectInfo.subjectName,
+        subjectCategory: "", // Add this when API provides it
+        typeOfGrade: "", // Add this when API provides it
+        gradesData: gradeLevelsQuery.data?.map((gradeLevel) => {
+          const gradeData = subjectDetailQuery.data.find(
+            (item) => item.gradeLevelId === gradeLevel.gradeLevelId,
+          );
+          return {
+            gradeLevelId: gradeLevel.gradeLevelId,
+            periodsPerWeekHKI: gradeData?.periodsPerWeekHKI ?? 4,
+            periodsPerWeekHKII: gradeData?.periodsPerWeekHKII ?? 4,
+            continuousAssessmentsHKI: gradeData?.continuousAssessmentsHKI ?? 4,
+            continuousAssessmentsHKII:
+              gradeData?.continuousAssessmentsHKII ?? 4,
+            midtermAssessments: gradeData?.midtermAssessments ?? 1,
+            finalAssessments: gradeData?.finalAssessments ?? 1,
+          };
+        }),
       });
+
+      // Update enabled grades based on which grades have data
+      const newEnabledGrades = {};
+      gradeLevelsQuery.data?.forEach((gradeLevel) => {
+        const hasData = subjectDetailQuery.data.some(
+          (item) => item.gradeLevelId === gradeLevel.gradeLevelId,
+        );
+        newEnabledGrades[gradeLevel.gradeLevelId] = hasData;
+      });
+      setEnabledGrades(newEnabledGrades);
     }
-  }, [gradeLevelsQuery.data]);
+  }, [subjectDetailQuery.data, gradeLevelsQuery.data, reset]);
 
   const handleGradeToggle = (gradeLevelId) => {
     setEnabledGrades((prev) => ({
@@ -152,18 +182,20 @@ export const CreateSubjectModal = () => {
       ),
     };
 
-    console.log(filteredData);
     createSubjectMutation.mutate(filteredData);
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="default">
-          <PlusCircle className="h-4 w-4" />
-          Tạo môn học
+    <Dialog
+      open={open}
+      onOpenChange={setOpen}
+      onClose={() => setSelectedSubjectId(null)}
+    >
+      {/* <DialogTrigger asChild>
+        <Button variant="outline" size="icon" className="cursor-pointer">
+          <Pencil className="h-4 w-4" />
         </Button>
-      </DialogTrigger>
+      </DialogTrigger> */}
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Tạo môn học mới</DialogTitle>

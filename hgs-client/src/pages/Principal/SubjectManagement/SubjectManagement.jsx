@@ -16,88 +16,23 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-
-import { Check, Search } from "lucide-react";
+import { Pencil, Search, Trash2 } from "lucide-react";
 import { CreateSubjectModal } from "./CreateSubjectModal";
+import { useSubjects } from "@/services/common/queries";
+import { UpdateSubjectModal } from "./UpdateSubjectModal";
 
 export default function SubjectManagement() {
-  const [subjects, setSubjects] = useState([
-    {
-      id: 1,
-      name: "Toán",
-      type: "Tính điểm",
-      coefficient: 2,
-      periodsHK1: 5,
-      periodsHK2: 5,
-      dgtxhk1: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 2,
-      name: "Vật lý",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 3,
-      periodsHK2: 3,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 3,
-      name: "Hóa học",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 2,
-      periodsHK2: 2,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 4,
-      name: "Sinh học",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 2,
-      periodsHK2: 2,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-    {
-      id: 5,
-      name: "Tiếng Anh",
-      type: "Tính điểm",
-      coefficient: 1,
-      periodsHK1: 3,
-      periodsHK2: 3,
-      dgtxhk11: 4,
-      dgtxhk2: 4,
-      dggk: 1,
-      dgck: 1,
-    },
-  ]);
-
   const [searchTerm, setSearchTerm] = useState("");
+  const [open, setOpen] = useState(false);
+  const [selectedSubjectId, setSelectedSubjectId] = useState(null);
+  const subjectQuery = useSubjects();
 
-  // Filter subjects based on search term
-  const filteredSubjects = subjects.filter((subject) =>
-    subject.name.toLowerCase().includes(searchTerm.toLowerCase()),
+  const filteredSubjects = subjectQuery?.data?.filter((subject) =>
+    subject.subjectName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
+  // console.log(filteredSubjects);
 
+  console.log(selectedSubjectId);
   return (
     <div className="container mx-auto py-6">
       <Card>
@@ -119,10 +54,6 @@ export default function SubjectManagement() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <Button className="flex items-center gap-1" variant="default">
-              <Check className="h-4 w-4" />
-              Lưu thay đổi
-            </Button>
             <CreateSubjectModal />
           </div>
         </CardHeader>
@@ -130,109 +61,56 @@ export default function SubjectManagement() {
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-50">Tên môn học</TableHead>
-                <TableHead>Kiểu môn</TableHead>
-                <TableHead className="text-center">Hệ số</TableHead>
-                <TableHead className="text-center">Số tiết/tuần HK1</TableHead>
-                <TableHead className="text-center">Số tiết/tuần HK2</TableHead>
-                <TableHead className="text-center">ĐGTX-HK1</TableHead>
-                <TableHead className="text-center">ĐGTX-HK2</TableHead>
-                <TableHead className="text-center">ĐGgk</TableHead>
-                <TableHead className="text-center">ĐGck</TableHead>
+                <TableHead>STT</TableHead>
+                <TableHead>Tên môn học</TableHead>
+                <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
-              {filteredSubjects.map((subject) => (
-                <TableRow key={subject.id}>
-                  <TableCell className="font-medium">
-                    <Input
-                      value={subject.name}
-                      onChange={(e) => {
-                        const updatedSubjects = [...subjects];
-                        const index = updatedSubjects.findIndex(
-                          (s) => s.id === subject.id,
-                        );
-                        updatedSubjects[index] = {
-                          ...updatedSubjects[index],
-                          name: e.target.value,
-                        };
-                        setSubjects(updatedSubjects);
-                      }}
-                      className="max-w-[200px]"
-                    />
+              {filteredSubjects?.map((subject, index) => (
+                <TableRow key={subject.subjectId}>
+                  <TableCell className="w-16 font-medium">
+                    {index + 1}
                   </TableCell>
-                  <TableCell>
-                    <Select value={subject.type}>
-                      <SelectTrigger className="max-w-[150px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Tính điểm">Tính điểm</SelectItem>
-                        <SelectItem value="Nhận xét">Nhận xét</SelectItem>
-                      </SelectContent>
-                    </Select>
+                  <TableCell className="min-w-72">
+                    {subject.subjectName}
                   </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.coefficient}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.periodsHK1}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.periodsHK2}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.dgtxhk1}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.dgtxhk2}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.dggk}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
-                  </TableCell>
-                  <TableCell className="text-center">
-                    <Input
-                      value={subject.dgck}
-                      type="text"
-                      className="mx-auto max-w-[80px] text-center"
-                    />
+                  <TableCell className="text-right">
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        variant="outline"
+                        size="icon"
+                        className="cursor-pointer"
+                        onClick={() => {
+                          setOpen(true);
+                          setSelectedSubjectId(subject.subjectId);
+                        }}
+                      >
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                      <Button
+                        variant="destructive"
+                        size="icon"
+                        className="cursor-pointer"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
                   </TableCell>
                 </TableRow>
               ))}
             </TableBody>
           </Table>
-          <div className="mt-4 flex justify-end">
-            <Button type="button" className="flex items-center gap-1">
-              <Check className="h-4 w-4" />
-              Lưu thay đổi
-            </Button>
-          </div>
         </CardContent>
       </Card>
+      {selectedSubjectId && (
+        <UpdateSubjectModal
+          subjectId={selectedSubjectId}
+          open={open}
+          setOpen={setOpen}
+          setSelectedSubjectId={setSelectedSubjectId}
+        />
+      )}
     </div>
   );
 }
