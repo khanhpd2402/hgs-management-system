@@ -100,8 +100,6 @@ export default function StudentTable() {
   //phan trang
   const { page, pageSize, grade, className, search } = filter;
 
-  console.log(data);
-
   const filteredData =
     data?.students?.filter((student) => {
       // Filter by grade
