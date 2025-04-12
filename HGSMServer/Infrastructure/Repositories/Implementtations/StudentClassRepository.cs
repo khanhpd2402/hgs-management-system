@@ -95,6 +95,28 @@ namespace Infrastructure.Repositories.Implementtations
 
             return await query.ToListAsync();
         }
+        public async Task AddRangeAsync(IEnumerable<StudentClass> entities)
+        {
+            await _context.StudentClasses.AddRangeAsync(entities);
+            await _context.SaveChangesAsync();
+        }
+        public async Task UpdateRangeAsync(List<Domain.Models.StudentClass> assignments)
+        {
+            foreach (var assignment in assignments)
+            {
+                _context.StudentClasses.Update(assignment);
+            }
+            await _context.SaveChangesAsync();
+        }
+
+        public async Task DeleteRangeAsync(List<int> ids)
+        {
+            var assignments = await _context.StudentClasses
+                .Where(sc => ids.Contains(sc.Id))
+                .ToListAsync();
+            _context.StudentClasses.RemoveRange(assignments);
+            await _context.SaveChangesAsync();
+        }
 
     }
     }

@@ -10,9 +10,10 @@ namespace Application.Features.StudentClass.Interfaces
     public interface IStudentClassService
     {
         Task CreateStudentClassAsync(StudentClassAssignmentDto dto);
-        Task UpdateStudentClassAsync(int id, StudentClassAssignmentDto dto);
+        Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos);
         Task DeleteStudentClassAsync(int id);
         Task<List<StudentClassResponseDto>> SearchStudentClassesAsync(StudentClassFilterDto filter);
         Task<StudentClassFilterDataDto> GetFilterDataAsync();
+        Task BulkTransferClassAsync(BulkClassTransferDto dto);
     }
 }
