@@ -1,0 +1,171 @@
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using Application.Features.StudentClass.DTOs;
+using Application.Features.StudentClass.Interfaces;
+
+namespace HGSMAPI.Controllers
+{
+    [Route("api/[controller]")]
+    [ApiController]
+    [Authorize]
+    public class StudentClassesController : ControllerBase
+    {
+        private readonly IStudentClassService _studentClassService;
+
+        public StudentClassesController(IStudentClassService studentClassService)
+        {
+            _studentClassService = studentClassService;
+        }
+
+        [HttpPost]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> CreateStudentClass([FromBody] StudentClassAssignmentDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _studentClassService.CreateStudentClassAsync(dto);
+                return Ok(new { Message = "Student class assignment created successfully." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while creating the assignment.", Detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Cập nhật phân lớp hiện tại
+        /// </summary>
+        /// <param name="id">ID của phân lớp</param>
+        /// <param name="dto">Thông tin phân lớp mới</param>
+        /// <returns>Thông báo thành công hoặc lỗi</returns>
+        [HttpPut("{id}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> UpdateStudentClass(int id, [FromBody] StudentClassAssignmentDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _studentClassService.UpdateStudentClassAsync(id, dto);
+                return Ok(new { Message = "Student class assignment updated successfully." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while updating the assignment.", Detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Xóa phân lớp
+        /// </summary>
+        /// <param name="id">ID của phân lớp</param>
+        /// <returns>Thông báo thành công hoặc lỗi</returns>
+        [HttpDelete("{id}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> DeleteStudentClass(int id)
+        {
+            try
+            {
+                await _studentClassService.DeleteStudentClassAsync(id);
+                return Ok(new { Message = "Student class assignment deleted successfully." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while deleting the assignment.", Detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Tìm kiếm phân lớp theo bộ lọc
+        /// </summary>
+        /// <param name="filter">Bộ lọc tìm kiếm</param>
+        /// <returns>Danh sách phân lớp phù hợp</returns>
+        [HttpGet]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> SearchStudentClasses([FromQuery] StudentClassFilterDto filter)
+        {
+            try
+            {
+                var result = await _studentClassService.SearchStudentClassesAsync(filter);
+                return Ok(result);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while searching assignments.", Detail = ex.Message });
+            }
+        }
+
+        /// <summary>
+        /// Lấy dữ liệu lọc (danh sách học sinh, lớp, năm học)
+        /// </summary>
+        /// <returns>Danh sách dữ liệu để lọc</returns>
+        [HttpGet("filter-data")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> GetFilterData()
+        {
+            try
+            {
+                var filterData = await _studentClassService.GetFilterDataAsync();
+                return Ok(filterData);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while retrieving filter data.", Detail = ex.Message });
+            }
+        }
+    }
+}
