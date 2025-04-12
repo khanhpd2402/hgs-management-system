@@ -9,11 +9,10 @@ namespace Application.Features.Subjects.Interfaces
 {
     public interface ISubjectService
     {
-        Task<List<SubjectDto>> GetAllSubjectsAsync();
-        Task<SubjectDto?> GetSubjectByIdAsync(int id);
-        Task<SubjectDto> CreateSubjectAsync(CreateSubjectDto createDto);
-        Task<bool> UpdateSubjectAsync(int id, UpdateSubjectDto updateDto);
-        Task<bool> DeleteSubjectAsync(int id);
+        Task<IEnumerable<SubjectDto>> GetAllAsync();
+        Task<SubjectDto> GetByIdAsync(int id);
+        Task<SubjectCreateAndUpdateDto> CreateAsync(SubjectCreateAndUpdateDto dto);
+        Task<SubjectCreateAndUpdateDto> UpdateAsync(int id, SubjectCreateAndUpdateDto dto);
+        Task DeleteAsync(int id);
     }
-    
 }
