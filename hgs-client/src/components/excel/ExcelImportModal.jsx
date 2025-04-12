@@ -49,12 +49,13 @@ export default function ExcelImportModal({ type }) {
   });
 
   const sampleFiles = {
-    employees:
-      "https://docs.google.com/spreadsheets/d/1ULLJxX-ocO0y3zO2B8HCTq4_gdqBtenA/export?format=xlsx",
-    students: "/files/student_template.xlsx",
-    courses: "/files/course_template.xlsx",
+    teacher:
+      "https://docs.google.com/spreadsheets/d/1HxEDkY54T_NZFDGD_nqIAAt5rxEneW9l/export?format=xlsx",
+    student:
+      "https://docs.google.com/spreadsheets/d/1Wb9Nra31iOYD3i1R2mlEfgwv8aPnkBLa/export?format=xlsx",
   };
 
+  console.log(type);
   const sampleFileUrl = sampleFiles[type] || "#";
 
   const handleFileChange = (event) => {

@@ -25,6 +25,7 @@ import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router";
 import { formatDateString } from "@/helpers/formatDate";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function StudentTable() {
   const { currentYear } = useLayout();
@@ -102,7 +103,7 @@ export default function StudentTable() {
   const filteredData =
     data?.students?.filter((student) => {
       // Filter by grade
-      if (grade && student.gradeName != grade) {
+      if (grade && student.gradeId != grade) {
         return false;
       }
 
@@ -113,7 +114,7 @@ export default function StudentTable() {
 
       // Filter by search term (case insensitive)
       if (search) {
-        const searchLower = search.toLowerCase();
+        const searchLower = cleanString(search.toLowerCase());
         return student.fullName?.toLowerCase().includes(searchLower);
       }
 
