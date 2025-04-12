@@ -57,19 +57,19 @@ namespace HGSMAPI.Controllers
         /// <param name="id">ID của phân lớp</param>
         /// <param name="dto">Thông tin phân lớp mới</param>
         /// <returns>Thông báo thành công hoặc lỗi</returns>
-        [HttpPut("{id}")]
+        [HttpPut]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateStudentClass(int id, [FromBody] StudentClassAssignmentDto dto)
+        public async Task<IActionResult> UpdateStudentClasses([FromBody] List<StudentClassAssignmentDto> dtos)
         {
-            if (!ModelState.IsValid)
+            if (!ModelState.IsValid || dtos == null || !dtos.Any())
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { Message = "Invalid or empty request data." });
             }
 
             try
             {
-                await _studentClassService.UpdateStudentClassAsync(id, dto);
-                return Ok(new { Message = "Student class assignment updated successfully." });
+                await _studentClassService.UpdateStudentClassesAsync(dtos);
+                return Ok(new { Message = "Student class assignments updated successfully." });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -89,7 +89,7 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An error occurred while updating the assignment.", Detail = ex.Message });
+                return StatusCode(500, new { Message = "An error occurred while updating the assignments.", Detail = ex.Message });
             }
         }
 
@@ -165,6 +165,37 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "An error occurred while retrieving filter data.", Detail = ex.Message });
+            }
+        }
+        [HttpPost("bulk-transfer")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> BulkTransferClass([FromBody] BulkClassTransferDto dto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            try
+            {
+                await _studentClassService.BulkTransferClassAsync(dto);
+                return Ok(new { Message = "Class transferred successfully." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred while transferring the class.", Detail = ex.Message });
             }
         }
     }
