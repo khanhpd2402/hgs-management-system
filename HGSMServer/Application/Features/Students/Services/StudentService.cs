@@ -121,9 +121,9 @@ namespace Application.Features.Students.Services
                 Console.WriteLine("Mapping CreateStudentDto to Student...");
                 var student = _mapper.Map<Student>(createStudentDto);
                 var currentAcademicYearId = await GetCurrentAcademicYearIdAsync(); // Lấy động AcademicYearId
-                student.StudentClasses = new List<StudentClass>
+                student.StudentClasses = new List<Domain.Models.StudentClass>
         {
-            new StudentClass
+            new Domain.Models.StudentClass
             {
                 ClassId = createStudentDto.ClassId,
                 AcademicYearId = currentAcademicYearId
@@ -429,9 +429,9 @@ namespace Application.Features.Students.Services
                     if (currentClass != null)
                         currentClass.ClassId = updateStudentDto.ClassId;
                     else
-                        student.StudentClasses = new List<StudentClass>
+                        student.StudentClasses = new List<Domain.Models.StudentClass>
                 {
-                    new StudentClass
+                    new Domain.Models.StudentClass
                     {
                         StudentId = student.StudentId,
                         ClassId = updateStudentDto.ClassId,
@@ -789,9 +789,9 @@ namespace Application.Features.Students.Services
                             RepeatingYear = row.TryGetValue("Lưu ban", out var repeating) && repeating.Trim().ToLower() == "có",
                             IdcardNumber = idCardNumber?.Trim(),
                             Status = row.TryGetValue("Trạng thái", out var status) ? status.Trim() : "Đang học",
-                            StudentClasses = new List<StudentClass>
+                            StudentClasses = new List<Domain.Models.StudentClass>
                     {
-                        new StudentClass
+                        new Domain.Models.StudentClass
                         {
                             ClassId = classEntity.ClassId,
                             AcademicYearId = currentAcademicYear.AcademicYearId
