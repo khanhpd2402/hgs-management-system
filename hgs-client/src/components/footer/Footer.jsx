@@ -11,7 +11,7 @@ export default function Footer() {
             <img
               src="https://picsum.photos/200/300"
               alt="Logo trường THCS Hải Giang"
-              className="h-10"
+              className="h-10 rounded-md object-cover"
             />
             <div>
               <h3 className="text-lg font-semibold text-red-600">
