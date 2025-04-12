@@ -111,7 +111,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 .Select(t => new TeacherListDto { TeacherId = t.TeacherId, FullName = t.FullName })
                 .ToListAsync(),
             Subjects = await _context.Subjects
-                .Select(s => new SubjectDto { SubjectId = s.SubjectId, SubjectName = s.SubjectName })
+                .Select(s => new SubjectDto { SubjectID = s.SubjectId, SubjectName = s.SubjectName })
                 .ToListAsync(),
             Classes = await _context.Classes
                 .Select(c => new ClassDto { ClassId = c.ClassId, ClassName = c.ClassName })

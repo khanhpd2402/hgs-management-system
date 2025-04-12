@@ -44,11 +44,22 @@ namespace HGSMAPI.Controllers
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
-            var result = await _gradeService.UpdateMultipleGradesAsync(dto);
-            if (!result)
-                return NotFound("No grades found to update");
+            try
+            {
+                var result = await _gradeService.UpdateMultipleGradesAsync(dto);
+                if (!result)
+                    return NotFound("No grades found to update");
 
-            return Ok("Grades updated successfully");
+                return Ok("Grades updated successfully");
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Internal server error: {ex.Message}");
+            }
         }
     }
 }

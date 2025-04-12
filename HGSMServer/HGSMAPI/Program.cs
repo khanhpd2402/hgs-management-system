@@ -53,6 +53,8 @@ using Application.Features.GradeLevelSubjects.Interfaces;
 using Application.Features.GradeLevelSubjects.Services;
 using Application.Features.GradeLevels.Interfaces;
 using Application.Features.GradeLevels.Services;
+using Application.Features.Periods.Interfaces;
+using Application.Features.Periods.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -155,6 +157,8 @@ builder.Services.AddScoped<ITimetableRepository, TimetableRepository>();
 builder.Services.AddScoped<ITimetableService, TimetableService>();
 builder.Services.AddScoped<IGradeLevelService, GradeLevelService>();
 builder.Services.AddScoped<IGradeLevelRepository, GradeLevelRepository>();
+builder.Services.AddScoped<IPeriodService, PeriodService>();
+builder.Services.AddScoped<IPeriodRepository, PeriodRepository>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
