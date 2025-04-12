@@ -4,6 +4,7 @@ using Application.Features.Grades.Interfaces;
 using Application.Features.Grades.DTOs;
 using Domain.Models;
 using Infrastructure.Repositories.Implementtations;
+using Common.Constants;
 
 namespace Application.Features.Grades.Services
 {
@@ -67,10 +68,23 @@ namespace Application.Features.Grades.Services
         }
         public async Task<bool> UpdateMultipleGradesAsync(UpdateMultipleGradesDto dto)
         {
+            if (dto == null || dto.Grades == null || !dto.Grades.Any())
+                return false;
             var gradeIds = dto.Grades.Select(g => g.GradeID).ToList();
             var gradeEntities = await _gradeRepository.GetGradesByIdsAsync(gradeIds);
-
             if (gradeEntities.Count == 0) return false;
+
+            var invalidBatches = gradeEntities
+            .Where(g => g.Batch.Status != AppConstants.Status.ACTIVE)
+            .Select(g => g.BatchId)
+            .Distinct()
+            .ToList();
+            if (invalidBatches.Any())
+            {
+                throw new InvalidOperationException(
+                    $"Cannot update grades because the following GradeBatch IDs are not in 'Hoạt Động'");
+            }
+            
 
             foreach (var gradeEntity in gradeEntities)
             {
