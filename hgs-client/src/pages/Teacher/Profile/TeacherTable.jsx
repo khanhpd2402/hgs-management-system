@@ -23,9 +23,16 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { DropdownMenu } from "@/components/ui/dropdown-menu";
 import { useNavigate } from "react-router";
-import ConfirmDeleteModal from "@/components/modal/ConfirmDeleteModal";
 import { useDeleteTeacher } from "@/services/teacher/mutation";
 import { formatDateString } from "@/helpers/formatDate";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 
 export default function TeacherTable() {
@@ -34,6 +41,7 @@ export default function TeacherTable() {
   // const { currentYear } = useLayout();
 
   const [isModalOpen, setModalOpen] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState(null);
 
   const [filter, setFilter] = useState({
     page: 1,
@@ -81,7 +89,6 @@ export default function TeacherTable() {
 
   const { data, isPending, error, isError } = useTeachers();
   const teacherMutation = useDeleteTeacher();
-  console.log(data);
 
   //phan trang
   const { page, pageSize, department, contract, search } = filter;
@@ -190,7 +197,7 @@ export default function TeacherTable() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {data && data.teachers.length > 0 ? (
+              {currentData && currentData.length > 0 ? (
                 currentData.map((teacher) => (
                   <TableRow
                     key={teacher.teacherId}
@@ -217,23 +224,13 @@ export default function TeacherTable() {
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                setModalOpen(true);
+                                setTeacherToDelete(teacher);
                               }}
                             >
                               Xóa
                             </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
-                        <ConfirmDeleteModal
-                          open={isModalOpen}
-                          onClose={() => setModalOpen(false)}
-                          onConfirm={() => {
-                            teacherMutation.mutate(teacher.teacherId);
-                            setModalOpen(false);
-                          }}
-                          title="Xác nhận xóa"
-                          description={`Bạn có chắc chắn muốn xóa giáo viên ${teacher.fullName}?`}
-                        />
                       </TableCell>
                     )}
 
@@ -388,6 +385,34 @@ export default function TeacherTable() {
           onPageChange={setFilter}
         />
       </div>
+
+      <Dialog
+        open={!!teacherToDelete}
+        onOpenChange={(open) => !open && setTeacherToDelete(null)}
+      >
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xác nhận xóa</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xóa giáo viên {teacherToDelete?.fullName}?
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="mt-4">
+            <Button variant="outline" onClick={() => setTeacherToDelete(null)}>
+              Hủy
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                teacherMutation.mutate(teacherToDelete?.teacherId);
+                setTeacherToDelete(null);
+              }}
+            >
+              Xóa
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 }
