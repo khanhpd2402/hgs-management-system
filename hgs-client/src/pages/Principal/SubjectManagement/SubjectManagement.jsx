@@ -30,9 +30,7 @@ export default function SubjectManagement() {
   const filteredSubjects = subjectQuery?.data?.filter((subject) =>
     subject.subjectName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-  // console.log(filteredSubjects);
 
-  console.log(selectedSubjectId);
   return (
     <div className="container mx-auto py-6">
       <Card>
@@ -63,17 +61,25 @@ export default function SubjectManagement() {
               <TableRow>
                 <TableHead>STT</TableHead>
                 <TableHead>Tên môn học</TableHead>
+                <TableHead>Tổ bộ môn</TableHead>
+                <TableHead>Hình thức tính điểm</TableHead>
                 <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredSubjects?.map((subject, index) => (
-                <TableRow key={subject.subjectId}>
+                <TableRow key={subject.subjectID}>
                   <TableCell className="w-16 font-medium">
                     {index + 1}
                   </TableCell>
                   <TableCell className="min-w-72">
                     {subject.subjectName}
+                  </TableCell>
+                  <TableCell className="min-w-72">
+                    {subject.subjectCategory}
+                  </TableCell>
+                  <TableCell className="min-w-72">
+                    {subject.typeOfGrade}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -82,8 +88,8 @@ export default function SubjectManagement() {
                         size="icon"
                         className="cursor-pointer"
                         onClick={() => {
+                          setSelectedSubjectId(subject.subjectID);
                           setOpen(true);
-                          setSelectedSubjectId(subject.subjectId);
                         }}
                       >
                         <Pencil className="h-4 w-4" />
@@ -107,7 +113,12 @@ export default function SubjectManagement() {
         <UpdateSubjectModal
           subjectId={selectedSubjectId}
           open={open}
-          setOpen={setOpen}
+          setOpen={(newOpen) => {
+            setOpen(newOpen);
+            if (!newOpen) {
+              setSelectedSubjectId(null);
+            }
+          }}
           setSelectedSubjectId={setSelectedSubjectId}
         />
       )}

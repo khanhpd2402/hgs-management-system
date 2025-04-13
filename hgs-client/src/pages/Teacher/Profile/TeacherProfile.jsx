@@ -174,7 +174,11 @@ export default function TeacherProfile() {
       phoneNumber: "",
       email: "",
     },
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
+
+  console.log("re-render");
 
   useEffect(() => {
     if (teacherQuery.data) {

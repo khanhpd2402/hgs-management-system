@@ -41,7 +41,26 @@ export const configueSubject = async (data) => {
   return (await axiosInstance.post(`GradeLevelSubjects`, data)).data;
 };
 
-export const getSubjectDetails = async (id) => {
-  console.log(id);
+export const getSubjectDetail = async (id) => {
+  return (await axiosInstance.get(`Subjects/${id}`)).data;
+};
+
+export const getSubjectConfigueDetail = async (id) => {
   return (await axiosInstance.get(`GradeLevelSubjects/subject/${id}`)).data;
+};
+
+export const updateSubject = async (id, data) => {
+  return (await axiosInstance.put(`Subjects/${id}`, data)).data;
+};
+
+export const updateSubjectConfigue = async (id, data) => {
+  return (await axiosInstance.put(`GradeLevelSubjects/${id}`, data)).data;
+};
+
+export const deleteSubject = async (id) => {
+  return (await axiosInstance.delete(`Subjects/${id}`)).data;
+};
+
+export const deleteSubjectConfigue = async (id) => {
+  return (await axiosInstance.delete(`GradeLevelSubjects/${id}`)).data;
 };
