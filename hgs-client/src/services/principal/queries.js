@@ -2,7 +2,8 @@ import { useQuery } from "@tanstack/react-query";
 import {
   getGradeBatch,
   getGradeBatches,
-  getSubjectDetails,
+  getSubjectConfigueDetail,
+  getSubjectDetail,
   getUsers,
 } from "./api";
 
@@ -29,10 +30,18 @@ export function useUsers() {
   });
 }
 
-export function useSubjectDetail(id, options) {
+export function useSubjectDetail(id) {
   return useQuery({
     queryKey: ["subject", { id }],
-    queryFn: () => getSubjectDetails(id),
+    queryFn: () => getSubjectDetail(id),
+    enabled: !!id,
+  });
+}
+
+export function useSubjectConfigueDetail(id, options) {
+  return useQuery({
+    queryKey: ["subjectConfig", { id }],
+    queryFn: () => getSubjectConfigueDetail(id),
     ...options,
     enabled: !!id && options?.enabled,
   });
