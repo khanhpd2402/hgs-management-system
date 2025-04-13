@@ -55,6 +55,8 @@ using Application.Features.GradeLevels.Interfaces;
 using Application.Features.GradeLevels.Services;
 using Application.Features.Periods.Interfaces;
 using Application.Features.Periods.Services;
+using Application.Features.StudentClass.Interfaces;
+using Application.Features.StudentClass.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -130,6 +132,7 @@ builder.Services.AddScoped<GoogleDriveService>();
 builder.Services.AddScoped<IParentRepository, ParentRepository>();
 // Student Management
 builder.Services.AddScoped<IStudentService, StudentService>();
+builder.Services.AddScoped<IStudentClassService, StudentClassService>();
 builder.Services.AddScoped<IStudentRepository, StudentRepository>();
 builder.Services.AddScoped<IGradeService, GradeService>();
 builder.Services.AddScoped<IGradeRepository, GradeRepository>();
