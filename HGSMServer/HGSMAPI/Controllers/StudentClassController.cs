@@ -198,5 +198,31 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred while transferring the class.", Detail = ex.Message });
             }
         }
+        [HttpPost("process-graduation/{academicYearId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> ProcessGraduation(int academicYearId)
+        {
+            try
+            {
+                await _studentClassService.ProcessGraduationAsync(academicYearId);
+                return Ok(new { Message = "Graduation processed successfully." });
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return Conflict(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "An error occurred.", Detail = ex.Message });
+            }
+        }
     }
 }

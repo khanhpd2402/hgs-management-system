@@ -2,6 +2,7 @@
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Storage;
 
 namespace Infrastructure.Repositories.Implementtations
 {
@@ -116,6 +117,20 @@ namespace Infrastructure.Repositories.Implementtations
                 .ToListAsync();
             _context.StudentClasses.RemoveRange(assignments);
             await _context.SaveChangesAsync();
+        }
+        public async Task<List<Domain.Models.StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId)
+        {
+            return await _context.StudentClasses
+                .Include(sc => sc.Class)
+                .Include(sc => sc.Student)
+                .Include(sc => sc.AcademicYear)
+                .Where(sc => sc.Class.GradeLevelId == gradeLevelId && sc.AcademicYearId == academicYearId)
+                .ToListAsync();
+        }
+
+        public async Task<IDbContextTransaction> BeginTransactionAsync()
+        {
+            return await _context.Database.BeginTransactionAsync();
         }
 
     }

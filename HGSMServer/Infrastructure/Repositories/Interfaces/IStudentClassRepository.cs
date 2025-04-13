@@ -1,4 +1,5 @@
 ﻿using Domain.Models;
+using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,5 +22,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddRangeAsync(IEnumerable<StudentClass> entities);
         Task UpdateRangeAsync(List<StudentClass> assignments);
         Task DeleteRangeAsync(List<int> ids);
+        Task<IDbContextTransaction> BeginTransactionAsync();
+        Task<List<StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId);
     }
 }

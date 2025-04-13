@@ -10,5 +10,6 @@ namespace Application.Features.StudentClass.DTOs
     {
         public int StudentId { get; set; }
         public string FullName { get; set; } = null!;
+        public string Status { get; set; }
     }
 }
