@@ -15,6 +15,8 @@ public partial class Attendance
 
     public string? Note { get; set; }
 
+    public DateOnly Date { get; set; }
+
     public DateTime? CreatedAt { get; set; }
 
     public virtual Student Student { get; set; } = null!;
