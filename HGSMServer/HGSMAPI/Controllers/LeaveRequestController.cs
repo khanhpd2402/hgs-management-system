@@ -17,48 +17,41 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetAll()
+        public async Task<IActionResult> GetAll([FromQuery] int? teacherId, [FromQuery] string? status)
         {
-            var result = await _service.GetAllAsync();
-            return Ok(result);
+            var list = await _service.GetAllAsync(teacherId, status);
+            return Ok(list);
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _service.GetByIdAsync(id);
-            return result != null ? Ok(result) : NotFound();
-        }
-
-        [HttpGet("by-teacher/{teacherId}")]
-        public async Task<IActionResult> GetByTeacherId(int teacherId)
-        {
-            var result = await _service.GetByTeacherIdAsync(teacherId);
-            return Ok(result);
+            var dto = await _service.GetByIdAsync(id);
+            return dto == null ? NotFound() : Ok(dto);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateLeaveRequestDto leaveRequestDto)
+        public async Task<IActionResult> Create([FromBody] CreateLeaveRequestDto dto)
         {
-            await _service.AddAsync(leaveRequestDto);
-            return CreatedAtAction(nameof(GetAll), null);
+            var created = await _service.CreateAsync(dto);
+            return Ok(created);
         }
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Update(int id, [FromBody] LeaveRequestDto leaveRequestDto)
+        public async Task<IActionResult> Update(int id, [FromBody] UpdateLeaveRequest dto)
         {
-            if (id != leaveRequestDto.RequestId)
-                return BadRequest("ID không khớp");
+            if (id != dto.RequestId)
+                return BadRequest("Mismatched ID");
 
-            await _service.UpdateAsync(leaveRequestDto);
-            return NoContent();
+            var updated = await _service.UpdateAsync(dto);
+            return updated ? NoContent() : NotFound();
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
-            await _service.DeleteAsync(id);
-            return NoContent();
+            var deleted = await _service.DeleteAsync(id);
+            return deleted ? NoContent() : NotFound();
         }
     }
 }

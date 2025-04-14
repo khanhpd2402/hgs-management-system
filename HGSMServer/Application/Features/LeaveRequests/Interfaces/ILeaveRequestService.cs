@@ -9,12 +9,11 @@ namespace Application.Features.LeaveRequests.Interfaces
 {
     public interface ILeaveRequestService
     {
-        Task<List<LeaveRequestDto>> GetAllAsync();
-        Task<LeaveRequestDto?> GetByIdAsync(int id);
-        Task<List<LeaveRequestDto>> GetByTeacherIdAsync(int teacherId);
-        Task AddAsync(CreateLeaveRequestDto leaveRequestDto);
-        Task UpdateAsync(LeaveRequestDto leaveRequestDto);
-        Task DeleteAsync(int id);
+        Task<LeaveRequestDetailDto?> GetByIdAsync(int id);
+        Task<IEnumerable<LeaveRequestListDto>> GetAllAsync(int? teacherId = null, string? status = null);
+        Task<LeaveRequestDetailDto> CreateAsync(CreateLeaveRequestDto dto);
+        Task<bool> UpdateAsync(UpdateLeaveRequest dto);
+        Task<bool> DeleteAsync(int id);
     }
 
 }

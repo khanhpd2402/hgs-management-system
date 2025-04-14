@@ -40,22 +40,28 @@ namespace Application.Features.Timetables.Services
             return createdTimetable;
         }
 
-        public async Task<IEnumerable<TimetableDto>> GetTimetableByStudentAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<TimetableDto>> GetTimetableByStudentAsync(int studentId, int semesterId)
         {
-            var timetables = await _repository.GetByStudentIdAsync(studentId, semesterId, effectiveDate);
+            var timetables = await _repository.GetByStudentIdAsync(studentId, semesterId);
             return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
-        public async Task<IEnumerable<TimetableDto>> GetTimetableByTeacherAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<TimetableDto>> GetTimetableByTeacherAsync(int teacherId)
         {
-            var timetables = await _repository.GetByTeacherIdAsync(teacherId, semesterId, effectiveDate);
+            var timetables = await _repository.GetByTeacherIdAsync(teacherId);
             return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
-        public async Task<IEnumerable<TimetableDto>> GetTimetableByClassAsync(int classId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<TimetableListDto>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null)
         {
-            var timetables = await _repository.GetByClassIdAsync(classId, semesterId, effectiveDate);
-            return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
+            var timetables = await _repository.GetTimetablesForPrincipalAsync(semesterId, status);
+            return _mapper.Map<IEnumerable<TimetableListDto>>(timetables);
+        }
+
+        public async Task<IEnumerable<TimetableListDto>> GetTimetablesBySemesterAsync(int semesterId)
+        {
+            var timetables = await _repository.GetTimetablesBySemesterAsync(semesterId);
+            return _mapper.Map<IEnumerable<TimetableListDto>>(timetables);
         }
         public async Task<TimetableDto> UpdateTimetableInfoAsync(UpdateTimetableInfoDto dto)
         {
@@ -95,12 +101,12 @@ namespace Application.Features.Timetables.Services
                 detail.ClassId = detailDto.ClassId;
                 detail.SubjectId = detailDto.SubjectId;
                 detail.TeacherId = detailDto.TeacherId;
-                detail.Date = detailDto.Date;
+                detail.DayOfWeek = detailDto.DayOfWeek;
                 detail.PeriodId = detailDto.PeriodId;
 
                 if (await _repository.IsConflictAsync(detail))
                 {
-                    throw new InvalidOperationException($"Conflict detected for timetable detail ID {detail.TimetableDetailId} on {detail.Date} at period {detail.PeriodId}.");
+                    throw new InvalidOperationException($"Conflict detected for timetable detail ID {detail.TimetableDetailId} on {detail.DayOfWeek} at period {detail.PeriodId}.");
                 }
 
                 detailsToUpdate.Add(detail);
