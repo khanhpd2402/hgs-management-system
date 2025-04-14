@@ -22,9 +22,26 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<IEnumerable<TeachingAssignment>> GetBySemesterIdAsync(int semesterId)
         {
             return await _context.TeachingAssignments
-                .Where(t => t.SemesterId == semesterId)
-                .Include(t => t.Class)
-                .ToListAsync();
+        .Where(t => t.SemesterId == semesterId)
+        .Include(t => t.Class)
+        .Include(t => t.Teacher) 
+        .ToListAsync();
+        }
+        public async Task<IEnumerable<TeachingAssignment>> GetHomeroomTeachersAsync(int? academicYearId)
+        {
+            var query = _context.TeachingAssignments
+                .Include(ta => ta.Teacher)
+                .Include(ta => ta.Class)
+                .Include(ta => ta.Semester)
+                .ThenInclude(s => s.AcademicYear)
+                .Where(ta => ta.IsHomeroomTeacher == true);
+
+            if (academicYearId.HasValue)
+            {
+                query = query.Where(ta => ta.Semester.AcademicYearId == academicYearId.Value);
+            }
+
+            return await query.ToListAsync();
         }
     }
 }
