@@ -52,6 +52,12 @@ namespace Infrastructure.Repositories.Implementtations
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<List<Semester>> GetAllAsync()
+        {
+            return await _context.Semesters
+                                 .Include(s => s.AcademicYear) 
+                                 .ToListAsync();
+        }
     }
 
 }

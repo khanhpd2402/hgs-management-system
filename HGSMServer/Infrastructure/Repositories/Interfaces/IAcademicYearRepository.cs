@@ -11,10 +11,14 @@ namespace Infrastructure.Repositories.Interfaces
     {
         Task<List<AcademicYear>> GetAllAsync();
         Task<AcademicYear?> GetByIdAsync(int id);
+        Task<AcademicYear?> GetByNameAsync(string name);
         Task AddAsync(AcademicYear academicYear);
         Task UpdateAsync(AcademicYear academicYear);
         Task DeleteAsync(int id);
         Task<AcademicYear?> GetCurrentAcademicYearAsync();
+        Task BeginTransactionAsync();
+        Task CommitAsync();
+        Task RollbackAsync();
     }
 
 }
