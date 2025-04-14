@@ -39,19 +39,23 @@ export default function ExcelImportModal({ type }) {
     // },
 
     onSettled: (data, error) => {
-      console.log(error);
-      console.log(error?.response?.data?.errors);
-      toast.error(error?.response?.data?.errors);
+      if (error) {
+        console.log(error);
+        toast.error(error?.response?.data?.errors);
+      } else {
+        console.log(data);
+      }
     },
   });
 
   const sampleFiles = {
-    employees:
-      "https://docs.google.com/spreadsheets/d/1ULLJxX-ocO0y3zO2B8HCTq4_gdqBtenA/export?format=xlsx",
-    students: "/files/student_template.xlsx",
-    courses: "/files/course_template.xlsx",
+    teacher:
+      "https://docs.google.com/spreadsheets/d/1HxEDkY54T_NZFDGD_nqIAAt5rxEneW9l/export?format=xlsx",
+    student:
+      "https://docs.google.com/spreadsheets/d/1Wb9Nra31iOYD3i1R2mlEfgwv8aPnkBLa/export?format=xlsx",
   };
 
+  console.log(type);
   const sampleFileUrl = sampleFiles[type] || "#";
 
   const handleFileChange = (event) => {

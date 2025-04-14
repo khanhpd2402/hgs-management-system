@@ -16,6 +16,15 @@ import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import SubjectManagement from "@/pages/Principal/SubjectManagement/SubjectManagement";
 import ClassManagement from "@/pages/Principal/ClassManagement/ClassManagement";
+import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+// import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
+// import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
+// import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
+// import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
+// import SubstituteTeacherAssignment from "@/pages/LeaveRequest/AdminLeaveRequest/SubstituteTeacherAssignment";
+// import Contact from "@/pages/contact/Contact";
+// import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
+// import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -34,6 +43,10 @@ const HTATable = lazy(
 
 const StudentScore = lazy(
   () => import("@/pages/Student/SummaryScore/StudentScore"),
+);
+
+const ScheduleManagement = lazy(
+  () => import("@/pages/Schedule/ScheduleSymtem/Schedule"),
 );
 
 const AppRouter = () => {
@@ -65,7 +78,7 @@ const adminRouter = [
   {
     path: "/system/user",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <UserManagement />
       </ProtectedRoute>
     ),
@@ -73,7 +86,7 @@ const adminRouter = [
   {
     path: "/system/subject",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <SubjectManagement />
       </ProtectedRoute>
     ),
@@ -81,18 +94,50 @@ const adminRouter = [
   {
     path: "/system/class",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <ClassManagement />
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/system/schedule",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <ScheduleManagement />
+      </ProtectedRoute>
+    ),
+  },
+  // {
+  //   path: "/system/leave-request",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+  //       <ListLeaveRequest />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/system/leave-request/:id",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+  //       <LeaveRequestDetail />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/system/contact",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+  //       <Contact />
+  //     </ProtectedRoute>
+  //   ),
+  // },
 ];
 
 const teacherRouter = [
   {
     path: "/teacher/profile",
     element: (
-      <ProtectedRoute requiredRoles={["Principal"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <ErrorBoundary fallback={<FallbackErrorBoundary />}>
           <Suspense fallback={<div>Loading...</div>}>
             <TeacherTable />
@@ -149,7 +194,7 @@ const teacherRouter = [
   {
     path: "/teacher/mark-report",
     element: (
-      <ProtectedRoute requiredRoles={["Teacher"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <MarkReportTable />
         </Suspense>
@@ -164,6 +209,48 @@ const teacherRouter = [
       </Suspense>
     ),
   },
+  {
+    path: "/teacher/schedule",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ScheduleTeacher />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  // {
+  //   path: "/teacher/leave-request",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
+  //       <TeacherLeaveRequest />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/teacher/leave-request/create",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
+  //       <CreateTeacherLeaveRequest />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/teacher/lesson-plan",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
+  //       <LessonPlanList />
+  //     </ProtectedRoute>
+  //   ),
+  // },
+  // {
+  //   path: "/teacher/lesson-plan/create",
+  //   element: (
+  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
+  //       <UploadLessonPlan />
+  //     </ProtectedRoute>
+  //   ),
+  // },
 ];
 
 const studentRouter = [
@@ -204,7 +291,7 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Principal", "Teacher"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên"]}>
         <DefaultLayout />
       </ProtectedRoute>
     ),
