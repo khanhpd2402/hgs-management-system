@@ -167,6 +167,9 @@ export function useUpdateSubject() {
           }
         }
         queryClient.invalidateQueries({ queryKey: ["subjects"] });
+        queryClient.invalidateQueries({
+          queryKey: ["subjectConfig", { id: variables.subjectId }],
+        });
         toast.success("Cập nhật môn học thành công");
       }
     },
