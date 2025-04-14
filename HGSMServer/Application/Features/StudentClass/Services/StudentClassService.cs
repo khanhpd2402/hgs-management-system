@@ -1,16 +1,21 @@
 ﻿using Application.Features.AcademicYears.DTOs;
 using Application.Features.Classes.DTOs;
+using Application.Features.Semesters.DTOs;
 using Application.Features.StudentClass.DTOs;
 using Application.Features.StudentClass.Interfaces;
 using Application.Features.Students.DTOs;
+using Domain.Models;
+using Infrastructure.Repositories.Implementtations;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Storage;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using ClassDto = Application.Features.StudentClass.DTOs.ClassDto;
 
 namespace Application.Features.StudentClass.Services
 {
@@ -20,26 +25,36 @@ namespace Application.Features.StudentClass.Services
         private readonly IStudentRepository _studentRepository;
         private readonly IClassRepository _classRepository;
         private readonly IAcademicYearRepository _academicYearRepository;
+        private readonly ITeachingAssignmentRepository _teachingAssignmentRepository;
+        private readonly ISemesterRepository _semesterRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly HgsdbContext _context;
+
 
         public StudentClassService(
             IStudentClassRepository studentClassRepository,
             IStudentRepository studentRepository,
             IClassRepository classRepository,
+            ITeachingAssignmentRepository teachingAssignmentRepository,
+            ISemesterRepository semesterRepository,
             IAcademicYearRepository academicYearRepository,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            HgsdbContext context)
         {
             _studentClassRepository = studentClassRepository;
             _studentRepository = studentRepository;
             _classRepository = classRepository;
+            _teachingAssignmentRepository = teachingAssignmentRepository;
             _academicYearRepository = academicYearRepository;
+            _semesterRepository = semesterRepository;
             _httpContextAccessor = httpContextAccessor;
+            _context = context;
         }
+        
 
         private async Task<bool> HasPermissionAsync()
         {
             var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-            Console.WriteLine($"User Role: {userRole}");
             var allowedRoles = new[] { "Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư" };
             return allowedRoles.Contains(userRole);
         }
@@ -250,10 +265,6 @@ namespace Application.Features.StudentClass.Services
             await _studentClassRepository.DeleteAsync(id);
         }
 
-        
-
-        
-
         public async Task ProcessGraduationAsync(int academicYearId)
         {
             if (!await HasPermissionAsync())
@@ -381,19 +392,26 @@ namespace Application.Features.StudentClass.Services
             await _studentClassRepository.AddRangeAsync(newAssignments);
         }
 
-        public async Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? academicYearId = null)
+        public async Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null)
         {
             if (!await HasPermissionAsync())
             {
-                throw new UnauthorizedAccessException("You do not have permission to access this data.");
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
             }
 
             List<StudentFilterDto> students;
 
-            // Nếu có ClassId và AcademicYearId, lọc học sinh thuộc lớp và năm học đó
-            if (classId.HasValue && academicYearId.HasValue)
+            // Nếu có ClassId và SemesterId, lọc học sinh thuộc lớp và học kỳ đó
+            if (classId.HasValue && semesterId.HasValue)
             {
-                var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classId.Value, academicYearId.Value);
+                // Lấy học kỳ để lấy AcademicYearId tương ứng
+                var semesterr = await _semesterRepository.GetByIdAsync(semesterId.Value);
+                if (semesterr == null)
+                {
+                    throw new ArgumentException($"Học kỳ với Id {semesterId.Value} không tồn tại.");
+                }
+
+                var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classId.Value, semesterr.AcademicYearId);
                 students = studentClasses
                     .Select(sc => new StudentFilterDto
                     {
@@ -411,19 +429,90 @@ namespace Application.Features.StudentClass.Services
                     .ToList();
             }
 
-            var classes = (await _classRepository.GetAllAsync())
-                .Select(c => new ClassDto { ClassId = c.ClassId, ClassName = c.ClassName, GradeLevelId = c.GradeLevelId })
-                .OrderBy(c => c.ClassName)
-                .ToList();
-            var academicYears = (await _academicYearRepository.GetAllAsync())
-                .Select(ay => new AcademicYearDto { AcademicYearID = ay.AcademicYearId, YearName = ay.YearName, StartDate = ay.StartDate, EndDate = ay.EndDate })
-                .ToList();
+            // Lấy danh sách lớp
+            var classes = classId.HasValue
+                ? new List<Domain.Models.Class> { await _classRepository.GetByIdAsync(classId.Value) }
+                : await _classRepository.GetAllAsync();
+
+            if (classId.HasValue && classes.FirstOrDefault() == null)
+            {
+                throw new ArgumentException($"Lớp với Id {classId.Value} không tồn tại.");
+            }
+
+            var classDtos = new List<StudentClass.DTOs.ClassDto>();
+
+            foreach (var classEntity in classes.Where(c => c != null))
+            {
+                // Đếm số học sinh trong lớp
+                int studentCount = 0;
+                if (semesterId.HasValue)
+                {
+                    var semesterr = await _semesterRepository.GetByIdAsync(semesterId.Value);
+                    if (semesterr != null)
+                    {
+                        var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, semesterr.AcademicYearId);
+                        studentCount = studentCountQuery.Count();
+                    }
+                }
+                else
+                {
+                    // Nếu không có semesterId, đếm tất cả học sinh trong lớp qua tất cả năm học
+                    var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
+                    studentCount = studentCountQuery.Count();
+                }
+
+                classDtos.Add(new StudentClass.DTOs.ClassDto
+                {
+                    ClassId = classEntity.ClassId,
+                    ClassName = classEntity.ClassName,
+                    GradeLevelId = classEntity.GradeLevelId,
+                    StudentCount = studentCount
+                });
+            }
+
+            // Lấy thông tin giáo viên chủ nhiệm dựa trên semesterId
+            var homeroomTeacherDict = new Dictionary<int, string>();
+            if (semesterId.HasValue)
+            {
+                var homeroomTeachers = await _teachingAssignmentRepository.GetBySemesterIdAsync(semesterId.Value);
+                homeroomTeacherDict = homeroomTeachers
+                    .Where(ta => ta.IsHomeroomTeacher == true)
+                    .GroupBy(ta => ta.ClassId)
+                    .ToDictionary(
+                        g => g.Key,
+                        g => g.First().Teacher?.FullName ?? "Chưa có giáo viên"
+                    );
+            }
+
+            // Gán thông tin giáo viên chủ nhiệm vào classes
+            foreach (var classDto in classDtos)
+            {
+                classDto.HomeroomTeacherName = homeroomTeacherDict.ContainsKey(classDto.ClassId)
+                    ? homeroomTeacherDict[classDto.ClassId]
+                    : "Chưa có";
+            }
+
+            
+            var semester = await _semesterRepository.GetByIdAsync(1); 
+            if (semester == null)
+            {
+                throw new ArgumentException("Học kỳ với Id 1 không tồn tại.");
+            }
+
+            var semesterDto = new SemesterDto
+            {
+                SemesterID = semester.SemesterId,
+                SemesterName = semester.SemesterName,
+                AcademicYearID = semester.AcademicYearId,
+                StartDate = semester.StartDate, 
+                EndDate = semester.EndDate      
+            };
 
             var filterData = new StudentClassFilterDataDto
             {
                 Students = students,
-                Classes = classes,
-                AcademicYears = academicYears
+                Classes = classDtos.OrderBy(c => c.ClassName).ToList(),
+                Semesters = new List<SemesterDto> { semesterDto } 
             };
 
             return filterData;

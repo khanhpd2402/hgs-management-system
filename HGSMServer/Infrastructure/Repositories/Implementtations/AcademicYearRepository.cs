@@ -25,6 +25,11 @@ namespace Infrastructure.Repositories.Implementations // Sửa namespace
         {
             return await _context.AcademicYears.AsNoTracking().FirstOrDefaultAsync(ay => ay.AcademicYearId == id);
         }
+        public async Task<AcademicYear?> GetByNameAsync(string name)
+        {
+            return await _context.AcademicYears
+                .FirstOrDefaultAsync(ay => ay.YearName == name);
+        }
 
         public async Task AddAsync(AcademicYear academicYear)
         {
@@ -55,6 +60,20 @@ namespace Infrastructure.Repositories.Implementations // Sửa namespace
                 .AsNoTracking()
                 .Where(ay => ay.StartDate <= currentDate && ay.EndDate >= currentDate)
                 .FirstOrDefaultAsync();
+        }
+        public async Task BeginTransactionAsync()
+        {
+            await _context.Database.BeginTransactionAsync();
+        }
+
+        public async Task CommitAsync()
+        {
+            await _context.Database.CommitTransactionAsync();
+        }
+
+        public async Task RollbackAsync()
+        {
+            await _context.Database.RollbackTransactionAsync();
         }
     }
 }

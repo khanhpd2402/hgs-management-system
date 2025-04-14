@@ -126,7 +126,7 @@ namespace HGSMAPI.Controllers
         /// </summary>
         /// <param name="filter">Bộ lọc tìm kiếm</param>
         /// <returns>Danh sách phân lớp phù hợp</returns>
-        
+
 
         /// <summary>
         /// Lấy dữ liệu lọc (danh sách học sinh, lớp, năm học)
@@ -134,11 +134,11 @@ namespace HGSMAPI.Controllers
         /// <returns>Danh sách dữ liệu để lọc</returns>
         [HttpGet("filter-data")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
-        public async Task<IActionResult> GetFilterData([FromQuery] int? classId = null, [FromQuery] int? academicYearId = null)
+        public async Task<IActionResult> GetFilterData([FromQuery] int? classId = null, [FromQuery] int? semesterId = null)
         {
             try
             {
-                var filterData = await _studentClassService.GetFilterDataAsync(classId, academicYearId);
+                var filterData = await _studentClassService.GetFilterDataAsync(classId, semesterId);
                 return Ok(filterData);
             }
             catch (UnauthorizedAccessException ex)

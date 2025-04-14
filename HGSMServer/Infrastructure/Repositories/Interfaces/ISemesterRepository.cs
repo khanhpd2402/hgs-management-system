@@ -14,6 +14,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddAsync(Semester semester);
         Task UpdateAsync(Semester semester);
         Task DeleteAsync(int id);
+        Task<List<Semester>> GetAllAsync();
     }
 
 }
