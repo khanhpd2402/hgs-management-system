@@ -19,12 +19,12 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         _httpContextAccessor = httpContextAccessor;
     }
 
-    private async Task<bool> HasPermissionAsync()
-    {
-        var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-        var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
-        return allowedRoles.Contains(userRole);
-    }
+    //private async Task<bool> HasPermissionAsync()
+    //{
+    //    var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+    //    var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
+    //    return allowedRoles.Contains(userRole);
+    //}
 
     private async Task<bool> HasHomeroomPermissionAsync()
     {
@@ -35,10 +35,10 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
     public async Task CreateTeachingAssignmentAsync(TeachingAssignmentCreateDto dto)
     {
-        if (!await HasPermissionAsync())
-        {
-            throw new UnauthorizedAccessException("You do not have permission to assign teaching duties.");
-        }
+        //if (!await HasPermissionAsync())
+        //{
+        //    throw new UnauthorizedAccessException("You do not have permission to assign teaching duties.");
+        //}
 
         var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
         if (teacher == null)
@@ -100,10 +100,10 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
     public async Task<TeachingAssignmentFilterDataDto> GetFilterDataAsync()
     {
-        if (!await HasPermissionAsync())
-        {
-            throw new UnauthorizedAccessException("You do not have permission to access this data.");
-        }
+        //if (!await HasPermissionAsync())
+        //{
+        //    throw new UnauthorizedAccessException("You do not have permission to access this data.");
+        //}
 
         var filterData = new TeachingAssignmentFilterDataDto
         {
@@ -124,10 +124,10 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
     public async Task<List<TeachingAssignmentResponseDto>> GetAssignmentsForCreationAsync(TeachingAssignmentCreateDto dto)
     {
-        if (!await HasPermissionAsync())
-        {
-            throw new UnauthorizedAccessException("You do not have permission to access this data.");
-        }
+        //if (!await HasPermissionAsync())
+        //{
+        //    throw new UnauthorizedAccessException("You do not have permission to access this data.");
+        //}
 
         var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
         if (teacher == null)
