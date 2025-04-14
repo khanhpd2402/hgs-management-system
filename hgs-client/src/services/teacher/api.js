@@ -14,7 +14,6 @@ export const updateTeacher = async (id, data) => {
 };
 
 export const createTeacher = async (data) => {
-  console.log(data);
   return (await axiosInstance.post(`teachers`, data)).data;
 };
 

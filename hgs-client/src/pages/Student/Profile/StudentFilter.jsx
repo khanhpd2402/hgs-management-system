@@ -16,14 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { useClasses } from "@/services/common/queries";
-
-const grades = [
-  { value: "6", label: "Khối 6" },
-  { value: "7", label: "Khối 7" },
-  { value: "8", label: "Khối 8" },
-  { value: "9", label: "Khối 9" },
-];
+import { useClasses, useGradeLevels } from "@/services/common/queries";
 
 StudentFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
@@ -36,11 +29,13 @@ export default function StudentFilter({ setFilter }) {
   const [className, setClassname] = useState("");
 
   const { data } = useClasses();
-  const currentClasses = data?.filter((c) => c.grade == grade);
+  const gradeLevelQuery = useGradeLevels();
+  const grades = gradeLevelQuery?.data;
+  const currentClasses = data?.filter((c) => c.gradeLevelId == grade);
 
   const handleGradeChange = (value) => {
     setGrade(value);
-    setClassname(""); // Reset lớp khi chọn khối mới
+    setClassname("");
   };
 
   const handleSubmit = (e) => {
@@ -72,20 +67,27 @@ export default function StudentFilter({ setFilter }) {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             {/* Lọc theo khối */}
-            <Select onValueChange={handleGradeChange} value={grade}>
+            <Select
+              onValueChange={handleGradeChange}
+              value={grade?.toString() || ""}
+            >
               <SelectTrigger>
                 <SelectValue placeholder="Chọn khối" />
               </SelectTrigger>
               <SelectContent>
-                {grades.map((d) => (
-                  <SelectItem key={d.value} value={d.value}>
-                    {d.label}
-                  </SelectItem>
-                ))}
+                {grades &&
+                  grades.length > 0 &&
+                  grades?.map((d) => (
+                    <SelectItem
+                      key={d.gradeLevelId}
+                      value={d.gradeLevelId.toString()}
+                    >
+                      {d.gradeName}
+                    </SelectItem>
+                  ))}
               </SelectContent>
             </Select>
 
-            {/* Lọc theo lớp */}
             <Select
               onValueChange={setClassname}
               value={className}
