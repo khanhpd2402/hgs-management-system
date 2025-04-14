@@ -168,6 +168,8 @@ export default function AddTeacher() {
       phoneNumber: "",
       email: "",
     },
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
   // Submit handler
