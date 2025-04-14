@@ -12,8 +12,8 @@ namespace Application.Features.StudentClass.Interfaces
         Task CreateStudentClassAsync(StudentClassAssignmentDto dto);
         Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos);
         Task DeleteStudentClassAsync(int id);
-        Task<List<StudentClassResponseDto>> SearchStudentClassesAsync(StudentClassFilterDto filter);
-        Task<StudentClassFilterDataDto> GetFilterDataAsync();
+        Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? academicYearId = null);
         Task BulkTransferClassAsync(BulkClassTransferDto dto);
+        Task ProcessGraduationAsync(int academicYearId);
     }
 }

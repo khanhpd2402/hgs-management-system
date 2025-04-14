@@ -17,6 +17,7 @@ namespace Application.Features.LessonPlans.DTOs
         public DateTime? SubmittedDate { get; set; }
         public DateTime? ReviewedDate { get; set; }
         public int? ReviewerId { get; set; }
-        public string ReviewerName { get; set; } 
+        public string ReviewerName { get; set; }
+        public string Title { get; set; }
     }
 }
