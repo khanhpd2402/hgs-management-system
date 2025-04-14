@@ -137,7 +137,7 @@ export default function TATable() {
       </div>
 
       {/* Add Modal */}
-      <TAModal open={openModal} setOpen={setOpenModal} />
+      <TAModal open={openModal} onOpenChange={setOpenModal} />
 
       {/* Container chính không có overflow-x-auto */}
       <div className="relative">

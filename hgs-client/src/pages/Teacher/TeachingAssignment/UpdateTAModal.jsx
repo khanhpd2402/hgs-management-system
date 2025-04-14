@@ -16,8 +16,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 
-export default function TAModal({ open, onOpenChange }) {
-  const [selectedTeacher, setSelectedTeacher] = useState("1");
+export default function UpdateTAModal({ open, onOpenChange }) {
   const [selectedSubject, setSelectedSubject] = useState("english");
   const [subjectAssignments, setSubjectAssignments] = useState({
     english: ["7A", "7B", "7C"],
@@ -62,24 +61,13 @@ export default function TAModal({ open, onOpenChange }) {
   };
 
   const handleSave = () => {
-    const assignments = [];
-
-    Object.entries(subjectAssignments).forEach(([subject, classes]) => {
-      if (classes.length > 0) {
-        const data = {
-          teacherId: selectedTeacher, // Replace with actual teacherId
-          subjectId: subject, // Map this to actual subjectId
-          subjectCategory: "string", // Add appropriate category
-          classAssignments: classes.map((className) => ({
-            classId: className, // Map className to actual classId
-          })),
-          semesterId: 1, // Replace with actual semesterId
-        };
-        assignments.push(data);
-      }
-    });
-
-    console.log("Saving data:", assignments);
+    const data = {
+      subject: selectedSubject,
+      assignedClasses: selectedClasses,
+      periodsHK1: 3,
+      periodsHK2: 3,
+    };
+    console.log("Saving data:", data);
     // Add your API call here
     onOpenChange(false);
   };
@@ -97,21 +85,8 @@ export default function TAModal({ open, onOpenChange }) {
       totalHK2 += classes.length * 3; // 3 periods per class in HK2
     });
 
-    return `(Tổng số tiết - HK1: ${totalHK1}, HK2: ${totalHK2})`;
+    return `HK1: ${totalHK1}, HK2: ${totalHK2}`;
   };
-
-  useEffect(() => {
-    if (open) {
-      setSelectedSubject("english");
-      setSubjectAssignments({
-        english: [],
-        math: [],
-        physics: [],
-        chemistry: [],
-        biology: [],
-      });
-    }
-  }, [open]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -126,19 +101,7 @@ export default function TAModal({ open, onOpenChange }) {
           <div className="grid grid-cols-3 gap-4">
             <div>
               <label className="text-sm font-medium">Giáo viên</label>
-              <Select
-                value={selectedTeacher}
-                onValueChange={setSelectedTeacher}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn giáo viên" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="1">Vương Thị Ngọc Anh</SelectItem>
-                  <SelectItem value="2">Nguyễn Văn A</SelectItem>
-                  <SelectItem value="3">Trần Thị B</SelectItem>
-                </SelectContent>
-              </Select>
+              <Input value="Vương Thị Ngọc Anh" disabled className="mt-1" />
             </div>
             <div>
               <label className="text-sm font-medium">Môn học</label>
@@ -197,17 +160,13 @@ export default function TAModal({ open, onOpenChange }) {
               <tbody>
                 {["6A", "6B", "7A", "7B", "7C", "8A", "8B", "9A", "9B"].map(
                   (className) => (
-                    <tr
-                      key={className}
-                      className="cursor-pointer border-t hover:bg-slate-50"
-                      onClick={() => handleClassToggle(className)}
-                    >
+                    <tr key={className} className="border-t">
                       <td className="p-2 text-center">
                         <Checkbox
                           checked={subjectAssignments[selectedSubject].includes(
                             className,
                           )}
-                          className="cursor-pointer"
+                          onCheckedChange={() => handleClassToggle(className)}
                         />
                       </td>
                       <td className="p-2">{className}</td>
