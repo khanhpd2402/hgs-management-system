@@ -56,6 +56,7 @@ using Application.Features.Periods.Interfaces;
 using Application.Features.Periods.Services;
 using Application.Features.StudentClass.Interfaces;
 using Application.Features.StudentClass.Services;
+using Application.Features.SubstituteTeachings.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -161,6 +162,8 @@ builder.Services.AddScoped<IGradeLevelService, GradeLevelService>();
 builder.Services.AddScoped<IGradeLevelRepository, GradeLevelRepository>();
 builder.Services.AddScoped<IPeriodService, PeriodService>();
 builder.Services.AddScoped<IPeriodRepository, PeriodRepository>();
+builder.Services.AddScoped<ISubstituteTeachingRepository, SubstituteTeachingRepository>();
+builder.Services.AddScoped<ISubstituteTeachingService, ISubstituteTeachingService>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
