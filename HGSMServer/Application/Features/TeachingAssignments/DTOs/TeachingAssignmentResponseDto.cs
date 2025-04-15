@@ -11,6 +11,5 @@
         public string ClassName { get; set; }
         public int SemesterId { get; set; }
         public string SemesterName { get; set; }
-        public bool? IsHomeroomTeacher { get; set; }
     }
 }
