@@ -120,7 +120,7 @@ namespace Application.Features.Students.Services
 
                 Console.WriteLine("Mapping CreateStudentDto to Student...");
                 var student = _mapper.Map<Student>(createStudentDto);
-                var currentAcademicYearId = await GetCurrentAcademicYearIdAsync();
+                var currentAcademicYearId = createStudentDto.AcademicYearId ?? await GetCurrentAcademicYearIdAsync();
                 student.StudentClasses = new List<Domain.Models.StudentClass>
         {
             new Domain.Models.StudentClass
