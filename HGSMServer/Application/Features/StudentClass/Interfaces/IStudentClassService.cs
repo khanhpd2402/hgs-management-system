@@ -15,5 +15,6 @@ namespace Application.Features.StudentClass.Interfaces
         Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null);
         Task BulkTransferClassAsync(BulkClassTransferDto dto);
         Task ProcessGraduationAsync(int academicYearId);
+        Task<List<ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
     }
 }
