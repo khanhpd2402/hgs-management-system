@@ -101,6 +101,7 @@ namespace Application.Features.Students.Services
             using var transaction = await _studentRepository.BeginTransactionAsync();
             try
             {
+                // Kiểm tra CMND/CCCD học sinh
                 if (!string.IsNullOrWhiteSpace(createStudentDto.IdcardNumber))
                 {
                     bool exists = await _studentRepository.ExistsAsync(createStudentDto.IdcardNumber);
@@ -111,6 +112,7 @@ namespace Application.Features.Students.Services
                     }
                 }
 
+                // Kiểm tra lớp học
                 Console.WriteLine($"Checking if ClassId {createStudentDto.ClassId} exists...");
                 if (!await _classRepository.ExistsAsync(createStudentDto.ClassId))
                 {
@@ -118,6 +120,7 @@ namespace Application.Features.Students.Services
                     throw new Exception($"ClassId {createStudentDto.ClassId} không tồn tại.");
                 }
 
+                // Map DTO sang Student
                 Console.WriteLine("Mapping CreateStudentDto to Student...");
                 var student = _mapper.Map<Student>(createStudentDto);
                 var currentAcademicYearId = createStudentDto.AcademicYearId ?? await GetCurrentAcademicYearIdAsync();
@@ -137,11 +140,30 @@ namespace Application.Features.Students.Services
                 // Xử lý phụ huynh
                 if (createStudentDto.ParentId.HasValue)
                 {
-                    Console.WriteLine($"Updating existing parent with ParentID: {createStudentDto.ParentId}");
-                    await UpdateParentAsync(student, createStudentDto);
+                    // Nếu có ParentId, cập nhật thông tin phụ huynh
+                    Console.WriteLine($"Updating parent with ParentID: {createStudentDto.ParentId}");
+                    var parent = await _parentRepository.GetByIdAsync(createStudentDto.ParentId.Value);
+                    if (parent == null)
+                    {
+                        throw new Exception($"Phụ huynh với ID {createStudentDto.ParentId.Value} không tồn tại.");
+                    }
+
+                    // Cập nhật thông tin phụ huynh nếu có dữ liệu mới
+                    if (HasParentInfoToUpdate(createStudentDto))
+                    {
+                        Console.WriteLine("Updating parent information...");
+                        await UpdateParentAsync(student, createStudentDto);
+                    }
+                    else
+                    {
+                        // Nếu không có thông tin mới, chỉ liên kết với ParentId
+                        student.ParentId = createStudentDto.ParentId.Value;
+                        Console.WriteLine($"Linking student to existing ParentID: {student.ParentId}");
+                    }
                 }
                 else if (HasCompleteParentInfo(createStudentDto))
                 {
+                    // Nếu không có ParentId nhưng có thông tin đầy đủ, tạo phụ huynh mới
                     Console.WriteLine("Creating new parent...");
                     await CreateParentAndLinkAsync(student, createStudentDto);
                 }
@@ -161,6 +183,29 @@ namespace Application.Features.Students.Services
                 Console.WriteLine($"Transaction rolled back due to error: {ex.Message}, Inner Exception: {ex.InnerException?.Message}");
                 throw new Exception($"Lỗi khi thêm học sinh: {ex.Message}. Chi tiết: {ex.InnerException?.Message}");
             }
+        }
+
+        // Hàm kiểm tra xem có thông tin phụ huynh nào để cập nhật không
+        private bool HasParentInfoToUpdate(IParentInfoDto dto)
+        {
+            return !string.IsNullOrEmpty(dto.FullNameFather) ||
+                   dto.YearOfBirthFather.HasValue ||
+                   !string.IsNullOrEmpty(dto.OccupationFather) ||
+                   !string.IsNullOrEmpty(dto.PhoneNumberFather) ||
+                   !string.IsNullOrEmpty(dto.EmailFather) ||
+                   !string.IsNullOrEmpty(dto.IdcardNumberFather) ||
+                   !string.IsNullOrEmpty(dto.FullNameMother) ||
+                   dto.YearOfBirthMother.HasValue ||
+                   !string.IsNullOrEmpty(dto.OccupationMother) ||
+                   !string.IsNullOrEmpty(dto.PhoneNumberMother) ||
+                   !string.IsNullOrEmpty(dto.EmailMother) ||
+                   !string.IsNullOrEmpty(dto.IdcardNumberMother) ||
+                   !string.IsNullOrEmpty(dto.FullNameGuardian) ||
+                   dto.YearOfBirthGuardian.HasValue ||
+                   !string.IsNullOrEmpty(dto.OccupationGuardian) ||
+                   !string.IsNullOrEmpty(dto.PhoneNumberGuardian) ||
+                   !string.IsNullOrEmpty(dto.EmailGuardian) ||
+                   !string.IsNullOrEmpty(dto.IdcardNumberGuardian);
         }
         private async Task UpdateParentAsync(Student student, CreateStudentDto createStudentDto)
         {

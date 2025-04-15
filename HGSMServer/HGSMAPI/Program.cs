@@ -124,8 +124,8 @@ builder.Services.AddSession(options =>
 
 // Đăng ký các dịch vụ và repository
 //Exam, Question Management
-builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IExamProposalService, ExamProposalService>();
+builder.Services.AddScoped<IExamProposalRepository, ExamProposalRepository>();
 builder.Services.AddScoped<GoogleDriveService>();
 //Parent Management
 builder.Services.AddScoped<IParentRepository, ParentRepository>();
