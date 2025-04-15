@@ -17,6 +17,13 @@ import AddStudent from "@/pages/Student/Profile/AddStudent";
 import SubjectManagement from "@/pages/Principal/SubjectManagement/SubjectManagement";
 import ClassManagement from "@/pages/Principal/ClassManagement/ClassManagement";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
+import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
+import Contact from "@/pages/contact/Contact";
+import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
+import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
+import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
+import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
 // import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
@@ -107,30 +114,30 @@ const adminRouter = [
       </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/system/leave-request",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-  //       <ListLeaveRequest />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/system/leave-request/:id",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-  //       <LeaveRequestDetail />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/system/contact",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-  //       <Contact />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/system/leave-request",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <ListLeaveRequest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/leave-request/:id",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <LeaveRequestDetail />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/contact",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Contact />
+      </ProtectedRoute>
+    ),
+  },
 ];
 
 const teacherRouter = [
@@ -219,38 +226,38 @@ const teacherRouter = [
       </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/teacher/leave-request",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <TeacherLeaveRequest />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/teacher/leave-request/create",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <CreateTeacherLeaveRequest />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/teacher/lesson-plan",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <LessonPlanList />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/teacher/lesson-plan/create",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <UploadLessonPlan />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/teacher/leave-request",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <TeacherLeaveRequest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/leave-request/create",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <CreateTeacherLeaveRequest />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/lesson-plan",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <LessonPlanList />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/lesson-plan/create",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <UploadLessonPlan />
+      </ProtectedRoute>
+    ),
+  },
 ];
 
 const studentRouter = [
