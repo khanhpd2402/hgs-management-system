@@ -29,14 +29,7 @@ namespace HGSMAPI.Controllers
             try
             {
                 var createdTimetable = await _service.CreateTimetableAsync(dto);
-                return CreatedAtAction(nameof(GetTimetableByClass),
-                    new
-                    {
-                        classId = createdTimetable.TimetableDetails.FirstOrDefault()?.ClassId ?? 0,
-                        semesterId = createdTimetable.SemesterId,
-                        effectiveDate = createdTimetable.EffectiveDate
-                    },
-                    createdTimetable);
+                return Ok(dto);
             }
             catch (Exception ex)
             {
@@ -44,32 +37,32 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        // GET: api/Timetables/student/{studentId}
-        [HttpGet("student/{studentId}")]
-        public async Task<IActionResult> GetTimetableByStudent(int studentId, [FromQuery] int? semesterId = null, [FromQuery] DateOnly? effectiveDate = null)
+        // GET: api/Timetables/student/{studentId}/semester/{semesterId}
+        [HttpGet("student/{studentId}/semester/{semesterId}")]
+        public async Task<IActionResult> GetTimetableByStudent(int studentId, int semesterId)
         {
             try
             {
-                var timetables = await _service.GetTimetableByStudentAsync(studentId, semesterId, effectiveDate);
+                var timetables = await _service.GetTimetableByStudentAsync(studentId, semesterId);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for student ID {studentId}");
+                    return NotFound($"No timetables found for student ID {studentId} in semester {semesterId}");
                 }
                 return Ok(timetables);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving timetable: {ex.Message}");
+                return StatusCode(500, $"Error retrieving student timetable: {ex.Message}");
             }
         }
 
-        // GET: api/Timetables/teacher/{teacherId}
+        /// GET: api/Timetables/teacher/{teacherId}
         [HttpGet("teacher/{teacherId}")]
-        public async Task<IActionResult> GetTimetableByTeacher(int teacherId, [FromQuery] int? semesterId = null, [FromQuery] DateOnly? effectiveDate = null)
+        public async Task<IActionResult> GetTimetableByTeacher(int teacherId)
         {
             try
             {
-                var timetables = await _service.GetTimetableByTeacherAsync(teacherId, semesterId, effectiveDate);
+                var timetables = await _service.GetTimetableByTeacherAsync(teacherId);
                 if (timetables == null || !timetables.Any())
                 {
                     return NotFound($"No timetables found for teacher ID {teacherId}");
@@ -78,26 +71,44 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving timetable: {ex.Message}");
+                return StatusCode(500, $"Error retrieving teacher timetable: {ex.Message}");
             }
         }
 
-        // GET: api/Timetables/class/{classId}
-        [HttpGet("class/{classId}")]
-        public async Task<IActionResult> GetTimetableByClass(int classId, [FromQuery] int? semesterId = null, [FromQuery] DateOnly? effectiveDate = null)
+        // GET: api/Timetables/semester/{semesterId}
+        [HttpGet("TimetablesForPrincipal/{semesterId}")]
+        public async Task<IActionResult> GetTimetablesForPrincipalAsync(int semesterId, [FromQuery] string? status = null)
         {
             try
             {
-                var timetables = await _service.GetTimetableByClassAsync(classId, semesterId, effectiveDate);
+                var timetables = await _service.GetTimetablesForPrincipalAsync(semesterId, status);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for class ID {classId}");
+                    return NotFound($"No timetables found for semester {semesterId} with status '{status ?? "any"}'");
                 }
                 return Ok(timetables);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving timetable: {ex.Message}");
+                return StatusCode(500, $"Error retrieving semester timetables: {ex.Message}");
+            }
+        }
+
+        [HttpGet("semester/{semesterId}")]
+        public async Task<IActionResult> GetTimetablesBySemester(int semesterId)
+        {
+            try
+            {
+                var timetables = await _service.GetTimetablesBySemesterAsync(semesterId);
+                if (timetables == null || !timetables.Any())
+                {
+                    return NotFound($"No timetables found for SemesterId {semesterId}.");
+                }
+                return Ok(timetables);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Error retrieving timetables: {ex.Message}");
             }
         }
         [HttpPut("info")]
