@@ -88,7 +88,7 @@ export default function AddTeacher() {
     isHeadOfDepartment: z.boolean().optional().default(false),
     employmentType: z.string().min(1, "Vui lòng chọn loại hợp đồng"),
     employmentStatus: z.string().min(1, "Vui lòng chọn trạng thái"),
-    recruitmentAgency: z.string().min(1, "Vui nhập cơ quan tuyển dụng"),
+    recruitmentAgency: z.string().optional(),
     insuranceNumber: z.string().min(1, "Vui nhập số bảo hiểm"),
 
     // Employment dates
@@ -114,17 +114,7 @@ export default function AddTeacher() {
           });
         }
       }),
-    permanentEmploymentDate: z
-      .date()
-      .nullable()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày vào biên chế",
-          });
-        }
-      }),
+    permanentEmploymentDate: z.date().nullable(),
     phoneNumber: z
       .string()
       .min(10, "Số điện thoại phải có ít nhất 10 chữ số")
@@ -408,11 +398,7 @@ export default function AddTeacher() {
             options={["Đang làm việc", "Đã nghỉ việc"]}
             isRequired
           />
-          <FormField
-            name="recruitmentAgency"
-            label="Cơ quan tuyển dụng"
-            isRequired
-          />
+          <FormField name="recruitmentAgency" label="Cơ quan tuyển dụng" />
           <FormField name="insuranceNumber" label="Số bảo hiểm" isRequired />
           <FormField
             name="hiringDate"
@@ -430,7 +416,6 @@ export default function AddTeacher() {
             name="permanentEmploymentDate"
             label="Ngày vào biên chế"
             type="date"
-            isRequired
           />
         </CardContent>
       </Card>
