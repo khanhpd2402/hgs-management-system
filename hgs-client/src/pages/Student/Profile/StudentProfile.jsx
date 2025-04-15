@@ -365,6 +365,8 @@ export default function StudentProfile() {
       emailGuardian: "",
       yearOfBirthGuardian: null,
     },
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
   useEffect(() => {

@@ -4,9 +4,10 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITimetableRepository
     {
-        Task<IEnumerable<Timetable>> GetByStudentIdAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null);
-        Task<IEnumerable<Timetable>> GetByTeacherIdAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null);
-        Task<IEnumerable<Timetable>> GetByClassIdAsync(int classId, int? semesterId = null, DateOnly? effectiveDate = null);
+        Task<IEnumerable<Timetable>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null);
+        Task<IEnumerable<Timetable>> GetByStudentIdAsync(int studentId, int semesterId);
+        Task<IEnumerable<Timetable>> GetByTeacherIdAsync(int teacherId);
+        Task<IEnumerable<Timetable>> GetTimetablesBySemesterAsync(int semesterId);
 
         Task<Timetable> GetByIdAsync(int timetableId);
         Task UpdateTimetableAsync(Timetable timetable);

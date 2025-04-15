@@ -1,6 +1,7 @@
 ﻿using Application.Features.LeaveRequests.DTOs;
 using Application.Features.LeaveRequests.Interfaces;
 using AutoMapper;
+using Common.Constants;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using System;
@@ -22,41 +23,49 @@ namespace Application.Features.LeaveRequests.Services
             _mapper = mapper;
         }
 
-        public async Task<List<LeaveRequestDto>> GetAllAsync()
+        public async Task<LeaveRequestDetailDto?> GetByIdAsync(int id)
         {
-            var leaveRequests = await _repository.GetAllAsync();
-            return _mapper.Map<List<LeaveRequestDto>>(leaveRequests);
+            var entity = await _repository.GetByIdAsync(id);
+            return entity == null ? null : _mapper.Map<LeaveRequestDetailDto>(entity);
         }
 
-        public async Task<LeaveRequestDto?> GetByIdAsync(int id)
+        public async Task<IEnumerable<LeaveRequestListDto>> GetAllAsync(int? teacherId = null, string? status = null)
         {
-            var leaveRequest = await _repository.GetByIdAsync(id);
-            return leaveRequest != null ? _mapper.Map<LeaveRequestDto>(leaveRequest) : null;
+            var list = await _repository.GetAllAsync(teacherId, status);
+            return list.Select(_mapper.Map<LeaveRequestListDto>);
         }
 
-        public async Task<List<LeaveRequestDto>> GetByTeacherIdAsync(int teacherId)
+
+        public async Task<LeaveRequestDetailDto> CreateAsync(CreateLeaveRequestDto dto)
         {
-            var leaveRequests = await _repository.GetByTeacherIdAsync(teacherId);
-            return _mapper.Map<List<LeaveRequestDto>>(leaveRequests);
+            var entity = _mapper.Map<LeaveRequest>(dto);
+            entity.RequestDate = DateOnly.FromDateTime(DateTime.Today);
+            entity.Status = AppConstants.Status.PENDING;
+            await _repository.AddAsync(entity);
+            await _repository.SaveAsync();
+            return _mapper.Map<LeaveRequestDetailDto>(entity);
         }
 
-        public async Task AddAsync(CreateLeaveRequestDto leaveRequestDto)
+        public async Task<bool> UpdateAsync(UpdateLeaveRequest dto)
         {
-            var leaveRequest = _mapper.Map<LeaveRequest>(leaveRequestDto);
-            leaveRequest.RequestDate = DateOnly.FromDateTime(DateTime.UtcNow);
-            leaveRequest.Status = "Pending"; // Mặc định là chờ duyệt
-            await _repository.AddAsync(leaveRequest);
+            var entity = await _repository.GetByIdAsync(dto.RequestId);
+            if (entity == null) return false;
+
+            _mapper.Map(dto, entity);
+            _repository.Update(entity);
+            await _repository.SaveAsync();
+            return true;
         }
 
-        public async Task UpdateAsync(LeaveRequestDto leaveRequestDto)
+        public async Task<bool> DeleteAsync(int id)
         {
-            var leaveRequest = _mapper.Map<LeaveRequest>(leaveRequestDto);
-            await _repository.UpdateAsync(leaveRequest);
-        }
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null || entity.Status != AppConstants.Status.PENDING)
+                return false;
 
-        public async Task DeleteAsync(int id)
-        {
-            await _repository.DeleteAsync(id);
+            _repository.Delete(entity);
+            await _repository.SaveAsync();
+            return true;
         }
     }
 

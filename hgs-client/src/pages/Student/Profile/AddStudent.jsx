@@ -363,6 +363,8 @@ export default function AddStudent() {
       emailGuardian: "",
       yearOfBirthGuardian: null,
     },
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
   // Submit handler
@@ -398,7 +400,7 @@ export default function AddStudent() {
           fullName: "",
           gender: "",
           enrollmentType: "",
-          classId: 0,
+          classId: "",
           dob: null,
           admissionDate: null,
           permanentAddress: "",
