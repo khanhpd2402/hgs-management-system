@@ -334,10 +334,10 @@ CREATE TABLE [dbo].[Timetables] (
     [SemesterId] INT NOT NULL,
     [EffectiveDate] DATE NOT NULL,
 	[EndDate] DATE,
-    [Status] NVARCHAR(10) NOT NULL DEFAULT N'Hoạt Động',
+    [Status] NVARCHAR(20) NOT NULL DEFAULT N'Hoạt Động',
     FOREIGN KEY ([SemesterId]) REFERENCES [dbo].[Semesters]([SemesterId]) ON DELETE CASCADE
 ); 
-GO
+GO 
 CREATE TABLE [dbo].[TimetableDetails] (
     [TimetableDetailId] INT PRIMARY KEY IDENTITY(1,1),
     [TimetableId] INT NOT NULL,
@@ -367,21 +367,22 @@ CREATE TABLE [dbo].[Attendances] (
     CONSTRAINT [FK_Attendances_TimetableDetails] FOREIGN KEY ([TimetableDetailId]) REFERENCES [dbo].[TimetableDetails] ([TimetableDetailId]) ON DELETE CASCADE,
     CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [TimetableDetailId])
 );
-Go
-CREATE TRIGGER [dbo].[TR_Timetables_EnsureSingleActive]
+GO
+CREATE TRIGGER trg_EnsureOnlyOneActiveTimetable
 ON [dbo].[Timetables]
 AFTER INSERT, UPDATE
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF EXISTS (SELECT 1 FROM INSERTED WHERE Status = N'Hoạt Động')
+    -- Chỉ xử lý nếu có cái nào đang được set là Hoạt động
+    IF EXISTS (SELECT 1 FROM inserted WHERE Status = N'Hoạt động')
     BEGIN
-        UPDATE t
-        SET t.Status = N'Không hoạt động'
-        FROM [dbo].[Timetables] t
-        INNER JOIN INSERTED i ON t.TimetableId != i.TimetableId
-        WHERE t.Status = N'Hoạt Động';
+        UPDATE dbo.Timetables
+        SET Status = N'Không hoạt động'
+        WHERE Status = N'Hoạt động'
+          AND TimetableId NOT IN (SELECT TimetableId FROM inserted);
     END
 END;
-GO
+ALTER TABLE [dbo].[Timetables]
+ALTER COLUMN [Status] NVARCHAR(20) NOT NULL;
