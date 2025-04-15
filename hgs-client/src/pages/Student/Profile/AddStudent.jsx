@@ -400,7 +400,7 @@ export default function AddStudent() {
           fullName: "",
           gender: "",
           enrollmentType: "",
-          classId: 0,
+          classId: "",
           dob: null,
           admissionDate: null,
           permanentAddress: "",
