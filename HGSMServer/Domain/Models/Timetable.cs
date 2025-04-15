@@ -11,6 +11,8 @@ public partial class Timetable
 
     public DateOnly EffectiveDate { get; set; }
 
+    public DateOnly? EndDate { get; set; }
+
     public string Status { get; set; } = null!;
 
     public virtual Semester Semester { get; set; } = null!;

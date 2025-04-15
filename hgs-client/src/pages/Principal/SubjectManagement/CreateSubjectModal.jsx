@@ -29,7 +29,7 @@ import { cleanString } from "@/helpers/removeWhiteSpace";
 const subjectSchema = z.object({
   subjectName: z.string().min(1, "Tên môn học không được để trống"),
   subjectCategory: z.string().min(1, "Vui lòng chọn tổ bộ môn"),
-  typeOfGrade: z.string().min(1, "Vui lòng chọn phương thức tính điểm"),
+  typeOfGrade: z.string().min(1, "Vui lòng chọn hình thức tính điểm"),
   gradesData: z.array(
     z.object({
       gradeLevelId: z.number(),
@@ -153,7 +153,17 @@ export const CreateSubjectModal = () => {
     };
 
     console.log(filteredData);
-    createSubjectMutation.mutate(filteredData);
+    createSubjectMutation.mutate(filteredData, {
+      onSuccess: () => {
+        reset({
+          subjectName: "",
+          subjectCategory: "",
+          typeOfGrade: "",
+          gradesData: [],
+        });
+        setEnabledGrades({});
+      },
+    });
   };
 
   return (
@@ -208,13 +218,13 @@ export const CreateSubjectModal = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="type-of-grade">Phương thức tính điểm</Label>
+            <Label htmlFor="type-of-grade">Hình thức tính điểm</Label>
             <Select
               onValueChange={(value) => setValue("typeOfGrade", value)}
               defaultValue={watch("typeOfGrade")}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn phương thức tính điểm" />
+                <SelectValue placeholder="Chọn hình thức tính điểm" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Tính điểm">Tính điểm</SelectItem>

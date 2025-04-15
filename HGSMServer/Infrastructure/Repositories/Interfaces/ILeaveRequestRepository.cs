@@ -9,12 +9,12 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ILeaveRequestRepository
     {
-        Task<List<LeaveRequest>> GetAllAsync();
         Task<LeaveRequest?> GetByIdAsync(int id);
-        Task<List<LeaveRequest>> GetByTeacherIdAsync(int teacherId);
-        Task AddAsync(LeaveRequest leaveRequest);
-        Task UpdateAsync(LeaveRequest leaveRequest);
-        Task DeleteAsync(int id);
+        Task<IEnumerable<LeaveRequest>> GetAllAsync(int? teacherId = null, string? status = null);
+        Task AddAsync(LeaveRequest request);
+        void Update(LeaveRequest request);
+        void Delete(LeaveRequest request);
+        Task SaveAsync();
     }
 
 }
