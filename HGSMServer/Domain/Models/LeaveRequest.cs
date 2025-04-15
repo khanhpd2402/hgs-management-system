@@ -15,7 +15,9 @@ public partial class LeaveRequest
 
     public DateOnly LeaveToDate { get; set; }
 
-    public string Reason { get; set; } = null!;
+    public string? Reason { get; set; }
+
+    public string? Comment { get; set; }
 
     public string? Status { get; set; }
 

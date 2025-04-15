@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<IEnumerable<Timetable>> GetByClassIdAsync(int classId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<Timetable>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null)
         {
             var query = _context.Timetables
                 .Include(t => t.TimetableDetails)
@@ -23,65 +23,107 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(td => td.Subject)
                 .Include(t => t.TimetableDetails)
                     .ThenInclude(td => td.Teacher)
-                .Where(t => t.TimetableDetails.Any(td => td.ClassId == classId))
-                .Where(t => t.Status == AppConstants.Status.ACTIVE);
+                    .Include(t => t.TimetableDetails)
+                    .ThenInclude(td => td.Class)
+                .Where(t => t.SemesterId == semesterId);
 
-            if (semesterId.HasValue)
-                query = query.Where(t => t.SemesterId == semesterId.Value);
-
-            if (effectiveDate.HasValue)
-                query = query.Where(t => t.EffectiveDate == effectiveDate.Value);
+            var statusFilter = string.IsNullOrEmpty(status) ? AppConstants.Status.ACTIVE : status;
+            query = query.Where(t => t.Status == statusFilter);
 
             return await query.ToListAsync();
         }
 
-        public async Task<IEnumerable<Timetable>> GetByStudentIdAsync(int studentId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<Timetable>> GetByStudentIdAsync(int studentId, int semesterId)
         {
-            var query = from t in _context.Timetables
-                        join td in _context.TimetableDetails on t.TimetableId equals td.TimetableId
-                        join sc in _context.StudentClasses on td.ClassId equals sc.ClassId
-                        where sc.StudentId == studentId  && t.Status == AppConstants.Status.ACTIVE 
-                        select t;
+            // Lấy ClassId của học sinh trong học kỳ
+            var classId = await _context.StudentClasses
+                .Join(_context.Semesters,
+                      sc => sc.AcademicYearId,
+                      s => s.AcademicYearId,
+                      (sc, s) => new { sc.ClassId, sc.StudentId, s.SemesterId })
+                .Where(x => x.StudentId == studentId && x.SemesterId == semesterId)
+                .Select(x => x.ClassId)
+                .FirstOrDefaultAsync();
 
-            query = query
-                .Include(t => t.TimetableDetails)
-                    .ThenInclude(td => td.Period)
-                .Include(t => t.TimetableDetails)
-                    .ThenInclude(td => td.Subject)
-                .Include(t => t.TimetableDetails)
-                    .ThenInclude(td => td.Teacher)
-                .Distinct();
+            if (classId == 0)
+                return Enumerable.Empty<Timetable>(); // Không tìm thấy lớp cho học sinh
 
-            if (semesterId.HasValue)
-                query = query.Where(t => t.SemesterId == semesterId.Value);
+            // Lấy và lọc lại TimetableDetails theo đúng classId
+            var timetables = await _context.Timetables
+                .Where(t => t.SemesterId == semesterId
+                         && t.Status == AppConstants.Status.ACTIVE
+                         && t.TimetableDetails.Any(td => td.ClassId == classId))
+                .Select(t => new Timetable
+                {
+                    TimetableId = t.TimetableId,
+                    SemesterId = t.SemesterId,
+                    EffectiveDate = t.EffectiveDate,
+                    EndDate = t.EndDate,
+                    Status = t.Status,
+                    TimetableDetails = t.TimetableDetails
+                        .Where(td => td.ClassId == classId)
+                        .Select(td => new TimetableDetail
+                        {
+                            TimetableDetailId = td.TimetableDetailId,
+                            TimetableId = td.TimetableId,
+                            ClassId = td.ClassId,
+                            SubjectId = td.SubjectId,
+                            TeacherId = td.TeacherId,
+                            DayOfWeek = td.DayOfWeek,
+                            PeriodId = td.PeriodId,
+                            Class = td.Class,
+                            Subject = td.Subject,
+                            Teacher = td.Teacher,
+                            Period = td.Period
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
 
-            if (effectiveDate.HasValue)
-                query = query.Where(t => t.EffectiveDate == effectiveDate.Value);
-
-            return await query.ToListAsync();
+            return timetables;
         }
 
-        public async Task<IEnumerable<Timetable>> GetByTeacherIdAsync(int teacherId, int? semesterId = null, DateOnly? effectiveDate = null)
+        public async Task<IEnumerable<Timetable>> GetByTeacherIdAsync(int teacherId)
         {
-            var query = _context.Timetables
-                .Include(t => t.TimetableDetails)
-                    .ThenInclude(td => td.Period)
-                .Include(t => t.TimetableDetails)
-                    .ThenInclude(td => td.Subject)
-                .Include(t => t.TimetableDetails)
-                    .ThenInclude(td => td.Teacher)
+            var timetables = await _context.Timetables
+                .Where(t => t.Status == AppConstants.Status.ACTIVE)
                 .Where(t => t.TimetableDetails.Any(td => td.TeacherId == teacherId))
-                .Where(t => t.Status == AppConstants.Status.ACTIVE);
+                .Select(t => new Timetable
+                {
+                    TimetableId = t.TimetableId,
+                    SemesterId = t.SemesterId,
+                    EffectiveDate = t.EffectiveDate,
+                    EndDate = t.EndDate,
+                    Status = t.Status,
+                    TimetableDetails = t.TimetableDetails
+                        .Where(td => td.TeacherId == teacherId)
+                        .Select(td => new TimetableDetail
+                        {
+                            TimetableDetailId = td.TimetableDetailId,
+                            TimetableId = td.TimetableId,
+                            ClassId = td.ClassId,
+                            SubjectId = td.SubjectId,
+                            TeacherId = td.TeacherId,
+                            DayOfWeek = td.DayOfWeek,
+                            PeriodId = td.PeriodId,
+                            Class = td.Class,
+                            Subject = td.Subject,
+                            Teacher = td.Teacher,
+                            Period = td.Period
+                        })
+                        .ToList()
+                })
+                .ToListAsync();
 
-            if (semesterId.HasValue)
-                query = query.Where(t => t.SemesterId == semesterId.Value);
-
-            if (effectiveDate.HasValue)
-                query = query.Where(t => t.EffectiveDate == effectiveDate.Value);
-
-            return await query.ToListAsync();
+            return timetables;
         }
 
+        public async Task<IEnumerable<Timetable>> GetTimetablesBySemesterAsync(int semesterId)
+        {
+            return await _context.Timetables
+                .Where(t => t.SemesterId == semesterId)
+                .ToListAsync();
+        }
         public async Task<Timetable> GetByIdAsync(int timetableId)
         {
             return await _context.Timetables
@@ -91,6 +133,8 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(td => td.Subject)
                 .Include(t => t.TimetableDetails)
                     .ThenInclude(td => td.Teacher)
+                     .Include(t => t.TimetableDetails)
+                     .ThenInclude(td => td.Class)
                 .FirstOrDefaultAsync(t => t.TimetableId == timetableId);
         }
         public async Task UpdateTimetableAsync(Timetable timetable)
@@ -119,8 +163,8 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.TimetableDetails.AnyAsync(x =>
                 x.ClassId == detail.ClassId &&
-                x.PeriodId == detail.PeriodId && 
-                x.Date == detail.Date &&
+                x.PeriodId == detail.PeriodId &&
+                x.DayOfWeek == detail.DayOfWeek &&
                 x.TimetableId == detail.TimetableId &&
                 x.Timetable.EffectiveDate == detail.Timetable.EffectiveDate &&
                 x.Timetable.SemesterId == detail.Timetable.SemesterId);

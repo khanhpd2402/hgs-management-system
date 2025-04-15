@@ -8,7 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 using NLog;
-using Infrastructure.Repositories.Implementations; // Sửa namespace
+using Infrastructure.Repositories.Implementations;
 using Infrastructure.Repositories.Interfaces;
 using Common.Constants;
 using Application.Features.Students.Interfaces;
@@ -16,12 +16,11 @@ using Application.Features.Students.Services;
 using Application.Features.Users.Interfaces;
 using Application.Features.Users.Services;
 using Application.Features.Teachers.Interfaces;
-//using Application.Features.Teachers.Services;
 using Application.Features.Role.Interfaces;
 using Application.Features.Role.Services;
 using Common.Utils;
 using Application.Features.Timetables.Services;
-using Application.Features.Timetables.Interfaces; // Thêm namespace cho ITimetableService
+using Application.Features.Timetables.Interfaces;
 using Application.Features.Classes.Interfaces;
 using Application.Features.Classes.Services;
 using Microsoft.EntityFrameworkCore;
@@ -318,7 +317,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// Thêm middleware session trước Authentication và Authorization
 app.UseSession();
 
 app.UseAuthentication();

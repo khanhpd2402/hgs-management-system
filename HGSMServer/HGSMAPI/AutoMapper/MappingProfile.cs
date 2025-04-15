@@ -16,6 +16,7 @@ using Application.Features.Timetables.DTOs;
 using Application.Features.GradeLevelSubjects.DTOs;
 using Application.Features.GradeLevels.DTOs;
 using Application.Features.Periods.DTOs;
+using Common.Constants;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -97,8 +98,20 @@ namespace HGSMAPI.AutoMapper
             CreateMap<Semester, SemesterDto>().ReverseMap();
             CreateMap<CreateSemesterDto, Semester>();
 
-            CreateMap<LeaveRequest, LeaveRequestDto>().ReverseMap();
-            CreateMap<CreateLeaveRequestDto, LeaveRequest>();
+            // Map Create DTO to Entity
+            CreateMap<CreateLeaveRequestDto, LeaveRequest>()
+                .ForMember(dest => dest.RequestDate, opt => opt.MapFrom(_ => DateOnly.FromDateTime(DateTime.Today)))
+                .ForMember(dest => dest.Status, opt => opt.MapFrom(_ => AppConstants.Status.PENDING))
+                .ForMember(dest => dest.Comment, opt => opt.Ignore()) 
+                .ForMember(dest => dest.RequestId, opt => opt.Ignore()) 
+                .ForMember(dest => dest.Teacher, opt => opt.Ignore()); 
+
+            CreateMap<UpdateLeaveRequest, LeaveRequest>()
+                .ForAllMembers(opt => opt.Condition((src, dest, srcMember) => srcMember != null));
+
+            CreateMap<LeaveRequest, LeaveRequestListDto>();
+
+            CreateMap<LeaveRequest, LeaveRequestDetailDto>();
 
             CreateMap<LessonPlan, LessonPlanResponseDto>()
                 .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher != null ? src.Teacher.FullName : "Unknown"))
@@ -107,14 +120,21 @@ namespace HGSMAPI.AutoMapper
 
 
             CreateMap<Timetable, TimetableDto>()
-            .ForMember(dest => dest.Details, opt => opt.MapFrom(src => src.TimetableDetails));
+                        .ForMember(dest => dest.Details, opt => opt.MapFrom(src => src.TimetableDetails));
+            CreateMap<TimetableDetail, TimetableDetailDto>()
+            .ForMember(dest => dest.PeriodName, opt => opt.MapFrom(src => src.Period.PeriodName))
+            .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject.SubjectName))
+            .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher.FullName))
+            .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.Class.ClassName));
 
             CreateMap<CreateTimetableDto, Timetable>();
-
-            CreateMap<TimetableDetail, TimetableDetailDto>()
-                .ForMember(dest => dest.PeriodName, opt => opt.MapFrom(src => src.Period.PeriodName));
-
             CreateMap<TimetableDetailCreateDto, TimetableDetail>();
+
+            CreateMap<UpdateTimetableDetailsDto, Timetable>();
+            CreateMap<TimetableDetailUpdateDto, TimetableDetail>();
+
+            CreateMap<UpdateTimetableInfoDto, Timetable>();
+            CreateMap<Timetable, TimetableListDto>().ReverseMap();
 
             CreateMap<Question, QuestionDto>()
                 .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
