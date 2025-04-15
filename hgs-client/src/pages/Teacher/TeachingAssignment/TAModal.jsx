@@ -81,7 +81,7 @@ export default function TAModal({ open, onOpenChange }) {
 
     console.log("Saving data:", assignments);
     // Add your API call here
-    onOpenChange(false);
+    // onOpenChange(false);
   };
 
   const handleClose = () => {
@@ -97,7 +97,7 @@ export default function TAModal({ open, onOpenChange }) {
       totalHK2 += classes.length * 3; // 3 periods per class in HK2
     });
 
-    return `(Tổng số tiết - HK1: ${totalHK1}, HK2: ${totalHK2})`;
+    return `HK1: ${totalHK1} - HK2: ${totalHK2}`;
   };
 
   useEffect(() => {
@@ -117,9 +117,7 @@ export default function TAModal({ open, onOpenChange }) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="!max-w-4xl">
         <DialogHeader>
-          <DialogTitle>
-            Cập nhật phân công giảng dạy - Vương Thị Ngọc Anh
-          </DialogTitle>
+          <DialogTitle>Phân công giáo viên</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-4">
@@ -170,8 +168,8 @@ export default function TAModal({ open, onOpenChange }) {
                   className="mt-1 disabled:opacity-100"
                 />
               </div>
-              <div>
-                <label className="text-sm font-medium">Tổng số tiết</label>
+              <div className="mt-4">
+                <label className="text-sm font-medium">Tổng số tiết/tuần</label>
 
                 <div>
                   <Input

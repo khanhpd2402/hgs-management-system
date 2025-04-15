@@ -11,7 +11,7 @@ export const useLoginMutation = () => {
         toast.error(error.message);
       } else {
         toast.success("Đăng nhập thành công");
-        console.log("success");
+        console.log(data);
       }
     },
   });
