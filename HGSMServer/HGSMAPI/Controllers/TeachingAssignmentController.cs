@@ -18,12 +18,27 @@ namespace HGSMAPI.Controllers
 
         [HttpPost("create")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> CreateTeachingAssignment([FromBody] TeachingAssignmentCreateDto dto)
+        public async Task<IActionResult> CreateTeachingAssignments([FromBody] List<TeachingAssignmentCreateDto> dtos)
         {
             try
             {
-                await _teachingAssignmentService.CreateTeachingAssignmentAsync(dto);
+                await _teachingAssignmentService.CreateTeachingAssignmentsAsync(dtos);
                 return Ok("Teaching assignments created successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpPut("update/{assignmentId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> UpdateTeachingAssignment(int assignmentId, [FromBody] TeachingAssignmentCreateDto dto)
+        {
+            try
+            {
+                await _teachingAssignmentService.UpdateTeachingAssignmentAsync(assignmentId, dto);
+                return Ok("Teaching assignment updated successfully.");
             }
             catch (Exception ex)
             {
@@ -62,7 +77,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("search")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
         public async Task<IActionResult> SearchTeachingAssignments([FromQuery] TeachingAssignmentFilterDto filter)
         {
             try
@@ -76,8 +91,23 @@ namespace HGSMAPI.Controllers
             }
         }
 
+        [HttpGet("all")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        public async Task<IActionResult> GetAllTeachingAssignments()
+        {
+            try
+            {
+                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost("assign-homeroom")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")] 
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto dto)
         {
             try

@@ -12,5 +12,6 @@ namespace Application.Features.AcademicYears.DTOs
         public string YearName { get; set; } = null!;
         public DateOnly StartDate { get; set; }
         public DateOnly EndDate { get; set; }
+        
     }
 }

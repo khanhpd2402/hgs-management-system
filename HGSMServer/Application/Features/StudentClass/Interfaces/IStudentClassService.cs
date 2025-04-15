@@ -12,7 +12,7 @@ namespace Application.Features.StudentClass.Interfaces
         Task CreateStudentClassAsync(StudentClassAssignmentDto dto);
         Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos);
         Task DeleteStudentClassAsync(int id);
-        Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? academicYearId = null);
+        Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null);
         Task BulkTransferClassAsync(BulkClassTransferDto dto);
         Task ProcessGraduationAsync(int academicYearId);
     }
