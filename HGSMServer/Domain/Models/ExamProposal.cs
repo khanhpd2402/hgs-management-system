@@ -19,9 +19,9 @@ public partial class ExamProposal
 
     public DateTime? CreatedDate { get; set; }
 
-    public virtual Teacher CreatedByNavigation { get; set; } = null!;
+    public string? FileUrl { get; set; }
 
-    public virtual ICollection<ExamProposalQuestion> ExamProposalQuestions { get; set; } = new List<ExamProposalQuestion>();
+    public virtual Teacher CreatedByNavigation { get; set; } = null!;
 
     public virtual Semester Semester { get; set; } = null!;
 
