@@ -49,13 +49,17 @@ public partial class Teacher
 
     public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
+    public virtual ICollection<HomeroomAssignment> HomeroomAssignments { get; set; } = new List<HomeroomAssignment>();
+
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
 
     public virtual ICollection<LessonPlan> LessonPlanReviewers { get; set; } = new List<LessonPlan>();
 
     public virtual ICollection<LessonPlan> LessonPlanTeachers { get; set; } = new List<LessonPlan>();
 
-    public virtual ICollection<Question> Questions { get; set; } = new List<Question>();
+    public virtual ICollection<SubstituteTeaching> SubstituteTeachingOriginalTeachers { get; set; } = new List<SubstituteTeaching>();
+
+    public virtual ICollection<SubstituteTeaching> SubstituteTeachingSubstituteTeachers { get; set; } = new List<SubstituteTeaching>();
 
     public virtual ICollection<TeacherSubject> TeacherSubjects { get; set; } = new List<TeacherSubject>();
 

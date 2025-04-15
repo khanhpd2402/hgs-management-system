@@ -26,8 +26,9 @@ namespace Infrastructure.Repositories.Implementtations
                           where g.StudentClass.StudentId == studentId
                                 && sem.SemesterId == semesterId
                           select g)
-                          .Include(g => g.StudentClass.Student) // Lấy thông tin học sinh
-                          .Include(g => g.Assignment.Subject) // Lấy môn học
+                          .Include(g => g.StudentClass.Student) 
+                          .Include(g => g.Assignment.Subject)
+                          .Include(g => g.Batch)
                           .ToListAsync();
         }
         public async Task<List<Grade>> GetGradesByClassAsync(int classId, int subjectId, int semesterId)
@@ -41,6 +42,7 @@ namespace Infrastructure.Repositories.Implementtations
                                 && sem.SemesterId == semesterId
                           select g)
                           .Include(g => g.StudentClass.Student)
+                          .Include(g => g.Batch)
                           .ToListAsync();
         }
         public async Task<List<Grade>> GetGradesByTeacherAsync(int teacherId, int classId, int subjectId, int semesterId)
@@ -49,12 +51,13 @@ namespace Infrastructure.Repositories.Implementtations
                           join gb in _context.GradeBatches on g.BatchId equals gb.BatchId
                           join sem in _context.Semesters on gb.SemesterId equals sem.SemesterId
                           join ta in _context.TeachingAssignments on g.AssignmentId equals ta.AssignmentId
-                          where ta.TeacherId == teacherId  // Giáo viên dạy lớp này
+                          where ta.TeacherId == teacherId 
                                 && g.StudentClass.ClassId == classId
                                 && ta.SubjectId == subjectId
                                 && sem.SemesterId == semesterId
                           select g)
-                          .Include(g => g.StudentClass.Student)  // Lấy thông tin học sinh
+                          .Include(g => g.StudentClass.Student)
+                          .Include(g => g.Batch)
                           .ToListAsync();
         }
 
@@ -69,13 +72,13 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<List<Grade>> GetGradesByIdsAsync(List<int> gradeIds)
         {
             return await _context.Grades
-                .Where(g => gradeIds.Contains(g.GradeId))
+                .Where(g => gradeIds.Contains(g.GradeId)).Include(g => g.Batch)
                 .ToListAsync();
         }
         public async Task<IEnumerable<Grade>> GetByBatchIdAsync(int batchId)
         {
             return await _context.Grades
-                .Where(g => g.BatchId == batchId)
+                .Where(g => g.BatchId == batchId).Include(g => g.Batch)
                 .ToListAsync();
         }
     }

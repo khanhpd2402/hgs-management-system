@@ -22,9 +22,11 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<IEnumerable<TeachingAssignment>> GetBySemesterIdAsync(int semesterId)
         {
             return await _context.TeachingAssignments
-                .Where(t => t.SemesterId == semesterId)
-                .Include(t => t.Class)
-                .ToListAsync();
+        .Where(t => t.SemesterId == semesterId)
+        .Include(t => t.Class)
+        .Include(t => t.Teacher) 
+        .ToListAsync();
         }
+        
     }
 }

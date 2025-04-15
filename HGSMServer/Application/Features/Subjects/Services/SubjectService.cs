@@ -13,46 +13,62 @@ namespace Application.Features.Subjects.Services
 {
     public class SubjectService : ISubjectService
     {
-        private readonly ISubjectRepository _subjectRepository;
+        private readonly ISubjectRepository _repository;
         private readonly IMapper _mapper;
 
-        public SubjectService(ISubjectRepository subjectRepository, IMapper mapper)
+        public SubjectService(ISubjectRepository repository, IMapper mapper)
         {
-            _subjectRepository = subjectRepository;
+            _repository = repository;
             _mapper = mapper;
         }
 
-        public async Task<List<SubjectDto>> GetAllSubjectsAsync()
+        public async Task<IEnumerable<SubjectDto>> GetAllAsync()
         {
-            var subjects = await _subjectRepository.GetAllSubjectsAsync();
-            return _mapper.Map<List<SubjectDto>>(subjects);
+            var entities = await _repository.GetAllAsync();
+            return _mapper.Map<IEnumerable<SubjectDto>>(entities);
         }
 
-        public async Task<SubjectDto?> GetSubjectByIdAsync(int id)
+        public async Task<SubjectDto> GetByIdAsync(int id)
         {
-            var subject = await _subjectRepository.GetSubjectByIdAsync(id);
-            return subject != null ? _mapper.Map<SubjectDto>(subject) : null;
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                throw new KeyNotFoundException($"Subject with ID {id} not found.");
+            }
+            return _mapper.Map<SubjectDto>(entity);
         }
 
-        public async Task<SubjectDto> CreateSubjectAsync(CreateSubjectDto createDto)
+        public async Task<SubjectCreateAndUpdateDto> CreateAsync(SubjectCreateAndUpdateDto dto)
         {
-            var subject = _mapper.Map<Subject>(createDto);
-            var createdSubject = await _subjectRepository.CreateSubjectAsync(subject);
-            return _mapper.Map<SubjectDto>(createdSubject);
+            var entity = _mapper.Map<Subject>(dto);
+            var createdEntity = await _repository.CreateAsync(entity);
+            return _mapper.Map<SubjectCreateAndUpdateDto>(createdEntity);
         }
 
-        public async Task<bool> UpdateSubjectAsync(int id, UpdateSubjectDto updateDto)
+        public async Task<SubjectCreateAndUpdateDto> UpdateAsync(int id, SubjectCreateAndUpdateDto dto)
         {
-            var existingSubject = await _subjectRepository.GetSubjectByIdAsync(id);
-            if (existingSubject == null) return false;
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                throw new KeyNotFoundException($"Subject with ID {id} not found.");
+            }
 
-            _mapper.Map(updateDto, existingSubject);
-            return await _subjectRepository.UpdateSubjectAsync(existingSubject);
+            entity.SubjectName = dto.SubjectName;
+            entity.SubjectCategory = dto.SubjectCategory;
+            entity.TypeOfGrade = dto.TypeOfGrade;
+
+            await _repository.UpdateAsync(entity);
+            return _mapper.Map<SubjectCreateAndUpdateDto>(entity);
         }
 
-        public async Task<bool> DeleteSubjectAsync(int id)
+        public async Task DeleteAsync(int id)
         {
-            return await _subjectRepository.DeleteSubjectAsync(id);
+            var entity = await _repository.GetByIdAsync(id);
+            if (entity == null)
+            {
+                throw new KeyNotFoundException($"Subject with ID {id} not found.");
+            }
+            await _repository.DeleteAsync(id);
         }
     }
 }
