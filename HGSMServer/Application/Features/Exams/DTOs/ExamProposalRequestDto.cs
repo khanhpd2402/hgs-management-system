@@ -1,4 +1,6 @@
-﻿namespace Application.Features.Exams.DTOs
+﻿using Microsoft.AspNetCore.Http;
+
+namespace Application.Features.Exams.DTOs
 {
     public class ExamProposalRequestDto
     {
@@ -6,6 +8,7 @@
         public int Grade { get; set; }
         public string Title { get; set; }
         public int SemesterId { get; set; }
-        public List<int> QuestionIds { get; set; }
+        public string SubjectName { get; set; } 
+        public IFormFile File { get; set; } 
     }
 }

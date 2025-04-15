@@ -27,6 +27,8 @@ public partial class TimetableDetail
 
     public virtual Subject Subject { get; set; } = null!;
 
+    public virtual ICollection<SubstituteTeaching> SubstituteTeachings { get; set; } = new List<SubstituteTeaching>();
+
     public virtual Teacher Teacher { get; set; } = null!;
 
     public virtual Timetable Timetable { get; set; } = null!;
