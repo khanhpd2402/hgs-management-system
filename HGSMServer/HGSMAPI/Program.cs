@@ -23,6 +23,8 @@ using Application.Features.Timetables.Services;
 using Application.Features.Timetables.Interfaces;
 using Application.Features.Classes.Interfaces;
 using Application.Features.Classes.Services;
+using Application.Features.HomeRooms.Services;
+using Application.Features.HomeRooms.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Application.Features.Attendances.Interfaces;
 using Application.Features.Attendances.Services;
@@ -149,7 +151,7 @@ builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
-
+builder.Services.AddScoped<IAssignHomeRoomService, AssignHomeRoomService>();
 // Class & Timetable Management
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
