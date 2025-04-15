@@ -15,6 +15,8 @@ public partial class Class
 
     public virtual GradeLevel GradeLevel { get; set; } = null!;
 
+    public virtual ICollection<HomeroomAssignment> HomeroomAssignments { get; set; } = new List<HomeroomAssignment>();
+
     public virtual ICollection<StudentClass> StudentClasses { get; set; } = new List<StudentClass>();
 
     public virtual ICollection<TeachingAssignment> TeachingAssignments { get; set; } = new List<TeachingAssignment>();

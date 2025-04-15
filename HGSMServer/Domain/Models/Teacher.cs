@@ -49,6 +49,8 @@ public partial class Teacher
 
     public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
+    public virtual ICollection<HomeroomAssignment> HomeroomAssignments { get; set; } = new List<HomeroomAssignment>();
+
     public virtual ICollection<LeaveRequest> LeaveRequests { get; set; } = new List<LeaveRequest>();
 
     public virtual ICollection<LessonPlan> LessonPlanReviewers { get; set; } = new List<LessonPlan>();

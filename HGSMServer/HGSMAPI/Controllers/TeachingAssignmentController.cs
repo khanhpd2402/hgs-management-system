@@ -1,4 +1,4 @@
-﻿using Application.Features.Teachers.DTOs;
+﻿using Application.Features.HomeRooms.DTOs;
 using Application.Features.TeachingAssignments.DTOs;
 using Application.Features.TeachingAssignments.Interfaces;
 using Microsoft.AspNetCore.Authorization;
@@ -87,29 +87,7 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPost("assign-homeroom")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
-        public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto dto)
-        {
-            try
-            {
-                await _teachingAssignmentService.AssignHomeroomAsync(dto);
-                return Ok(new { message = "Homeroom teacher assigned successfully.", teacherId = dto.TeacherId, classId = dto.ClassId });
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-        [HttpPut("homeroom")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateHomeroomAssignments([FromBody] List<UpdateHomeroomDto> dtos)
-        {
-            if (dtos == null || !dtos.Any())
-                return BadRequest("No assignments provided.");
-
-            await _teachingAssignmentService.UpdateHomeroomAssignmentsAsync(dtos);
-            return Ok();
-        }
+        
+        
     }
 }
