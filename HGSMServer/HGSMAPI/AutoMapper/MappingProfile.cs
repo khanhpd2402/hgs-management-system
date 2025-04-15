@@ -136,10 +136,7 @@ namespace HGSMAPI.AutoMapper
             CreateMap<UpdateTimetableInfoDto, Timetable>();
             CreateMap<Timetable, TimetableListDto>().ReverseMap();
 
-            CreateMap<Question, QuestionDto>()
-                .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
-            CreateMap<QuestionDto, Question>()
-                .ForMember(dest => dest.MathContent, opt => opt.MapFrom(src => src.MathContent));
+            
             CreateMap<ExamProposal, ExamProposalDto>();
 
             CreateMap<GradeLevelSubject, GradeLevelSubjectDto>()
