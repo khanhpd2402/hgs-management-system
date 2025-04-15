@@ -94,10 +94,11 @@ export function useCreateSubject() {
     mutationFn: (data) => {
       const subjectData = {
         subjectName: data.subjectName,
-        typeOfGrade: data.subjectCode,
+        typeOfGrade: data.typeOfGrade,
         subjectCategory: data.subjectCategory,
       };
-      return createSubject(data);
+      console.log(subjectData);
+      return createSubject(subjectData);
     },
     onSettled: async (data, error, variables) => {
       if (error) {
@@ -113,7 +114,6 @@ export function useCreateSubject() {
         });
         for (let i = 0; i < newData.length; i++) {
           try {
-            console.log(newData[i]);
             await configueSubject(newData[i]);
           } catch (error) {
             console.log(error);

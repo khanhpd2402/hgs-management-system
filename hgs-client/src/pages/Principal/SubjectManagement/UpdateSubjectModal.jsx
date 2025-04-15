@@ -221,7 +221,11 @@ export const UpdateSubjectModal = ({
 
     console.log(filteredData);
 
-    updateSubjectMutation.mutate(filteredData);
+    updateSubjectMutation.mutate(filteredData, {
+      onSuccess: () => {
+        setOpen(false);
+      },
+    });
   };
 
   const handleModalClose = () => {
