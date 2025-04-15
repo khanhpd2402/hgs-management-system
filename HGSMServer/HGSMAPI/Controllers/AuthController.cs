@@ -169,7 +169,7 @@ namespace HGSMAPI.Controllers
                 Username = userToUpdate.Username,
                 Email = userToUpdate.Email,
                 PhoneNumber = userToUpdate.PhoneNumber,
-                RoleId = assignRoleDto.RoleId // Cập nhật RoleId
+                RoleId = assignRoleDto.RoleId 
             };
 
             await _userService.UpdateUserAsync(updateUserDto);

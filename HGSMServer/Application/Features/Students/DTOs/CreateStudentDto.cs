@@ -34,6 +34,7 @@ namespace Application.Features.Students.DTOs
 
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
+        public int? ParentId { get; set; }
 
         // Thông tin cha
         public string? FullNameFather { get; set; }
