@@ -1,6 +1,7 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   addGradeBatch,
+  assignTeaching,
   changeUserStatus,
   configueSubject,
   createSubject,
@@ -171,6 +172,23 @@ export function useUpdateSubject() {
           queryKey: ["subjectConfig", { id: variables.subjectId }],
         });
         toast.success("Cập nhật môn học thành công");
+      }
+    },
+  });
+}
+
+export function useAssginTeaching() {
+  return useMutation({
+    mutationFn: (data) => {
+      return assignTeaching(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Phân công giảng dạy thành công");
       }
     },
   });

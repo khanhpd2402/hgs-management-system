@@ -45,6 +45,10 @@ export const getSubjectDetail = async (id) => {
   return (await axiosInstance.get(`Subjects/${id}`)).data;
 };
 
+export const getSubjectConfigues = async () => {
+  return (await axiosInstance.get(`GradeLevelSubjects`)).data;
+};
+
 export const getSubjectConfigueDetail = async (id) => {
   return (await axiosInstance.get(`GradeLevelSubjects/subject/${id}`)).data;
 };
@@ -63,4 +67,14 @@ export const deleteSubject = async (id) => {
 
 export const deleteSubjectConfigue = async (id) => {
   return (await axiosInstance.delete(`GradeLevelSubjects/${id}`)).data;
+};
+
+//teaching assignment
+
+export const getTeacherSubjects = async () => {
+  return (await axiosInstance.get(`TeachingAssignment/filter-data`)).data;
+};
+
+export const assignTeaching = async (data) => {
+  return (await axiosInstance.post(`TeachingAssignment/create`, data)).data;
 };

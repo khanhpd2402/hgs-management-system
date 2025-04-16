@@ -9,11 +9,7 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
-import { Checkbox } from "@/components/ui/checkbox";
 import MyPagination from "@/components/MyPagination";
-import { useTA } from "@/services/teacher/queries";
-import TAHeader from "./TAHeader";
 import PaginationControls from "@/components/PaginationControls";
 import { Spinner } from "@/components/Spinner";
 import TAModal from "./TAModal";
@@ -40,7 +36,7 @@ export default function TATable() {
 
   useEffect(() => {
     if (semesters?.length > 0) {
-      setSemester(semesters[0].semesterID);
+      setSemester(semesters[0]);
     }
   }, [semesters, currentYear]);
 
@@ -132,6 +128,8 @@ export default function TATable() {
     );
   }
 
+  console.log(semester);
+
   // if (isError) {
   //   return (
   //     <Card className="relative mt-6 flex items-center justify-center p-4">
@@ -144,7 +142,7 @@ export default function TATable() {
     <div className="relative mt-6 p-4">
       <div className="mb-4 flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-4">
-          <h2 className="mb-0 text-lg font-semibold">Danh sách cán bộ</h2>
+          <h2 className="!mb-0 text-lg font-semibold">Phân công giảng dạy</h2>
           <div className="bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-lg p-1">
             {semesters?.map((sem) => (
               <button
@@ -152,11 +150,11 @@ export default function TATable() {
                 className={cn(
                   // Change color for active/inactive semester
                   "ring-offset-background focus-visible:ring-ring inline-flex items-center justify-center rounded-md px-8 py-1.5 text-sm font-medium whitespace-nowrap transition-all focus-visible:ring-2 focus-visible:ring-offset-2 focus-visible:outline-none disabled:pointer-events-none disabled:opacity-50",
-                  semester === sem.semesterID
+                  semester?.semesterID === sem.semesterID
                     ? "bg-blue-600 text-white shadow-sm" // Active: blue background, white text
                     : "bg-gray-200 text-gray-700 hover:bg-blue-100", // Inactive: gray background, blue hover
                 )}
-                onClick={() => setSemester(sem.semesterID)}
+                onClick={() => setSemester(sem)}
               >
                 {sem.semesterName}
               </button>
@@ -176,7 +174,11 @@ export default function TATable() {
       </div>
 
       {/* Add Modal */}
-      <TAModal open={openModal} onOpenChange={setOpenModal} />
+      <TAModal
+        open={openModal}
+        onOpenChange={setOpenModal}
+        semester={semester}
+      />
 
       {/* Container chính không có overflow-x-auto */}
       <div className="relative">

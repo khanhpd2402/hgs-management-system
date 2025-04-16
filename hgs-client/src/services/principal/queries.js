@@ -3,7 +3,9 @@ import {
   getGradeBatch,
   getGradeBatches,
   getSubjectConfigueDetail,
+  getSubjectConfigues,
   getSubjectDetail,
+  getTeacherSubjects,
   getUsers,
 } from "./api";
 
@@ -38,11 +40,27 @@ export function useSubjectDetail(id) {
   });
 }
 
+export function useSubjectConfigue() {
+  return useQuery({
+    queryKey: ["subjectConfig"],
+    queryFn: getSubjectConfigues,
+  });
+}
+
 export function useSubjectConfigueDetail(id, options) {
   return useQuery({
     queryKey: ["subjectConfig", { id }],
     queryFn: () => getSubjectConfigueDetail(id),
     ...options,
     enabled: !!id && options?.enabled,
+  });
+}
+
+//teaching assignment
+
+export function useTeacherSubjects() {
+  return useQuery({
+    queryKey: ["teacherSubjects"],
+    queryFn: getTeacherSubjects,
   });
 }

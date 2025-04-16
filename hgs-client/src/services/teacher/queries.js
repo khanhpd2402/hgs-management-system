@@ -27,12 +27,9 @@ export function useTeacher(id) {
   });
 }
 
-export function useTA({ page, pageSize, department, teacher, semester }) {
+export function useTA() {
   return useQuery({
-    queryKey: [
-      "teaching-assignments",
-      { page, pageSize, department, teacher, semester },
-    ],
+    queryKey: ["teaching-assignments"],
     queryFn: () => {
       return getTeachingAssignments(
         page,
