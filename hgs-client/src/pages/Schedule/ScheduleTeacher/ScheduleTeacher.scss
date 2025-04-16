@@ -1,299 +1,213 @@
 .schedule-teacher-container {
-    max-width: 1000px;
-    margin: auto;
     padding: 20px;
-    text-align: center;
-  }
-  
-  h2 {
-    color: #333;
-    margin-bottom: 20px;
-    font-size: 24px;
-  }
-  
-  /* Bộ lọc */
-  .schedule-filters {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-    margin-bottom: 30px;
-    padding: 20px;
-    background-color: #ffffff;
-    border-radius: 8px;
-    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
-    border: 1px solid #eaeaea;
-  
-    .filter-group {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      flex: 1;
-  
-      label {
-        font-size: 14px;
-        font-weight: 500;
-        color: #333;
-        margin-bottom: 4px;
-      }
-  
-      select,
-      input[type="date"] {
-        padding: 10px 12px;
-        font-size: 14px;
-        border: 1px solid #e0e0e0;
-        border-radius: 6px;
-        background-color: #f8f9fa;
-        transition: all 0.3s ease;
-        width: 100%;
-  
-        &:hover {
-          border-color: #727CF5;
-          background-color: #fff;
-        }
-  
-        &:focus {
-          outline: none;
-          border-color: #727CF5;
-          box-shadow: 0 0 0 3px rgba(114, 124, 245, 0.1);
-          background-color: #fff;
-        }
-      }
-  
-      select {
-        cursor: pointer;
-        appearance: none;
-        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23333' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10l-5 5z'/%3E%3C/svg%3E");
-        background-repeat: no-repeat;
-        background-position: right 12px center;
-        padding-right: 35px;
-      }
-    }
-  
-    .teacher-button {
-      padding: 10px 16px;
-      background-color: #f8f9fa;
-      border: 1px solid #e0e0e0;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #333;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      height: fit-content;
-      align-self: flex-end;
-  
-      &:hover {
-        background-color: #727CF5;
-        color: white;
-        border-color: #727CF5;
-      }
-    }
-  
-    .search-button {
-      padding: 10px 24px;
-      background-color: #727CF5;
-      border: none;
-      border-radius: 6px;
-      font-size: 14px;
-      font-weight: 500;
-      color: #fff;
-      cursor: pointer;
-      transition: all 0.3s ease;
-      height: fit-content;
-      align-self: flex-end;
-      white-space: nowrap;
-      
-  
-      &:hover {
-        background-color: #5965f3;
-        transform: translateY(-1px);
-        box-shadow: 0 4px 8px rgba(114, 124, 245, 0.2);
-      }
-  
-      &:active {
-        transform: translateY(0);
-      }
-    }
-  }
-  
-  /* Responsive */
-  @media (max-width: 768px) {
-    .schedule-filters {
-      flex-direction: column;
-      gap: 15px;
-      padding: 15px;
-  
-      .filter-group {
-        width: 100%;
-      }
-  
-      .teacher-button,
-      .search-button {
-        width: 100%;
-        align-self: center;
-      }
-    }
-  }
-  
-  /* Bảng thời khóa biểu */
-  .schedule-teacher-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 16px;
-    background-color: #fff;
-    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-  
-    th,
-    td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-      transition: all 0.3s ease;
-    }
-  
-    thead {
-      background-color: #727cf5;
-      color: white;
-  
-      th {
-        font-weight: bold;
-      }
-    }
-  
-    tbody tr:hover {
-      background-color: #d1c4e9; /* Tím nhạt */
-      cursor: pointer;
-    }
-  
-    tbody tr:nth-child(odd) {
-      background-color: #f9f9f9;
-    }
-  
-    tbody tr:nth-child(even) {
-      background-color: #ffffff;
-    }
-  
-    .even-column {
-      background-color: #e3f2fd; /* Xanh nhạt */
-    }
-  
-    .odd-column {
-      background-color: #fff3e0; /* Cam nhạt */
-    }
-  
-    td:hover {
-      background-color: #ffcdd2; /* Đỏ nhạt */
-      font-weight: bold;
-    }
-  
-    .shift-cell {
-      font-weight: bold;
-      background-color: #f5f5f5;
-    }
-  }
-
-.filter-section {
-    background: #fff;
-    padding: 20px;
+    background-color: #f8f9fa;
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-    margin-bottom: 30px;
-}
 
-.filter-row {
-    display: flex;
-    gap: 20px;
-    margin-bottom: 15px;
+    .schedule-header {
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 
-    &:last-child {
-        margin-bottom: 20px;
-    }
-}
+        h2 {
+            color: #333;
+            font-size: 24px;
+            margin-bottom: 16px;
+            font-weight: 600;
+        }
 
-.filter-item {
-    flex: 1;
-    position: relative;
-    
-    label {
-        display: block;
-        font-size: 14px;
-        color: #333;
-        margin-bottom: 8px;
-    }
+        .schedule-info {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 16px;
 
-    select, input {
-        width: 100%;
-        padding: 8px 12px;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        font-size: 14px;
-        color: #333;
-        background-color: #fff;
-        
-        &:focus {
-            outline: none;
-            border-color: #727CF5;
-            box-shadow: 0 0 0 2px rgba(114, 124, 245, 0.1);
+            p {
+                margin: 8px 0;
+                color: #555;
+                font-size: 15px;
+
+                strong {
+                    color: #333;
+                    margin-right: 8px;
+                }
+            }
         }
     }
 
-    // Style cho date input
-    input[type="date"] {
-        width: calc(100% - 40px); // Để chừa chỗ cho nút +
+    .filter-section {
+        margin-bottom: 24px;
+        padding: 16px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        .filter-row {
+            display: flex;
+            gap: 20px;
+            margin-bottom: 16px;
+
+            .filter-item {
+                flex: 1;
+
+                label {
+                    display: block;
+                    margin-bottom: 8px;
+                    color: #555;
+                    font-weight: 500;
+                }
+
+                input[type="date"] {
+                    width: 100%;
+                    padding: 8px 12px;
+                    border: 1px solid #ddd;
+                    border-radius: 4px;
+                    font-size: 14px;
+                    
+                    &:focus {
+                        outline: none;
+                        border-color: #727cf5;
+                        box-shadow: 0 0 0 2px rgba(114, 124, 245, 0.1);
+                    }
+                }
+            }
+        }
+
+        .search-button-container {
+            display: flex;
+            justify-content: flex-end;
+
+            .search-button {
+                background-color: #727cf5;
+                color: white;
+                border: none;
+                padding: 10px 24px;
+                border-radius: 4px;
+                cursor: pointer;
+                font-weight: 500;
+                transition: background-color 0.2s;
+
+                &:hover {
+                    background-color: #5b63c4;
+                }
+            }
+        }
     }
-}
 
-// Nút + bên cạnh date input
-.add-button {
-    position: absolute;
-    right: 0;
-    bottom: 0;
-    width: 35px;
-    height: 35px;
-    background: #92C4C1;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    font-size: 20px;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    
-    &:hover {
-        background: #7ab3af;
-    }
- 
-}
-
-.search-button-container {
-    display: flex;
-    justify-content: center;
-}
-
-.search-button {
-    padding: 8px 24px;
-    background: #92C4C1;
-    border: none;
-    border-radius: 4px;
-    color: white;
-    font-size: 14px;
-    cursor: pointer;
-    transition: background-color 0.3s;
-
-    &:hover {
-        background: #7ab3af;
-    }
-}
-
-// Responsive
-@media (max-width: 768px) {
-    .filter-row {
-        flex-direction: column;
-        gap: 15px;
-    }
-
-    .filter-item {
+    .schedule-teacher-table {
         width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+        border-radius: 8px;
+        overflow: hidden;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+        th, td {
+            border: 1px solid #e2e8f0;
+            padding: 12px;
+            text-align: center;
+        }
+
+        th {
+            background-color: #727cf5;
+            color: white;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .shift-cell {
+            background-color: #f8f9fa;
+            font-weight: 600;
+            color: #333;
+        }
+
+        td {
+            &.even-column {
+                background-color: #f8faff;
+            }
+
+            &:not(:empty) {
+                div {
+                    padding: 8px;
+                    border-radius: 4px;
+                    background-color: #eef2ff;
+                    margin: -4px;
+
+                    strong {
+                        color: #4338ca;
+                        display: block;
+                        margin-bottom: 4px;
+                    }
+
+                    div {
+                        color: #6b7280;
+                        font-size: 13px;
+                        background: none;
+                        padding: 0;
+                        margin: 0;
+                    }
+                }
+            }
+        }
+
+        tbody {
+            tr {
+                &:hover {
+                    background-color: #f8faff;
+                    
+                    td {
+                        background-color: rgba(114, 124, 245, 0.05);
+                    }
+                }
+            }
+        }
+    }
+
+    // Loading state
+    .loading-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        min-height: 200px;
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+        
+        .loading-text {
+            color: #727cf5;
+            font-size: 16px;
+            font-weight: 500;
+        }
+    }
+}
+
+// Responsive styles
+@media (max-width: 1024px) {
+    .schedule-teacher-container {
+        padding: 16px;
+
+        .schedule-teacher-table {
+            display: block;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+    }
+}
+
+@media (max-width: 768px) {
+    .schedule-teacher-container {
+        .filter-section {
+            .filter-row {
+                flex-direction: column;
+                gap: 16px;
+            }
+        }
+
+        .schedule-header {
+            .schedule-info {
+                grid-template-columns: 1fr;
+            }
+        }
     }
 }

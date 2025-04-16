@@ -172,6 +172,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                     PhoneNumber = t.User != null ? t.User.PhoneNumber : "N/A",
                     Subjects = t.TeacherSubjects.Select(ts => new SubjectTeacherDto
                     {
+                        SubjectId = ts.Subject.SubjectId,
                         SubjectName = ts.Subject.SubjectName,
                         IsMainSubject = ts.IsMainSubject ?? false
                     }).ToList()
