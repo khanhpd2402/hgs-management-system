@@ -6,6 +6,12 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import {
+  Dialog as ConfirmDialog,
+  DialogTitle as ConfirmDialogTitle,
+  DialogHeader as ConfirmDialogHeader,
+  DialogContent as ConfirmDialogContent,
+} from "@/components/ui/dialog";
+import {
   Select,
   SelectContent,
   SelectItem,
@@ -21,12 +27,14 @@ import {
 } from "@/services/principal/queries";
 import toast from "react-hot-toast";
 import { useClasses } from "@/services/common/queries";
+import { useAssginTeaching } from "@/services/principal/mutation";
 
 export default function TAModal({ open, onOpenChange, semester }) {
   //get teacher + subject
   const teacherQuery = useTeacherSubjects();
   const subjects = teacherQuery.data?.subjects || [];
   const teachers = teacherQuery.data?.teachers || [];
+  console.log(teachers);
 
   //get classes
   const classQuery = useClasses();
@@ -36,9 +44,14 @@ export default function TAModal({ open, onOpenChange, semester }) {
   const subjectConfigQuery = useSubjectConfigue();
   const subjectConfigs = subjectConfigQuery.data || [];
 
+  //assign teaching
+  const assignTeachingMutation = useAssginTeaching();
+
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
   const [subjectAssignments, setSubjectAssignments] = useState({});
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [pendingTeacher, setPendingTeacher] = useState("");
 
   const handleSubjectChange = (value) => {
     setSelectedSubject(value);
@@ -100,14 +113,15 @@ export default function TAModal({ open, onOpenChange, semester }) {
           classAssignments: assignedClassIds.map((classId) => ({
             classId,
           })),
-          semesterId: 1,
+          semesterId: semester.semesterID,
         };
         assignments.push(data);
       }
     });
     console.log("Saving data:", assignments);
+    // assignTeachingMutation.mutate(assignments);
     // Add your API call here
-    // onOpenChange(false);
+    onOpenChange(false);
   };
   const handleClose = () => {
     onOpenChange(false);
@@ -145,9 +159,26 @@ export default function TAModal({ open, onOpenChange, semester }) {
     return `Học kỳ 1: ${totalHK1} - Học kỳ 2: ${totalHK2}`;
   };
 
+  const hasAssignments = () => {
+    return Object.values(subjectAssignments).some(
+      (arr) => arr && arr.length > 0,
+    );
+  };
+
+  const resetTeacherAndAssignments = (newTeacher = "") => {
+    setSelectedTeacher(newTeacher);
+    setSelectedSubject("");
+    const initialAssignments = {};
+    subjects.forEach((s) => {
+      initialAssignments[s.subjectID] = [];
+    });
+    setSubjectAssignments(initialAssignments);
+  };
+
   useEffect(() => {
     if (open && subjects.length > 0) {
-      // setSelectedSubject(subjects[0].subjectID);
+      setSelectedTeacher("");
+      setSelectedSubject("");
       // Initialize assignments for all subjects
       const initialAssignments = {};
       subjects.forEach((s) => {
@@ -155,145 +186,205 @@ export default function TAModal({ open, onOpenChange, semester }) {
       });
       setSubjectAssignments(initialAssignments);
     }
+    if (!open) {
+      setSelectedTeacher("");
+      setSelectedSubject("");
+      setSubjectAssignments({});
+    }
   }, [open, subjects]);
 
+  useEffect(() => {
+    // Reset subject and assignments when teacher changes
+    if (selectedTeacher !== "") {
+      setSelectedSubject("");
+      const initialAssignments = {};
+      subjects.forEach((s) => {
+        initialAssignments[s.subjectID] = [];
+      });
+      setSubjectAssignments(initialAssignments);
+    }
+  }, [selectedTeacher, subjects]);
+
+  const handleTeacherChange = (value) => {
+    if (hasAssignments()) {
+      setPendingTeacher(value);
+      setShowConfirmModal(true);
+    } else {
+      resetTeacherAndAssignments(value);
+    }
+  };
+
+  const handleConfirmChangeTeacher = () => {
+    resetTeacherAndAssignments(pendingTeacher);
+    setShowConfirmModal(false);
+    setPendingTeacher("");
+  };
+
+  const handleCancelChangeTeacher = () => {
+    setShowConfirmModal(false);
+    setPendingTeacher("");
+  };
+
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="!max-w-4xl">
-        <DialogHeader>
-          <DialogTitle>Phân công giáo viên</DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent className="!max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>Phân công giáo viên</DialogTitle>
+          </DialogHeader>
 
-        <div className="grid gap-4">
-          <div className="grid grid-cols-3 gap-4">
-            <div>
-              <label className="text-sm font-medium">Giáo viên</label>
-              <Select
-                value={selectedTeacher}
-                onValueChange={setSelectedTeacher}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn giáo viên" />
-                </SelectTrigger>
-                <SelectContent>
-                  {teachers.map((teacher) => (
-                    <SelectItem
-                      key={teacher.teacherId}
-                      value={teacher.teacherId}
-                    >
-                      {teacher.fullName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">Môn học</label>
-              <Select
-                value={selectedSubject}
-                onValueChange={handleSubjectChange}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Chọn môn học" />
-                </SelectTrigger>
-                <SelectContent>
-                  {subjects.map((subject) => (
-                    <SelectItem
-                      key={subject.subjectID}
-                      value={subject.subjectID}
-                    >
-                      {subject.subjectName}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div>
-              <label className="text-sm font-medium">
-                Tổng số tiết/tuần {(semester?.semesterName).toLowerCase()}
-              </label>
-
+          <div className="grid gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
-                <Input
-                  value={calculateTotalPeriods()}
-                  disabled
-                  className="w-64 disabled:opacity-100"
-                />
+                <label className="text-sm font-medium">Giáo viên</label>
+                <Select
+                  value={selectedTeacher}
+                  onValueChange={handleTeacherChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn giáo viên" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {teachers.map((teacher) => (
+                      <SelectItem
+                        key={teacher.teacherId}
+                        value={teacher.teacherId}
+                      >
+                        {teacher.fullName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">Môn học</label>
+                <Select
+                  value={selectedSubject}
+                  onValueChange={handleSubjectChange}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Chọn môn học" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {subjects.map((subject) => (
+                      <SelectItem
+                        key={subject.subjectID}
+                        value={subject.subjectID}
+                      >
+                        {subject.subjectName}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+              <div>
+                <label className="text-sm font-medium">
+                  Tổng số tiết/tuần {(semester?.semesterName).toLowerCase()}
+                </label>
+
+                <div>
+                  <Input
+                    value={calculateTotalPeriods()}
+                    disabled
+                    className="w-64 disabled:opacity-100"
+                  />
+                </div>
               </div>
             </div>
-          </div>
 
-          <div>
             <div>
-              <label className="text-sm font-medium">Danh sách phân công</label>
-              <div className="flex gap-2">
-                <Input
-                  value={getAssignmentString()}
-                  disabled
-                  className="mt-1 disabled:opacity-100"
-                />
+              <div>
+                <label className="text-sm font-medium">
+                  Danh sách phân công
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    value={getAssignmentString()}
+                    disabled
+                    className="mt-1 disabled:opacity-100"
+                  />
+                </div>
               </div>
+            </div>
+
+            <div className="rounded-lg border">
+              <table className="w-full">
+                <thead className="bg-slate-100">
+                  <tr>
+                    <th className="w-16 p-2"></th>
+                    <th className="p-2 text-left">Tên lớp</th>
+                    <th className="p-2 text-center">Số tiết/tuần HK1</th>
+                    <th className="p-2 text-center">Số tiết/tuần HK2</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {classes.map((cls) => {
+                    // Find subject config for this subject and class's grade level
+                    const config = subjectConfigs.find(
+                      (cfg) =>
+                        cfg.subjectId === Number(selectedSubject) &&
+                        cfg.gradeLevelId === cls.gradeLevelId,
+                    );
+                    const isDisabled = !config;
+                    return (
+                      <tr
+                        key={cls.classId}
+                        className={`cursor-pointer border-t hover:bg-slate-50 ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+                        onClick={() => {
+                          if (!isDisabled) handleClassToggle(cls.classId);
+                        }}
+                      >
+                        <td className="p-2 text-center">
+                          <Checkbox
+                            checked={(
+                              subjectAssignments?.[selectedSubject] || []
+                            ).includes(cls.classId)}
+                            className="cursor-pointer"
+                            disabled={isDisabled}
+                          />
+                        </td>
+                        <td className="p-2">{cls.className}</td>
+                        <td className="p-2 text-center">
+                          {config ? config.periodsPerWeekHKI : "-"}
+                        </td>
+                        <td className="p-2 text-center">
+                          {config ? config.periodsPerWeekHKII : "-"}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
             </div>
           </div>
 
-          <div className="rounded-lg border">
-            <table className="w-full">
-              <thead className="bg-slate-100">
-                <tr>
-                  <th className="w-16 p-2"></th>
-                  <th className="p-2 text-left">Tên lớp</th>
-                  <th className="p-2 text-center">Số tiết/tuần HK1</th>
-                  <th className="p-2 text-center">Số tiết/tuần HK2</th>
-                </tr>
-              </thead>
-              <tbody>
-                {classes.map((cls) => {
-                  // Find subject config for this subject and class's grade level
-                  const config = subjectConfigs.find(
-                    (cfg) =>
-                      cfg.subjectId === Number(selectedSubject) &&
-                      cfg.gradeLevelId === cls.gradeLevelId,
-                  );
-                  const isDisabled = !config;
-                  return (
-                    <tr
-                      key={cls.classId}
-                      className={`cursor-pointer border-t hover:bg-slate-50 ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
-                      onClick={() => {
-                        if (!isDisabled) handleClassToggle(cls.classId);
-                      }}
-                    >
-                      <td className="p-2 text-center">
-                        <Checkbox
-                          checked={(
-                            subjectAssignments?.[selectedSubject] || []
-                          ).includes(cls.classId)}
-                          className="cursor-pointer"
-                          disabled={isDisabled}
-                        />
-                      </td>
-                      <td className="p-2">{cls.className}</td>
-                      <td className="p-2 text-center">
-                        {config ? config.periodsPerWeekHKI : "-"}
-                      </td>
-                      <td className="p-2 text-center">
-                        {config ? config.periodsPerWeekHKII : "-"}
-                      </td>
-                    </tr>
-                  );
-                })}
-              </tbody>
-            </table>
+          <div className="mt-4 flex justify-end gap-2">
+            <Button variant="outline" onClick={handleClose}>
+              Đóng
+            </Button>
+            <Button onClick={handleSave}>Lưu</Button>
           </div>
-        </div>
+        </DialogContent>
+      </Dialog>
+      <ConfirmDialog open={showConfirmModal} onOpenChange={setShowConfirmModal}>
+        <ConfirmDialogContent className="max-w-md">
+          <ConfirmDialogHeader>
+            <ConfirmDialogTitle>Xác nhận chuyển giáo viên</ConfirmDialogTitle>
+          </ConfirmDialogHeader>
 
-        <div className="mt-4 flex justify-end gap-2">
-          <Button variant="outline" onClick={handleClose}>
-            Đóng
-          </Button>
-          <Button onClick={handleSave}>Lưu</Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+          <div className="mb-4 text-base font-medium">
+            Đang có giáo viên đang được phân công.
+            <br />
+            Bạn có chắc chắn muốn đổi giáo viên không?
+          </div>
+          <div className="flex justify-end gap-2">
+            <Button variant="outline" onClick={handleCancelChangeTeacher}>
+              Hủy
+            </Button>
+            <Button onClick={handleConfirmChangeTeacher}>Xác nhận</Button>
+          </div>
+        </ConfirmDialogContent>
+      </ConfirmDialog>
+    </>
   );
 }
