@@ -178,6 +178,7 @@ export function useUpdateSubject() {
 }
 
 export function useAssginTeaching() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data) => {
       return assignTeaching(data);
@@ -189,6 +190,7 @@ export function useAssginTeaching() {
       } else {
         console.log(data);
         toast.success("Phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
       }
     },
   });

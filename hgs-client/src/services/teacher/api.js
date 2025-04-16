@@ -21,26 +21,15 @@ export const deleteTeacher = async (id) => {
   return (await axiosInstance.delete(`teachers/${id}`)).data;
 };
 
-export const getTeachingAssignments = async (
-  page,
-  limit,
-  department,
-  teacher,
-  semester,
-) => {
-  const filterParams = [];
-  if (department)
-    filterParams.push(`department=${encodeURIComponent(department)}`);
-  if (teacher) filterParams.push(`teacher=${encodeURIComponent(teacher)}`);
-  if (semester) filterParams.push(`semester=${encodeURIComponent(semester)}`);
+// export const getTeachingAssignments = async (
+// ) => {
 
-  const queryString = filterParams.length ? `&${filterParams.join("&")}` : "";
-  return (
-    await axiosInstance.get(
-      `teaching-assignment?_limit=${limit}&_page=${page}${queryString}`,
-    )
-  ).data;
-};
+//   return (
+//     await axiosInstance.get(
+//       `teaching-assignment?_limit=${limit}&_page=${page}${queryString}`,
+//     )
+//   ).data;
+// };
 
 export const getHeadTeacherAssignments = async (page, limit, grade) => {
   // const filterParams = [];

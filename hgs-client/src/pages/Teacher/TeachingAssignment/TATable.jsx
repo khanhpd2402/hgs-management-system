@@ -9,30 +9,43 @@ import {
   TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import MyPagination from "@/components/MyPagination";
-import PaginationControls from "@/components/PaginationControls";
+
 import { Spinner } from "@/components/Spinner";
 import TAModal from "./TAModal";
 import ExportExcel from "@/components/excel/ExportExcel";
 import ExcelImportModal from "@/components/excel/ExcelImportModal";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
-import { useSemestersByAcademicYear } from "@/services/common/queries";
+import {
+  useClasses,
+  useSemestersByAcademicYear,
+} from "@/services/common/queries";
 import { cn } from "@/lib/utils";
+import { useSubjectConfigue, useTA } from "@/services/principal/queries";
+import MyPagination from "@/components/MyPagination";
+import PaginationControls from "@/components/PaginationControls";
+import { Settings } from "lucide-react";
+import UpdateTAModal from "./UpdateTAModal";
 
 export default function TATable() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
-    sort: "",
-    order: "asc",
-    search: "",
   });
   const { currentYear } = useLayout();
   const [semester, setSemester] = useState(null);
+  const TAQuery = useTA();
+  const classQuery = useClasses();
+  const subjectConfigQuery = useSubjectConfigue();
+  // console.log(semester);
+  // console.log(subjectConfigQuery.data);
+  // console.log(TAQuery.data);
+  // console.log(classQuery.data);
 
+  const { data = [], isPending, error, isError, isFetching } = TAQuery;
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
   const semesters = semesterQuery.data || [];
   const [openModal, setOpenModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
 
   useEffect(() => {
     if (semesters?.length > 0) {
@@ -40,83 +53,32 @@ export default function TATable() {
     }
   }, [semesters, currentYear]);
 
-  const mockData = [
-    {
-      id: 1,
-      name: "Vương Thị Ngọc Anh",
-      subject: "Tiếng Anh",
-      assignedClass: "7A, 7B, 7C",
-      standardHours: 19,
-      assignedHours: 15,
-    },
-    {
-      id: 2,
-      name: "Lê Thị Hằng",
-      subject: "Toán",
-      assignedClass: "6A, 6B",
-      standardHours: 19,
-      assignedHours: 12,
-    },
-    {
-      id: 3,
-      name: "Lê Thị Hằng",
-      subject: "Tin học",
-      assignedClass: "6B, 6A",
-      standardHours: 19,
-      assignedHours: 12,
-    },
-    {
-      id: 4,
-      name: "Vũ Thị Thu Hoài",
-      subject: "Giáo dục địa phương",
-      assignedClass: "6A, 6B",
-      standardHours: 19,
-      assignedHours: 16,
-    },
-    {
-      id: 5,
-      name: "Vũ Thị Thu Hoài",
-      subject: "Công nghệ",
-      assignedClass: "7C, 7A, 7B",
-      standardHours: 19,
-      assignedHours: 16,
-    },
-    {
-      id: 6,
-      name: "Vũ Thị Thu Hoài",
-      subject: "HD TNT, hướng nghiệp",
-      assignedClass: "6B",
-      standardHours: 19,
-      assignedHours: 16,
-    },
-  ];
-
   // const { data, isPending, error, isError, isFetching } = useTA(filter);
-  const { data, isPending, error, isError, isFetching } = {
-    data: mockData,
-    isPending: false,
-    error: null,
-    isError: false,
-    isFetching: false,
-  };
 
-  const groupedData = data.reduce((acc, curr) => {
-    if (!acc[curr.name]) {
-      acc[curr.name] = {
-        subjects: [],
-        rowSpan: 0,
-      };
-    }
-    acc[curr.name].subjects.push(curr);
-    acc[curr.name].rowSpan++;
-    return acc;
-  }, {});
-  const { page, pageSize } = filter;
-
-  const startIndex = (page - 1) * pageSize + 1;
-  const endIndex = Math.min(
-    (page - 1) * pageSize + (data?.length || 0),
-    startIndex + pageSize - 1,
+  const groupedData = Object.values(
+    data.reduce((acc, curr) => {
+      if (!acc[curr.teacherId]) {
+        acc[curr.teacherId] = {
+          teacherName: curr.teacherName,
+          subjects: {},
+        };
+      }
+      if (!acc[curr.teacherId].subjects[curr.subjectName]) {
+        acc[curr.teacherId].subjects[curr.subjectName] = {
+          subjectName: curr.subjectName,
+          subjectId: curr.subjectId, // <-- Add this line
+          classes: [],
+          semesters: new Set(),
+        };
+      }
+      acc[curr.teacherId].subjects[curr.subjectName].classes.push(
+        curr.className,
+      );
+      acc[curr.teacherId].subjects[curr.subjectName].semesters.add(
+        curr.semesterName,
+      );
+      return acc;
+    }, {}),
   );
 
   // Tính toán hàng hiển thị
@@ -128,8 +90,6 @@ export default function TATable() {
     );
   }
 
-  console.log(semester);
-
   // if (isError) {
   //   return (
   //     <Card className="relative mt-6 flex items-center justify-center p-4">
@@ -137,6 +97,20 @@ export default function TATable() {
   //     </Card>
   //   );
   // }
+
+  //Phân trang
+  const page = filter.page;
+  const pageSize = filter.pageSize;
+  const totalItems = groupedData.length;
+  const totalPages = Math.ceil(totalItems / pageSize);
+  const startIndex = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, totalItems);
+  const paginatedTeachers = groupedData.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
+  );
+
+  console.log(groupedData);
 
   return (
     <div className="relative mt-6 p-4">
@@ -163,7 +137,7 @@ export default function TATable() {
         </div>
         <div className="flex items-center gap-2">
           <ExcelImportModal type="teachingAssingment" />
-          <ExportExcel type="teachingAssingment" />
+          <ExportExcel type="teachingAssingment" fileName="PCDG.xlsx" />
           <Button
             onClick={() => setOpenModal(true)}
             className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
@@ -180,6 +154,13 @@ export default function TATable() {
         semester={semester}
       />
 
+      {/* Update Modal */}
+      <UpdateTAModal
+        open={openUpdateModal}
+        onOpenChange={setOpenUpdateModal}
+        semester={semester}
+      />
+
       {/* Container chính không có overflow-x-auto */}
       <div className="relative">
         {isFetching && (
@@ -189,73 +170,170 @@ export default function TATable() {
         )}
 
         {/* Container cho bảng với overflow-x-auto */}
-        <div className="max-h-[800px] overflow-auto">
+        <div className="max-h-[500px] overflow-auto">
           <div className="min-w-max">
             <Table
               className="w-full border border-gray-300"
-              style={{ minWidth: "1500px" }}
+              // style={{ minWidth: "1500px" }}
             >
               <TableHeader className="bg-gray-100">
-                <TableRow>
-                  <TableHead className="w-50 border border-gray-300 text-left whitespace-nowrap">
+                <TableRow className="sticky top-0 z-10">
+                  <TableHead className="w-10 border border-gray-300 text-center whitespace-nowrap">
+                    Thao tác
+                  </TableHead>
+                  <TableHead className="w-50 border border-gray-300 text-center whitespace-nowrap">
                     Họ tên cán bộ
                   </TableHead>
-                  <TableHead className="w-50 border border-gray-300 text-left whitespace-nowrap">
+                  <TableHead className="w-50 border border-gray-300 text-center whitespace-nowrap">
                     Môn học
                   </TableHead>
                   <TableHead className="w-40 border border-gray-300 text-center whitespace-nowrap">
                     Lớp phân công
                   </TableHead>
                   <TableHead className="w-20 border border-gray-300 text-center whitespace-nowrap">
-                    Số tiết định mức trên tuần
+                    Số tiết
                   </TableHead>
                   <TableHead className="w-20 border border-gray-300 text-center whitespace-nowrap">
-                    Số tiết đã phân công
+                    Số tiết định mức
+                  </TableHead>
+                  <TableHead className="w-20 border border-gray-300 text-center whitespace-nowrap">
+                    Trạng thái
                   </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {Object.entries(groupedData).map(([teacherName, data]) =>
-                  data.subjects.map((subject, index) => (
-                    <TableRow
-                      key={subject.id}
-                      className="divide-x divide-gray-300"
-                    >
-                      {index === 0 && (
-                        <>
+                {paginatedTeachers.map((teacher) => {
+                  const subjectEntries = Object.values(teacher.subjects);
+
+                  // Calculate total assigned periods for the teacher (all subjects)
+                  let totalAssignedPeriods = 0;
+                  subjectEntries.forEach((subject) => {
+                    const classInfoArr = subject.classes.map((className) => {
+                      const classObj = classQuery.data?.find(
+                        (cls) => cls.className === className,
+                      );
+                      return classObj
+                        ? {
+                            className: classObj.className,
+                            gradeLevelId: classObj.gradeLevelId,
+                          }
+                        : { className, gradeLevelId: 0 };
+                    });
+
+                    let totalHKI = 0;
+                    let totalHKII = 0;
+                    classInfoArr.forEach(({ gradeLevelId }) => {
+                      const subjectConfig = subjectConfigQuery.data?.find(
+                        (cfg) =>
+                          cfg.subjectId === subject.subjectId &&
+                          cfg.gradeLevelId === gradeLevelId,
+                      );
+                      if (subjectConfig) {
+                        totalHKI +=
+                          Number(subjectConfig.periodsPerWeekHKI) || 0;
+                        totalHKII +=
+                          Number(subjectConfig.periodsPerWeekHKII) || 0;
+                      }
+                    });
+
+                    if (semester?.semesterName === "Học kỳ 1") {
+                      totalAssignedPeriods += totalHKI;
+                    } else if (semester?.semesterName === "Học kỳ 2") {
+                      totalAssignedPeriods += totalHKII;
+                    }
+                  });
+
+                  const standardPeriods = 19;
+                  let status = "";
+                  if (totalAssignedPeriods > standardPeriods) {
+                    status = "Thừa";
+                  } else if (totalAssignedPeriods < standardPeriods) {
+                    status = "Thiếu";
+                  } else {
+                    status = "Đủ";
+                  }
+
+                  return subjectEntries.map((subject, idx) => {
+                    // Build an array of { className, gradeLevelId }
+                    const classInfoArr = subject.classes
+                      .map((className) => {
+                        const classObj = classQuery.data?.find(
+                          (cls) => cls.className === className,
+                        );
+                        return classObj
+                          ? {
+                              className: classObj.className,
+                              gradeLevelId: classObj.gradeLevelId,
+                            }
+                          : { className, gradeLevelId: 0 };
+                      })
+                      .sort((a, b) => {
+                        if (a.gradeLevelId !== b.gradeLevelId) {
+                          return a.gradeLevelId - b.gradeLevelId;
+                        }
+                        return a.className.localeCompare(b.className, "vi");
+                      });
+
+                    const sortedClassNames = classInfoArr.map(
+                      (c) => c.className,
+                    );
+
+                    return (
+                      <TableRow key={teacher.teacherName + subject.subjectName}>
+                        {idx === 0 && (
                           <TableCell
-                            className="h-16 border border-gray-300 text-left whitespace-nowrap"
-                            rowSpan={data.rowSpan}
+                            rowSpan={subjectEntries.length}
+                            className="h-14 border border-gray-300 text-center whitespace-nowrap"
                           >
-                            {teacherName}
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => setOpenUpdateModal(true)}
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
                           </TableCell>
-                        </>
-                      )}
-                      <TableCell className="h-16 border border-gray-300 text-left whitespace-nowrap">
-                        {subject.subject}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-300 text-center whitespace-nowrap">
-                        {subject.assignedClass}
-                      </TableCell>
-                      {index === 0 && (
-                        <TableCell
-                          className="h-16 border border-gray-300 text-center whitespace-nowrap"
-                          rowSpan={data.rowSpan}
-                        >
-                          {subject.standardHours}
+                        )}
+                        {idx === 0 && (
+                          <TableCell
+                            rowSpan={subjectEntries.length}
+                            className="h-14 border border-gray-300 text-center whitespace-nowrap"
+                          >
+                            {teacher.teacherName}
+                          </TableCell>
+                        )}
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          {subject.subjectName}
                         </TableCell>
-                      )}
-                      {index === 0 && (
-                        <TableCell
-                          className="h-16 border border-gray-300 text-center whitespace-nowrap"
-                          rowSpan={data.rowSpan}
-                        >
-                          {subject.assignedHours}
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          {sortedClassNames.join(", ")}
                         </TableCell>
-                      )}
-                    </TableRow>
-                  )),
-                )}
+                        {idx === 0 && (
+                          <>
+                            <TableCell
+                              rowSpan={subjectEntries.length}
+                              className="h-14 border border-gray-300 text-center whitespace-nowrap"
+                            >
+                              {totalAssignedPeriods}
+                            </TableCell>
+                            <TableCell
+                              rowSpan={subjectEntries.length}
+                              className="h-14 border border-gray-300 text-center whitespace-nowrap"
+                            >
+                              {standardPeriods}
+                            </TableCell>
+                            <TableCell
+                              rowSpan={subjectEntries.length}
+                              className="h-14 border border-gray-300 text-center whitespace-nowrap"
+                            >
+                              {status}
+                            </TableCell>
+                          </>
+                        )}
+                      </TableRow>
+                    );
+                  });
+                })}
               </TableBody>
             </Table>
           </div>
@@ -265,13 +343,13 @@ export default function TATable() {
           <PaginationControls
             pageSize={pageSize}
             setFilter={setFilter}
-            totalItems={data?.length || 0}
+            totalItems={totalItems}
             startIndex={startIndex}
             endIndex={endIndex}
           />
 
           <MyPagination
-            totalPages={6}
+            totalPages={totalPages}
             currentPage={page}
             onPageChange={setFilter}
           />
