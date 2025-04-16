@@ -34,7 +34,6 @@ export default function TAModal({ open, onOpenChange, semester }) {
   const teacherQuery = useTeacherSubjects();
   const subjects = teacherQuery.data?.subjects || [];
   const teachers = teacherQuery.data?.teachers || [];
-  console.log(teachers);
 
   //get classes
   const classQuery = useClasses();
@@ -119,7 +118,7 @@ export default function TAModal({ open, onOpenChange, semester }) {
       }
     });
     console.log("Saving data:", assignments);
-    // assignTeachingMutation.mutate(assignments);
+    assignTeachingMutation.mutate(assignments);
     // Add your API call here
     onOpenChange(false);
   };
@@ -266,20 +265,53 @@ export default function TAModal({ open, onOpenChange, semester }) {
                     <SelectValue placeholder="Chọn môn học" />
                   </SelectTrigger>
                   <SelectContent>
-                    {subjects.map((subject) => (
-                      <SelectItem
-                        key={subject.subjectID}
-                        value={subject.subjectID}
-                      >
-                        {subject.subjectName}
-                      </SelectItem>
-                    ))}
+                    {(() => {
+                      let teacherSubjectIds = [];
+                      if (selectedTeacher) {
+                        const teacher = teachers.find(
+                          (t) => t.teacherId === selectedTeacher,
+                        );
+                        teacherSubjectIds = teacher?.subjects
+                          ? teacher.subjects.map((s) =>
+                              typeof s === "object" ? s.subjectId : s,
+                            )
+                          : [];
+                      }
+                      // Sort: teachable subjects first
+                      const sortedSubjects = [...subjects].sort((a, b) => {
+                        const aCanTeach = teacherSubjectIds.includes(
+                          a.subjectID,
+                        );
+                        const bCanTeach = teacherSubjectIds.includes(
+                          b.subjectID,
+                        );
+                        if (aCanTeach === bCanTeach) return 0;
+                        return aCanTeach ? -1 : 1;
+                      });
+                      return sortedSubjects.map((subject) => {
+                        let canTeach = true;
+                        if (selectedTeacher) {
+                          canTeach = teacherSubjectIds.includes(
+                            subject.subjectID,
+                          );
+                        }
+                        return (
+                          <SelectItem
+                            key={subject.subjectID}
+                            value={subject.subjectID}
+                            disabled={!canTeach}
+                          >
+                            {subject.subjectName}
+                          </SelectItem>
+                        );
+                      });
+                    })()}
                   </SelectContent>
                 </Select>
               </div>
               <div>
                 <label className="text-sm font-medium">
-                  Tổng số tiết/tuần {(semester?.semesterName).toLowerCase()}
+                  Tổng số tiết/tuần {semester?.semesterName?.toLowerCase()}
                 </label>
 
                 <div>

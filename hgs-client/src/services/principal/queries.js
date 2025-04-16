@@ -6,6 +6,7 @@ import {
   getSubjectConfigues,
   getSubjectDetail,
   getTeacherSubjects,
+  getTeachingAssignments,
   getUsers,
 } from "./api";
 
@@ -62,5 +63,14 @@ export function useTeacherSubjects() {
   return useQuery({
     queryKey: ["teacherSubjects"],
     queryFn: getTeacherSubjects,
+  });
+}
+
+export function useTA() {
+  return useQuery({
+    queryKey: ["teaching-assignments"],
+    queryFn: () => {
+      return getTeachingAssignments();
+    },
   });
 }
