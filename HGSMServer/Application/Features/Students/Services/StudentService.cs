@@ -295,19 +295,19 @@ namespace Application.Features.Students.Services
 
             // Kiểm tra thông tin đầy đủ cho cha, mẹ, hoặc người bảo hộ
             bool hasCompleteFatherInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameFather) &&
-                                         parentInfoDto.YearOfBirthFather.HasValue &&
-                                         !string.IsNullOrEmpty(parentInfoDto.PhoneNumberFather) &&
-                                         !string.IsNullOrEmpty(parentInfoDto.IdcardNumberFather);
+                                        parentInfoDto.YearOfBirthFather.HasValue &&
+                                        !string.IsNullOrEmpty(parentInfoDto.PhoneNumberFather) &&
+                                        !string.IsNullOrEmpty(parentInfoDto.IdcardNumberFather);
 
             bool hasCompleteMotherInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameMother) &&
-                                         parentInfoDto.YearOfBirthMother.HasValue &&
-                                         !string.IsNullOrEmpty(parentInfoDto.PhoneNumberMother) &&
-                                         !string.IsNullOrEmpty(parentInfoDto.IdcardNumberMother);
+                                        parentInfoDto.YearOfBirthMother.HasValue &&
+                                        !string.IsNullOrEmpty(parentInfoDto.PhoneNumberMother) &&
+                                        !string.IsNullOrEmpty(parentInfoDto.IdcardNumberMother);
 
             bool hasCompleteGuardianInfo = !string.IsNullOrEmpty(parentInfoDto.FullNameGuardian) &&
-                                           parentInfoDto.YearOfBirthGuardian.HasValue &&
-                                           !string.IsNullOrEmpty(parentInfoDto.PhoneNumberGuardian) &&
-                                           !string.IsNullOrEmpty(parentInfoDto.IdcardNumberGuardian);
+                                          parentInfoDto.YearOfBirthGuardian.HasValue &&
+                                          !string.IsNullOrEmpty(parentInfoDto.PhoneNumberGuardian) &&
+                                          !string.IsNullOrEmpty(parentInfoDto.IdcardNumberGuardian);
 
             // Log để kiểm tra giá trị đầu vào
             Console.WriteLine($"Father Info - FullName: {parentInfoDto.FullNameFather}, YearOfBirth: {parentInfoDto.YearOfBirthFather}, Phone: {parentInfoDto.PhoneNumberFather}, IDCard: {parentInfoDto.IdcardNumberFather}");
@@ -321,17 +321,36 @@ namespace Application.Features.Students.Services
                 return;
             }
 
-            Parent existingParent = null;
+            // Kiểm tra trùng lặp CCCD
+            if (hasCompleteFatherInfo && !string.IsNullOrEmpty(parentInfoDto.IdcardNumberFather))
+            {
+                var existingParentByFatherIdCard = await _parentRepository.GetParentByIdCardAsync(parentInfoDto.IdcardNumberFather);
+                if (existingParentByFatherIdCard != null)
+                    throw new Exception($"Số CCCD cha {parentInfoDto.IdcardNumberFather} đã tồn tại (ParentID: {existingParentByFatherIdCard.ParentId}).");
+            }
+
+            if (hasCompleteMotherInfo && !string.IsNullOrEmpty(parentInfoDto.IdcardNumberMother))
+            {
+                var existingParentByMotherIdCard = await _parentRepository.GetParentByIdCardAsync(parentInfoDto.IdcardNumberMother);
+                if (existingParentByMotherIdCard != null)
+                    throw new Exception($"Số CCCD mẹ {parentInfoDto.IdcardNumberMother} đã tồn tại (ParentID: {existingParentByMotherIdCard.ParentId}).");
+            }
+
+            if (hasCompleteGuardianInfo && !string.IsNullOrEmpty(parentInfoDto.IdcardNumberGuardian))
+            {
+                var existingParentByGuardianIdCard = await _parentRepository.GetParentByIdCardAsync(parentInfoDto.IdcardNumberGuardian);
+                if (existingParentByGuardianIdCard != null)
+                    throw new Exception($"Số CCCD người bảo hộ {parentInfoDto.IdcardNumberGuardian} đã tồn tại (ParentID: {existingParentByGuardianIdCard.ParentId}).");
+            }
+
             string primaryFullName = null;
             string primaryPhoneNumber = null;
             string primaryEmail = null;
             string primaryIdCard = null;
 
+            // Chọn thông tin chính để tạo user
             if (hasCompleteFatherInfo)
             {
-                existingParent = await _parentRepository.GetParentByDetailsAsync(
-                    parentInfoDto.FullNameFather, parentInfoDto.YearOfBirthFather,
-                    parentInfoDto.PhoneNumberFather, parentInfoDto.EmailFather, parentInfoDto.IdcardNumberFather);
                 primaryFullName = parentInfoDto.FullNameFather;
                 primaryPhoneNumber = parentInfoDto.PhoneNumberFather;
                 primaryEmail = parentInfoDto.EmailFather;
@@ -339,9 +358,6 @@ namespace Application.Features.Students.Services
             }
             else if (hasCompleteMotherInfo)
             {
-                existingParent = await _parentRepository.GetParentByDetailsAsync(
-                    parentInfoDto.FullNameMother, parentInfoDto.YearOfBirthMother,
-                    parentInfoDto.PhoneNumberMother, parentInfoDto.EmailMother, parentInfoDto.IdcardNumberMother);
                 primaryFullName = parentInfoDto.FullNameMother;
                 primaryPhoneNumber = parentInfoDto.PhoneNumberMother;
                 primaryEmail = parentInfoDto.EmailMother;
@@ -349,20 +365,10 @@ namespace Application.Features.Students.Services
             }
             else if (hasCompleteGuardianInfo)
             {
-                existingParent = await _parentRepository.GetParentByDetailsAsync(
-                    parentInfoDto.FullNameGuardian, parentInfoDto.YearOfBirthGuardian,
-                    parentInfoDto.PhoneNumberGuardian, parentInfoDto.EmailGuardian, parentInfoDto.IdcardNumberGuardian);
                 primaryFullName = parentInfoDto.FullNameGuardian;
                 primaryPhoneNumber = parentInfoDto.PhoneNumberGuardian;
                 primaryEmail = parentInfoDto.EmailGuardian;
                 primaryIdCard = parentInfoDto.IdcardNumberGuardian;
-            }
-
-            if (existingParent != null)
-            {
-                Console.WriteLine($"Phụ huynh đã tồn tại với ParentID: {existingParent.ParentId}. Liên kết với học sinh...");
-                student.ParentId = existingParent.ParentId;
-                return;
             }
 
             if (string.IsNullOrEmpty(primaryFullName))
@@ -385,7 +391,7 @@ namespace Application.Features.Students.Services
                 PasswordHash = BCrypt.Net.BCrypt.HashPassword("12345678"),
                 Email = primaryEmail,
                 PhoneNumber = primaryPhoneNumber,
-                RoleId = parentRole.RoleId, // Sử dụng RoleId động thay vì hard-code 6
+                RoleId = parentRole.RoleId,
                 Status = "Active"
             };
 
