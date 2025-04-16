@@ -15,17 +15,30 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  useSubjectConfigue,
+  useTeacherSubjects,
+} from "@/services/principal/queries";
+import toast from "react-hot-toast";
+import { useClasses } from "@/services/common/queries";
 
-export default function TAModal({ open, onOpenChange }) {
-  const [selectedTeacher, setSelectedTeacher] = useState("1");
-  const [selectedSubject, setSelectedSubject] = useState("english");
-  const [subjectAssignments, setSubjectAssignments] = useState({
-    english: ["7A", "7B", "7C"],
-    math: [],
-    physics: [],
-    chemistry: [],
-    biology: [],
-  });
+export default function TAModal({ open, onOpenChange, semester }) {
+  //get teacher + subject
+  const teacherQuery = useTeacherSubjects();
+  const subjects = teacherQuery.data?.subjects || [];
+  const teachers = teacherQuery.data?.teachers || [];
+
+  //get classes
+  const classQuery = useClasses();
+  const classes = classQuery.data || [];
+
+  //get subject configue
+  const subjectConfigQuery = useSubjectConfigue();
+  const subjectConfigs = subjectConfigQuery.data || [];
+
+  const [selectedTeacher, setSelectedTeacher] = useState("");
+  const [selectedSubject, setSelectedSubject] = useState("");
+  const [subjectAssignments, setSubjectAssignments] = useState({});
 
   const handleSubjectChange = (value) => {
     setSelectedSubject(value);
@@ -34,56 +47,68 @@ export default function TAModal({ open, onOpenChange }) {
   const handleClassToggle = (className) => {
     setSubjectAssignments((prev) => ({
       ...prev,
-      [selectedSubject]: prev[selectedSubject].includes(className)
+      [selectedSubject]: prev[selectedSubject]?.includes(className)
         ? prev[selectedSubject].filter((c) => c !== className)
-        : [...prev[selectedSubject], className],
+        : [...(prev[selectedSubject] || []), className],
     }));
   };
-
   const getAssignmentString = () => {
     const assignments = [];
-    const subjectNames = {
-      english: "Tiếng Anh",
-      math: "Toán",
-      physics: "Vật Lý",
-      chemistry: "Hóa Học",
-      biology: "Sinh Học",
-    };
-
-    Object.entries(subjectAssignments).forEach(([subject, classes]) => {
-      if (classes.length > 0) {
-        assignments.push(
-          `${subjectNames[subject]}(${classes.sort().join(", ")})`,
-        );
+    subjects.forEach((subject) => {
+      const assignedClassIds = subjectAssignments?.[subject.subjectID] || [];
+      if (assignedClassIds.length > 0) {
+        // Map classIds to classNames for display
+        const classNames = assignedClassIds
+          .map((id) => {
+            const found = classes.find((cls) => cls.classId === id);
+            return found ? found.className : id;
+          })
+          .sort((a, b) => a.localeCompare(b));
+        assignments.push(`${subject.subjectName}(${classNames.join(", ")})`);
       }
     });
-
     return assignments.join(" - ");
   };
 
   const handleSave = () => {
-    const assignments = [];
+    if (!selectedTeacher) {
+      toast.error("Vui lòng chọn giáo viên");
+      return;
+    }
 
-    Object.entries(subjectAssignments).forEach(([subject, classes]) => {
-      if (classes.length > 0) {
+    if (!selectedSubject) {
+      toast.error("Vui lòng chọn môn học");
+      return;
+    }
+
+    if (
+      !subjectAssignments[selectedSubject] ||
+      subjectAssignments[selectedSubject].length === 0
+    ) {
+      toast.error("Vui lòng chọn ít nhất một lớp cho môn học này");
+      return;
+    }
+
+    const assignments = [];
+    subjects.forEach((subject) => {
+      const assignedClassIds = subjectAssignments?.[subject.subjectID] || [];
+      if (assignedClassIds.length > 0) {
         const data = {
-          teacherId: selectedTeacher, // Replace with actual teacherId
-          subjectId: subject, // Map this to actual subjectId
-          subjectCategory: "string", // Add appropriate category
-          classAssignments: classes.map((className) => ({
-            classId: className, // Map className to actual classId
+          teacherId: selectedTeacher,
+          subjectId: subject.subjectID,
+          subjectCategory: subject.subjectCategory || "",
+          classAssignments: assignedClassIds.map((classId) => ({
+            classId,
           })),
-          semesterId: 1, // Replace with actual semesterId
+          semesterId: 1,
         };
         assignments.push(data);
       }
     });
-
     console.log("Saving data:", assignments);
     // Add your API call here
     // onOpenChange(false);
   };
-
   const handleClose = () => {
     onOpenChange(false);
   };
@@ -91,27 +116,46 @@ export default function TAModal({ open, onOpenChange }) {
   const calculateTotalPeriods = () => {
     let totalHK1 = 0;
     let totalHK2 = 0;
-
-    Object.values(subjectAssignments).forEach((classes) => {
-      totalHK1 += classes.length * 3; // 3 periods per class in HK1
-      totalHK2 += classes.length * 3; // 3 periods per class in HK2
-    });
-
-    return `HK1: ${totalHK1} - HK2: ${totalHK2}`;
+    if (subjectAssignments) {
+      Object.entries(subjectAssignments).forEach(
+        ([subjectId, assignedClassIds]) => {
+          assignedClassIds.forEach((classId) => {
+            const cls = classes.find((c) => c.classId === classId);
+            if (cls) {
+              const config = subjectConfigs.find(
+                (cfg) =>
+                  cfg.subjectId === Number(subjectId) &&
+                  cfg.gradeLevelId === cls.gradeLevelId,
+              );
+              if (config) {
+                totalHK1 += Number(config.periodsPerWeekHKI) || 0;
+                totalHK2 += Number(config.periodsPerWeekHKII) || 0;
+              }
+            }
+          });
+        },
+      );
+    }
+    if (semester?.semesterName === "Học kỳ 1") {
+      return `${totalHK1}`;
+    }
+    if (semester?.semesterName === "Học kỳ 2") {
+      return `${totalHK2}`;
+    }
+    return `Học kỳ 1: ${totalHK1} - Học kỳ 2: ${totalHK2}`;
   };
 
   useEffect(() => {
-    if (open) {
-      setSelectedSubject("english");
-      setSubjectAssignments({
-        english: [],
-        math: [],
-        physics: [],
-        chemistry: [],
-        biology: [],
+    if (open && subjects.length > 0) {
+      // setSelectedSubject(subjects[0].subjectID);
+      // Initialize assignments for all subjects
+      const initialAssignments = {};
+      subjects.forEach((s) => {
+        initialAssignments[s.subjectID] = [];
       });
+      setSubjectAssignments(initialAssignments);
     }
-  }, [open]);
+  }, [open, subjects]);
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -132,9 +176,14 @@ export default function TAModal({ open, onOpenChange }) {
                   <SelectValue placeholder="Chọn giáo viên" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">Vương Thị Ngọc Anh</SelectItem>
-                  <SelectItem value="2">Nguyễn Văn A</SelectItem>
-                  <SelectItem value="3">Trần Thị B</SelectItem>
+                  {teachers.map((teacher) => (
+                    <SelectItem
+                      key={teacher.teacherId}
+                      value={teacher.teacherId}
+                    >
+                      {teacher.fullName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>
@@ -148,13 +197,29 @@ export default function TAModal({ open, onOpenChange }) {
                   <SelectValue placeholder="Chọn môn học" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="english">Tiếng Anh</SelectItem>
-                  <SelectItem value="math">Toán</SelectItem>
-                  <SelectItem value="physics">Vật Lý</SelectItem>
-                  <SelectItem value="chemistry">Hóa Học</SelectItem>
-                  <SelectItem value="biology">Sinh Học</SelectItem>
+                  {subjects.map((subject) => (
+                    <SelectItem
+                      key={subject.subjectID}
+                      value={subject.subjectID}
+                    >
+                      {subject.subjectName}
+                    </SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
+            </div>
+            <div>
+              <label className="text-sm font-medium">
+                Tổng số tiết/tuần {(semester?.semesterName).toLowerCase()}
+              </label>
+
+              <div>
+                <Input
+                  value={calculateTotalPeriods()}
+                  disabled
+                  className="w-64 disabled:opacity-100"
+                />
+              </div>
             </div>
           </div>
 
@@ -167,17 +232,6 @@ export default function TAModal({ open, onOpenChange }) {
                   disabled
                   className="mt-1 disabled:opacity-100"
                 />
-              </div>
-              <div className="mt-4">
-                <label className="text-sm font-medium">Tổng số tiết/tuần</label>
-
-                <div>
-                  <Input
-                    value={calculateTotalPeriods()}
-                    disabled
-                    className="mt-1 w-64 disabled:opacity-100"
-                  />
-                </div>
               </div>
             </div>
           </div>
@@ -193,27 +247,41 @@ export default function TAModal({ open, onOpenChange }) {
                 </tr>
               </thead>
               <tbody>
-                {["6A", "6B", "7A", "7B", "7C", "8A", "8B", "9A", "9B"].map(
-                  (className) => (
+                {classes.map((cls) => {
+                  // Find subject config for this subject and class's grade level
+                  const config = subjectConfigs.find(
+                    (cfg) =>
+                      cfg.subjectId === Number(selectedSubject) &&
+                      cfg.gradeLevelId === cls.gradeLevelId,
+                  );
+                  const isDisabled = !config;
+                  return (
                     <tr
-                      key={className}
-                      className="cursor-pointer border-t hover:bg-slate-50"
-                      onClick={() => handleClassToggle(className)}
+                      key={cls.classId}
+                      className={`cursor-pointer border-t hover:bg-slate-50 ${isDisabled ? "cursor-not-allowed opacity-50" : ""}`}
+                      onClick={() => {
+                        if (!isDisabled) handleClassToggle(cls.classId);
+                      }}
                     >
                       <td className="p-2 text-center">
                         <Checkbox
-                          checked={subjectAssignments[selectedSubject].includes(
-                            className,
-                          )}
+                          checked={(
+                            subjectAssignments?.[selectedSubject] || []
+                          ).includes(cls.classId)}
                           className="cursor-pointer"
+                          disabled={isDisabled}
                         />
                       </td>
-                      <td className="p-2">{className}</td>
-                      <td className="p-2 text-center">3</td>
-                      <td className="p-2 text-center">3</td>
+                      <td className="p-2">{cls.className}</td>
+                      <td className="p-2 text-center">
+                        {config ? config.periodsPerWeekHKI : "-"}
+                      </td>
+                      <td className="p-2 text-center">
+                        {config ? config.periodsPerWeekHKII : "-"}
+                      </td>
                     </tr>
-                  ),
-                )}
+                  );
+                })}
               </tbody>
             </table>
           </div>
