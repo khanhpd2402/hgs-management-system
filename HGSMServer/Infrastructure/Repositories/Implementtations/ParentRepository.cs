@@ -51,5 +51,13 @@ namespace Infrastructure.Repositories
             _context.Parents.Update(parent);
             await _context.SaveChangesAsync();
         }
+        public async Task<Parent> GetParentByIdCardAsync(string idCardNumber)
+        {
+            return await _context.Parents
+                .FirstOrDefaultAsync(p =>
+                    p.IdcardNumberFather == idCardNumber ||
+                    p.IdcardNumberMother == idCardNumber ||
+                    p.IdcardNumberGuardian == idCardNumber);
+        }
     }
 }
