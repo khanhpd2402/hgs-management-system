@@ -33,10 +33,10 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             }
 
             var subject = await _context.Subjects
-                .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
+                .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
+                throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
             }
 
             var semester = await _context.Semesters.FindAsync(dto.SemesterId);
@@ -52,6 +52,13 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
             }
 
+            // Xóa các phân công cũ cho giáo viên, môn học và học kỳ
+            var existingAssignments = await _context.TeachingAssignments
+                .Where(ta => ta.TeacherId == dto.TeacherId && ta.SubjectId == dto.SubjectId && ta.SemesterId == dto.SemesterId)
+                .ToListAsync();
+            _context.TeachingAssignments.RemoveRange(existingAssignments);
+
+            // Tạo các phân công mới
             foreach (var classAssignment in dto.ClassAssignments)
             {
                 var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
@@ -60,31 +67,21 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                     throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
                 }
 
-                var existingAssignment = await _context.TeachingAssignments
-                    .FirstOrDefaultAsync(ta =>
-                        ta.TeacherId == dto.TeacherId &&
-                        ta.SubjectId == dto.SubjectId &&
-                        ta.ClassId == classAssignment.ClassId &&
-                        ta.SemesterId == dto.SemesterId);
-
-                if (existingAssignment == null)
+                var newAssignment = new Domain.Models.TeachingAssignment
                 {
-                    var assignment = new Domain.Models.TeachingAssignment
-                    {
-                        TeacherId = dto.TeacherId,
-                        SubjectId = dto.SubjectId,
-                        ClassId = classAssignment.ClassId,
-                        SemesterId = dto.SemesterId
-                    };
-                    _context.TeachingAssignments.Add(assignment);
-                }
+                    TeacherId = dto.TeacherId,
+                    SubjectId = dto.SubjectId,
+                    ClassId = classAssignment.ClassId,
+                    SemesterId = dto.SemesterId
+                };
+                _context.TeachingAssignments.Add(newAssignment);
             }
         }
 
         await _context.SaveChangesAsync();
     }
 
-    public async Task<List<TeachingAssignmentResponseDto>> GetAllTeachingAssignmentsAsync()
+    public async Task<List<TeachingAssignmentResponseDto>> GetAllTeachingAssignmentsAsync(int semesterId)
     {
         var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
         var userIdClaim = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
@@ -95,6 +92,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             .Include(ta => ta.Subject)
             .Include(ta => ta.Class)
             .Include(ta => ta.Semester)
+            .Where(ta => ta.SemesterId == semesterId)
             .AsQueryable();
 
         if (userRole == "Teacher")
@@ -111,7 +109,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         }
 
         var homeroomAssignments = await _context.HomeroomAssignments
-            .Where(ha => ha.Status == "Hoạt Động")
+            .Where(ha => ha.Status == "Hoạt Động" && ha.SemesterId == semesterId)
             .Include(ha => ha.Teacher)
             .ToListAsync();
 
@@ -202,69 +200,47 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         return filterData;
     }
 
-    public async Task UpdateTeachingAssignmentsAsync(List<TeachingAssignmentUpdateDto> dtos)
+    public async Task UpdateTeachingAssignmentAsync(TeachingAssignmentUpdateDto dto)
     {
-        foreach (var dto in dtos)
+        var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
+        if (teacher == null)
+            throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+
+        var subject = await _context.Subjects
+            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
+        if (subject == null)
+            throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
+
+        var semester = await _context.Semesters.FindAsync(dto.SemesterId);
+        if (semester == null)
+            throw new ArgumentException($"Semester with Id {dto.SemesterId} does not exist.");
+
+        var teacherSubject = await _context.TeacherSubjects
+            .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
+        if (teacherSubject == null)
+            throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
+
+        // Xóa các phân công cũ cho giáo viên, môn học và học kỳ
+        var existingAssignments = await _context.TeachingAssignments
+            .Where(ta => ta.TeacherId == dto.TeacherId && ta.SubjectId == dto.SubjectId && ta.SemesterId == dto.SemesterId)
+            .ToListAsync();
+        _context.TeachingAssignments.RemoveRange(existingAssignments);
+
+        // Tạo các phân công mới
+        foreach (var classAssignment in dto.ClassAssignments)
         {
-            var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
-            if (teacher == null)
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+            var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
+            if (classEntity == null)
+                throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
 
-            var subject = await _context.Subjects
-                .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
-            if (subject == null)
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
-
-            var semester = await _context.Semesters.FindAsync(dto.SemesterId);
-            if (semester == null)
-                throw new ArgumentException($"Semester with Id {dto.SemesterId} does not exist.");
-
-            var teacherSubject = await _context.TeacherSubjects
-                .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
-            if (teacherSubject == null)
-                throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
-
-            foreach (var classAssignment in dto.ClassAssignments)
+            var newAssignment = new Domain.Models.TeachingAssignment
             {
-                var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
-                if (classEntity == null)
-                    throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
-
-                if (dto.AssignmentId.HasValue)
-                {
-                    var assignment = await _context.TeachingAssignments
-                        .FirstOrDefaultAsync(ta => ta.AssignmentId == dto.AssignmentId.Value);
-                    if (assignment == null)
-                        throw new ArgumentException($"Teaching assignment with Id {dto.AssignmentId} does not exist.");
-
-                    assignment.TeacherId = dto.TeacherId;
-                    assignment.SubjectId = dto.SubjectId;
-                    assignment.ClassId = classAssignment.ClassId;
-                    assignment.SemesterId = dto.SemesterId;
-                    _context.TeachingAssignments.Update(assignment);
-                }
-                else
-                {
-                    var existingAssignment = await _context.TeachingAssignments
-                        .FirstOrDefaultAsync(ta =>
-                            ta.TeacherId == dto.TeacherId &&
-                            ta.SubjectId == dto.SubjectId &&
-                            ta.ClassId == classAssignment.ClassId &&
-                            ta.SemesterId == dto.SemesterId);
-
-                    if (existingAssignment == null)
-                    {
-                        var newAssignment = new Domain.Models.TeachingAssignment
-                        {
-                            TeacherId = dto.TeacherId,
-                            SubjectId = dto.SubjectId,
-                            ClassId = classAssignment.ClassId,
-                            SemesterId = dto.SemesterId
-                        };
-                        _context.TeachingAssignments.Add(newAssignment);
-                    }
-                }
-            }
+                TeacherId = dto.TeacherId,
+                SubjectId = dto.SubjectId,
+                ClassId = classAssignment.ClassId,
+                SemesterId = dto.SemesterId
+            };
+            _context.TeachingAssignments.Add(newAssignment);
         }
 
         await _context.SaveChangesAsync();
@@ -279,10 +255,10 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         }
 
         var subject = await _context.Subjects
-            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
-        if (subject == null)
+            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
+        if (subject == null)        
         {
-            throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
+            throw new ArgumentException($"Subject with Id {dto.SubjectId}   does not exist.");
         }
 
         var semester = await _context.Semesters.FindAsync(dto.SemesterId);
@@ -320,6 +296,52 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 ClassName = classEntity.ClassName,
                 SemesterId = dto.SemesterId,
                 SemesterName = semester.SemesterName,
+            });
+        }
+
+        return result;
+    }
+
+    public async Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId)
+    {
+        var teacher = await _context.Teachers.FindAsync(teacherId);
+        if (teacher == null)
+        {
+            throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+        }
+
+        var query = _context.TeachingAssignments
+            .Include(ta => ta.Teacher)
+            .Include(ta => ta.Subject)
+            .Include(ta => ta.Class)
+            .Include(ta => ta.Semester)
+            .Where(ta => ta.TeacherId == teacherId)
+            .AsQueryable();
+
+        var homeroomAssignments = await _context.HomeroomAssignments
+            .Where(ha => ha.Status == "Hoạt Động")
+            .Include(ha => ha.Teacher)
+            .ToListAsync();
+
+        var assignmentList = await query.ToListAsync();
+        var result = new List<TeachingAssignmentResponseDto>();
+
+        foreach (var ta in assignmentList)
+        {
+            var homeroomTeacher = homeroomAssignments
+                .FirstOrDefault(ha => ha.ClassId == ta.ClassId && ha.SemesterId == ta.SemesterId);
+
+            result.Add(new TeachingAssignmentResponseDto
+            {
+                AssignmentId = ta.AssignmentId,
+                TeacherId = ta.TeacherId,
+                TeacherName = ta.Teacher.FullName,
+                SubjectId = ta.SubjectId,
+                SubjectName = ta.Subject.SubjectName,
+                ClassId = ta.ClassId,
+                ClassName = ta.Class.ClassName,
+                SemesterId = ta.SemesterId,
+                SemesterName = ta.Semester.SemesterName,
             });
         }
 

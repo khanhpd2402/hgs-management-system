@@ -1,6 +1,8 @@
-﻿using Application.Features.Semesters.DTOs;
+﻿using Application.Features.AcademicYears.DTOs;
+using Application.Features.Semesters.DTOs;
 using Application.Features.Semesters.Interfaces;
 using AutoMapper;
+using DocumentFormat.OpenXml.Office2010.Excel;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using System;
@@ -14,7 +16,7 @@ namespace Application.Features.Semesters.Services
     public class SemesterService : ISemesterService
     {
         private readonly ISemesterRepository _repository;
-        private readonly IAcademicYearRepository _academicYearRepository; // Thêm dependency
+        private readonly IAcademicYearRepository _academicYearRepository; 
         private readonly IMapper _mapper;
 
         public SemesterService(
@@ -37,6 +39,11 @@ namespace Application.Features.Semesters.Services
         {
             var semester = await _repository.GetByIdAsync(id);
             return semester != null ? _mapper.Map<SemesterDto>(semester) : null;
+        }
+        public async Task<List<SemesterDto>> GetAllSemester()
+        {
+            var semester = await _repository.GetAllAsync();
+            return _mapper.Map<List<SemesterDto>>(semester);
         }
 
         public async Task AddAsync(CreateSemesterDto semesterDto)
@@ -128,5 +135,7 @@ namespace Application.Features.Semesters.Services
                 }
             }
         }
+
+        
     }
 }
