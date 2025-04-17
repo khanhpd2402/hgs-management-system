@@ -27,6 +27,11 @@ namespace Application.Features.Classes.Services
             var classes = await _classRepository.GetAllAsync();
             return _mapper.Map<IEnumerable<ClassDto>>(classes);
         }
+        public async Task<IEnumerable<ClassDto>> GetAllClassesActiveAsync(string? status = null)
+        {
+            var classes = await _classRepository.GetAllActiveAsync(status);
+            return _mapper.Map<IEnumerable<ClassDto>>(classes);
+        }
 
         public async Task<ClassDto> GetClassByIdAsync(int id)
         {

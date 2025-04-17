@@ -17,7 +17,9 @@ using Application.Features.GradeLevelSubjects.DTOs;
 using Application.Features.GradeLevels.DTOs;
 using Application.Features.Periods.DTOs;
 using Common.Constants;
+using Application.Features.SubstituteTeachings.DTOs;
 using Application.Features.TeacherSubjects.DTOs;
+using Application.Features.Conducts.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -158,6 +160,23 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<Period, PeriodDto>();
             CreateMap<Period, PeriodCreateAndUpdateDto>().ReverseMap();
+
+            CreateMap<SubstituteTeachingCreateDto, SubstituteTeaching>();
+            CreateMap<SubstituteTeachingUpdateDto, SubstituteTeaching>();
+            CreateMap<SubstituteTeaching, SubstituteTeachingDto>()
+                .ForMember(dest => dest.OriginalTeacherName, opt => opt.MapFrom(src => src.OriginalTeacher.FullName))
+                .ForMember(dest => dest.SubstituteTeacherName, opt => opt.MapFrom(src => src.SubstituteTeacher.FullName))
+                .ForMember(dest => dest.ClassId, opt => opt.MapFrom(src => src.TimetableDetail.ClassId))
+                .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.TimetableDetail.Class.ClassName))
+                .ForMember(dest => dest.SubjectId, opt => opt.MapFrom(src => src.TimetableDetail.SubjectId))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.TimetableDetail.Subject.SubjectName))
+                .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => src.TimetableDetail.DayOfWeek))
+                .ForMember(dest => dest.PeriodId, opt => opt.MapFrom(src => src.TimetableDetail.PeriodId))
+                .ForMember(dest => dest.PeriodName, opt => opt.MapFrom(src => src.TimetableDetail.Period.PeriodName));
+
+            CreateMap<CreateConductDto, Conduct>();
+            CreateMap<UpdateConductDto, Conduct>();
+            CreateMap<Conduct, ConductDto>();
         }
     }
 }
