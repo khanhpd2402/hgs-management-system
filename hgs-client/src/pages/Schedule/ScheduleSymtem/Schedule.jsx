@@ -34,6 +34,11 @@ const Schedule = () => {
     const [selectedClass, setSelectedClass] = useState('');
 
     // Add new state variables
+    const [selectedTeacher, setSelectedTeacher] = useState('');
+    const [selectedSubject, setSelectedSubject] = useState('');
+    const [selectedSession, setSelectedSession] = useState('');
+    const [showTeacherName, setShowTeacherName] = useState(true);
+
     const [tempTeacher, setTempTeacher] = useState('');
     const [tempGrade, setTempGrade] = useState('');
     const [tempClass, setTempClass] = useState('');
@@ -52,6 +57,12 @@ const Schedule = () => {
 
     const handleSearch = () => {
         if (!scheduleData?.[0]?.details) return;
+
+        setSelectedTeacher(tempTeacher);
+        setSelectedGrade(tempGrade);
+        setSelectedClass(tempClass);
+        setSelectedSubject(tempSubject);
+        setSelectedSession(tempSession);
 
         let filtered = scheduleData[0].details;
 
@@ -87,7 +98,7 @@ const Schedule = () => {
             const afternoonPeriods = [6, 7, 8];
             filtered = filtered.filter(item => {
                 const periodId = parseInt(item.periodId);
-                return tempSession === 'Morning' 
+                return tempSession === 'Morning'
                     ? morningPeriods.includes(periodId)
                     : afternoonPeriods.includes(periodId);
             });
@@ -107,6 +118,13 @@ const Schedule = () => {
         setTempClass('');
         setTempSubject('');
         setTempSession('');
+
+        setSelectedTeacher('');
+        setSelectedGrade('');
+        setSelectedClass('');
+        setSelectedSubject('');
+        setSelectedSession('');
+
         setFilteredSchedule(null);
     };
 
