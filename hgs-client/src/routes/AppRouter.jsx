@@ -24,6 +24,7 @@ import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/Teache
 import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
 import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
 import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
+import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
 // import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
@@ -290,6 +291,14 @@ const studentRouter = [
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <StudentScore />
+      </Suspense>
+    ),
+  },
+  {
+    path: "/student/schedule",
+    element: (
+      <Suspense fallback={<div>Loading...</div>}>
+        <ScheduleStudent />
       </Suspense>
     ),
   },
