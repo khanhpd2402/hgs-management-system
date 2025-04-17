@@ -198,45 +198,75 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         return filterData;
     }
 
-    public async Task UpdateTeachingAssignmentAsync(TeachingAssignmentUpdateDto dto)
+    public async Task UpdateTeachingAssignmentsAsync(List<TeachingAssignmentUpdateDto> dtos)
     {
-        var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
+        if (!dtos.Any())
+        {
+            throw new ArgumentException("Danh sách phân công không được để trống.");
+        }
+
+        // Lấy TeacherId và SemesterId từ DTO đầu tiên (giả định tất cả DTOs trong danh sách đều có cùng TeacherId và SemesterId)
+        var teacherId = dtos.First().TeacherId;
+        var semesterId = dtos.First().SemesterId;
+
+        // Kiểm tra xem tất cả DTOs có cùng TeacherId và SemesterId không
+        if (dtos.Any(dto => dto.TeacherId != teacherId || dto.SemesterId != semesterId))
+        {
+            throw new ArgumentException("Tất cả phân công trong danh sách phải có cùng TeacherId và SemesterId.");
+        }
+
+        var teacher = await _context.Teachers.FindAsync(teacherId);
         if (teacher == null)
-            throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+        {
+            throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+        }
 
-        var subject = await _context.Subjects
-            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
-        if (subject == null)
-            throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
-
-        var semester = await _context.Semesters.FindAsync(dto.SemesterId);
+        var semester = await _context.Semesters.FindAsync(semesterId);
         if (semester == null)
-            throw new ArgumentException($"Semester with Id {dto.SemesterId} does not exist.");
+        {
+            throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
+        }
 
-        var teacherSubject = await _context.TeacherSubjects
-            .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
-        if (teacherSubject == null)
-            throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
-
+        // Xóa toàn bộ phân công cũ của giáo viên trong học kỳ này
         var existingAssignments = await _context.TeachingAssignments
-            .Where(ta => ta.TeacherId == dto.TeacherId && ta.SubjectId == dto.SubjectId && ta.SemesterId == dto.SemesterId)
+            .Where(ta => ta.TeacherId == teacherId && ta.SemesterId == semesterId)
             .ToListAsync();
         _context.TeachingAssignments.RemoveRange(existingAssignments);
 
-        foreach (var classAssignment in dto.ClassAssignments)
+        // Tạo lại các phân công mới dựa trên danh sách DTOs
+        foreach (var dto in dtos)
         {
-            var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
-            if (classEntity == null)
-                throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
-
-            var newAssignment = new Domain.Models.TeachingAssignment
+            var subject = await _context.Subjects
+                .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
+            if (subject == null)
             {
-                TeacherId = dto.TeacherId,
-                SubjectId = dto.SubjectId,
-                ClassId = classAssignment.ClassId,
-                SemesterId = dto.SemesterId
-            };
-            _context.TeachingAssignments.Add(newAssignment);
+                throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
+            }
+
+            var teacherSubject = await _context.TeacherSubjects
+                .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
+            if (teacherSubject == null)
+            {
+                throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
+            }
+
+            foreach (var classAssignment in dto.ClassAssignments)
+            {
+                var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
+                if (classEntity == null)
+                {
+                    throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
+                }
+
+                var newAssignment = new Domain.Models.TeachingAssignment
+                {
+                    TeacherId = dto.TeacherId,
+                    SubjectId = dto.SubjectId,
+                    ClassId = classAssignment.ClassId,
+                    SemesterId = dto.SemesterId
+                };
+                _context.TeachingAssignments.Add(newAssignment);
+            }
         }
 
         await _context.SaveChangesAsync();
@@ -348,5 +378,31 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         }
 
         return result;
+    }
+    public async Task DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(int teacherId, int semesterId)
+    {
+        var teacher = await _context.Teachers.FindAsync(teacherId);
+        if (teacher == null)
+        {
+            throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+        }
+
+        var semester = await _context.Semesters.FindAsync(semesterId);
+        if (semester == null)
+        {
+            throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
+        }
+
+        var assignmentsToDelete = await _context.TeachingAssignments
+            .Where(ta => ta.TeacherId == teacherId && ta.SemesterId == semesterId)
+            .ToListAsync();
+
+        if (!assignmentsToDelete.Any())
+        {
+            throw new ArgumentException($"No teaching assignments found for TeacherId {teacherId} in SemesterId {semesterId}.");
+        }
+
+        _context.TeachingAssignments.RemoveRange(assignmentsToDelete);
+        await _context.SaveChangesAsync();
     }
 }
