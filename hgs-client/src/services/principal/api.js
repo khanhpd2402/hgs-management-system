@@ -45,6 +45,10 @@ export const getSubjectDetail = async (id) => {
   return (await axiosInstance.get(`Subjects/${id}`)).data;
 };
 
+export const getSubjectConfigues = async () => {
+  return (await axiosInstance.get(`GradeLevelSubjects`)).data;
+};
+
 export const getSubjectConfigueDetail = async (id) => {
   return (await axiosInstance.get(`GradeLevelSubjects/subject/${id}`)).data;
 };
@@ -63,4 +67,54 @@ export const deleteSubject = async (id) => {
 
 export const deleteSubjectConfigue = async (id) => {
   return (await axiosInstance.delete(`GradeLevelSubjects/${id}`)).data;
+};
+
+//teaching assignment
+
+export const getTeacherSubjects = async () => {
+  return (await axiosInstance.get(`TeachingAssignment/filter-data`)).data;
+};
+
+export const getTeachingAssignments = async (semesterID) => {
+  return (
+    await axiosInstance.get(`TeachingAssignment/all?semesterId=${semesterID}`)
+  ).data;
+};
+
+export const assignTeaching = async (data) => {
+  return (await axiosInstance.post(`TeachingAssignment/create`, data)).data;
+};
+
+export const getTeachingAssignmentsByTeacher = async (
+  teacherId,
+  semesterId,
+) => {
+  return (
+    await axiosInstance.get(
+      `TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+    )
+  ).data;
+};
+
+export const updateTeachingAssignment = async (data) => {
+  return (
+    await axiosInstance.put(`TeachingAssignment/teaching-assignments`, data)
+  ).data;
+};
+
+export const deleteTeachingAssignment = async (teacherId, semesterId) => {
+  return (
+    await axiosInstance.delete(
+      `TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+    )
+  ).data;
+};
+
+//
+export const getClassesWithStudentCount = async (academicYearId) => {
+  return (
+    await axiosInstance.get(
+      `StudentClasses/classes-with-student-count?academicYearId=${academicYearId}`,
+    )
+  ).data;
 };
