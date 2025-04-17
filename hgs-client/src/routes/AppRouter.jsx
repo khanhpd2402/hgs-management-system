@@ -17,6 +17,7 @@ import AddStudent from "@/pages/Student/Profile/AddStudent";
 import SubjectManagement from "@/pages/Principal/SubjectManagement/SubjectManagement";
 import ClassManagement from "@/pages/Principal/ClassManagement/ClassManagement";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+import AcademicYearManagement from "@/pages/Principal/AcademicYearManagement/AcademicYearManagement";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
 // import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
@@ -80,6 +81,14 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <UserManagement />
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/academic-year",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <AcademicYearManagement />
       </ProtectedRoute>
     ),
   },
