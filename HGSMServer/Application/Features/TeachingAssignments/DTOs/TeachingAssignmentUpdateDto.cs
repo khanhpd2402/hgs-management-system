@@ -8,7 +8,6 @@ namespace Application.Features.TeachingAssignments.DTOs
 {
     public class TeachingAssignmentUpdateDto
     {
-        public int? AssignmentId { get; set; } // Optional for updates, null for new assignments
         public int TeacherId { get; set; }
         public int SubjectId { get; set; }
         public string SubjectCategory { get; set; }
