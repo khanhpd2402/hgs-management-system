@@ -5,7 +5,12 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-
+import {
+  Dialog as ConfirmDialog,
+  DialogTitle as ConfirmDialogTitle,
+  DialogHeader as ConfirmDialogHeader,
+  DialogContent as ConfirmDialogContent,
+} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -19,12 +24,21 @@ import { Checkbox } from "@/components/ui/checkbox";
 import {
   useSubjectConfigue,
   useTeacherSubjects,
+  useTeachingAssignmentsByTeacher,
 } from "@/services/principal/queries";
 import toast from "react-hot-toast";
 import { useClasses } from "@/services/common/queries";
-import { useAssginTeaching } from "@/services/principal/mutation";
+import {
+  useAssginTeaching,
+  useUpdateTeachingAssignment,
+} from "@/services/principal/mutation";
 
-export default function UpdateTaModal({ open, onOpenChange, semester }) {
+export default function UpdateTAModal({
+  open,
+  onOpenChange,
+  semester,
+  teacherId,
+}) {
   //get teacher + subject
   const teacherQuery = useTeacherSubjects();
   const subjects = teacherQuery.data?.subjects || [];
@@ -38,8 +52,15 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
   const subjectConfigQuery = useSubjectConfigue();
   const subjectConfigs = subjectConfigQuery.data || [];
 
+  //get teacher's teaching assignments
+  const teacherAssignmentQuery = useTeachingAssignmentsByTeacher({
+    teacherId,
+    semesterId: semester?.semesterID,
+  });
+
   //assign teaching
-  const assignTeachingMutation = useAssginTeaching();
+  // const assignTeachingMutation = useAssginTeaching();
+  const updateTeachingAssignmentMutation = useUpdateTeachingAssignment();
 
   const [selectedTeacher, setSelectedTeacher] = useState("");
   const [selectedSubject, setSelectedSubject] = useState("");
@@ -75,20 +96,27 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
     return assignments.join(" - ");
   };
 
+  const hasAssignments = () => {
+    return Object.values(subjectAssignments).some(
+      (arr) => arr && arr.length > 0,
+    );
+  };
+
   const handleSave = () => {
     if (!selectedTeacher) {
       toast.error("Vui lòng chọn giáo viên");
       return;
     }
 
-    if (!selectedSubject) {
+    if (!selectedSubject && !hasAssignments()) {
       toast.error("Vui lòng chọn môn học");
       return;
     }
 
     if (
-      !subjectAssignments[selectedSubject] ||
-      subjectAssignments[selectedSubject].length === 0
+      (!subjectAssignments[selectedSubject] ||
+        subjectAssignments[selectedSubject].length === 0) &&
+      !hasAssignments()
     ) {
       toast.error("Vui lòng chọn ít nhất một lớp cho môn học này");
       return;
@@ -111,7 +139,8 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
       }
     });
     console.log("Saving data:", assignments);
-    assignTeachingMutation.mutate(assignments);
+    // assignTeachingMutation.mutate(assignments);
+    updateTeachingAssignmentMutation.mutate(assignments);
     // Add your API call here
     onOpenChange(false);
   };
@@ -153,12 +182,18 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
 
   useEffect(() => {
     if (open && subjects.length > 0) {
-      setSelectedTeacher("");
+      setSelectedTeacher(teacherId); // Set to teacherId when modal opens
       setSelectedSubject("");
       // Initialize assignments for all subjects
       const initialAssignments = {};
       subjects.forEach((s) => {
-        initialAssignments[s.subjectID] = [];
+        // Collect all classIds for this subject from teacherAssignmentQuery.data
+        const assignedClassIds = teacherAssignmentQuery.data
+          ? teacherAssignmentQuery.data
+              .filter((a) => a.subjectId === s.subjectID)
+              .map((a) => a.classId)
+          : [];
+        initialAssignments[s.subjectID] = assignedClassIds;
       });
       setSubjectAssignments(initialAssignments);
     }
@@ -167,19 +202,7 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
       setSelectedSubject("");
       setSubjectAssignments({});
     }
-  }, [open, subjects]);
-
-  useEffect(() => {
-    // Reset subject and assignments when teacher changes
-    if (selectedTeacher !== "") {
-      setSelectedSubject("");
-      const initialAssignments = {};
-      subjects.forEach((s) => {
-        initialAssignments[s.subjectID] = [];
-      });
-      setSubjectAssignments(initialAssignments);
-    }
-  }, [selectedTeacher, subjects]);
+  }, [open, subjects, teacherId, teacherAssignmentQuery.data]);
 
   return (
     <>
@@ -193,10 +216,7 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium">Giáo viên</label>
-                <Select
-                  value={selectedTeacher}
-                  onValueChange={handleTeacherChange}
-                >
+                <Select value={selectedTeacher} disabled>
                   <SelectTrigger>
                     <SelectValue placeholder="Chọn giáo viên" />
                   </SelectTrigger>
@@ -224,15 +244,24 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
                   <SelectContent>
                     {(() => {
                       let teacherSubjectIds = [];
+                      let teacherMainSubjectMap = {};
                       if (selectedTeacher) {
                         const teacher = teachers.find(
                           (t) => t.teacherId === selectedTeacher,
                         );
-                        teacherSubjectIds = teacher?.subjects
-                          ? teacher.subjects.map((s) =>
-                              typeof s === "object" ? s.subjectId : s,
-                            )
-                          : [];
+                        if (teacher?.subjects) {
+                          teacherSubjectIds = teacher.subjects.map((s) =>
+                            typeof s === "object" ? s.subjectId : s,
+                          );
+                          // Build a map: subjectId -> isMainSubject
+                          teacher.subjects.forEach((s) => {
+                            const subjectId =
+                              typeof s === "object" ? s.subjectId : s;
+                            const isMain =
+                              typeof s === "object" ? s.isMainSubject : false;
+                            teacherMainSubjectMap[subjectId] = isMain;
+                          });
+                        }
                       }
                       // Sort: teachable subjects first
                       const sortedSubjects = [...subjects].sort((a, b) => {
@@ -252,6 +281,8 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
                             subject.subjectID,
                           );
                         }
+                        // Append * if isMainSubject = true for this teacher
+                        const isMain = teacherMainSubjectMap[subject.subjectID];
                         return (
                           <SelectItem
                             key={subject.subjectID}
@@ -259,6 +290,11 @@ export default function UpdateTaModal({ open, onOpenChange, semester }) {
                             disabled={!canTeach}
                           >
                             {subject.subjectName}
+                            {isMain ? (
+                              <span className="text-red-600">*</span>
+                            ) : (
+                              ""
+                            )}
                           </SelectItem>
                         );
                       });

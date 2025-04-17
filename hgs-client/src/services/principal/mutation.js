@@ -9,6 +9,7 @@ import {
   resetUserPassword,
   updateSubject,
   updateSubjectConfigue,
+  updateTeachingAssignment,
 } from "./api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -191,6 +192,35 @@ export function useAssginTeaching() {
         console.log(data);
         toast.success("Phân công giảng dạy thành công");
         queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+      }
+    },
+  });
+}
+
+export function useUpdateTeachingAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      console.log(data);
+      return updateTeachingAssignment(data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "teaching-assignments-by-teacher",
+            {
+              teacherId: variables[0].teacherId,
+              semesterId: variables[0]?.semesterId,
+            },
+          ],
+        });
       }
     },
   });

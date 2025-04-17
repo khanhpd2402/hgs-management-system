@@ -8,6 +8,7 @@ import {
   getSubjectDetail,
   getTeacherSubjects,
   getTeachingAssignments,
+  getTeachingAssignmentsByTeacher,
   getUsers,
 } from "./api";
 
@@ -73,8 +74,20 @@ export function useTA(semesterID) {
     queryFn: () => {
       return getTeachingAssignments(semesterID);
     },
+    enabled: !!semesterID,
   });
 }
+
+export function useTeachingAssignmentsByTeacher({ teacherId, semesterId }) {
+  return useQuery({
+    queryKey: ["teaching-assignments-by-teacher", { teacherId, semesterId }],
+    queryFn: () => {
+      return getTeachingAssignmentsByTeacher(teacherId, semesterId);
+    },
+    enabled: !!teacherId && !!semesterId,
+  });
+}
+
 export function useClassesWithStudentCount(academicYearId) {
   return useQuery({
     queryKey: ["classes-with-student-count", academicYearId],

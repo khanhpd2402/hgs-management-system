@@ -267,15 +267,24 @@ export default function TAModal({ open, onOpenChange, semester }) {
                   <SelectContent>
                     {(() => {
                       let teacherSubjectIds = [];
+                      let teacherMainSubjectMap = {};
                       if (selectedTeacher) {
                         const teacher = teachers.find(
                           (t) => t.teacherId === selectedTeacher,
                         );
-                        teacherSubjectIds = teacher?.subjects
-                          ? teacher.subjects.map((s) =>
-                              typeof s === "object" ? s.subjectId : s,
-                            )
-                          : [];
+                        if (teacher?.subjects) {
+                          teacherSubjectIds = teacher.subjects.map((s) =>
+                            typeof s === "object" ? s.subjectId : s,
+                          );
+                          // Build a map: subjectId -> isMainSubject
+                          teacher.subjects.forEach((s) => {
+                            const subjectId =
+                              typeof s === "object" ? s.subjectId : s;
+                            const isMain =
+                              typeof s === "object" ? s.isMainSubject : false;
+                            teacherMainSubjectMap[subjectId] = isMain;
+                          });
+                        }
                       }
                       // Sort: teachable subjects first
                       const sortedSubjects = [...subjects].sort((a, b) => {
@@ -295,6 +304,8 @@ export default function TAModal({ open, onOpenChange, semester }) {
                             subject.subjectID,
                           );
                         }
+                        // Append * if isMainSubject = true for this teacher
+                        const isMain = teacherMainSubjectMap[subject.subjectID];
                         return (
                           <SelectItem
                             key={subject.subjectID}
@@ -302,6 +313,11 @@ export default function TAModal({ open, onOpenChange, semester }) {
                             disabled={!canTeach}
                           >
                             {subject.subjectName}
+                            {isMain ? (
+                              <span className="text-red-600">*</span>
+                            ) : (
+                              ""
+                            )}
                           </SelectItem>
                         );
                       });
