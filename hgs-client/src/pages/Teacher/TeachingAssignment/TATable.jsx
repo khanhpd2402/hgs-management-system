@@ -23,8 +23,15 @@ import { cn } from "@/lib/utils";
 import { useSubjectConfigue, useTA } from "@/services/principal/queries";
 import MyPagination from "@/components/MyPagination";
 import PaginationControls from "@/components/PaginationControls";
-import { Settings } from "lucide-react";
+import { Settings, Trash2 } from "lucide-react";
 import UpdateTAModal from "./UpdateTAModal";
+import { useDeleteTeachingAssignment } from "@/services/principal/mutation";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 export default function TATable() {
   const [filter, setFilter] = useState({
@@ -39,6 +46,7 @@ export default function TATable() {
   const TAQuery = useTA(semester?.semesterID);
   const classQuery = useClasses();
   const subjectConfigQuery = useSubjectConfigue();
+  const deleteTeachingAssignmentMutation = useDeleteTeachingAssignment();
   // console.log(semester);
   // console.log(subjectConfigQuery.data);
   // console.log(TAQuery.data);
@@ -48,6 +56,17 @@ export default function TATable() {
 
   const [openModal, setOpenModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState(null);
+
+  const handleDeleteTeacher = (teacherId) => {
+    console.log(`Xoá giáo viên có ID: ${teacherId}`);
+    deleteTeachingAssignmentMutation.mutate({
+      teacherId,
+      semesterId: semester?.semesterID,
+    });
+    setShowDeleteConfirm(false);
+  };
 
   useEffect(() => {
     if (semesters?.length > 0) {
@@ -290,16 +309,28 @@ export default function TATable() {
                             rowSpan={subjectEntries.length}
                             className="h-14 border border-gray-300 text-center whitespace-nowrap"
                           >
-                            <Button
-                              variant="outline"
-                              size="icon"
-                              onClick={() => {
-                                setSelectedTeacherId(teacher.teacherId);
-                                setOpenUpdateModal(true);
-                              }}
-                            >
-                              <Settings className="h-4 w-4" />
-                            </Button>
+                            <div className="flex items-center justify-center gap-2">
+                              <Button
+                                variant="destructive"
+                                size="icon"
+                                onClick={() => {
+                                  setTeacherToDelete(teacher);
+                                  setShowDeleteConfirm(true);
+                                }}
+                              >
+                                <Trash2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="outline"
+                                size="icon"
+                                onClick={() => {
+                                  setSelectedTeacherId(teacher.teacherId);
+                                  setOpenUpdateModal(true);
+                                }}
+                              >
+                                <Settings className="h-4 w-4" />
+                              </Button>
+                            </div>
                           </TableCell>
                         )}
                         {idx === 0 && (
@@ -362,6 +393,42 @@ export default function TATable() {
             onPageChange={setFilter}
           />
         </div>
+        <Dialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle className="text-2xl font-bold">
+                Xác nhận xoá phân công
+              </DialogTitle>
+            </DialogHeader>
+            <div className="mt-2">
+              Bạn có chắc chắn muốn xoá toàn bộ phân công của giáo viên{" "}
+              <span className="font-semibold">
+                {teacherToDelete?.teacherName}
+              </span>{" "}
+              không?
+            </div>
+            <div className="mt-4 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setShowDeleteConfirm(false)}
+              >
+                Hủy
+              </Button>
+              <Button
+                variant="destructive"
+                onClick={() => {
+                  if (teacherToDelete) {
+                    handleDeleteTeacher(teacherToDelete.teacherId);
+                  }
+                  setShowDeleteConfirm(false);
+                  setTeacherToDelete(null);
+                }}
+              >
+                Xoá
+              </Button>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );

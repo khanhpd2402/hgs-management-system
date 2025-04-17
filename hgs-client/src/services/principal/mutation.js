@@ -6,6 +6,7 @@ import {
   configueSubject,
   createSubject,
   deleteSubjectConfigue,
+  deleteTeachingAssignment,
   resetUserPassword,
   updateSubject,
   updateSubjectConfigue,
@@ -221,6 +222,25 @@ export function useUpdateTeachingAssignment() {
             },
           ],
         });
+      }
+    },
+  });
+}
+
+export function useDeleteTeachingAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ teacherId, semesterId }) => {
+      return deleteTeachingAssignment(teacherId, semesterId);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Xóa phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
       }
     },
   });
