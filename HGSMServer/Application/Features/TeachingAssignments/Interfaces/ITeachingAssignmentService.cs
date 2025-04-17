@@ -11,6 +11,6 @@ namespace Application.Features.TeachingAssignments.Interfaces
         Task<TeachingAssignmentFilterDataDto> GetFilterDataAsync();
         Task UpdateTeachingAssignmentAsync(TeachingAssignmentUpdateDto dto);
         Task<List<TeachingAssignmentResponseDto>> GetAssignmentsForCreationAsync(TeachingAssignmentCreateDto dto);
-        Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId);
+        Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId, int semesterId);
     }
 }
