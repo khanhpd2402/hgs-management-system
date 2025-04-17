@@ -32,8 +32,6 @@ namespace HGSMAPI.Controllers
             }
         }
 
-       
-
         [HttpGet("filter-data")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> GetFilterData()
@@ -64,21 +62,28 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPut("teaching-assignments/bulk")]
+        [HttpPut("teaching-assignments")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateTeachingAssignments([FromBody] List<TeachingAssignmentUpdateDto> dtos)
+        public async Task<IActionResult> UpdateTeachingAssignment([FromBody] TeachingAssignmentUpdateDto dto)
         {
-            await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
-            return Ok();
+            try
+            {
+                await _teachingAssignmentService.UpdateTeachingAssignmentAsync(dto);
+                return Ok("Teaching assignment updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("all")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
-        public async Task<IActionResult> GetAllTeachingAssignments()
+        public async Task<IActionResult> GetAllTeachingAssignments([FromQuery] int semesterId)
         {
             try
             {
-                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync();
+                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync(semesterId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -87,7 +92,19 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        
-        
+        [HttpGet("by-teacher/{teacherId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId)
+        {
+            try
+            {
+                var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
