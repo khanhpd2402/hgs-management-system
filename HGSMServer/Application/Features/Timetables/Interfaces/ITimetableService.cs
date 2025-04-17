@@ -7,7 +7,7 @@ namespace Application.Features.Timetables.Interfaces
     {
         Task<IEnumerable<TimetableDto>> GetTimetableByStudentAsync(int studentId, int semesterId);
         Task<IEnumerable<TimetableDto>> GetTimetableByTeacherAsync(int teacherId);
-        Task<IEnumerable<TimetableListDto>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null);
+        Task<IEnumerable<TimetableDto>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null);
         Task<IEnumerable<TimetableListDto>> GetTimetablesBySemesterAsync(int semesterId);
         Task<Timetable> CreateTimetableAsync(CreateTimetableDto dto);
         Task<bool> UpdateMultipleDetailsAsync(UpdateTimetableDetailsDto dto);
