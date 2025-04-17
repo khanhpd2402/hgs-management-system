@@ -75,8 +75,10 @@ export const getTeacherSubjects = async () => {
   return (await axiosInstance.get(`TeachingAssignment/filter-data`)).data;
 };
 
-export const getTeachingAssignments = async () => {
-  return (await axiosInstance.get(`TeachingAssignment/all`)).data;
+export const getTeachingAssignments = async (semesterID) => {
+  return (
+    await axiosInstance.get(`TeachingAssignment/all?semesterId=${semesterID}`)
+  ).data;
 };
 
 export const assignTeaching = async (data) => {

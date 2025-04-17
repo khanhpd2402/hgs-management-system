@@ -67,11 +67,11 @@ export function useTeacherSubjects() {
   });
 }
 
-export function useTA() {
+export function useTA(semesterID) {
   return useQuery({
-    queryKey: ["teaching-assignments"],
+    queryKey: ["teaching-assignments", { semesterID }],
     queryFn: () => {
-      return getTeachingAssignments();
+      return getTeachingAssignments(semesterID);
     },
   });
 }
