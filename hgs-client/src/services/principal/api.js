@@ -102,6 +102,14 @@ export const updateTeachingAssignment = async (data) => {
   ).data;
 };
 
+export const deleteTeachingAssignment = async (teacherId, semesterId) => {
+  return (
+    await axiosInstance.delete(
+      `TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+    )
+  ).data;
+};
+
 //
 export const getClassesWithStudentCount = async (academicYearId) => {
   return (
