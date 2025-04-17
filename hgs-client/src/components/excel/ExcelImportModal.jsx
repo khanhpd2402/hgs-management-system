@@ -55,7 +55,7 @@ export default function ExcelImportModal({ type }) {
       "https://docs.google.com/spreadsheets/d/1Wb9Nra31iOYD3i1R2mlEfgwv8aPnkBLa/export?format=xlsx",
   };
 
-  console.log(type);
+  // console.log(type);
   const sampleFileUrl = sampleFiles[type] || "#";
 
   const handleFileChange = (event) => {
