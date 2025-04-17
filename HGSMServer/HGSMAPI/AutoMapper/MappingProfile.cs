@@ -17,6 +17,7 @@ using Application.Features.GradeLevelSubjects.DTOs;
 using Application.Features.GradeLevels.DTOs;
 using Application.Features.Periods.DTOs;
 using Common.Constants;
+using Application.Features.TeacherSubjects.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -41,6 +42,11 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<Teacher, TeacherListDto>()
                 .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId));
+            CreateMap<TeacherSubject, TeacherSubjectDto>()
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher.FullName))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject.SubjectName));
+            CreateMap<CreateTeacherSubjectDto, TeacherSubject>();
+            CreateMap<UpdateTeacherSubjectDto, TeacherSubject>();
 
             CreateMap<Student, StudentDto>()
                 .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
