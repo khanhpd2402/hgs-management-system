@@ -52,13 +52,11 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
             }
 
-            // Xóa các phân công cũ cho giáo viên, môn học và học kỳ
             var existingAssignments = await _context.TeachingAssignments
                 .Where(ta => ta.TeacherId == dto.TeacherId && ta.SubjectId == dto.SubjectId && ta.SemesterId == dto.SemesterId)
                 .ToListAsync();
             _context.TeachingAssignments.RemoveRange(existingAssignments);
 
-            // Tạo các phân công mới
             foreach (var classAssignment in dto.ClassAssignments)
             {
                 var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
@@ -207,9 +205,9 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
 
         var subject = await _context.Subjects
-            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
+            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
         if (subject == null)
-            throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
+            throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
 
         var semester = await _context.Semesters.FindAsync(dto.SemesterId);
         if (semester == null)
@@ -220,13 +218,11 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         if (teacherSubject == null)
             throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
 
-        // Xóa các phân công cũ cho giáo viên, môn học và học kỳ
         var existingAssignments = await _context.TeachingAssignments
             .Where(ta => ta.TeacherId == dto.TeacherId && ta.SubjectId == dto.SubjectId && ta.SemesterId == dto.SemesterId)
             .ToListAsync();
         _context.TeachingAssignments.RemoveRange(existingAssignments);
 
-        // Tạo các phân công mới
         foreach (var classAssignment in dto.ClassAssignments)
         {
             var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
@@ -256,9 +252,9 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
         var subject = await _context.Subjects
             .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
-        if (subject == null)        
+        if (subject == null)
         {
-            throw new ArgumentException($"Subject with Id {dto.SubjectId}   does not exist.");
+            throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
         }
 
         var semester = await _context.Semesters.FindAsync(dto.SemesterId);
@@ -302,7 +298,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         return result;
     }
 
-    public async Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId)
+    public async Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId, int semesterId)
     {
         var teacher = await _context.Teachers.FindAsync(teacherId);
         if (teacher == null)
@@ -310,16 +306,22 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
         }
 
+        var semester = await _context.Semesters.FindAsync(semesterId);
+        if (semester == null)
+        {
+            throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
+        }
+
         var query = _context.TeachingAssignments
             .Include(ta => ta.Teacher)
             .Include(ta => ta.Subject)
             .Include(ta => ta.Class)
             .Include(ta => ta.Semester)
-            .Where(ta => ta.TeacherId == teacherId)
+            .Where(ta => ta.TeacherId == teacherId && ta.SemesterId == semesterId)
             .AsQueryable();
 
         var homeroomAssignments = await _context.HomeroomAssignments
-            .Where(ha => ha.Status == "Hoạt Động")
+            .Where(ha => ha.Status == "Hoạt Động" && ha.SemesterId == semesterId)
             .Include(ha => ha.Teacher)
             .ToListAsync();
 
