@@ -18,6 +18,8 @@ using Application.Features.GradeLevels.DTOs;
 using Application.Features.Periods.DTOs;
 using Common.Constants;
 using Application.Features.SubstituteTeachings.DTOs;
+using Application.Features.TeacherSubjects.DTOs;
+using Application.Features.Conducts.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -42,6 +44,11 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<Teacher, TeacherListDto>()
                 .ForMember(dest => dest.TeacherId, opt => opt.MapFrom(src => src.TeacherId));
+            CreateMap<TeacherSubject, TeacherSubjectDto>()
+                .ForMember(dest => dest.TeacherName, opt => opt.MapFrom(src => src.Teacher.FullName))
+                .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Subject.SubjectName));
+            CreateMap<CreateTeacherSubjectDto, TeacherSubject>();
+            CreateMap<UpdateTeacherSubjectDto, TeacherSubject>();
 
             CreateMap<Student, StudentDto>()
                 .ForMember(dest => dest.ClassName, opt => opt.MapFrom(src => src.StudentClasses.FirstOrDefault().Class.ClassName))
@@ -166,6 +173,10 @@ namespace HGSMAPI.AutoMapper
                 .ForMember(dest => dest.DayOfWeek, opt => opt.MapFrom(src => src.TimetableDetail.DayOfWeek))
                 .ForMember(dest => dest.PeriodId, opt => opt.MapFrom(src => src.TimetableDetail.PeriodId))
                 .ForMember(dest => dest.PeriodName, opt => opt.MapFrom(src => src.TimetableDetail.Period.PeriodName));
+
+            CreateMap<CreateConductDto, Conduct>();
+            CreateMap<UpdateConductDto, Conduct>();
+            CreateMap<Conduct, ConductDto>();
         }
     }
 }

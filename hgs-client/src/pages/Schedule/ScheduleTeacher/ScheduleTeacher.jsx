@@ -1,12 +1,23 @@
-import React, { useState } from 'react';
-import { scheduleData } from './data';
+import React, { useState, useEffect } from 'react';
+import { useScheduleTeacher } from '../../../services/schedule/queries';
 import './ScheduleTeacher.scss';
 
 const ScheduleTeacher = () => {
-    const [selectedTeacher, setSelectedTeacher] = useState('');
+    const [teacherId, setTeacherId] = useState(null);
     const [effectiveDate, setEffectiveDate] = useState('');
 
-    const teachers = [...new Set(scheduleData.map(item => item.teacherName))];
+    useEffect(() => {
+        const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+        if (token) {
+            const tokenParts = token.split('.');
+            if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                setTeacherId(payload.teacherId);
+            }
+        }
+    }, []);
+
+    const { data: scheduleData, isLoading } = useScheduleTeacher(teacherId);
 
     const daysOfWeek = [
         'Thứ Hai',
@@ -24,50 +35,39 @@ const ScheduleTeacher = () => {
     ];
 
     const getSchedule = (day, shift, period) => {
-        const schedule = scheduleData.find(
+        if (!scheduleData?.[0]?.details) return '';
+        
+        const schedule = scheduleData[0].details.find(
             (item) =>
                 item.dayOfWeek === day &&
-                item.shift === shift &&
-                item.period === period &&
-                (selectedTeacher ? item.teacherName === selectedTeacher : true)
+                item.periodId === period
         );
-        return schedule ? `${schedule.className} - ${schedule.subjectName}` : '';
+
+        if (schedule) {
+            return `${schedule.className} - ${schedule.subjectName}`;
+        }
+        return '';
     };
+
+    if (isLoading) {
+        return <div>Đang tải...</div>;
+    }
+
+    const currentSchedule = scheduleData?.[0];
 
     return (
         <div className="schedule-teacher-container">
-            <div className="filter-section">
-                <div className="filter-row">
-                    <div className="filter-item">
-                        <label>Giáo viên</label>
-                        <select
-                            value={selectedTeacher}
-                            onChange={(e) => setSelectedTeacher(e.target.value)}
-                        >
-                            <option value="">-- Lựa chọn --</option>
-                            {teachers.map((teacher, index) => (
-                                <option key={index} value={teacher}>
-                                    {teacher}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                    <div className="filter-item">
-                        <label>Ngày áp dụng</label>
-                        <input
-                            type="date"
-                            value={effectiveDate}
-                            onChange={(e) => setEffectiveDate(e.target.value)}
-                        />
-                    </div>
-                </div>
+          
 
-                <div className="search-button-container">
-                    <button style={{ width: "150px" }} className="search-button">Tìm kiếm</button>
+            {currentSchedule && (
+                <div style={{ marginBottom: '20px' }}>
+                    <h2>Thời Khóa Biểu Trong Tuần</h2>
+                    <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
+                    <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
+                    <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
                 </div>
-            </div>
+            )}
 
-            <h2>Thời Khóa Biểu Trong Tuần</h2>
             <table className="schedule-teacher-table">
                 <thead>
                     <tr>
@@ -75,7 +75,7 @@ const ScheduleTeacher = () => {
                         <th>Tiết</th>
                         {daysOfWeek.map((day, index) => (
                             <th
-                                style={{ backgroundColor: '#727cf5' }}
+                                style={{ backgroundColor: '#727cf5', color: 'white' }}
                                 key={index}
                                 className={index % 2 === 0 ? 'even-column' : 'odd-column'}
                             >

@@ -22,6 +22,12 @@ namespace HGSMAPI.Controllers
             var classes = await _classService.GetAllClassesAsync();
             return Ok(classes);
         }
+        [HttpGet("GetActiveAll")]
+        public async Task<ActionResult<IEnumerable<ClassDto>>> GetActiveAll([FromQuery] string? status = null)
+        {
+            var classes = await _classService.GetAllClassesActiveAsync(status);
+            return Ok(classes);
+        }
 
         [HttpGet("{id}")]
         public async Task<ActionResult<ClassDto>> GetById(int id)

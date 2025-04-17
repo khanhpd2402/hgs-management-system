@@ -10,6 +10,7 @@ namespace Application.Features.Classes.Interfaces
     public interface IClassService
     {
         Task<IEnumerable<ClassDto>> GetAllClassesAsync();
+        Task<IEnumerable<ClassDto>> GetAllClassesActiveAsync(string? status = null);
         Task<ClassDto> GetClassByIdAsync(int id);
         Task<ClassDto> CreateClassAsync(ClassDto classDto);
         Task<ClassDto> UpdateClassAsync(int id, ClassDto classDto);

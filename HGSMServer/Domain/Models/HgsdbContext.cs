@@ -21,6 +21,8 @@ public partial class HgsdbContext : DbContext
 
     public virtual DbSet<Class> Classes { get; set; }
 
+    public virtual DbSet<Conduct> Conducts { get; set; }
+
     public virtual DbSet<ExamProposal> ExamProposals { get; set; }
 
     public virtual DbSet<Grade> Grades { get; set; }
@@ -124,6 +126,25 @@ public partial class HgsdbContext : DbContext
                 .HasForeignKey(d => d.GradeLevelId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("FK_Classes_GradeLevels");
+        });
+
+        modelBuilder.Entity<Conduct>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("PK__Conducts__3214EC0753F6F4B6");
+
+            entity.HasIndex(e => new { e.StudentId, e.SemesterId }, "UQ_Conduct_Student_Semester").IsUnique();
+
+            entity.Property(e => e.ConductType).HasMaxLength(50);
+
+            entity.HasOne(d => d.Semester).WithMany(p => p.Conducts)
+                .HasForeignKey(d => d.SemesterId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Conducts_Semesters");
+
+            entity.HasOne(d => d.Student).WithMany(p => p.Conducts)
+                .HasForeignKey(d => d.StudentId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Conducts_Students");
         });
 
         modelBuilder.Entity<ExamProposal>(entity =>
