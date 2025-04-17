@@ -92,13 +92,13 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpGet("by-teacher/{teacherId}")]
+        [HttpGet("by-teacherId&semesterId/{teacherId}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
-        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId)
+        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId, [FromQuery] int semesterId)
         {
             try
             {
-                var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId);
+                var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId, semesterId);
                 return Ok(result);
             }
             catch (Exception ex)
