@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml.InkML;
 
 public class TeachingAssignmentService : ITeachingAssignmentService
 {
@@ -205,11 +206,9 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             throw new ArgumentException("Danh sách phân công không được để trống.");
         }
 
-        // Lấy TeacherId và SemesterId từ DTO đầu tiên (giả định tất cả DTOs trong danh sách đều có cùng TeacherId và SemesterId)
         var teacherId = dtos.First().TeacherId;
         var semesterId = dtos.First().SemesterId;
 
-        // Kiểm tra xem tất cả DTOs có cùng TeacherId và SemesterId không
         if (dtos.Any(dto => dto.TeacherId != teacherId || dto.SemesterId != semesterId))
         {
             throw new ArgumentException("Tất cả phân công trong danh sách phải có cùng TeacherId và SemesterId.");
@@ -227,13 +226,11 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
         }
 
-        // Xóa toàn bộ phân công cũ của giáo viên trong học kỳ này
         var existingAssignments = await _context.TeachingAssignments
             .Where(ta => ta.TeacherId == teacherId && ta.SemesterId == semesterId)
             .ToListAsync();
         _context.TeachingAssignments.RemoveRange(existingAssignments);
 
-        // Tạo lại các phân công mới dựa trên danh sách DTOs
         foreach (var dto in dtos)
         {
             var subject = await _context.Subjects
@@ -379,6 +376,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
         return result;
     }
+
     public async Task DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(int teacherId, int semesterId)
     {
         var teacher = await _context.Teachers.FindAsync(teacherId);
