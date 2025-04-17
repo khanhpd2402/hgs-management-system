@@ -665,7 +665,7 @@ export default function StudentProfile() {
                 />
                 <Label htmlFor="showGuardianInfo">Thông tin người bảo hộ</Label>
               </div>
-              <div className="flex items-center space-x-2">
+              {/* <div className="flex items-center space-x-2">
                 <Button
                   type="button"
                   variant="outline"
@@ -673,7 +673,7 @@ export default function StudentProfile() {
                 >
                   Có anh/chị/em đang học
                 </Button>
-              </div>
+              </div> */}
             </div>
             {errors.familyInfoRequired && (
               <p className="text-sm text-red-500">

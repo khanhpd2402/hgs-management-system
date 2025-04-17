@@ -13,54 +13,66 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<List<SubstituteTeaching>> GetAllAsync()
+        public async Task<SubstituteTeaching> CreateAsync(SubstituteTeaching entity)
+        {
+            await _context.SubstituteTeachings.AddAsync(entity);
+            await _context.SaveChangesAsync();
+            return entity;
+        }
+
+        public async Task<SubstituteTeaching> GetByIdAsync(int substituteId)
         {
             return await _context.SubstituteTeachings
-                .Include(s => s.OriginalTeacher)
-                .Include(s => s.SubstituteTeacher)
-                .Include(s => s.TimetableDetail)
-                .ToListAsync();
+                .Include(st => st.TimetableDetail)
+                    .ThenInclude(td => td.Class)
+                .Include(st => st.TimetableDetail)
+                    .ThenInclude(td => td.Subject)
+                .Include(st => st.TimetableDetail)
+                    .ThenInclude(td => td.Period)
+                .Include(st => st.OriginalTeacher)
+                .Include(st => st.SubstituteTeacher)
+                .FirstOrDefaultAsync(st => st.SubstituteId == substituteId);
         }
 
-        public async Task<SubstituteTeaching?> GetByIdAsync(int id)
+        public async Task<IEnumerable<SubstituteTeaching>> GetAllAsync(int? timetableDetailId = null, int? teacherId = null, DateOnly? date = null)
         {
-            return await _context.SubstituteTeachings
-                .Include(s => s.OriginalTeacher)
-                .Include(s => s.SubstituteTeacher)
-                .Include(s => s.TimetableDetail)
-                .FirstOrDefaultAsync(s => s.SubstituteId == id);
+            var query = _context.SubstituteTeachings
+                .Include(st => st.TimetableDetail)
+                    .ThenInclude(td => td.Class)
+                .Include(st => st.TimetableDetail)
+                    .ThenInclude(td => td.Subject)
+                .Include(st => st.TimetableDetail)
+                    .ThenInclude(td => td.Period)
+                .Include(st => st.OriginalTeacher)
+                .Include(st => st.SubstituteTeacher)
+                .AsQueryable();
+
+            if (timetableDetailId.HasValue)
+                query = query.Where(st => st.TimetableDetailId == timetableDetailId.Value);
+
+            if (teacherId.HasValue)
+                query = query.Where(st => st.OriginalTeacherId == teacherId.Value || st.SubstituteTeacherId == teacherId.Value);
+
+            if (date.HasValue)
+                query = query.Where(st => st.Date == date.Value);
+
+            return await query.ToListAsync();
         }
 
-        public async Task<SubstituteTeaching> CreateAsync(SubstituteTeaching model)
+        public async Task UpdateAsync(SubstituteTeaching entity)
         {
-            _context.SubstituteTeachings.Add(model);
+            _context.SubstituteTeachings.Update(entity);
             await _context.SaveChangesAsync();
-            return model;
         }
 
-        public async Task<bool> UpdateAsync(int id, SubstituteTeaching model)
+        public async Task DeleteAsync(int substituteId)
         {
-            var existing = await _context.SubstituteTeachings.FindAsync(id);
-            if (existing == null) return false;
-
-            existing.TimetableDetailId = model.TimetableDetailId;
-            existing.OriginalTeacherId = model.OriginalTeacherId;
-            existing.SubstituteTeacherId = model.SubstituteTeacherId;
-            existing.Date = model.Date;
-            existing.Note = model.Note;
-
-            await _context.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<bool> DeleteAsync(int id)
-        {
-            var model = await _context.SubstituteTeachings.FindAsync(id);
-            if (model == null) return false;
-
-            _context.SubstituteTeachings.Remove(model);
-            await _context.SaveChangesAsync();
-            return true;
+            var entity = await _context.SubstituteTeachings.FindAsync(substituteId);
+            if (entity != null)
+            {
+                _context.SubstituteTeachings.Remove(entity);
+                await _context.SaveChangesAsync();
+            }
         }
     }
 }

@@ -30,7 +30,6 @@ namespace Application.Features.StudentClass.Services
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly HgsdbContext _context;
 
-
         public StudentClassService(
             IStudentClassRepository studentClassRepository,
             IStudentRepository studentRepository,
@@ -50,7 +49,6 @@ namespace Application.Features.StudentClass.Services
             _httpContextAccessor = httpContextAccessor;
             _context = context;
         }
-        
 
         private async Task<bool> HasPermissionAsync()
         {
@@ -401,10 +399,8 @@ namespace Application.Features.StudentClass.Services
 
             List<StudentFilterDto> students;
 
-            // Nếu có ClassId và SemesterId, lọc học sinh thuộc lớp và học kỳ đó
             if (classId.HasValue && semesterId.HasValue)
             {
-                // Lấy học kỳ để lấy AcademicYearId tương ứng
                 var semesterr = await _semesterRepository.GetByIdAsync(semesterId.Value);
                 if (semesterr == null)
                 {
@@ -423,13 +419,11 @@ namespace Application.Features.StudentClass.Services
             }
             else
             {
-                // Nếu không có bộ lọc, trả về tất cả học sinh
                 students = (await _studentRepository.GetAllAsync())
                     .Select(s => new StudentFilterDto { StudentId = s.StudentId, FullName = s.FullName, Status = s.Status })
                     .ToList();
             }
 
-            // Lấy danh sách lớp
             var classes = classId.HasValue
                 ? new List<Domain.Models.Class> { await _classRepository.GetByIdAsync(classId.Value) }
                 : await _classRepository.GetAllAsync();
@@ -443,7 +437,6 @@ namespace Application.Features.StudentClass.Services
 
             foreach (var classEntity in classes.Where(c => c != null))
             {
-                // Đếm số học sinh trong lớp
                 int studentCount = 0;
                 if (semesterId.HasValue)
                 {
@@ -456,47 +449,38 @@ namespace Application.Features.StudentClass.Services
                 }
                 else
                 {
-                    // Nếu không có semesterId, đếm tất cả học sinh trong lớp qua tất cả năm học
                     var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
                     studentCount = studentCountQuery.Count();
                 }
 
-                classDtos.Add(new StudentClass.DTOs.ClassDto
+                var classDto = new StudentClass.DTOs.ClassDto
                 {
                     ClassId = classEntity.ClassId,
                     ClassName = classEntity.ClassName,
                     GradeLevelId = classEntity.GradeLevelId,
-                    StudentCount = studentCount
-                });
+                    StudentCount = studentCount,
+                    HomeroomTeacherName = "Chưa có"
+                };
+
+                if (semesterId.HasValue)
+                {
+                    var homeroomAssignment = await _context.HomeroomAssignments
+                        .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semesterId.Value && ha.Status == "Hoạt Động")
+                        .Include(ha => ha.Teacher)
+                        .FirstOrDefaultAsync();
+                    if (homeroomAssignment != null)
+                    {
+                        classDto.HomeroomTeacherName = homeroomAssignment.Teacher?.FullName ?? "Chưa có";
+                    }
+                }
+
+                classDtos.Add(classDto);
             }
 
-            // Lấy thông tin giáo viên chủ nhiệm dựa trên semesterId
-            var homeroomTeacherDict = new Dictionary<int, string>();
-            if (semesterId.HasValue)
-            {
-                var homeroomTeachers = await _teachingAssignmentRepository.GetBySemesterIdAsync(semesterId.Value);
-                homeroomTeacherDict = homeroomTeachers
-                    .Where(ta => ta.IsHomeroomTeacher == true)
-                    .GroupBy(ta => ta.ClassId)
-                    .ToDictionary(
-                        g => g.Key,
-                        g => g.First().Teacher?.FullName ?? "Chưa có giáo viên"
-                    );
-            }
-
-            // Gán thông tin giáo viên chủ nhiệm vào classes
-            foreach (var classDto in classDtos)
-            {
-                classDto.HomeroomTeacherName = homeroomTeacherDict.ContainsKey(classDto.ClassId)
-                    ? homeroomTeacherDict[classDto.ClassId]
-                    : "Chưa có";
-            }
-
-            
-            var semester = await _semesterRepository.GetByIdAsync(1); 
+            var semester = await _semesterRepository.GetByIdAsync(semesterId ?? 1);
             if (semester == null)
             {
-                throw new ArgumentException("Học kỳ với Id 1 không tồn tại.");
+                throw new ArgumentException($"Học kỳ với Id {(semesterId ?? 1)} không tồn tại.");
             }
 
             var semesterDto = new SemesterDto
@@ -504,18 +488,75 @@ namespace Application.Features.StudentClass.Services
                 SemesterID = semester.SemesterId,
                 SemesterName = semester.SemesterName,
                 AcademicYearID = semester.AcademicYearId,
-                StartDate = semester.StartDate, 
-                EndDate = semester.EndDate      
+                StartDate = semester.StartDate,
+                EndDate = semester.EndDate
             };
 
             var filterData = new StudentClassFilterDataDto
             {
                 Students = students,
                 Classes = classDtos.OrderBy(c => c.ClassName).ToList(),
-                Semesters = new List<SemesterDto> { semesterDto } 
+                Semesters = new List<SemesterDto> { semesterDto }
             };
 
             return filterData;
+        }
+
+        public async Task<List<ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null)
+        {
+            if (!await HasPermissionAsync())
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập thông tin lớp.");
+            }
+
+            var classes = await _classRepository.GetAllAsync();
+            var result = new List<ClassDto>();
+
+            foreach (var classEntity in classes)
+            {
+                int studentCount = 0;
+                if (academicYearId.HasValue)
+                {
+                    await ValidateAcademicYearAsync(academicYearId.Value);
+                    var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, academicYearId.Value);
+                    studentCount = studentClasses.Count();
+                }
+                else
+                {
+                    var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
+                    studentCount = studentClasses.Count();
+                }
+
+                var classDto = new ClassDto
+                {
+                    ClassId = classEntity.ClassId,
+                    ClassName = classEntity.ClassName,
+                    GradeLevelId = classEntity.GradeLevelId,
+                    StudentCount = studentCount,
+                    HomeroomTeacherName = "Chưa có"
+                };
+
+                if (academicYearId.HasValue)
+                {
+                    var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYearId.Value);
+                    foreach (var semester in semesters)
+                    {
+                        var homeroomAssignment = await _context.HomeroomAssignments
+                            .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semester.SemesterId && ha.Status == "Hoạt Động")
+                            .Include(ha => ha.Teacher)
+                            .FirstOrDefaultAsync();
+                        if (homeroomAssignment != null)
+                        {
+                            classDto.HomeroomTeacherName = homeroomAssignment.Teacher?.FullName ?? "Chưa có";
+                            break; // Lấy GVCN đầu tiên tìm thấy trong năm học
+                        }
+                    }
+                }
+
+                result.Add(classDto);
+            }
+
+            return result.OrderBy(c => c.ClassName).ToList();
         }
     }
 }

@@ -153,7 +153,17 @@ export const CreateSubjectModal = () => {
     };
 
     console.log(filteredData);
-    createSubjectMutation.mutate(filteredData);
+    createSubjectMutation.mutate(filteredData, {
+      onSuccess: () => {
+        reset({
+          subjectName: "",
+          subjectCategory: "",
+          typeOfGrade: "",
+          gradesData: [],
+        });
+        setEnabledGrades({});
+      },
+    });
   };
 
   return (

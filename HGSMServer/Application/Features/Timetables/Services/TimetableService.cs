@@ -52,10 +52,10 @@ namespace Application.Features.Timetables.Services
             return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
-        public async Task<IEnumerable<TimetableListDto>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null)
+        public async Task<IEnumerable<TimetableDto>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null)
         {
             var timetables = await _repository.GetTimetablesForPrincipalAsync(semesterId, status);
-            return _mapper.Map<IEnumerable<TimetableListDto>>(timetables);
+            return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
         public async Task<IEnumerable<TimetableListDto>> GetTimetablesBySemesterAsync(int semesterId)
