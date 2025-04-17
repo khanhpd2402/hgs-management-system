@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getClassesWithStudentCount,
   getGradeBatch,
   getGradeBatches,
   getSubjectConfigueDetail,
@@ -72,5 +73,14 @@ export function useTA() {
     queryFn: () => {
       return getTeachingAssignments();
     },
+  });
+}
+export function useClassesWithStudentCount(academicYearId) {
+  return useQuery({
+    queryKey: ["classes-with-student-count", academicYearId],
+    queryFn: () => {
+      return getClassesWithStudentCount(academicYearId);
+    },
+    enabled: !!academicYearId,
   });
 }

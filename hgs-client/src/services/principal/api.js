@@ -82,3 +82,12 @@ export const getTeachingAssignments = async () => {
 export const assignTeaching = async (data) => {
   return (await axiosInstance.post(`TeachingAssignment/create`, data)).data;
 };
+
+//
+export const getClassesWithStudentCount = async (academicYearId) => {
+  return (
+    await axiosInstance.get(
+      `StudentClasses/classes-with-student-count?academicYearId=${academicYearId}`,
+    )
+  ).data;
+};
