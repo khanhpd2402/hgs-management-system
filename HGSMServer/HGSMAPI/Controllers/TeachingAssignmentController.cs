@@ -64,12 +64,12 @@ namespace HGSMAPI.Controllers
 
         [HttpPut("teaching-assignments")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateTeachingAssignment([FromBody] TeachingAssignmentUpdateDto dto)
+        public async Task<IActionResult> UpdateTeachingAssignments([FromBody] List<TeachingAssignmentUpdateDto> dtos)
         {
             try
             {
-                await _teachingAssignmentService.UpdateTeachingAssignmentAsync(dto);
-                return Ok("Teaching assignment updated successfully.");
+                await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
+                return Ok("Teaching assignments updated successfully.");
             }
             catch (Exception ex)
             {
