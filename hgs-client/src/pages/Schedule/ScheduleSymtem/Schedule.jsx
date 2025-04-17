@@ -82,7 +82,11 @@ const Schedule = () => {
             );
         }
 
-        setFilteredSchedule(filtered.length > 0 ? { ...scheduleData[0], details: filtered } : null);
+        setFilteredSchedule(filtered.length > 0 ? {
+            ...scheduleData[0],
+            details: filtered,
+            selectedSession: tempSession // Store selected session
+        } : null);
     };
 
     // Update handleReset function
@@ -159,10 +163,10 @@ const Schedule = () => {
 
     // Modify the shifts based on tempSession
     const getFilteredShifts = () => {
-        if (!tempSession) return shifts;
+        if (!filteredSchedule?.selectedSession) return shifts;
         return shifts.filter(shift =>
-            (tempSession === 'Morning' && shift.name === 'Sáng') ||
-            (tempSession === 'Afternoon' && shift.name === 'Chiều')
+            (filteredSchedule.selectedSession === 'Morning' && shift.name === 'Sáng') ||
+            (filteredSchedule.selectedSession === 'Afternoon' && shift.name === 'Chiều')
         );
     };
 
