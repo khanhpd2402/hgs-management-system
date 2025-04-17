@@ -17,6 +17,8 @@ public partial class Semester
 
     public virtual AcademicYear AcademicYear { get; set; } = null!;
 
+    public virtual ICollection<Conduct> Conducts { get; set; } = new List<Conduct>();
+
     public virtual ICollection<ExamProposal> ExamProposals { get; set; } = new List<ExamProposal>();
 
     public virtual ICollection<GradeBatch> GradeBatches { get; set; } = new List<GradeBatch>();

@@ -11,8 +11,8 @@ namespace Application.Features.Subjects.Interfaces
     {
         Task<IEnumerable<SubjectDto>> GetAllAsync();
         Task<SubjectDto> GetByIdAsync(int id);
-        Task<SubjectCreateAndUpdateDto> CreateAsync(SubjectCreateAndUpdateDto dto);
-        Task<SubjectCreateAndUpdateDto> UpdateAsync(int id, SubjectCreateAndUpdateDto dto);
+        Task<SubjectDto> CreateAsync(SubjectCreateAndUpdateDto dto);
+        Task<SubjectDto> UpdateAsync(int id, SubjectCreateAndUpdateDto dto);
         Task DeleteAsync(int id);
     }
 }

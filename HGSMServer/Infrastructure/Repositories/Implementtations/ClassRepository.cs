@@ -1,6 +1,8 @@
-﻿using Domain.Models;
+﻿using Common.Constants;
+using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using static Common.Constants.AppConstants;
 
 namespace Infrastructure.Repositories.Implementtations
 {
@@ -19,10 +21,25 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.TimetableDetails) 
+                .Include(c => c.TimetableDetails)
                     .ThenInclude(td => td.Timetable)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<Class>> GetAllActiveAsync(string? status = null)
+        {
+            var statusFilter = string.IsNullOrEmpty(status) ? Status.ACTIVE : status;
+
+            var query = _context.Classes
+                .Where(c => c.Status == statusFilter)
+                .Include(c => c.StudentClasses)
+                    .ThenInclude(sc => sc.Student)
+                .Include(c => c.TeachingAssignments)
+                .Include(c => c.TimetableDetails)
+                    .ThenInclude(td => td.Timetable);
+
+            return await query.ToListAsync();
+        }
+
 
         public async Task<Class> GetByIdAsync(int id)
         {
@@ -30,7 +47,7 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.TimetableDetails) 
+                .Include(c => c.TimetableDetails)
                     .ThenInclude(td => td.Timetable)
                 .FirstOrDefaultAsync(c => c.ClassId == id)
                 ?? throw new Exception("Class not found");
