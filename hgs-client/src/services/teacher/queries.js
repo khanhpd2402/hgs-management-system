@@ -1,10 +1,5 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import {
-  getTeachers,
-  getHeadTeacherAssignments,
-  getTeachingAssignments,
-  getTeacher,
-} from "./api";
+import { getTeachers, getHeadTeacherAssignments, getTeacher } from "./api";
 
 export function useTeachers() {
   return useQuery({
@@ -27,24 +22,21 @@ export function useTeacher(id) {
   });
 }
 
-export function useTA({ page, pageSize, department, teacher, semester }) {
-  return useQuery({
-    queryKey: [
-      "teaching-assignments",
-      { page, pageSize, department, teacher, semester },
-    ],
-    queryFn: () => {
-      return getTeachingAssignments(
-        page,
-        pageSize,
-        department,
-        teacher,
-        semester,
-      );
-    },
-    placeholderData: keepPreviousData,
-  });
-}
+// export function useTA() {
+//   return useQuery({
+//     queryKey: ["teaching-assignments"],
+//     queryFn: () => {
+//       return getTeachingAssignments(
+//         page,
+//         pageSize,
+//         department,
+//         teacher,
+//         semester,
+//       );
+//     },
+//     placeholderData: keepPreviousData,
+//   });
+// }
 
 export function useHTA({ page = 1, pageSize = 5, grade = "" }) {
   return useQuery({
