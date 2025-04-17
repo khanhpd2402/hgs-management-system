@@ -58,6 +58,8 @@ using Application.Features.Periods.Interfaces;
 using Application.Features.Periods.Services;
 using Application.Features.StudentClass.Interfaces;
 using Application.Features.StudentClass.Services;
+using Application.Features.TeacherSubjects.Services;
+using Application.Features.TeacherSubjects.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -148,6 +150,8 @@ builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
+builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
