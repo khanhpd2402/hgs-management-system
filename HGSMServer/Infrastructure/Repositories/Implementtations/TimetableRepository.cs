@@ -14,7 +14,7 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<IEnumerable<Timetable>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null)
+        public async Task<IEnumerable<Timetable>> GetTimetablesForPrincipalAsync(int timetableId, string? status = null)
         {
             var query = _context.Timetables
                 .Include(t => t.TimetableDetails)
@@ -25,7 +25,7 @@ namespace Infrastructure.Repositories.Implementtations
                     .ThenInclude(td => td.Teacher)
                     .Include(t => t.TimetableDetails)
                     .ThenInclude(td => td.Class)
-                .Where(t => t.SemesterId == semesterId);
+                .Where(t => t.TimetableId == timetableId);
 
             var statusFilter = string.IsNullOrEmpty(status) ? AppConstants.Status.ACTIVE : status;
             query = query.Where(t => t.Status == statusFilter);

@@ -85,8 +85,6 @@ CREATE TABLE [dbo].[Users] (
     CONSTRAINT [FK_Users_Roles] FOREIGN KEY ([RoleID]) REFERENCES [dbo].[Roles] ([RoleID]) ON DELETE CASCADE,
     UNIQUE NONCLUSTERED ([Username] ASC)
 )
-
-
 CREATE TABLE [dbo].[Teachers] (
     [TeacherID] INT IDENTITY(1,1) NOT NULL,
     [UserID] INT NULL, -- Liên kết với bảng Users
@@ -327,6 +325,17 @@ CREATE TABLE [dbo].[TimetableDetails] (
     FOREIGN KEY ([PeriodId]) REFERENCES [dbo].[Periods]([PeriodId]) ON DELETE CASCADE
 );
 GO
+CREATE TABLE Conducts (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    StudentId INT NOT NULL,
+    SemesterId INT NOT NULL,
+    ConductType NVARCHAR(50) NOT NULL CHECK (ConductType IN (N'Tốt', N'Khá', N'Trung bình', N'Yếu')),
+    Note NVARCHAR(MAX) NULL,
+    CONSTRAINT FK_Conducts_Students FOREIGN KEY (StudentId) REFERENCES Students([StudentID]),
+    CONSTRAINT FK_Conducts_Semesters FOREIGN KEY (SemesterId) REFERENCES Semesters([SemesterID]),
+    CONSTRAINT UQ_Conduct_Student_Semester UNIQUE (StudentId, SemesterId)
+);
+GO
 CREATE TABLE [dbo].[SubstituteTeachings] (
     [SubstituteId] INT PRIMARY KEY IDENTITY(1,1),
     [TimetableDetailId] INT NOT NULL,       -- Tiết học gốc
@@ -349,9 +358,7 @@ CREATE TABLE [dbo].[Attendances] (
 	[Date] DATE NOT NULL,
     [CreatedAt] DATETIME DEFAULT GETDATE(),
     PRIMARY KEY CLUSTERED ([AttendanceID] ASC),
-    CONSTRAINT [FK_Attendances_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Attendances_TimetableDetails] FOREIGN KEY ([TimetableDetailId]) REFERENCES [dbo].[TimetableDetails] ([TimetableDetailId]) ON DELETE CASCADE,
-    CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [TimetableDetailId])
+    CONSTRAINT [FK_Attendances_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE
 );
 GO
 CREATE TRIGGER trg_EnsureOnlyOneActiveTimetable

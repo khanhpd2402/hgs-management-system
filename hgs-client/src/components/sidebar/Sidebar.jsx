@@ -78,7 +78,12 @@ const menuItems = [
     label: "Học Sinh",
     icon: Users,
     path: "/student",
-    children: [{ label: "Hồ sơ học sinh", path: "/student/profile" }],
+    children: [{ label: "Hồ sơ học sinh", path: "/student/profile" },
+      {
+        label: "Thời khóa biểu học sinh",
+        path: "/student/schedule",
+      },
+    ],
   },
   {
     label: "Xem điểm",
