@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Application.Features.TeachingAssignments.DTOs
+namespace Application.Features.HomeRooms.DTOs
 {
     public class AssignHomeroomDto
     {

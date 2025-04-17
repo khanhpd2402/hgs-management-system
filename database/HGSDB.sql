@@ -344,7 +344,6 @@ Go
 CREATE TABLE [dbo].[Attendances] (
     [AttendanceID] INT IDENTITY(1,1) NOT NULL,
     [StudentID] INT NOT NULL,
-    [TimetableDetailId] INT NOT NULL,
     [Status] NVARCHAR(1) NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')),
     [Note] NVARCHAR(255) NULL,
 	[Date] DATE NOT NULL,
