@@ -85,6 +85,23 @@ export const assignTeaching = async (data) => {
   return (await axiosInstance.post(`TeachingAssignment/create`, data)).data;
 };
 
+export const getTeachingAssignmentsByTeacher = async (
+  teacherId,
+  semesterId,
+) => {
+  return (
+    await axiosInstance.get(
+      `TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+    )
+  ).data;
+};
+
+export const updateTeachingAssignment = async (data) => {
+  return (
+    await axiosInstance.put(`TeachingAssignment/teaching-assignments`, data)
+  ).data;
+};
+
 //
 export const getClassesWithStudentCount = async (academicYearId) => {
   return (
