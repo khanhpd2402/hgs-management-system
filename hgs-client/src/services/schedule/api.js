@@ -6,3 +6,7 @@ export const getScheduleByTeacherId = async (teacherId) => {
 };
 
 
+export const getScheduleByStudent = async ({ studentId, semesterId }) => {
+    const response = await axiosInstance.get(`Timetables/student/${studentId}/semester/${semesterId}`);
+    return response.data;
+};
