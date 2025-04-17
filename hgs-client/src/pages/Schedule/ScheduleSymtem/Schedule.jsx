@@ -50,18 +50,24 @@ const Schedule = () => {
     // Add filtered state
     const [filteredSchedule, setFilteredSchedule] = useState(null);
 
-    // Update handleSearch function
     const handleSearch = () => {
         if (!scheduleData?.[0]?.details) return;
 
         let filtered = scheduleData[0].details;
 
         if (tempTeacher) {
-            filtered = filtered.filter(item => item.teacherId === parseInt(tempTeacher));
+            filtered = filtered.filter(item => {
+                const teacherIdFromFilter = parseInt(tempTeacher);
+                const teacherIdFromItem = parseInt(item.teacherId);
+                return teacherIdFromItem === teacherIdFromFilter;
+            });
         }
 
         if (tempGrade) {
-            filtered = filtered.filter(item => item.className.startsWith(tempGrade));
+            filtered = filtered.filter(item => {
+                const classGrade = item.className.charAt(0);
+                return classGrade === tempGrade;
+            });
         }
 
         if (tempClass) {
@@ -69,23 +75,28 @@ const Schedule = () => {
         }
 
         if (tempSubject) {
-            filtered = filtered.filter(item => item.subjectId === parseInt(tempSubject));
+            filtered = filtered.filter(item => {
+                const subjectIdFromFilter = parseInt(tempSubject);
+                const subjectIdFromItem = parseInt(item.subjectId);
+                return subjectIdFromItem === subjectIdFromFilter;
+            });
         }
 
         if (tempSession) {
             const morningPeriods = [1, 2, 3, 4, 5];
             const afternoonPeriods = [6, 7, 8];
-            filtered = filtered.filter(item =>
-                tempSession === 'Morning'
-                    ? morningPeriods.includes(item.periodId)
-                    : afternoonPeriods.includes(item.periodId)
-            );
+            filtered = filtered.filter(item => {
+                const periodId = parseInt(item.periodId);
+                return tempSession === 'Morning' 
+                    ? morningPeriods.includes(periodId)
+                    : afternoonPeriods.includes(periodId);
+            });
         }
 
         setFilteredSchedule(filtered.length > 0 ? {
             ...scheduleData[0],
             details: filtered,
-            selectedSession: tempSession // Store selected session
+            selectedSession: tempSession
         } : null);
     };
 
@@ -142,6 +153,15 @@ const Schedule = () => {
         const classes = scheduleData[0].details.map(detail => detail.className);
         return [...new Set(classes)].sort();
     };
+    const getFilteredClasses = () => {
+        if (!scheduleData?.[0]?.details) return [];
+        const allClasses = [...new Set(scheduleData[0].details.map(detail => detail.className))].sort();
+
+        if (tempGrade) {
+            return allClasses.filter(className => className.startsWith(tempGrade));
+        }
+        return allClasses;
+    };
 
     const classes = getUniqueClasses();
 
@@ -169,6 +189,8 @@ const Schedule = () => {
             (filteredSchedule.selectedSession === 'Afternoon' && shift.name === 'Chiều')
         );
     };
+
+
 
     return (
         <div className="schedule-container">
@@ -228,9 +250,13 @@ const Schedule = () => {
 
                     <div className="filter-column">
                         <label>Lớp</label>
-                        <select onChange={(e) => setTempClass(e.target.value)} value={tempClass} disabled={!tempGrade}>
+                        <select
+                            onChange={(e) => setTempClass(e.target.value)}
+                            value={tempClass}
+                            disabled={!tempGrade}
+                        >
                             <option value="">-- Lựa chọn --</option>
-                            {classes.map(className => (
+                            {getFilteredClasses().map(className => (
                                 <option key={className} value={className}>{className}</option>
                             ))}
                         </select>
