@@ -31,9 +31,12 @@ export default function TATable() {
     page: 1,
     pageSize: 5,
   });
+  const [selectedTeacherId, setSelectedTeacherId] = useState(null);
   const { currentYear } = useLayout();
+  const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
+  const semesters = semesterQuery.data || [];
   const [semester, setSemester] = useState(null);
-  const TAQuery = useTA();
+  const TAQuery = useTA(semester?.semesterID);
   const classQuery = useClasses();
   const subjectConfigQuery = useSubjectConfigue();
   // console.log(semester);
@@ -42,8 +45,7 @@ export default function TATable() {
   // console.log(classQuery.data);
 
   const { data = [], isPending, error, isError, isFetching } = TAQuery;
-  const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
-  const semesters = semesterQuery.data || [];
+
   const [openModal, setOpenModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
 
@@ -59,6 +61,7 @@ export default function TATable() {
     data.reduce((acc, curr) => {
       if (!acc[curr.teacherId]) {
         acc[curr.teacherId] = {
+          teacherId: curr.teacherId,
           teacherName: curr.teacherName,
           subjects: {},
         };
@@ -110,8 +113,6 @@ export default function TATable() {
     page * pageSize,
   );
 
-  console.log(groupedData);
-
   return (
     <div className="relative mt-6 p-4">
       <div className="mb-4 flex items-center justify-between border-b pb-4">
@@ -157,8 +158,12 @@ export default function TATable() {
       {/* Update Modal */}
       <UpdateTAModal
         open={openUpdateModal}
-        onOpenChange={setOpenUpdateModal}
+        onOpenChange={(open) => {
+          setOpenUpdateModal(open);
+          if (!open) setSelectedTeacherId(null);
+        }}
         semester={semester}
+        teacherId={selectedTeacherId}
       />
 
       {/* Container chính không có overflow-x-auto */}
@@ -288,7 +293,10 @@ export default function TATable() {
                             <Button
                               variant="outline"
                               size="icon"
-                              onClick={() => setOpenUpdateModal(true)}
+                              onClick={() => {
+                                setSelectedTeacherId(teacher.teacherId);
+                                setOpenUpdateModal(true);
+                              }}
                             >
                               <Settings className="h-4 w-4" />
                             </Button>
