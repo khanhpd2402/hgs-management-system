@@ -87,7 +87,7 @@ export default function TeacherProfile() {
     permanentAddress: z
       .string()
       .min(1, "Địa chỉ không được để trống")
-      .regex(/^[\p{L}\d\s,]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
+      .regex(/^[\p{L}\d\s,\/-]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
 
     // Employment information
     mainSubject: z.string().optional(),
@@ -167,8 +167,6 @@ export default function TeacherProfile() {
     mode: "onBlur",
     reValidateMode: "onBlur",
   });
-
-  console.log("re-render");
 
   useEffect(() => {
     if (teacherQuery.data) {
@@ -370,7 +368,7 @@ export default function TeacherProfile() {
             name="department"
             label="Tổ bộ môn"
             type="select"
-            options={["Khoa học xã hội", "Khoa học tự nhiên"]}
+            options={["Khoa học xã hội", "Khoa học tự nhiên", "Toàn trường"]}
             isRequired
           />
           <FormField

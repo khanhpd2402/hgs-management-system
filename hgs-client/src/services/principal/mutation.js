@@ -1,13 +1,16 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   addGradeBatch,
+  assignTeaching,
   changeUserStatus,
   configueSubject,
   createSubject,
   deleteSubjectConfigue,
+  deleteTeachingAssignment,
   resetUserPassword,
   updateSubject,
   updateSubjectConfigue,
+  updateTeachingAssignment,
 } from "./api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -171,6 +174,73 @@ export function useUpdateSubject() {
           queryKey: ["subjectConfig", { id: variables.subjectId }],
         });
         toast.success("Cập nhật môn học thành công");
+      }
+    },
+  });
+}
+
+export function useAssginTeaching() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return assignTeaching(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+      }
+    },
+  });
+}
+
+export function useUpdateTeachingAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      console.log(data);
+      return updateTeachingAssignment(data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "teaching-assignments-by-teacher",
+            {
+              teacherId: variables[0].teacherId,
+              semesterId: variables[0]?.semesterId,
+            },
+          ],
+        });
+      }
+    },
+  });
+}
+
+export function useDeleteTeachingAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ teacherId, semesterId }) => {
+      return deleteTeachingAssignment(teacherId, semesterId);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Xóa phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
       }
     },
   });

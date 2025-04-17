@@ -1,5 +1,4 @@
-﻿using Application.Features.HomeRooms.DTOs;
-using Application.Features.TeachingAssignments.DTOs;
+﻿using Application.Features.TeachingAssignments.DTOs;
 using Application.Features.TeachingAssignments.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -64,12 +63,12 @@ namespace HGSMAPI.Controllers
 
         [HttpPut("teaching-assignments")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateTeachingAssignment([FromBody] TeachingAssignmentUpdateDto dto)
+        public async Task<IActionResult> UpdateTeachingAssignments([FromBody] List<TeachingAssignmentUpdateDto> dtos)
         {
             try
             {
-                await _teachingAssignmentService.UpdateTeachingAssignmentAsync(dto);
-                return Ok("Teaching assignment updated successfully.");
+                await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
+                return Ok("Teaching assignments updated successfully.");
             }
             catch (Exception ex)
             {
@@ -92,14 +91,29 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpGet("by-teacherId&semesterId/{teacherId}")]
+        [HttpGet("teacher/{teacherId}/semester/{semesterId}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
-        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId, [FromQuery] int semesterId)
+        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId, int semesterId)
         {
             try
             {
                 var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId, semesterId);
                 return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("teacher/{teacherId}/semester/{semesterId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> DeleteTeachingAssignmentsByTeacherIdAndSemesterId(int teacherId, int semesterId)
+        {
+            try
+            {
+                await _teachingAssignmentService.DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(teacherId, semesterId);
+                return Ok("Teaching assignments deleted successfully.");
             }
             catch (Exception ex)
             {
