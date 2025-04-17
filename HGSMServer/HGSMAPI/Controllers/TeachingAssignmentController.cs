@@ -1,5 +1,4 @@
-﻿using Application.Features.HomeRooms.DTOs;
-using Application.Features.TeachingAssignments.DTOs;
+﻿using Application.Features.TeachingAssignments.DTOs;
 using Application.Features.TeachingAssignments.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -32,8 +31,6 @@ namespace HGSMAPI.Controllers
             }
         }
 
-       
-
         [HttpGet("filter-data")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> GetFilterData()
@@ -64,21 +61,28 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPut("teaching-assignments/bulk")]
+        [HttpPut("teaching-assignments")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> UpdateTeachingAssignments([FromBody] List<TeachingAssignmentUpdateDto> dtos)
         {
-            await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
-            return Ok();
+            try
+            {
+                await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
+                return Ok("Teaching assignments updated successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
         }
 
         [HttpGet("all")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
-        public async Task<IActionResult> GetAllTeachingAssignments()
+        public async Task<IActionResult> GetAllTeachingAssignments([FromQuery] int semesterId)
         {
             try
             {
-                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync();
+                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync(semesterId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -87,7 +91,34 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        
-        
+        [HttpGet("teacher/{teacherId}/semester/{semesterId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId, int semesterId)
+        {
+            try
+            {
+                var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId, semesterId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("teacher/{teacherId}/semester/{semesterId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> DeleteTeachingAssignmentsByTeacherIdAndSemesterId(int teacherId, int semesterId)
+        {
+            try
+            {
+                await _teachingAssignmentService.DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(teacherId, semesterId);
+                return Ok("Teaching assignments deleted successfully.");
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }

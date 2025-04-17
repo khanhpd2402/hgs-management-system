@@ -24,6 +24,10 @@ namespace Infrastructure.Repositories.Implementtations
                                  .Where(s => s.AcademicYearId == academicYearId)
                                  .ToListAsync();
         }
+        public async Task<List<Semester>> GetAllSemester()
+        {
+            return await _context.Semesters.ToListAsync();
+        }
 
         public async Task<Semester?> GetByIdAsync(int id)
         {
@@ -58,6 +62,8 @@ namespace Infrastructure.Repositories.Implementtations
                                  .Include(s => s.AcademicYear) 
                                  .ToListAsync();
         }
+
+        
     }
 
 }
