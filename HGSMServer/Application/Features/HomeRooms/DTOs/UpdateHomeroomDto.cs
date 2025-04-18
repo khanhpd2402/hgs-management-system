@@ -8,8 +8,9 @@ namespace Application.Features.HomeRooms.DTOs
 {
     public class UpdateHomeroomDto
     {
-        public int HomeroomAssignmentId { get; set; }
-        public int TeacherId { get; set; } 
+        public int ClassId { get; set; }
+        public int SemesterId { get; set; }
+        public int TeacherId { get; set; }
         public string Status { get; set; }
     }
 }
