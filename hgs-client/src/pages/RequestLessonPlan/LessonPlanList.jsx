@@ -100,7 +100,7 @@ const LessonPlanList = () => {
 
     const DetailModal = () => (
         <Modal
-            title="Chi tiết kế hoạch giảng dạy"
+            title="Chi tiết kế hoạch giáo án"
             open={isModalVisible}
             onCancel={() => setIsModalVisible(false)}
             width={1000}
@@ -255,8 +255,16 @@ const LessonPlanList = () => {
 
     return (
         <div className="lesson-plan-list">
-            <h2>Danh sách kế hoạch giảng dạy</h2>
 
+            <h2>Danh sách kế hoạch giáo án</h2>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                <h2></h2>
+                <Link to="/teacher/lesson-plan/create">
+                    <Button type="primary">
+                        Tạo kế hoạch mới
+                    </Button>
+                </Link>
+            </div>
             <div className="filters-section">
                 <div className="search-container">
                     <input
