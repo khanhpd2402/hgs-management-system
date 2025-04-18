@@ -226,109 +226,107 @@ const Schedule = () => {
     return (
         <div className="schedule-container">
 
+            <div className="sticky-filter">
+                {/* Add the new filter container here */}
+                <div className="filter-container">
+                    {/* Row 1: Semester, Application Date, Teacher */}
+                    <div className="filter-row">
+                        <div className="filter-column">
+                            <label>Học kỳ</label>
+                            <input
+                                type="text"
+                                value={scheduleData?.[0]?.semesterId === 1 ? "Học kỳ I" : "Học kỳ II"}
+                                readOnly
+                            />
+                        </div>
 
-            {/* Add the new filter container here */}
-            <div className="filter-container">
-                {/* Row 1: Semester, Application Date, Teacher */}
-                <div className="filter-row">
-                    <div className="filter-column">
-                        <label>Học kỳ</label>
-                        <input
-                            type="text"
-                            value={scheduleData?.[0]?.semesterId === 1 ? "Học kỳ I" : "Học kỳ II"}
-                            readOnly
-                        />
+                        <div className="filter-column">
+                            <label>Ngày áp dụng</label>
+                            <input
+                                type="text"
+                                value={
+                                    scheduleData?.[0]?.effectiveDate && scheduleData?.[0]?.endDate
+                                        ? `Từ ${formatDate(scheduleData[0].effectiveDate)} đến ${formatDate(scheduleData[0].endDate)}`
+                                        : ""
+                                } readOnly
+                            />
+                        </div>
+
+
+
+                        <div className="filter-column">
+                            <label>Giáo viên</label>
+                            <select onChange={(e) => setTempTeacher(e.target.value)} value={tempTeacher}>
+                                <option value="">Chọn giáo viên</option>
+                                {teachers && teachers.map((teacher) => (
+                                    <option key={teacher.teacherId} value={teacher.teacherId}>
+                                        {teacher.fullName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
-                    <div className="filter-column">
-                        <label>Ngày áp dụng</label>
-                        <input
-                            type="text"
-                            value={
-                                scheduleData?.[0]?.effectiveDate && scheduleData?.[0]?.endDate
-                                    ? `Từ ${formatDate(scheduleData[0].effectiveDate)} đến ${formatDate(scheduleData[0].endDate)}`
-                                    : ""
-                            } readOnly
-                        />
+                    {/* Row 2: Grade, Class, Subject */}
+                    <div className="filter-row">
+                        <div className="filter-column">
+                            <label>Khối</label>
+                            <select onChange={(e) => setTempGrade(e.target.value)} value={tempGrade}>
+                                <option value="">-- Lựa chọn --</option>
+                                {grades.map((grade) => (
+                                    <option key={grade} value={grade}>Khối {grade}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="filter-column">
+                            <label>Lớp</label>
+                            <select
+                                onChange={(e) => setTempClass(e.target.value)}
+                                value={tempClass}
+                                disabled={!tempGrade}
+                            >
+                                <option value="">-- Lựa chọn --</option>
+                                {getFilteredClasses().map(className => (
+                                    <option key={className} value={className}>{className}</option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="filter-column">
+                            <label>Môn học</label>
+                            <select onChange={(e) => setTempSubject(e.target.value)} value={tempSubject}>
+                                <option value="">-- Lựa chọn --</option>
+                                {subjects && subjects.map((subject) => (
+                                    <option key={subject.subjectId} value={subject.subjectID}>
+                                        {subject.subjectName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
                     </div>
 
+                    {/* Row 3: Session selection */}
+                    <div className="filter-row">
+                        <div className="filter-column">
+                            <label>Chọn buổi</label>
+                            <select onChange={(e) => setTempSession(e.target.value)} value={tempSession}>
+                                <option value="">Chọn buổi</option>
+                                <option value="Morning">Sáng</option>
+                                <option value="Afternoon">Chiều</option>
+                            </select>
+                        </div>
+                    </div>
 
-
-                    <div className="filter-column">
-                        <label>Giáo viên</label>
-                        <select onChange={(e) => setTempTeacher(e.target.value)} value={tempTeacher}>
-                            <option value="">Chọn giáo viên</option>
-                            {teachers && teachers.map((teacher) => (
-                                <option key={teacher.teacherId} value={teacher.teacherId}>
-                                    {teacher.fullName}
-                                </option>
-                            ))}
-                        </select>
+                    {/* Search and reset buttons */}
+                    <div className="filter-row">
+                        <div className="filter-column search-button">
+                            <button onClick={handleSearch}>Tìm kiếm</button>
+                            <button onClick={handleReset} className="reset-button">Reset</button>
+                        </div>
                     </div>
                 </div>
 
-                {/* Row 2: Grade, Class, Subject */}
-                <div className="filter-row">
-                    <div className="filter-column">
-                        <label>Khối</label>
-                        <select onChange={(e) => setTempGrade(e.target.value)} value={tempGrade}>
-                            <option value="">-- Lựa chọn --</option>
-                            {grades.map((grade) => (
-                                <option key={grade} value={grade}>Khối {grade}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="filter-column">
-                        <label>Lớp</label>
-                        <select
-                            onChange={(e) => setTempClass(e.target.value)}
-                            value={tempClass}
-                            disabled={!tempGrade}
-                        >
-                            <option value="">-- Lựa chọn --</option>
-                            {getFilteredClasses().map(className => (
-                                <option key={className} value={className}>{className}</option>
-                            ))}
-                        </select>
-                    </div>
-
-                    <div className="filter-column">
-                        <label>Môn học</label>
-                        <select onChange={(e) => setTempSubject(e.target.value)} value={tempSubject}>
-                            <option value="">-- Lựa chọn --</option>
-                            {subjects && subjects.map((subject) => (
-                                <option key={subject.subjectId} value={subject.subjectID}>
-                                    {subject.subjectName}
-                                </option>
-                            ))}
-                        </select>
-                    </div>
-                </div>
-
-                {/* Row 3: Session selection */}
-                <div className="filter-row">
-                    <div className="filter-column">
-                        <label>Chọn buổi</label>
-                        <select onChange={(e) => setTempSession(e.target.value)} value={tempSession}>
-                            <option value="">Chọn buổi</option>
-                            <option value="Morning">Sáng</option>
-                            <option value="Afternoon">Chiều</option>
-                        </select>
-                    </div>
-                </div>
-
-                {/* Search and reset buttons */}
-                <div className="filter-row">
-                    <div className="filter-column search-button">
-                        <button onClick={handleSearch}>Tìm kiếm</button>
-                        <button onClick={handleReset} className="reset-button">Reset</button>
-                    </div>
-                </div>
-            </div>
-
-            <div className="table-container" ref={topScrollRef} onScroll={() => syncScroll(topScrollRef, bottomScrollRef)}>
-                <div className="timetable-table dummy-scroll" />
                 <div className="filter-row-table" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Calendar size={20} />
@@ -358,6 +356,11 @@ const Schedule = () => {
 
                     </div>
                 </div>
+            </div>
+
+            <div className="table-container" ref={topScrollRef} onScroll={() => syncScroll(topScrollRef, bottomScrollRef)}>
+                <div className="timetable-table dummy-scroll" />
+
                 <br></br>
                 <br></br>
 
@@ -408,7 +411,7 @@ const Schedule = () => {
                     </tbody>
                 </table>
             </div>
-        </div>
+        </div >
     );
 };
 

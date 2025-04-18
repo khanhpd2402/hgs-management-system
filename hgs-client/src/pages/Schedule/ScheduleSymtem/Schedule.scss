@@ -449,3 +449,32 @@ button {
     width: 1500px; // cùng chiều rộng với bảng thật bên dưới
     height: 1px; // để nội dung không hiển thị
 }
+
+.schedule-container {
+    width: 100%;
+    max-width: calc(100vw - 20rem);
+    position: relative;
+    margin-top: 50px;
+    overflow: hidden; /* Changed from overflow-x: auto to hidden */
+}
+
+.sticky-filter {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: #fff;
+    width: 100%;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Move the horizontal scroll to table container */
+    padding: 0 16px;
+    margin-top: 16px;
+}
+
+/* Rest of your existing styles... */
