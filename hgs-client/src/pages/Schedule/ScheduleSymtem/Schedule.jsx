@@ -4,6 +4,7 @@ import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects } from '@/services/common/queries';
 import './Schedule.scss';
 import { Calendar, Save, Trash2 } from "lucide-react";
+import ExportSchedule from './ExportSchedule';
 
 const Schedule = () => {
     // Add daysOfWeek array at the top
@@ -220,7 +221,7 @@ const Schedule = () => {
         );
     };
 
-
+    console.log("scheduleData", scheduleData)
 
     return (
         <div className="schedule-container">
@@ -341,7 +342,10 @@ const Schedule = () => {
                             </button>
                         </div>
 
-
+                        <ExportSchedule
+                            schedule={filteredSchedule || scheduleData?.[0]}
+                            showTeacherName={showTeacherName}
+                        />
 
                         {/* Nút Lưu */}
                         <button className="btn-save">
