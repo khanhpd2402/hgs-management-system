@@ -5,10 +5,14 @@ import {
   changeUserStatus,
   configueSubject,
   createAcademicYear,
+  createClass,
+  createHomeroom,
   createSubject,
   deleteSubjectConfigue,
   deleteTeachingAssignment,
   resetUserPassword,
+  updateClass,
+  updateHomeroom,
   updateSubject,
   updateSubjectConfigue,
   updateTeachingAssignment,
@@ -112,7 +116,7 @@ export function useCreateSubject() {
         console.log(data);
         const newData = variables?.gradesData.map((item) => {
           return {
-            subjectId: data.subjectId,
+            subjectId: data.subjectID,
             ...item,
           };
         });
@@ -262,6 +266,82 @@ export function useCreateAcademicYear() {
         console.log(data);
         toast.success("Tạo năm học thành công");
         queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
+      }
+    },
+  });
+}
+
+//class
+export function useCreateClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      const { homerooms, ...classData } = data;
+      return createClass(classData);
+    },
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        const homerooms = variables?.homerooms.map((item) => {
+          return {
+            classId: data.classId,
+            ...item,
+          };
+        });
+        if (homerooms.length > 0) {
+          for (let i = 0; i < homerooms.length; i++) {
+            try {
+              await createHomeroom(homerooms[i]);
+            } catch (e) {
+              console.log(e);
+              toast.error("Đã có lỗi xảy ra");
+            }
+          }
+        }
+
+        toast.success("Tạo lớp thành công");
+        queryClient.invalidateQueries({
+          queryKey: ["classes-with-student-count"],
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["classes"] });
+        queryClient.invalidateQueries({ queryKey: ["hoomroom-teachers"] });
+      }
+    },
+  });
+}
+
+export function useUpdateClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      const { homerooms, ...classData } = data;
+      return updateClass(data.classId, classData);
+    },
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        try {
+          await updateHomeroom(variables.homerooms);
+        } catch (e) {
+          console.log(e);
+          toast.error("Đã có lỗi xảy ra");
+        }
+        toast.success("Cập nhật lớp thành công");
+        queryClient.invalidateQueries({
+          queryKey: ["classes-with-student-count"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["classes"] });
+        queryClient.invalidateQueries({ queryKey: ["hoomroom-teachers"] });
+        queryClient.invalidateQueries({
+          queryKey: ["class", { id: variables.classId }],
+        });
       }
     },
   });

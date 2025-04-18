@@ -75,7 +75,7 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
       <DialogContent className="max-w-lg">
         <DialogHeader>
           <DialogTitle className="text-2xl font-bold">
-            Tạo năm học mới
+            Thêm năm học mới
           </DialogTitle>
         </DialogHeader>
         <div className="mt-4 mb-4">
@@ -179,7 +179,7 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
                   (endSemester1 && date && date <= endSemester1)
                 ) {
                   toast.error(
-                    "Ngày kết thúc học kỳ 2 phải lớn hơn ngày bắt đầu học kỳ 2 và ngày kết thúc học kỳ 1",
+                    "Ngày kết thúc học kỳ 2 phải lớn hơn ngày bắt đầu học kỳ 2",
                   );
                   return;
                 }
@@ -198,11 +198,11 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
         <DialogFooter>
           <DialogClose asChild>
             <Button variant="outline" onClick={onCancel}>
-              Cancel
+              Huỷ
             </Button>
           </DialogClose>
           <Button onClick={handleSave} disabled={!isFormValid}>
-            Save
+            Thêm
           </Button>
         </DialogFooter>
       </DialogContent>

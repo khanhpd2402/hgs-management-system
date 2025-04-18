@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Search, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Search, Trash2 } from "lucide-react";
 import { CreateSubjectModal } from "./CreateSubjectModal";
 import { useSubjects } from "@/services/common/queries";
 import { UpdateSubjectModal } from "./UpdateSubjectModal";
@@ -24,6 +24,7 @@ import { UpdateSubjectModal } from "./UpdateSubjectModal";
 export default function SubjectManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
   const subjectQuery = useSubjects();
 
@@ -52,7 +53,13 @@ export default function SubjectManagement() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <CreateSubjectModal />
+            <Button
+              className="bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+              onClick={() => setOpenCreateModal(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+              Tạo môn học
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -122,6 +129,7 @@ export default function SubjectManagement() {
           setSelectedSubjectId={setSelectedSubjectId}
         />
       )}
+      <CreateSubjectModal open={openCreateModal} setOpen={setOpenCreateModal} />
     </div>
   );
 }

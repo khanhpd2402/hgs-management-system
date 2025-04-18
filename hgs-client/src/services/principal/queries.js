@@ -1,9 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import {
   getAllSemesters,
+  getClassById,
   getClassesWithStudentCount,
   getGradeBatch,
   getGradeBatches,
+  getHomeroomTeachers,
   getSubjectConfigueDetail,
   getSubjectConfigues,
   getSubjectDetail,
@@ -89,6 +91,13 @@ export function useTeachingAssignmentsByTeacher({ teacherId, semesterId }) {
   });
 }
 
+export function useHomeroomTeachers() {
+  return useQuery({
+    queryKey: ["hoomroom-teachers"],
+    queryFn: getHomeroomTeachers,
+  });
+}
+
 export function useClassesWithStudentCount(academicYearId) {
   return useQuery({
     queryKey: ["classes-with-student-count", academicYearId],
@@ -105,5 +114,14 @@ export function useAllSemesters() {
     queryFn: () => {
       return getAllSemesters();
     },
+  });
+}
+
+//class
+export function useClass(id) {
+  return useQuery({
+    queryKey: ["class", id],
+    queryFn: () => getClassById(id),
+    enabled: !!id,
   });
 }

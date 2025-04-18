@@ -201,7 +201,7 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
                   (endSemester1 && date && date <= endSemester1)
                 ) {
                   toast.error(
-                    "Ngày kết thúc học kỳ 2 phải lớn hơn ngày bắt đầu học kỳ 2 và ngày kết thúc học kỳ 1",
+                    "Ngày kết thúc học kỳ 2 phải lớn hơn ngày bắt đầu học kỳ 2",
                   );
                   return;
                 }
