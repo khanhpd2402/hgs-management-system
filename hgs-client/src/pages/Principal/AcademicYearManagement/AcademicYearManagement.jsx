@@ -7,16 +7,18 @@ import { useAcademicYears } from "@/services/common/queries";
 import { useAllSemesters } from "@/services/principal/queries";
 import { formatDateString } from "@/helpers/formatDate";
 import UpdateAcedemicYearModal from "./UpdateAcademicYearModal";
-
-const PAGE_SIZE_OPTIONS = [10, 20, 50];
+import PaginationControls from "@/components/PaginationControls";
+import MyPagination from "@/components/MyPagination";
 
 const AcademicYearManagement = () => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [selectedYear, setSelectedYear] = useState(null);
 
-  const [page, setPage] = useState(1);
-  const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
+  const [filter, setFilter] = useState({
+    page: 1,
+    pageSize: 5,
+  });
 
   const academicYearQuery = useAcademicYears();
   const semesterQuery = useAllSemesters();
@@ -44,24 +46,36 @@ const AcademicYearManagement = () => {
       return bYear - aYear;
     });
 
-  const totalItems = combinedData?.length;
+  // const paginatedData = combinedData?.slice(
+  //   (page - 1) * pageSize,
+  //   page * pageSize,
+  // );
 
+  const { page, pageSize } = filter;
+
+  const totalPages = Math.ceil(combinedData.length / pageSize);
   const paginatedData = combinedData?.slice(
     (page - 1) * pageSize,
     page * pageSize,
   );
 
+  const startIndex = combinedData.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, combinedData.length);
+
   return (
     <div className="py-6">
       <div>
         <h1 className="text-2xl font-bold"></h1>
-        <div className="flex items-center gap-x-3">
-          <button onClick={() => setOpenCreateModal(true)}>
-            Tạo mới năm học
-          </button>
+        <div className="flex items-center justify-end gap-x-3">
+          <Button
+            onClick={() => setOpenCreateModal(true)}
+            className="bg-blue-600"
+          >
+            Thêm mới năm học
+          </Button>
         </div>
       </div>
-      <div className="overflow-x-auto rounded-lg border">
+      <div className="mt-4 overflow-x-auto rounded-lg border">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="sticky top-0 z-10 bg-slate-100">
@@ -120,6 +134,21 @@ const AcademicYearManagement = () => {
             setSelectedYear(null);
           }}
           academicYearId={selectedYear?.academicYearID}
+        />
+      </div>
+      <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <PaginationControls
+          pageSize={pageSize}
+          setFilter={setFilter}
+          totalItems={combinedData.length || 0}
+          startIndex={startIndex}
+          endIndex={endIndex}
+        />
+
+        <MyPagination
+          totalPages={totalPages}
+          currentPage={page}
+          onPageChange={setFilter}
         />
       </div>
     </div>
