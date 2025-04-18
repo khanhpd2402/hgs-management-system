@@ -4,6 +4,7 @@ import {
   assignTeaching,
   changeUserStatus,
   configueSubject,
+  createAcademicYear,
   createSubject,
   deleteSubjectConfigue,
   deleteTeachingAssignment,
@@ -241,6 +242,26 @@ export function useDeleteTeachingAssignment() {
         console.log(data);
         toast.success("Xóa phân công giảng dạy thành công");
         queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+      }
+    },
+  });
+}
+
+//academicYear
+export function useCreateAcademicYear() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return createAcademicYear(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Tạo năm học thành công");
+        queryClient.invalidateQueries({ queryKey: ["AcademicYear"] });
       }
     },
   });
