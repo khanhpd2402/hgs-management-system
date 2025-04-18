@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getAcademicYearById,
   getAcademicYears,
   getClasses,
   getGradeLevels,
@@ -28,10 +29,20 @@ export function useClasses() {
 
 export function useAcademicYears() {
   return useQuery({
-    queryKey: ["AcademicYear"],
+    queryKey: ["AcademicYears"],
     queryFn: () => {
       return getAcademicYears();
     },
+  });
+}
+
+export function useAcademicYear(id) {
+  return useQuery({
+    queryKey: ["AcademicYear", { id }],
+    queryFn: () => {
+      return getAcademicYearById(id);
+    },
+    enabled: !!id,
   });
 }
 

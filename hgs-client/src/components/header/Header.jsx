@@ -23,7 +23,6 @@ const Header = ({ setCurrentYear }) => {
   const navigate = useNavigate();
   const academicYears = useAcademicYears();
   const [selectedYear, setSelectedYear] = useState(null);
-  console.log(selectedYear);
 
   useEffect(() => {
     if (academicYears.data && academicYears.data.length > 0) {

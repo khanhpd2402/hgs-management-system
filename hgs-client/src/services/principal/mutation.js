@@ -261,7 +261,7 @@ export function useCreateAcademicYear() {
       } else {
         console.log(data);
         toast.success("Tạo năm học thành công");
-        queryClient.invalidateQueries({ queryKey: ["AcademicYear"] });
+        queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
       }
     },
   });
