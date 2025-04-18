@@ -4,7 +4,7 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITimetableRepository
     {
-        Task<IEnumerable<Timetable>> GetTimetablesForPrincipalAsync(int semesterId, string? status = null);
+        Task<IEnumerable<Timetable>> GetTimetablesForPrincipalAsync(int timetableId, string? status = null);
         Task<IEnumerable<Timetable>> GetByStudentIdAsync(int studentId, int semesterId);
         Task<IEnumerable<Timetable>> GetByTeacherIdAsync(int teacherId);
         Task<IEnumerable<Timetable>> GetTimetablesBySemesterAsync(int semesterId);
