@@ -260,7 +260,7 @@ const Schedule = () => {
                             <option value="">Chọn giáo viên</option>
                             {teachers && teachers.map((teacher) => (
                                 <option key={teacher.teacherId} value={teacher.teacherId}>
-                                    {teacher.fullName}--{teacher.teacherId}
+                                    {teacher.fullName}
                                 </option>
                             ))}
                         </select>
@@ -299,7 +299,7 @@ const Schedule = () => {
                             <option value="">-- Lựa chọn --</option>
                             {subjects && subjects.map((subject) => (
                                 <option key={subject.subjectId} value={subject.subjectID}>
-                                    {subject.subjectName}--{subject.subjectID}
+                                    {subject.subjectName}
                                 </option>
                             ))}
                         </select>
