@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useTimetablesForPrincipal } from '../../../services/schedule/queries';
+import { useTimetableForPrincipal } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects } from '@/services/common/queries';
 import './Schedule.scss';
@@ -151,10 +151,15 @@ const Schedule = () => {
         return null;
     };
 
-    // Update the hook destructuring to include isLoading
-    const { data: scheduleData, isLoading: scheduleLoading } = useTimetablesForPrincipal(1);
+
+
+    // Then update the hook usage (around line 155)
+    const { data: scheduleData, isLoading: scheduleLoading } = useTimetableForPrincipal(3);
+    // Remove or comment out the console.log
+    // console.log(scheduleData);
     const { data: teachersResponse = { teachers: [] }, isLoading: teachersLoading } = useTeachers();
     const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
+    console.log("subjects: ", subjects)
 
     const teachers = Array.isArray(teachersResponse) ? teachersResponse : teachersResponse.teachers || [];
 
@@ -247,7 +252,7 @@ const Schedule = () => {
                             <option value="">Chọn giáo viên</option>
                             {teachers && teachers.map((teacher) => (
                                 <option key={teacher.teacherId} value={teacher.teacherId}>
-                                    {teacher.fullName}
+                                    {teacher.fullName}--{teacher.teacherId}
                                 </option>
                             ))}
                         </select>
@@ -285,8 +290,8 @@ const Schedule = () => {
                         <select onChange={(e) => setTempSubject(e.target.value)} value={tempSubject}>
                             <option value="">-- Lựa chọn --</option>
                             {subjects && subjects.map((subject) => (
-                                <option key={subject.subjectId} value={subject.subjectId}>
-                                    {subject.subjectName}
+                                <option key={subject.subjectId} value={subject.subjectID}>
+                                    {subject.subjectName}--{subject.subjectID}
                                 </option>
                             ))}
                         </select>
