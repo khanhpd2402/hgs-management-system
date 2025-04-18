@@ -43,7 +43,7 @@ const subjectSchema = z.object({
   ),
 });
 
-export const CreateSubjectModal = () => {
+export const CreateSubjectModal = ({ open, setOpen }) => {
   const gradeLevelsQuery = useGradeLevels();
 
   const {
@@ -162,18 +162,13 @@ export const CreateSubjectModal = () => {
           gradesData: [],
         });
         setEnabledGrades({});
+        setOpen(false);
       },
     });
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="default">
-          <PlusCircle className="h-4 w-4" />
-          Tạo môn học
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Tạo môn học mới</DialogTitle>
