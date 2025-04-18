@@ -433,3 +433,19 @@ button {
         transform: rotate(-10deg);
     }
 }
+.timetable-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.timetable-wrapper.top-scroll {
+    height: 20px; // chỉ để hiển thị thanh cuộn
+    margin-bottom: 8px;
+}
+
+.timetable-table.dummy-scroll {
+    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+    height: 1px; // để nội dung không hiển thị
+}

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useTimetableForPrincipal } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects } from '@/services/common/queries';
 import './Schedule.scss';
+import { Calendar, Save, Trash2 } from "lucide-react";
 
 const Schedule = () => {
     // Add daysOfWeek array at the top
@@ -44,6 +45,12 @@ const Schedule = () => {
     const [tempClass, setTempClass] = useState('');
     const [tempSubject, setTempSubject] = useState('');
     const [tempSession, setTempSession] = useState('');
+    const topScrollRef = useRef(null);
+    const bottomScrollRef = useRef(null);
+    const syncScroll = (sourceRef, targetRef) => {
+        if (!sourceRef.current || !targetRef.current) return;
+        targetRef.current.scrollLeft = sourceRef.current.scrollLeft;
+    };
 
     // Add dummy data (replace with actual data from your API)
     // Remove this line since we're getting teacherData from useTeachers hook
@@ -144,7 +151,7 @@ const Schedule = () => {
             return (
                 <div className="schedule-cell">
                     <div className="subject">{schedule.subjectName}</div>
-                    <div className="teacher">{schedule.teacherName}</div>
+                    {showTeacherName && <div className="teacher">{schedule.teacherName}</div>}
                 </div>
             );
         }
@@ -319,7 +326,37 @@ const Schedule = () => {
                 </div>
             </div>
 
-            <div className="table-container">
+            <div className="table-container" ref={topScrollRef} onScroll={() => syncScroll(topScrollRef, bottomScrollRef)}>
+                <div className="timetable-table dummy-scroll" />
+                <div className="filter-row-table" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <Calendar size={20} />
+
+                        <span>Thời khóa biểu</span>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <div className="filter-column-table">
+                            <button onClick={() => setShowTeacherName(!showTeacherName)}>
+                                {showTeacherName ? "Ẩn tên giáo viên" : "Hiển thị tên giáo viên"}
+                            </button>
+                        </div>
+
+
+
+                        {/* Nút Lưu */}
+                        <button className="btn-save">
+                            <Save size={16} /> Lưu
+                        </button>
+
+                        <button className="btn-delete">
+                            <Trash2 size={16} /> Xóa
+                        </button>
+
+                    </div>
+                </div>
+                <br></br>
+                <br></br>
+
                 <table className="schedule-table">
                     <thead>
                         <tr>
