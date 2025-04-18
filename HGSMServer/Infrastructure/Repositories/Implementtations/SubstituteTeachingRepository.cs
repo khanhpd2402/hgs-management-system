@@ -34,7 +34,7 @@ namespace Infrastructure.Repositories.Implementtations
                 .FirstOrDefaultAsync(st => st.SubstituteId == substituteId);
         }
 
-        public async Task<IEnumerable<SubstituteTeaching>> GetAllAsync(int? timetableDetailId = null, int? teacherId = null, DateOnly? date = null)
+        public async Task<IEnumerable<SubstituteTeaching>> GetAllAsync(int? timetableDetailId = null, int? OriginalTeacherId = null, int? SubstituteTeacherId = null, DateOnly? date = null)
         {
             var query = _context.SubstituteTeachings
                 .Include(st => st.TimetableDetail)
@@ -50,8 +50,10 @@ namespace Infrastructure.Repositories.Implementtations
             if (timetableDetailId.HasValue)
                 query = query.Where(st => st.TimetableDetailId == timetableDetailId.Value);
 
-            if (teacherId.HasValue)
-                query = query.Where(st => st.OriginalTeacherId == teacherId.Value || st.SubstituteTeacherId == teacherId.Value);
+            if (OriginalTeacherId.HasValue)
+                query = query.Where(st => st.OriginalTeacherId == OriginalTeacherId.Value);
+            if (SubstituteTeacherId.HasValue)
+                query = query.Where(st => st.OriginalTeacherId == SubstituteTeacherId.Value);
 
             if (date.HasValue)
                 query = query.Where(st => st.Date == date.Value);
