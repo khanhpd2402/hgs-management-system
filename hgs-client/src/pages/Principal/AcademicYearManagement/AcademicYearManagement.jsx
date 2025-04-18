@@ -6,11 +6,14 @@ import CreateAcademicYearModal from "./CreateAcademicYearModal";
 import { useAcademicYears } from "@/services/common/queries";
 import { useAllSemesters } from "@/services/principal/queries";
 import { formatDateString } from "@/helpers/formatDate";
+import UpdateAcedemicYearModal from "./UpdateAcademicYearModal";
 
 const PAGE_SIZE_OPTIONS = [10, 20, 50];
 
 const AcademicYearManagement = () => {
   const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [selectedYear, setSelectedYear] = useState(null);
 
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(PAGE_SIZE_OPTIONS[0]);
@@ -95,7 +98,8 @@ const AcademicYearManagement = () => {
                     variant="outline"
                     size="icon"
                     onClick={() => {
-                      setOpenCreateModal(true);
+                      setOpenUpdateModal(true);
+                      setSelectedYear(row);
                     }}
                   >
                     <Settings className="h-4 w-4" />
@@ -108,6 +112,14 @@ const AcademicYearManagement = () => {
         <CreateAcademicYearModal
           open={openCreateModal}
           onCancel={setOpenCreateModal}
+        />
+        <UpdateAcedemicYearModal
+          open={openUpdateModal}
+          onCancel={() => {
+            setOpenUpdateModal(false);
+            setSelectedYear(null);
+          }}
+          academicYearId={selectedYear?.academicYearID}
         />
       </div>
     </div>
