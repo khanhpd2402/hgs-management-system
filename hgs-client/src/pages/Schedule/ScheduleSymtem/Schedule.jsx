@@ -354,7 +354,7 @@ const Schedule = () => {
                                         {periodIndex === 0 && (
                                             <td className="sticky-col col-2" rowSpan={shift.periods.length}>{shift.name}</td>
                                         )}
-                                        <td className="sticky-col col-3">Tiết {period}</td>
+                                        <td className="sticky-col col-3">{getPeriodName(period)}</td>
                                         {(selectedClass ? [selectedClass] : classes).map(className => (
                                             <td key={className}>
                                                 {getSchedule(day, period, className)}
