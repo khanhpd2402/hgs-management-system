@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getAllSemesters,
   getClassesWithStudentCount,
   getGradeBatch,
   getGradeBatches,
@@ -95,5 +96,14 @@ export function useClassesWithStudentCount(academicYearId) {
       return getClassesWithStudentCount(academicYearId);
     },
     enabled: !!academicYearId,
+  });
+}
+
+export function useAllSemesters() {
+  return useQuery({
+    queryKey: ["all-semesters"],
+    queryFn: () => {
+      return getAllSemesters();
+    },
   });
 }

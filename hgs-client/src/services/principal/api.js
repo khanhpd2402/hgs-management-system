@@ -118,3 +118,11 @@ export const getClassesWithStudentCount = async (academicYearId) => {
     )
   ).data;
 };
+
+export const createAcademicYear = async (data) => {
+  return (await axiosInstance.post(`AcademicYear`, data)).data;
+};
+
+export const getAllSemesters = async () => {
+  return (await axiosInstance.get(`Semester/all`)).data;
+};
