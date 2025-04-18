@@ -213,7 +213,7 @@ namespace HGSMAPI.Controllers
         /// <param name="academicYearId">ID của năm học (tùy chọn)</param>
         /// <returns>Danh sách các lớp với thông tin và số học sinh</returns>
         [HttpGet("classes-with-student-count")]
-        //[Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> GetClassesWithStudentCount([FromQuery] int? academicYearId = null)
         {
             try

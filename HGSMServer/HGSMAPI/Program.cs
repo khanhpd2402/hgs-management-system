@@ -60,6 +60,10 @@ using Application.Features.StudentClass.Interfaces;
 using Application.Features.StudentClass.Services;
 using Application.Features.TeacherSubjects.Services;
 using Application.Features.TeacherSubjects.Interfaces;
+using Application.Features.SubstituteTeachings.Interfaces;
+using Application.Features.SubstituteTeachings.Services;
+using Application.Features.Conducts.Interfaces;
+using Application.Features.Conducts.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -167,6 +171,8 @@ builder.Services.AddScoped<IGradeLevelService, GradeLevelService>();
 builder.Services.AddScoped<IGradeLevelRepository, GradeLevelRepository>();
 builder.Services.AddScoped<IPeriodService, PeriodService>();
 builder.Services.AddScoped<IPeriodRepository, PeriodRepository>();
+builder.Services.AddScoped<ISubstituteTeachingRepository, SubstituteTeachingRepository>();
+builder.Services.AddScoped<ISubstituteTeachingService, SubstituteTeachingService>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
@@ -178,6 +184,8 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+builder.Services.AddScoped<IConductRepository, ConductRepository>();
+builder.Services.AddScoped<IConductService, ConductService>();
 
 // User & Role Management
 builder.Services.AddScoped<IUserService, UserService>();

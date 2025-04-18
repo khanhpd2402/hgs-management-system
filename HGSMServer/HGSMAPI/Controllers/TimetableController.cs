@@ -75,16 +75,16 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        // GET: api/Timetables/semester/{semesterId}
-        [HttpGet("TimetablesForPrincipal/{semesterId}")]
-        public async Task<IActionResult> GetTimetablesForPrincipalAsync(int semesterId, [FromQuery] string? status = null)
+        // GET: api/Timetables/semester/{timetableId}
+        [HttpGet("TimetablesForPrincipal/{timetableId}")]
+        public async Task<IActionResult> GetTimetablesForPrincipalAsync(int timetableId, [FromQuery] string? status = null)
         {
             try
             {
-                var timetables = await _service.GetTimetablesForPrincipalAsync(semesterId, status);
+                var timetables = await _service.GetTimetablesForPrincipalAsync(timetableId, status);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for semester {semesterId} with status '{status ?? "any"}'");
+                    return NotFound($"No timetables found for semester {timetableId} with status '{status ?? "any"}'");
                 }
                 return Ok(timetables);
             }

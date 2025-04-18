@@ -11,5 +11,6 @@ namespace Application.Features.Classes.DTOs
         public int ClassId { get; set; }
         public string ClassName { get; set; } = string.Empty;
         public int GradeLevelId { get; set; }
+        public string? Status { get; set; }
     }
 }
