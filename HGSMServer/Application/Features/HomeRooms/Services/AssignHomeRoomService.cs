@@ -60,7 +60,6 @@ namespace Application.Features.HomeRooms.Services
                 throw new ArgumentException($"Semester with Id {dto.SemesterId} does not exist.");
             }
 
-            // Kiểm tra xem lớp đã có giáo viên chủ nhiệm hoạt động chưa
             var hasHomeroomTeacher = await _context.HomeroomAssignments
                 .AnyAsync(ha => ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
             if (hasHomeroomTeacher)
@@ -92,13 +91,13 @@ namespace Application.Features.HomeRooms.Services
                 var assignment = await _context.HomeroomAssignments
                     .Include(ha => ha.Class)
                     .Include(ha => ha.Semester)
-                    .FirstOrDefaultAsync(ha => ha.HomeroomAssignmentId == dto.HomeroomAssignmentId);
+                    .FirstOrDefaultAsync(ha => ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId);
+
                 if (assignment == null)
                 {
-                    throw new ArgumentException($"Homeroom assignment with Id {dto.HomeroomAssignmentId} does not exist.");
+                    throw new ArgumentException($"Homeroom assignment for ClassId {dto.ClassId} and SemesterId {dto.SemesterId} does not exist.");
                 }
 
-                // Nếu thay đổi giáo viên
                 if (dto.TeacherId > 0 && dto.TeacherId != assignment.TeacherId)
                 {
                     var newTeacher = await _context.Teachers.FindAsync(dto.TeacherId);
@@ -107,34 +106,30 @@ namespace Application.Features.HomeRooms.Services
                         throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
                     }
 
-                    // Kiểm tra xem lớp đã có giáo viên chủ nhiệm hoạt động khác chưa
                     var hasActiveHomeroom = await _context.HomeroomAssignments
-                        .AnyAsync(ha => ha.ClassId == assignment.ClassId &&
-                                       ha.SemesterId == assignment.SemesterId &&
+                        .AnyAsync(ha => ha.ClassId == dto.ClassId &&
+                                       ha.SemesterId == dto.SemesterId &&
                                        ha.Status == "Hoạt Động" &&
-                                       ha.HomeroomAssignmentId != dto.HomeroomAssignmentId);
+                                       ha.HomeroomAssignmentId != assignment.HomeroomAssignmentId);
                     if (hasActiveHomeroom)
                     {
-                        throw new InvalidOperationException($"Class {assignment.Class.ClassName} already has an active homeroom teacher in semester {assignment.SemesterId}.");
+                        throw new InvalidOperationException($"Class {assignment.Class.ClassName} already has an active homeroom teacher in semester {dto.SemesterId}.");
                     }
 
-                    // Đánh dấu bản ghi cũ là không hoạt động
                     assignment.Status = "Không Hoạt Động";
                     _context.HomeroomAssignments.Update(assignment);
 
-                    // Tạo bản ghi mới cho giáo viên mới
                     var newAssignment = new HomeroomAssignment
                     {
                         TeacherId = dto.TeacherId,
-                        ClassId = assignment.ClassId,
-                        SemesterId = assignment.SemesterId,
+                        ClassId = dto.ClassId,
+                        SemesterId = dto.SemesterId,
                         Status = "Hoạt Động"
                     };
                     _context.HomeroomAssignments.Add(newAssignment);
                 }
                 else
                 {
-                    // Cập nhật trạng thái nếu không thay giáo viên
                     assignment.Status = dto.Status;
                     _context.HomeroomAssignments.Update(assignment);
                 }
@@ -155,7 +150,6 @@ namespace Application.Features.HomeRooms.Services
                 .Include(ha => ha.Semester)
                 .AsQueryable();
 
-            // Nếu là giáo viên, chỉ trả về assignments của họ
             if (userRole == "Teacher")
             {
                 var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
