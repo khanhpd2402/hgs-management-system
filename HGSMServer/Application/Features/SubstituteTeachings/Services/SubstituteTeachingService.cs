@@ -40,9 +40,9 @@ namespace Application.Features.SubstituteTeachings.Services
             return _mapper.Map<SubstituteTeachingDto>(entity);
         }
 
-        public async Task<IEnumerable<SubstituteTeachingDto>> GetAllAsync(int? timetableDetailId = null, int? teacherId = null, DateOnly? date = null)
+        public async Task<IEnumerable<SubstituteTeachingDto>> GetAllAsync(int? timetableDetailId = null, int? OriginalTeacherId = null, int? SubstituteTeacherId = null, DateOnly? date = null)
         {
-            var entities = await _repository.GetAllAsync(timetableDetailId, teacherId, date);
+            var entities = await _repository.GetAllAsync(timetableDetailId, OriginalTeacherId, SubstituteTeacherId ,date);
             return _mapper.Map<IEnumerable<SubstituteTeachingDto>>(entities);
         }
 
