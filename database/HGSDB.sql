@@ -264,6 +264,8 @@ CREATE TABLE [dbo].[LessonPlans] (
     [SubjectID] INT NOT NULL,
     [PlanContent] NVARCHAR(MAX) NOT NULL,
     [Status] NVARCHAR(20) NULL,
+	[StartDate] DATE  NULL
+	[EndDate] DATE  NULL,
     [SemesterID] INT NOT NULL,
     PRIMARY KEY CLUSTERED ([PlanID] ASC),
     CONSTRAINT [FK_LessonPlans_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
@@ -272,7 +274,7 @@ CREATE TABLE [dbo].[LessonPlans] (
 )
 
 -- Thêm các cột vào LessonPlans sau khi bảng được tạo
-ALTER TABLE [dbo].[LessonPlans]
+ALTER TABLE [dbo].[LessonPlans] 
 ADD
     [Title] NVARCHAR(255) NULL,
     [AttachmentUrl] NVARCHAR(500) NULL,

@@ -11,6 +11,5 @@ namespace Application.Features.HomeRooms.DTOs
         public int ClassId { get; set; }
         public int SemesterId { get; set; }
         public int TeacherId { get; set; }
-        public string Status { get; set; }
     }
 }
