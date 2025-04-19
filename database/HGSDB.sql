@@ -264,8 +264,8 @@ CREATE TABLE [dbo].[LessonPlans] (
     [SubjectID] INT NOT NULL,
     [PlanContent] NVARCHAR(MAX) NOT NULL,
     [Status] NVARCHAR(20) NULL,
-	[StartDate] DATE  NULL
-	[EndDate] DATE  NULL,
+	[StartDate] DATETIME  NULL
+	[EndDate] DATETIME  NULL,
     [SemesterID] INT NOT NULL,
     PRIMARY KEY CLUSTERED ([PlanID] ASC),
     CONSTRAINT [FK_LessonPlans_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,

@@ -1,5 +1,4 @@
 ﻿using Domain.Models;
-//using Infrastructure.Data;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -32,57 +31,64 @@ namespace Infrastructure.Repositories.Implementations
         public async Task<LessonPlan> GetLessonPlanByIdAsync(int planId)
         {
             return await _context.LessonPlans
-                .Include(lp => lp.Teacher) 
-                .Include(lp => lp.Subject) 
+                .Include(lp => lp.Teacher)
+                .Include(lp => lp.Subject)
                 .FirstOrDefaultAsync(lp => lp.PlanId == planId);
         }
 
-        public async Task<List<LessonPlan>> GetAllLessonPlansAsync()
+        // --- Implement các hàm mới ---
+        public async Task<LessonPlan> GetLessonPlanByIdIncludingDetailsAsync(int planId)
         {
             return await _context.LessonPlans
                 .Include(lp => lp.Teacher)
                 .Include(lp => lp.Subject)
-                .ToListAsync();
+                .Include(lp => lp.Reviewer) 
+                .FirstOrDefaultAsync(lp => lp.PlanId == planId);
         }
 
-        public async Task<List<LessonPlan>> GetLessonPlansByStatusAsync(string status)
+        private IQueryable<LessonPlan> GetQueryWithIncludes()
         {
-            return await _context.LessonPlans
-                .Include(lp => lp.Teacher)
-                .Include(lp => lp.Subject)
-                .Where(lp => lp.Status == status)
-                .ToListAsync();
+            return _context.LessonPlans
+               .Include(lp => lp.Teacher)
+               .Include(lp => lp.Subject)
+               .Include(lp => lp.Reviewer) 
+               .AsNoTracking() 
+               .AsQueryable();
         }
-        public async Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetAllLessonPlansAsync(int pageNumber, int pageSize)
-        {
-            var query = _context.LessonPlans
-                .Include(lp => lp.Teacher)
-                .Include(lp => lp.Subject)
-                .AsQueryable();
 
+        public async Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetAllLessonPlansIncludingDetailsAsync(int pageNumber, int pageSize)
+        {
+            var query = GetQueryWithIncludes();
             var totalCount = await query.CountAsync();
             var lessonPlans = await query
+                .OrderByDescending(lp => lp.PlanId)
                 .Skip((pageNumber - 1) * pageSize)
                 .Take(pageSize)
                 .ToListAsync();
-
             return (lessonPlans, totalCount);
         }
 
-        public async Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize)
+        public async Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetLessonPlansByTeacherIncludingDetailsAsync(int teacherId, int pageNumber, int pageSize)
         {
-            var query = _context.LessonPlans
-                .Include(lp => lp.Teacher)
-                .Include(lp => lp.Subject)
-                .Where(lp => lp.Status == status)
-                .AsQueryable();
-
+            var query = GetQueryWithIncludes().Where(lp => lp.TeacherId == teacherId);
             var totalCount = await query.CountAsync();
             var lessonPlans = await query
-                .Skip((pageNumber - 1) * pageSize)
-                .Take(pageSize)
-                .ToListAsync();
+               .OrderByDescending(lp => lp.PlanId)
+               .Skip((pageNumber - 1) * pageSize)
+               .Take(pageSize)
+               .ToListAsync();
+            return (lessonPlans, totalCount);
+        }
 
+        public async Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetLessonPlansByStatusIncludingDetailsAsync(string status, int pageNumber, int pageSize)
+        {
+            var query = GetQueryWithIncludes().Where(lp => lp.Status == status);
+            var totalCount = await query.CountAsync();
+            var lessonPlans = await query
+               .OrderByDescending(lp => lp.PlanId)
+               .Skip((pageNumber - 1) * pageSize)
+               .Take(pageSize)
+               .ToListAsync();
             return (lessonPlans, totalCount);
         }
     }
