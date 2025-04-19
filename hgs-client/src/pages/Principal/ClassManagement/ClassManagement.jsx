@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Settings } from "lucide-react";
 import { useGradeLevels } from "@/services/common/queries";
 import ClassModal from "./ClassModal";
 import { useClassesWithStudentCount } from "@/services/principal/queries";
@@ -123,10 +123,7 @@ export default function ClassManagement() {
                       }}
                       title="Chỉnh sửa"
                     >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="destructive" size="icon" title="Xóa">
-                      <Trash2 className="h-4 w-4" />
+                      <Settings className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>

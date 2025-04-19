@@ -48,7 +48,7 @@ export function useAcademicYear(id) {
 
 export function useSemestersByAcademicYear(academicYearId) {
   return useQuery({
-    queryKey: ["semesters", academicYearId],
+    queryKey: ["semesters", { academicYearId }],
     queryFn: () => {
       return getSemestersByAcademicYear(academicYearId);
     },

@@ -100,7 +100,7 @@ export function useHomeroomTeachers() {
 
 export function useClassesWithStudentCount(academicYearId) {
   return useQuery({
-    queryKey: ["classes-with-student-count", academicYearId],
+    queryKey: ["classes-with-student-count", { academicYearId }],
     queryFn: () => {
       return getClassesWithStudentCount(academicYearId);
     },

@@ -127,6 +127,10 @@ export const createAcademicYear = async (data) => {
   return (await axiosInstance.post(`AcademicYear`, data)).data;
 };
 
+export const updateAcademicYear = async (id, data) => {
+  return (await axiosInstance.put(`AcademicYear/${id}`, data)).data;
+};
+
 export const getAllSemesters = async () => {
   return (await axiosInstance.get(`Semester/all`)).data;
 };

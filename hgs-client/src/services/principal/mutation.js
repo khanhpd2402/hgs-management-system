@@ -11,6 +11,7 @@ import {
   deleteSubjectConfigue,
   deleteTeachingAssignment,
   resetUserPassword,
+  updateAcademicYear,
   updateClass,
   updateHomeroom,
   updateSubject,
@@ -258,7 +259,7 @@ export function useCreateAcademicYear() {
     mutationFn: (data) => {
       return createAcademicYear(data);
     },
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         toast.error("Đã có lỗi xảy ra");
@@ -266,6 +267,37 @@ export function useCreateAcademicYear() {
         console.log(data);
         toast.success("Tạo năm học thành công");
         queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
+        queryClient.invalidateQueries({
+          queryKey: ["all-semesters"],
+        });
+      }
+    },
+  });
+}
+
+export function useUpdateAcademicYear() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ academicYearId, data }) => {
+      return updateAcademicYear(academicYearId, data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật năm học thành công");
+        queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
+        queryClient.invalidateQueries({
+          queryKey: ["AcademicYear", { id: variables.academicYearId }],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["semesters", { academicYearId: variables.academicYearId }],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["all-semesters"],
+        });
       }
     },
   });
@@ -304,7 +336,10 @@ export function useCreateClass() {
 
         toast.success("Tạo lớp thành công");
         queryClient.invalidateQueries({
-          queryKey: ["classes-with-student-count"],
+          queryKey: [
+            "classes-with-student-count",
+            { academicYearId: variables.academicYearId },
+          ],
         });
 
         queryClient.invalidateQueries({ queryKey: ["classes"] });
