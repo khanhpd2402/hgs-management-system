@@ -37,7 +37,8 @@ CREATE TABLE [dbo].[GradeLevels] (
 CREATE TABLE [dbo].[Classes] (
     [ClassID] INT IDENTITY(1,1) NOT NULL PRIMARY KEY,
     [ClassName] NVARCHAR(50) NOT NULL UNIQUE,
-    [GradeLevelId] INT NOT NULL,
+    [GradeLevelId] INT NOT NULL, 
+	[Status] NVARCHAR(20) DEFAULT N'Hoạt Động' CHECK ([Status] IN (N'Hoạt Động', N'Không Hoạt Động')),
     CONSTRAINT FK_Classes_GradeLevels FOREIGN KEY ([GradeLevelId]) REFERENCES [GradeLevels]([GradeLevelId])
 );
 
@@ -84,8 +85,6 @@ CREATE TABLE [dbo].[Users] (
     CONSTRAINT [FK_Users_Roles] FOREIGN KEY ([RoleID]) REFERENCES [dbo].[Roles] ([RoleID]) ON DELETE CASCADE,
     UNIQUE NONCLUSTERED ([Username] ASC)
 )
-
-
 CREATE TABLE [dbo].[Teachers] (
     [TeacherID] INT IDENTITY(1,1) NOT NULL,
     [UserID] INT NULL, -- Liên kết với bảng Users
@@ -100,12 +99,11 @@ CREATE TABLE [dbo].[Teachers] (
     [EmploymentType] NVARCHAR(100) NULL, -- Hình thức hợp đồng
     [Position] NVARCHAR(100) NULL, -- Vị trí việc làm
     [Department] NVARCHAR(100) NULL, -- Tổ bộ môn
-    --[Subject] NVARCHAR(100) NULL, -- Môn dạy
     [IsHeadOfDepartment] BIT NULL DEFAULT 0, -- Là tổ trưởng
     [EmploymentStatus] NVARCHAR(50) NULL, -- Trạng thái cán bộ
     [RecruitmentAgency] NVARCHAR(255) NULL, -- Cơ quan tuyển dụng
     [HiringDate] DATE NULL, -- Ngày tuyển dụng
-    [PermanentEmploymentDate] DATE NULL, -- Ngày vào biên chế
+    PermanentEmploymentDate DATE  NULL, -- Ngày vào biên chế
     [SchoolJoinDate] DATE NOT NULL, -- Ngày vào trường
     [PermanentAddress] NVARCHAR(255) NULL, -- Địa chỉ thường trú
     [Hometown] NVARCHAR(255) NULL, -- Quê quán
@@ -185,6 +183,7 @@ CREATE TABLE [dbo].[TeacherSubjects] (
     CONSTRAINT [FK_TeacherSubjects_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
     CONSTRAINT [FK_TeacherSubjects_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]) ON DELETE CASCADE
 )
+
 CREATE TABLE [dbo].[TeachingAssignments] (
     [AssignmentID] INT IDENTITY(1,1) NOT NULL,
     [TeacherID] INT NOT NULL,
@@ -223,27 +222,9 @@ CREATE TABLE [dbo].[Grades] (
 );
 
 -- Tạo các bảng liên quan đến đề thi (đúng thứ tự)
-CREATE TABLE [dbo].[Questions] (
-    [QuestionID] INT IDENTITY(1,1) NOT NULL,
-    [SubjectID] INT NOT NULL,
-    [Grade] INT NOT NULL,
-    [Content] NVARCHAR(MAX) NOT NULL,
-    [Options] NVARCHAR(MAX) NULL,
-    [CorrectAnswer] NVARCHAR(255) NULL,
-    [Difficulty] NVARCHAR(50) NULL,
-    [QuestionType] NVARCHAR(50) NULL,
-    [ImageUrl] NVARCHAR(500) NULL,
-    [CreatedBy] INT NOT NULL,
-    [CreatedDate] DATETIME NULL DEFAULT GETDATE(),
-    [MathContent] NVARCHAR(MAX) NULL,
-    PRIMARY KEY CLUSTERED ([QuestionID] ASC),
-    CONSTRAINT [FK_Questions_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
-    CONSTRAINT [FK_Questions_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID]),
-    CONSTRAINT [CHK_Difficulty] CHECK ([Difficulty] IS NULL OR [Difficulty] IN (N'Dễ', N'Trung bình', N'Khó')),
-    CONSTRAINT [CHK_Grade] CHECK ([Grade] IN (6, 7, 8, 9)),
-    CONSTRAINT [CHK_QuestionType] CHECK ([QuestionType] IS NULL OR [QuestionType] IN (N'Trắc nghiệm', N'Tự luận'))
-)
 
+
+-- Cập nhật bảng ExamProposals
 CREATE TABLE [dbo].[ExamProposals] (
     [ProposalID] INT IDENTITY(1,1) NOT NULL,
     [SubjectID] INT NOT NULL,
@@ -252,29 +233,21 @@ CREATE TABLE [dbo].[ExamProposals] (
     [SemesterID] INT NOT NULL,
     [CreatedBy] INT NOT NULL,
     [CreatedDate] DATETIME NULL DEFAULT GETDATE(),
+    [FileUrl] NVARCHAR(500) NULL, -- Thêm cột để lưu URL file Word
     PRIMARY KEY CLUSTERED ([ProposalID] ASC),
     CONSTRAINT [FK_ExamProposals_Subjects] FOREIGN KEY ([SubjectID]) REFERENCES [dbo].[Subjects] ([SubjectID]),
     CONSTRAINT [FK_ExamProposals_Semesters] FOREIGN KEY ([SemesterID]) REFERENCES [dbo].[Semesters] ([SemesterID]),
     CONSTRAINT [FK_ExamProposals_Teachers] FOREIGN KEY ([CreatedBy]) REFERENCES [dbo].[Teachers] ([TeacherID])
-)
+);
 
-CREATE TABLE [dbo].[ExamProposalQuestions] (
-    [ID] INT IDENTITY(1,1) NOT NULL,
-    [ProposalID] INT NOT NULL,
-    [QuestionID] INT NOT NULL,
-    [OrderNumber] INT NOT NULL,
-    PRIMARY KEY CLUSTERED ([ID] ASC),
-    CONSTRAINT [FK_ExamProposalQuestions_ExamProposals] FOREIGN KEY ([ProposalID]) REFERENCES [dbo].[ExamProposals] ([ProposalID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_ExamProposalQuestions_Questions] FOREIGN KEY ([QuestionID]) REFERENCES [dbo].[Questions] ([QuestionID]),
-    CONSTRAINT [UQ_Proposal_Question] UNIQUE NONCLUSTERED ([ProposalID] ASC, [QuestionID] ASC)
-)
 CREATE TABLE [dbo].[LeaveRequests] (
     [RequestID] INT IDENTITY(1,1) NOT NULL,
     [TeacherID] INT NOT NULL,
     [RequestDate] DATE NOT NULL,
     [LeaveFromDate] DATE NOT NULL,
     [LeaveToDate] DATE NOT NULL,
-    [Reason] NVARCHAR(max) NOT NULL,
+    [Reason] NVARCHAR(max),
+	[Comment] NVARCHAR(max),
     [Status] NVARCHAR(20) NULL,
     PRIMARY KEY CLUSTERED ([RequestID] ASC),
     CONSTRAINT [FK_LeaveRequests_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE
@@ -328,16 +301,23 @@ CREATE TABLE [dbo].[Periods] (
     CONSTRAINT [CHK_EndTime_After_StartTime] CHECK ([EndTime] > [StartTime])
 );
 go
- 
-GO
+CREATE TABLE [dbo].[Timetables] (
+    [TimetableId] INT PRIMARY KEY IDENTITY(1,1),
+    [SemesterId] INT NOT NULL,
+    [EffectiveDate] DATE NOT NULL,
+	[EndDate] DATE,
+    [Status] NVARCHAR(20) NOT NULL DEFAULT N'Hoạt Động',
+    FOREIGN KEY ([SemesterId]) REFERENCES [dbo].[Semesters]([SemesterId]) ON DELETE CASCADE
+); 
+GO 
 CREATE TABLE [dbo].[TimetableDetails] (
     [TimetableDetailId] INT PRIMARY KEY IDENTITY(1,1),
     [TimetableId] INT NOT NULL,
     [ClassId] INT NOT NULL,
     [SubjectId] INT NOT NULL,
     [TeacherId] INT NOT NULL,
-    [Date] DATE NOT NULL, -- Thay cho DayOfWeek, lưu ngày cụ thể
-    [PeriodId] INT NOT NULL, -- Thay cho Period, tham chiếu tới bảng Periods
+    [DayOfWeek] NVARCHAR(20) NOT NULL CHECK ([DayOfWeek] IN (N'Thứ Hai', N'Thứ Ba', N'Thứ Tư', N'Thứ Năm', N'Thứ Sáu', N'Thứ Bảy', N'Chủ Nhật')),
+    [PeriodId] INT NOT NULL,
     FOREIGN KEY ([TimetableId]) REFERENCES [dbo].[Timetables]([TimetableId]),
     FOREIGN KEY ([ClassId]) REFERENCES [dbo].[Classes]([ClassId]) ON DELETE CASCADE,
     FOREIGN KEY ([SubjectId]) REFERENCES [dbo].[Subjects]([SubjectId]) ON DELETE CASCADE,
@@ -345,34 +325,61 @@ CREATE TABLE [dbo].[TimetableDetails] (
     FOREIGN KEY ([PeriodId]) REFERENCES [dbo].[Periods]([PeriodId]) ON DELETE CASCADE
 );
 GO
-
-CREATE TABLE [dbo].[Attendances] (
-    [AttendanceID] INT IDENTITY(1,1) NOT NULL,
-    [StudentID] INT NOT NULL,
-    [TimetableDetailId] INT NOT NULL,
-    [Status] NVARCHAR(1) NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')),
-    [Note] NVARCHAR(255) NULL,
-    [CreatedAt] DATETIME DEFAULT GETDATE(), -- Dùng để kiểm tra thời điểm điểm danh
-    PRIMARY KEY CLUSTERED ([AttendanceID] ASC),
-    CONSTRAINT [FK_Attendances_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE,
-    CONSTRAINT [FK_Attendances_TimetableDetails] FOREIGN KEY ([TimetableDetailId]) REFERENCES [dbo].[TimetableDetails] ([TimetableDetailId]) ON DELETE CASCADE,
-    CONSTRAINT [UQ_Attendance] UNIQUE ([StudentID], [TimetableDetailId])
+CREATE TABLE Conducts (
+    Id INT PRIMARY KEY IDENTITY(1,1),
+    StudentId INT NOT NULL,
+    SemesterId INT NOT NULL,
+    ConductType NVARCHAR(50) NOT NULL CHECK (ConductType IN (N'Tốt', N'Khá', N'Trung bình', N'Yếu')),
+    Note NVARCHAR(MAX) NULL,
+    CONSTRAINT FK_Conducts_Students FOREIGN KEY (StudentId) REFERENCES Students([StudentID]),
+    CONSTRAINT FK_Conducts_Semesters FOREIGN KEY (SemesterId) REFERENCES Semesters([SemesterID]),
+    CONSTRAINT UQ_Conduct_Student_Semester UNIQUE (StudentId, SemesterId)
 );
+GO
+CREATE TABLE [dbo].[SubstituteTeachings] (
+    [SubstituteId] INT PRIMARY KEY IDENTITY(1,1),
+    [TimetableDetailId] INT NOT NULL,       -- Tiết học gốc
+    [OriginalTeacherId] INT NOT NULL,       -- Người nghỉ
+    [SubstituteTeacherId] INT NOT NULL,     -- Người dạy thay
+    [Date] DATE NOT NULL,                   -- Ngày cụ thể nghỉ
+    [Note] NVARCHAR(255) NULL,
+    [CreatedAt] DATETIME DEFAULT GETDATE(),
+    
+    FOREIGN KEY ([TimetableDetailId]) REFERENCES [dbo].[TimetableDetails]([TimetableDetailId]) ON DELETE CASCADE,
+    FOREIGN KEY ([OriginalTeacherId]) REFERENCES [dbo].[Teachers]([TeacherId]),
+    FOREIGN KEY ([SubstituteTeacherId]) REFERENCES [dbo].[Teachers]([TeacherId])
+);
+Go
+CREATE TABLE Attendances (
+    AttendanceID INT IDENTITY(1,1) PRIMARY KEY,
+    StudentClassID INT NOT NULL,
+    [Date] DATE NOT NULL,
+    [Session] NVARCHAR(10) NOT NULL CHECK ([Session] IN (N'Sáng', N'Chiều')),
+    [Status] NVARCHAR(2) NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')), -- Có, Phép, Không phép, Không rõ
+    Note NVARCHAR(255) NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
 
-CREATE TRIGGER [dbo].[TR_Timetables_EnsureSingleActive]
+    CONSTRAINT FK_Attendances_StudentClasses FOREIGN KEY (StudentClassID)
+        REFERENCES StudentClasses(ID) ON DELETE CASCADE,
+
+    CONSTRAINT UQ_Attendances_StudentClass_Date_Session UNIQUE (StudentClassID, [Date], [Session])
+);
+GO
+CREATE TRIGGER trg_EnsureOnlyOneActiveTimetable
 ON [dbo].[Timetables]
 AFTER INSERT, UPDATE
 AS
 BEGIN
     SET NOCOUNT ON;
 
-    IF EXISTS (SELECT 1 FROM INSERTED WHERE Status = N'Hoạt Động')
+    -- Chỉ xử lý nếu có cái nào đang được set là Hoạt động
+    IF EXISTS (SELECT 1 FROM inserted WHERE Status = N'Hoạt động')
     BEGIN
-        UPDATE t
-        SET t.Status = N'Không hoạt động'
-        FROM [dbo].[Timetables] t
-        INNER JOIN INSERTED i ON t.TimetableId != i.TimetableId
-        WHERE t.Status = N'Hoạt Động';
+        UPDATE dbo.Timetables
+        SET Status = N'Không hoạt động'
+        WHERE Status = N'Hoạt động'
+          AND TimetableId NOT IN (SELECT TimetableId FROM inserted);
     END
 END;
-GO
+ALTER TABLE [dbo].[Timetables]
+ALTER COLUMN [Status] NVARCHAR(20) NOT NULL;

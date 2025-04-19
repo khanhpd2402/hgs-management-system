@@ -10,6 +10,7 @@ namespace Application.Features.Semesters.Interfaces
     public interface ISemesterService
     {
         Task<List<SemesterDto>> GetByAcademicYearIdAsync(int academicYearId);
+        Task<List<SemesterDto>> GetAllSemester();
         Task<SemesterDto?> GetByIdAsync(int id);
         Task AddAsync(CreateSemesterDto semester);
         Task UpdateAsync(SemesterDto semester);

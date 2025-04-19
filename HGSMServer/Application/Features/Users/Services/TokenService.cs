@@ -6,16 +6,23 @@ using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Threading.Tasks;
+using System.Collections.Generic;
 
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
-    private readonly IRoleRepository _roleRepository; 
+    private readonly IRoleRepository _roleRepository;
+    private readonly ITeacherRepository _teacherRepository; 
 
-    public TokenService(IConfiguration configuration, IRoleRepository roleRepository)
+    public TokenService(
+        IConfiguration configuration,
+        IRoleRepository roleRepository,
+        ITeacherRepository teacherRepository)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
+        _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
     }
 
     public async Task<(string tokenString, Dictionary<string, string> tokenPayload)> GenerateTokenAsync(UserDTO user)
@@ -30,9 +37,19 @@ public class TokenService : ITokenService
             new Claim("sub", user.UserId.ToString()),
             new Claim("email", user.Email ?? ""),
             new Claim("name", user.Username),
-            new Claim("role", userRole), 
+            new Claim("role", userRole),
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
+
+        // Kiểm tra vai trò và lấy TeacherID nếu không phải Phụ huynh
+        if (userRole != "Phụ huynh")
+        {
+            var teacher = await _teacherRepository.GetByUserIdAsync(user.UserId);
+            if (teacher != null)
+            {
+                claims.Add(new Claim("teacherId", teacher.TeacherId.ToString()));
+            }
+        }
 
         var secretKey = _configuration["JWT:SecretKey"];
         if (string.IsNullOrEmpty(secretKey))

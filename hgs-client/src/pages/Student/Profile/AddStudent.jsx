@@ -26,6 +26,7 @@ import { formatDate } from "@/helpers/formatDate";
 import { useState } from "react";
 import { useStudents } from "@/services/student/queries";
 import { cleanString } from "@/helpers/removeWhiteSpace";
+import { X } from "lucide-react";
 
 export default function AddStudent() {
   const { currentYear } = useLayout();
@@ -38,6 +39,7 @@ export default function AddStudent() {
   const [showMotherInfo, setShowMotherInfo] = useState(false);
   const [showGuardianInfo, setShowGuardianInfo] = useState(false);
   const [showSiblingsModal, setShowSiblingsModal] = useState(false);
+  const [selectedSibling, setSelectedSibling] = useState(null);
   const [searchQuery, setSearchQuery] = useState("");
   const studentsQuery = useStudents(academicYearId);
   const filteredStudents = studentsQuery.data?.students?.filter((student) =>
@@ -45,6 +47,7 @@ export default function AddStudent() {
   );
 
   const handleChangeSibling = (student) => {
+    console.log(student);
     const currentValues = watch();
     const parentInfo = {};
 
@@ -101,6 +104,7 @@ export default function AddStudent() {
       ...currentValues,
       ...parentInfo,
     });
+    setSelectedSibling(student);
   };
 
   const studentSchema = z
@@ -363,6 +367,8 @@ export default function AddStudent() {
       emailGuardian: "",
       yearOfBirthGuardian: null,
     },
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
   // Submit handler
@@ -376,6 +382,7 @@ export default function AddStudent() {
     );
     const formattedData = {
       ...cleanedData,
+
       dob: formData.dob ? formatDate(formData.dob) : null,
       admissionDate: formData.admissionDate
         ? formatDate(formData.admissionDate)
@@ -389,6 +396,7 @@ export default function AddStudent() {
       yearOfBirthGuardian: formData.yearOfBirthGuardian
         ? formatDate(formData.yearOfBirthGuardian)
         : null,
+      parentId: selectedSibling?.parent?.parentId || null,
     };
     console.log(formattedData);
     mutate(formattedData, {
@@ -398,7 +406,7 @@ export default function AddStudent() {
           fullName: "",
           gender: "",
           enrollmentType: "",
-          classId: 0,
+          classId: "",
           dob: null,
           admissionDate: null,
           permanentAddress: "",
@@ -428,6 +436,7 @@ export default function AddStudent() {
         setShowFatherInfo(false);
         setShowMotherInfo(false);
         setShowGuardianInfo(false);
+        setSelectedSibling(null);
         setSearchQuery("");
       },
     });
@@ -526,6 +535,7 @@ export default function AddStudent() {
             {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>
+
         {/* Basic Student Info Card */}
         <Card>
           <CardHeader>
@@ -648,6 +658,24 @@ export default function AddStudent() {
                 >
                   Có anh/chị/em đang học
                 </Button>
+                {selectedSibling && (
+                  <div className="flex items-center gap-2 rounded border bg-slate-50 px-4">
+                    <span>
+                      Đã chọn anh/chị/em: <b>{selectedSibling.fullName}</b> (Lớp{" "}
+                      {selectedSibling.className})
+                    </span>
+                    <Button
+                      type="button"
+                      size="icon"
+                      variant="ghost"
+                      onClick={() => setSelectedSibling(null)}
+                      className="ml-2"
+                      title="Bỏ chọn"
+                    >
+                      <X className="h-4 w-4" />
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
             {errors.familyInfoRequired && (

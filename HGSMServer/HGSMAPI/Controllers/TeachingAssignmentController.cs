@@ -31,21 +31,6 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPut("update/{assignmentId}")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateTeachingAssignment(int assignmentId, [FromBody] TeachingAssignmentCreateDto dto)
-        {
-            try
-            {
-                await _teachingAssignmentService.UpdateTeachingAssignmentAsync(assignmentId, dto);
-                return Ok("Teaching assignment updated successfully.");
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
-        }
-
         [HttpGet("filter-data")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> GetFilterData()
@@ -76,14 +61,14 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpGet("search")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
-        public async Task<IActionResult> SearchTeachingAssignments([FromQuery] TeachingAssignmentFilterDto filter)
+        [HttpPut("teaching-assignments")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> UpdateTeachingAssignments([FromBody] List<TeachingAssignmentUpdateDto> dtos)
         {
             try
             {
-                var result = await _teachingAssignmentService.SearchTeachingAssignmentsAsync(filter);
-                return Ok(result);
+                await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
+                return Ok("Teaching assignments updated successfully.");
             }
             catch (Exception ex)
             {
@@ -93,11 +78,11 @@ namespace HGSMAPI.Controllers
 
         [HttpGet("all")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
-        public async Task<IActionResult> GetAllTeachingAssignments()
+        public async Task<IActionResult> GetAllTeachingAssignments([FromQuery] int semesterId)
         {
             try
             {
-                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync();
+                var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync(semesterId);
                 return Ok(result);
             }
             catch (Exception ex)
@@ -106,14 +91,29 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPost("assign-homeroom")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
-        public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto dto)
+        [HttpGet("teacher/{teacherId}/semester/{semesterId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId, int semesterId)
         {
             try
             {
-                await _teachingAssignmentService.AssignHomeroomAsync(dto);
-                return Ok(new { message = "Homeroom teacher assigned successfully.", teacherId = dto.TeacherId, classId = dto.ClassId });
+                var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId, semesterId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpDelete("teacher/{teacherId}/semester/{semesterId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> DeleteTeachingAssignmentsByTeacherIdAndSemesterId(int teacherId, int semesterId)
+        {
+            try
+            {
+                await _teachingAssignmentService.DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(teacherId, semesterId);
+                return Ok("Teaching assignments deleted successfully.");
             }
             catch (Exception ex)
             {

@@ -1,5 +1,4 @@
-import React, { useState } from "react";
-import toast, { Toaster } from "react-hot-toast";
+import { useState } from "react";
 import {
   Table,
   TableBody,
@@ -9,174 +8,133 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { PlusCircle, Pencil, Trash2 } from "lucide-react";
-import { useClasses, useGradeLevels } from "@/services/common/queries";
+import { useGradeLevels } from "@/services/common/queries";
+import ClassModal from "./ClassModal";
+import { useClassesWithStudentCount } from "@/services/principal/queries";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import UpdateClassModal from "./UpdateClassModal";
 
 export default function ClassManagement() {
-  const [classes, setClasses] = useState([]);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [editingClass, setEditingClass] = useState(null);
-
-  const classQuery = useClasses();
+  const { currentYear } = useLayout();
+  const [openCreateModal, setOpenCreateModal] = useState(false);
+  const [openUpdateModal, setOpenUpdateModal] = useState(false);
+  const [selectedClass, setSelectedClass] = useState(null);
+  const classesWithStudentQuery = useClassesWithStudentCount(
+    currentYear?.academicYearID,
+  );
   const gradelevelQuery = useGradeLevels();
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    const formData = new FormData(e.target);
-    const classData = {
-      id: editingClass ? editingClass.id : Date.now(),
-      className: formData.get("className"),
-      teacherName: formData.get("teacherName"),
-      gradeId: formData.get("gradeId"),
-      studentCount: editingClass ? editingClass.studentCount : 0,
-    };
-
-    if (editingClass) {
-      setClasses(
-        classes.map((c) => (c.id === editingClass.id ? classData : c)),
-      );
-      toast.success("Cập nhật lớp học thành công");
-    } else {
-      setClasses([...classes, classData]);
-      toast.success("Thêm lớp học thành công");
-    }
-    setIsDialogOpen(false);
-    setEditingClass(null);
-  };
-
-  const handleDelete = (id) => {
-    if (confirm("Bạn có chắc chắn muốn xóa lớp học này không?")) {
-      setClasses(classes.filter((c) => c.id !== id));
-      toast.success("Xóa lớp học thành công");
-    }
-  };
+  // You should implement these handlers to call your API
 
   return (
-    <div className="p-6">
-      <Toaster position="top-right" />
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-2xl font-bold">Quản Lý Lớp Học</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="mb-4">
-            <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <DialogTrigger asChild>
-                <Button className="flex items-center gap-2">
-                  <PlusCircle className="h-4 w-4" />
-                  Thêm Lớp Học Mới
-                </Button>
-              </DialogTrigger>
-              <DialogContent>
-                <DialogHeader>
-                  <DialogTitle>
-                    {editingClass ? "Chỉnh Sửa Lớp Học" : "Thêm Lớp Học Mới"}
-                  </DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-4">
-                  <div className="grid w-full gap-2">
-                    <Label htmlFor="gradeId">Khối</Label>
-                    <select
-                      id="gradeId"
-                      name="gradeId"
-                      className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                      defaultValue={editingClass?.gradeId}
-                      required
-                    >
-                      <option value="">Chọn khối</option>
-                      {gradelevelQuery?.data?.map((grade) => (
-                        <option key={grade.id} value={grade.id}>
-                          {grade.gradeName}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                  <div className="grid w-full gap-2">
-                    <Label htmlFor="className">Tên Lớp</Label>
-                    <Input
-                      id="className"
-                      name="className"
-                      defaultValue={editingClass?.className}
-                      required
-                    />
-                  </div>
-                  <div className="grid w-full gap-2">
-                    <Label htmlFor="teacherName">Giáo Viên Chủ Nhiệm</Label>
-                    <Input
-                      id="teacherName"
-                      name="teacherName"
-                      defaultValue={editingClass?.teacherName}
-                      required
-                    />
-                  </div>
-                  <Button type="submit" className="w-full">
-                    {editingClass ? "Cập Nhật" : "Thêm"} Lớp Học
-                  </Button>
-                </form>
-              </DialogContent>
-            </Dialog>
-          </div>
+    <div className="py-6">
+      <div className="mb-4 flex items-center justify-between">
+        <h2 className="mb-2 text-2xl font-bold">Quản Lý Lớp Học</h2>
+        <Button
+          className="flex items-center gap-2 bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+          onClick={() => {
+            setOpenCreateModal(true);
+          }}
+        >
+          <PlusCircle className="h-4 w-4" />
+          Thêm Lớp Học Mới
+        </Button>
+      </div>
 
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Khối</TableHead>
-                <TableHead>Tên Lớp</TableHead>
-                <TableHead>Giáo Viên Chủ Nhiệm</TableHead>
-                <TableHead>Số Học Sinh</TableHead>
-                <TableHead>Thao Tác</TableHead>
+      <ClassModal
+        open={openCreateModal}
+        onOpenChange={setOpenCreateModal}
+        gradelevelQuery={gradelevelQuery}
+        currentYear={currentYear}
+      />
+
+      <UpdateClassModal
+        open={openUpdateModal && selectedClass}
+        onOpenChange={(open) => {
+          setOpenUpdateModal(open);
+          if (!open) setSelectedClass(null);
+        }}
+        classId={selectedClass?.classId}
+        currentYear={currentYear}
+      />
+
+      <div className="overflow-x-auto">
+        <Table className="min-w-full border border-gray-300">
+          <TableHeader>
+            <TableRow className="bg-gray-100">
+              <TableHead className="border border-gray-300">Khối</TableHead>
+              <TableHead className="border border-gray-300">Tên Lớp</TableHead>
+              <TableHead className="border border-gray-300">GVCN HK1</TableHead>
+              <TableHead className="border border-gray-300">GVCN HK2</TableHead>
+              <TableHead className="border border-gray-300">
+                Số Học Sinh
+              </TableHead>
+              <TableHead className="border border-gray-300">
+                Trạng thái
+              </TableHead>
+              <TableHead className="border border-gray-300">Thao Tác</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {classesWithStudentQuery?.data?.map((classItem) => (
+              <TableRow
+                key={classItem.classId}
+                className="border-b border-gray-300"
+              >
+                <TableCell className="border border-gray-300">
+                  {
+                    gradelevelQuery?.data?.find(
+                      (grade) => grade.gradeLevelId === classItem.gradeLevelId,
+                    )?.gradeName
+                  }
+                </TableCell>
+                <TableCell className="border border-gray-300">
+                  {classItem.className}
+                </TableCell>
+                <TableCell className="border border-gray-300">
+                  {
+                    classItem.homeroomTeachers?.find(
+                      (teacher) => teacher.semesterName === "Học kỳ 1",
+                    )?.teacherName
+                  }
+                </TableCell>
+                <TableCell className="border border-gray-300">
+                  {
+                    classItem.homeroomTeachers?.find(
+                      (teacher) => teacher.semesterName === "Học kỳ 2",
+                    )?.teacherName
+                  }
+                </TableCell>
+                <TableCell className="border border-gray-300">
+                  {classItem.studentCount}
+                </TableCell>
+                <TableCell className="border border-gray-300">
+                  {classItem.status}
+                </TableCell>
+                <TableCell className="border border-gray-300">
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="icon"
+                      onClick={() => {
+                        setSelectedClass(classItem);
+                        setOpenUpdateModal(true);
+                      }}
+                      title="Chỉnh sửa"
+                    >
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                    <Button variant="destructive" size="icon" title="Xóa">
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </TableCell>
               </TableRow>
-            </TableHeader>
-            <TableBody>
-              {classQuery?.data?.map((classItem) => (
-                <TableRow key={classItem.id}>
-                  <TableCell>
-                    {gradelevelQuery?.data?.find(
-                      (grade) => grade.id === classItem.gradeId
-                    )?.gradeName}
-                  </TableCell>
-                  <TableCell>{classItem.className}</TableCell>
-                  <TableCell>{classItem.teacherName}</TableCell>
-                  <TableCell>{classItem.studentCount}</TableCell>
-                  <TableCell>
-                    <div className="flex gap-2">
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => {
-                          setEditingClass(classItem);
-                          setIsDialogOpen(true);
-                        }}
-                        title="Chỉnh sửa"
-                      >
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDelete(classItem.id)}
-                        title="Xóa"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </CardContent>
-      </Card>
+            ))}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 }

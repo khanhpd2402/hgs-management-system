@@ -43,13 +43,13 @@ const Header = ({ setCurrentYear }) => {
 
   return (
     <>
-      <header className="flex h-14 items-center border-b px-4 lg:px-6">
+      <header className="flex h-14 items-center overflow-hidden border-b">
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-4">
             <img
               src="https://picsum.photos/200/300"
               alt="School Logo"
-              className="h-16 w-16 object-cover"
+              className="h-12 w-12 object-cover"
             />
             <div className="">
               <h1 className="text-2xl font-bold">TRƯỜNG THCS HẢI GIANG</h1>
@@ -77,7 +77,13 @@ const Header = ({ setCurrentYear }) => {
                 <SelectValue>{selectedYear?.yearName}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {academicYears?.data?.map((item) => (
+                {(
+                  academicYears?.data?.slice()?.sort((a, b) => {
+                    const aYear = parseInt(a.yearName?.split("-")[0] || 0, 10);
+                    const bYear = parseInt(b.yearName?.split("-")[0] || 0, 10);
+                    return bYear - aYear;
+                  }) || []
+                ).map((item) => (
                   <SelectItem
                     key={item.academicYearID}
                     value={item.academicYearID}

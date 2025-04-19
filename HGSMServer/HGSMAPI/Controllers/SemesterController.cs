@@ -15,6 +15,19 @@ namespace HGSMAPI.Controllers
         {
             _service = service;
         }
+        [HttpGet("all")]
+        public async Task<IActionResult> GetAllSemesters()
+        {
+            try
+            {
+                var result = await _service.GetAllSemester();
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
 
         [HttpGet("by-academic-year/{academicYearId}")]
         public async Task<IActionResult> GetByAcademicYear(int academicYearId)

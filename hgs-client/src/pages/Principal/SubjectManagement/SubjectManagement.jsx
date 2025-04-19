@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, Search, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Search, Trash2 } from "lucide-react";
 import { CreateSubjectModal } from "./CreateSubjectModal";
 import { useSubjects } from "@/services/common/queries";
 import { UpdateSubjectModal } from "./UpdateSubjectModal";
@@ -24,15 +24,14 @@ import { UpdateSubjectModal } from "./UpdateSubjectModal";
 export default function SubjectManagement() {
   const [searchTerm, setSearchTerm] = useState("");
   const [open, setOpen] = useState(false);
+  const [openCreateModal, setOpenCreateModal] = useState(false);
   const [selectedSubjectId, setSelectedSubjectId] = useState(null);
   const subjectQuery = useSubjects();
 
   const filteredSubjects = subjectQuery?.data?.filter((subject) =>
     subject.subjectName.toLowerCase().includes(searchTerm.toLowerCase()),
   );
-  // console.log(filteredSubjects);
 
-  console.log(selectedSubjectId);
   return (
     <div className="container mx-auto py-6">
       <Card>
@@ -54,7 +53,13 @@ export default function SubjectManagement() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
             </div>
-            <CreateSubjectModal />
+            <Button
+              className="bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+              onClick={() => setOpenCreateModal(true)}
+            >
+              <PlusCircle className="h-4 w-4" />
+              Tạo môn học
+            </Button>
           </div>
         </CardHeader>
         <CardContent>
@@ -63,17 +68,25 @@ export default function SubjectManagement() {
               <TableRow>
                 <TableHead>STT</TableHead>
                 <TableHead>Tên môn học</TableHead>
+                <TableHead>Tổ bộ môn</TableHead>
+                <TableHead>Hình thức tính điểm</TableHead>
                 <TableHead className="text-right">Thao tác</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
               {filteredSubjects?.map((subject, index) => (
-                <TableRow key={subject.subjectId}>
+                <TableRow key={subject.subjectID}>
                   <TableCell className="w-16 font-medium">
                     {index + 1}
                   </TableCell>
                   <TableCell className="min-w-72">
                     {subject.subjectName}
+                  </TableCell>
+                  <TableCell className="min-w-72">
+                    {subject.subjectCategory}
+                  </TableCell>
+                  <TableCell className="min-w-72">
+                    {subject.typeOfGrade}
                   </TableCell>
                   <TableCell className="text-right">
                     <div className="flex justify-end gap-2">
@@ -82,8 +95,8 @@ export default function SubjectManagement() {
                         size="icon"
                         className="cursor-pointer"
                         onClick={() => {
+                          setSelectedSubjectId(subject.subjectID);
                           setOpen(true);
-                          setSelectedSubjectId(subject.subjectId);
                         }}
                       >
                         <Pencil className="h-4 w-4" />
@@ -107,10 +120,16 @@ export default function SubjectManagement() {
         <UpdateSubjectModal
           subjectId={selectedSubjectId}
           open={open}
-          setOpen={setOpen}
+          setOpen={(newOpen) => {
+            setOpen(newOpen);
+            if (!newOpen) {
+              setSelectedSubjectId(null);
+            }
+          }}
           setSelectedSubjectId={setSelectedSubjectId}
         />
       )}
+      <CreateSubjectModal open={openCreateModal} setOpen={setOpenCreateModal} />
     </div>
   );
 }

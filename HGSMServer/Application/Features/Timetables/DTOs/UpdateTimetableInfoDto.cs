@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Common.Constants;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -9,16 +10,16 @@ namespace Application.Features.Timetables.DTOs
 {
     public class UpdateTimetableInfoDto
     {
-        [Required]
+        [Required(ErrorMessage = "TimetableId is required.")]
         public int TimetableId { get; set; }
 
-        [Required]
+        [Required(ErrorMessage = "SemesterId is required.")]
         public int SemesterId { get; set; }
 
-        [Required]
         public DateOnly EffectiveDate { get; set; }
 
-        [Required]
-        public string Status { get; set; }
+        public DateOnly? EndDate { get; set; }
+
+        public string Status { get; set; } = AppConstants.Status.PENDING;
     }
 }
