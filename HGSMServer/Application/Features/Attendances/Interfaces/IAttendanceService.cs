@@ -10,9 +10,6 @@ namespace Application.Features.Attendances.Interfaces
 {
     public interface IAttendanceService
     {
-        Task<Attendance> CreateAttendance(AttendanceRequest request);
-        Task<Attendance> UpdateAttendance(int attendanceId, AttendanceRequest request);
-        Task<Attendance> GetAttendanceById(int attendanceId);
-        Task<List<Attendance>> GetAttendancesByClass(int classId, DateOnly date, string shift);
+      
     }
 }

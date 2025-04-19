@@ -7,10 +7,9 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IAttendanceRepository
     {
-        Task<Attendance> AddAttendance(Attendance attendance);
-        Task<Attendance> UpdateAttendance(Attendance attendance);
-        Task<Attendance> GetAttendanceById(int attendanceId);
-        Task<List<Attendance>> GetAttendancesByClass(int classId, DateOnly date, string shift);
-        Task<List<string>> GetParentPhoneNumbers(int studentId);
+        //Task<List<Attendance>> GetByWeekAsync(int classId, DateTime weekStart);
+        //Task AddRangeAsync(List<Attendance> attendances);
+        //Task UpdateRangeAsync(List<Attendance> updates);
+        //Task<bool> ExistsForSessionAsync(int studentId, DateTime date, string session);
     }
 }
