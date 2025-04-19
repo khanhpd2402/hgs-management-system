@@ -445,6 +445,7 @@ namespace Application.Features.StudentClass.Services
                     ClassName = classEntity.ClassName,
                     GradeLevelId = classEntity.GradeLevelId,
                     StudentCount = studentCount,
+                    Status = classEntity.Status,
                     HomeroomTeachers = new List<HomeroomTeacherInfo>()
                 };
 
@@ -554,6 +555,7 @@ namespace Application.Features.StudentClass.Services
                     ClassName = classEntity.ClassName,
                     GradeLevelId = classEntity.GradeLevelId,
                     StudentCount = studentCount,
+                    Status = classEntity.Status,
                     HomeroomTeachers = new List<HomeroomTeacherInfo>()
                 };
 
