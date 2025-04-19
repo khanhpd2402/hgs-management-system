@@ -1,4 +1,5 @@
-﻿using Application.Features.AcademicYears.DTOs;
+﻿// File: AcademicYearService.cs
+using Application.Features.AcademicYears.DTOs;
 using Application.Features.AcademicYears.Interfaces;
 using AutoMapper;
 using Domain.Models;
@@ -16,13 +17,14 @@ namespace Application.Features.AcademicYears.Services
         private readonly IAcademicYearRepository _repository;
         private readonly ISemesterRepository _semesterRepository;
         private readonly IMapper _mapper;
-        private readonly HgsdbContext _context; 
+        private readonly HgsdbContext _context;
 
+        // Constructor và các hàm GetAllAsync, GetByIdAsync, AddAsync, DeleteAsync giữ nguyên như trước
         public AcademicYearService(
-            IAcademicYearRepository repository,
-            ISemesterRepository semesterRepository,
-            IMapper mapper,
-            HgsdbContext context)
+           IAcademicYearRepository repository,
+           ISemesterRepository semesterRepository,
+           IMapper mapper,
+           HgsdbContext context)
         {
             _repository = repository;
             _semesterRepository = semesterRepository;
@@ -44,23 +46,19 @@ namespace Application.Features.AcademicYears.Services
 
         public async Task AddAsync(CreateAcademicYearDto academicYearDto)
         {
-            // Map DTO thành AcademicYear
             var academicYear = _mapper.Map<AcademicYear>(academicYearDto);
 
-            // Kiểm tra dữ liệu AcademicYear
             if (academicYear.StartDate >= academicYear.EndDate)
             {
                 throw new ArgumentException("Ngày bắt đầu năm học phải trước ngày kết thúc.");
             }
 
-            // Kiểm tra trùng tên AcademicYear
             var existingAcademicYear = await _repository.GetByNameAsync(academicYear.YearName);
             if (existingAcademicYear != null)
             {
                 throw new ArgumentException($"Năm học với tên '{academicYear.YearName}' đã tồn tại.");
             }
 
-            // Tạo hai học kỳ
             var semester1 = new Semester
             {
                 SemesterName = "Học kỳ 1",
@@ -75,80 +73,82 @@ namespace Application.Features.AcademicYears.Services
                 EndDate = academicYearDto.Semester2EndDate
             };
 
-            // Kiểm tra tính hợp lệ của học kỳ
             ValidateSemesters(academicYear, semester1, semester2);
 
-            // Sử dụng giao dịch của DbContext
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                // Thêm AcademicYear vào DbContext
                 _context.AcademicYears.Add(academicYear);
-                await _context.SaveChangesAsync(); // Lưu để lấy AcademicYearId
+                await _context.SaveChangesAsync();
 
-                // Gán AcademicYearId cho học kỳ
                 semester1.AcademicYearId = academicYear.AcademicYearId;
                 semester2.AcademicYearId = academicYear.AcademicYearId;
 
-                // Thêm học kỳ vào DbContext
                 _context.Semesters.Add(semester1);
                 _context.Semesters.Add(semester2);
                 await _context.SaveChangesAsync();
 
-                // Cam kết giao dịch
                 await transaction.CommitAsync();
             }
             catch
             {
-                // Hoàn tác giao dịch nếu có lỗi
                 await transaction.RollbackAsync();
                 throw;
             }
         }
 
-        // Các phương thức khác giữ nguyên, chỉ cập nhật nếu cần giao dịch
-        public async Task UpdateAsync(AcademicYearDto academicYearDto)
+        // ---- Sửa đổi hàm UpdateAsync ----
+        public async Task UpdateAsync(UpdateAcademicYearDto academicYearDto) // Thay đổi tham số
         {
-            var academicYear = _mapper.Map<AcademicYear>(academicYearDto);
+            // Tìm năm học hiện có bằng Id từ DTO
+            var academicYear = await _context.AcademicYears
+                                             .FirstOrDefaultAsync(ay => ay.AcademicYearId == academicYearDto.AcademicYearId);
 
-            if (academicYear.StartDate >= academicYear.EndDate)
+            if (academicYear == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {academicYearDto.AcademicYearId}.");
+            }
+
+            // Kiểm tra ràng buộc ngày tháng của năm học từ DTO
+            if (academicYearDto.StartDate >= academicYearDto.EndDate)
             {
                 throw new ArgumentException("Ngày bắt đầu năm học phải trước ngày kết thúc.");
             }
 
-            var existingAcademicYear = await _repository.GetByNameAsync(academicYear.YearName);
-            if (existingAcademicYear != null && existingAcademicYear.AcademicYearId != academicYear.AcademicYearId)
+            // Kiểm tra trùng tên (chỉ kiểm tra với các năm học khác)
+            var existingAcademicYear = await _repository.GetByNameAsync(academicYearDto.YearName);
+            if (existingAcademicYear != null && existingAcademicYear.AcademicYearId != academicYearDto.AcademicYearId)
             {
-                throw new ArgumentException($"Năm học với tên '{academicYear.YearName}' đã tồn tại.");
+                throw new ArgumentException($"Năm học với tên '{academicYearDto.YearName}' đã tồn tại.");
             }
 
-            var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYear.AcademicYearId);
-            if (semesters.Count != 2)
-            {
-                throw new InvalidOperationException("Mỗi năm học phải có đúng 2 học kỳ (Học kỳ 1 và Học kỳ 2).");
-            }
-
+            // Tìm các học kỳ hiện có của năm học này
+            var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYearDto.AcademicYearId);
             var semester1 = semesters.FirstOrDefault(s => s.SemesterName == "Học kỳ 1");
             var semester2 = semesters.FirstOrDefault(s => s.SemesterName == "Học kỳ 2");
 
             if (semester1 == null || semester2 == null)
             {
-                throw new InvalidOperationException("Học kỳ 1 hoặc Học kỳ 2 không tồn tại.");
+                // Xử lý trường hợp không tìm thấy đủ 2 học kỳ
+                throw new InvalidOperationException($"Không tìm thấy đầy đủ Học kỳ 1 và Học kỳ 2 cho năm học ID {academicYearDto.AcademicYearId}.");
             }
+            academicYear.YearName = academicYearDto.YearName;
+            academicYear.StartDate = academicYearDto.StartDate;
+            academicYear.EndDate = academicYearDto.EndDate;
 
-            semester1.StartDate = academicYear.StartDate;
-            semester2.EndDate = academicYear.EndDate;
-
+            // Cập nhật thông tin học kỳ
+            semester1.StartDate = academicYearDto.Semester1StartDate;
+            semester1.EndDate = academicYearDto.Semester1EndDate;
+            semester2.StartDate = academicYearDto.Semester2StartDate;
+            semester2.EndDate = academicYearDto.Semester2EndDate;
+       
             ValidateSemesters(academicYear, semester1, semester2);
 
+            // Thực hiện cập nhật trong transaction
             await using var transaction = await _context.Database.BeginTransactionAsync();
             try
             {
-                _context.AcademicYears.Update(academicYear);
-                _context.Semesters.Update(semester1);
-                _context.Semesters.Update(semester2);
                 await _context.SaveChangesAsync();
-
                 await transaction.CommitAsync();
             }
             catch
@@ -160,11 +160,45 @@ namespace Application.Features.AcademicYears.Services
 
         public async Task DeleteAsync(int id)
         {
-            await _repository.DeleteAsync(id);
+            // Nên dùng transaction ở đây để đảm bảo xóa cả năm học và học kỳ liên quan
+            await using var transaction = await _context.Database.BeginTransactionAsync();
+            try
+            {
+                var semestersToDelete = await _semesterRepository.GetByAcademicYearIdAsync(id);
+                if (semestersToDelete.Any())
+                {
+                    _context.Semesters.RemoveRange(semestersToDelete);
+                }
+
+                var academicYearToDelete = await _context.AcademicYears.FindAsync(id);
+                if (academicYearToDelete != null)
+                {
+                    _context.AcademicYears.Remove(academicYearToDelete);
+                }
+                else
+                {
+                    // Nếu không tìm thấy năm học, có thể rollback hoặc bỏ qua tùy logic
+                    await transaction.RollbackAsync();
+                    throw new KeyNotFoundException($"Không tìm thấy năm học với ID {id} để xóa.");
+                }
+
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
+            // await _repository.DeleteAsync(id); // Lệnh này có thể không đủ nếu không xử lý transaction và xóa học kỳ
         }
 
+
+        // Hàm ValidateSemesters giữ nguyên như trước, nhưng cần đảm bảo logic phù hợp
+        // với việc có thể cập nhật ngày bắt đầu/kết thúc học kỳ độc lập hơn
         private void ValidateSemesters(AcademicYear academicYear, Semester semester1, Semester semester2)
         {
+            // --- Kiểm tra các ràng buộc ngày tháng ---
             if (semester1.StartDate < academicYear.StartDate || semester1.EndDate > academicYear.EndDate)
             {
                 throw new ArgumentException("Ngày của Học kỳ 1 phải nằm trong khoảng thời gian của năm học.");
@@ -190,6 +224,9 @@ namespace Application.Features.AcademicYears.Services
                 throw new ArgumentException("Ngày kết thúc của Học kỳ 1 phải trước ngày bắt đầu của Học kỳ 2.");
             }
 
+            // --- Xem xét lại các ràng buộc cứng ---
+            // Bỏ comment nếu các ràng buộc này VẪN bắt buộc sau khi cập nhật
+            /*
             if (semester1.StartDate != academicYear.StartDate)
             {
                 throw new ArgumentException("Ngày bắt đầu của Học kỳ 1 phải trùng với ngày bắt đầu của năm học.");
@@ -199,6 +236,7 @@ namespace Application.Features.AcademicYears.Services
             {
                 throw new ArgumentException("Ngày kết thúc của Học kỳ 2 phải trùng với ngày kết thúc của năm học.");
             }
+            */
         }
     }
 }

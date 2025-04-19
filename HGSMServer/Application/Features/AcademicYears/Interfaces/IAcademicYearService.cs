@@ -1,4 +1,5 @@
-﻿using Application.Features.AcademicYears.DTOs;
+﻿// File: IAcademicYearService.cs
+using Application.Features.AcademicYears.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,8 +12,8 @@ namespace Application.Features.AcademicYears.Interfaces
     {
         Task<List<AcademicYearDto>> GetAllAsync();
         Task<AcademicYearDto?> GetByIdAsync(int id);
-        Task AddAsync(CreateAcademicYearDto academicYear);
-        Task UpdateAsync(AcademicYearDto academicYear);
+        Task AddAsync(CreateAcademicYearDto academicYearDto); 
+        Task UpdateAsync(UpdateAcademicYearDto academicYearDto);
         Task DeleteAsync(int id);
     }
 }
