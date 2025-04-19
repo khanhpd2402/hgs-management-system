@@ -19,5 +19,7 @@ namespace Application.Features.LessonPlans.DTOs
         public int? ReviewerId { get; set; }
         public string ReviewerName { get; set; }
         public string Title { get; set; }
+        public DateTime? StartDate { get; set; }
+        public DateTime? EndDate { get; set; }
     }
 }
