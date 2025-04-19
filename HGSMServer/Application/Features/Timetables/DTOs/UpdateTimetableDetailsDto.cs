@@ -9,21 +9,25 @@ namespace Application.Features.Timetables.DTOs
 {
     public class UpdateTimetableDetailsDto
     {
-        [Required]
+        [Required(ErrorMessage = "TimetableId is required.")]
         public int TimetableId { get; set; }
 
-        [Required]
-        public List<TimetableDetailUpdateDto>? Details { get; set; }
+        [Required(ErrorMessage = "Details is required.")]
+        public List<TimetableDetailUpdateDto> Details { get; set; }
     }
 
     public class TimetableDetailUpdateDto
     {
-        [Required]
         public int TimetableDetailId { get; set; }
+
         public int ClassId { get; set; }
+
         public int SubjectId { get; set; }
+
         public int TeacherId { get; set; }
-        public DateOnly Date { get; set; }
+
+        public string DayOfWeek { get; set; }
+
         public int PeriodId { get; set; }
     }
 }

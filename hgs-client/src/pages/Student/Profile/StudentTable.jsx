@@ -94,7 +94,7 @@ export default function StudentTable() {
   );
 
   const { data, isPending, error, isError } = useStudents(
-    currentYear.academicYearID,
+    currentYear?.academicYearID,
   );
 
   //phan trang

@@ -29,7 +29,7 @@ import { cleanString } from "@/helpers/removeWhiteSpace";
 const subjectSchema = z.object({
   subjectName: z.string().min(1, "Tên môn học không được để trống"),
   subjectCategory: z.string().min(1, "Vui lòng chọn tổ bộ môn"),
-  typeOfGrade: z.string().min(1, "Vui lòng chọn phương thức tính điểm"),
+  typeOfGrade: z.string().min(1, "Vui lòng chọn hình thức tính điểm"),
   gradesData: z.array(
     z.object({
       gradeLevelId: z.number(),
@@ -43,7 +43,7 @@ const subjectSchema = z.object({
   ),
 });
 
-export const CreateSubjectModal = () => {
+export const CreateSubjectModal = ({ open, setOpen }) => {
   const gradeLevelsQuery = useGradeLevels();
 
   const {
@@ -153,17 +153,22 @@ export const CreateSubjectModal = () => {
     };
 
     console.log(filteredData);
-    createSubjectMutation.mutate(filteredData);
+    createSubjectMutation.mutate(filteredData, {
+      onSuccess: () => {
+        reset({
+          subjectName: "",
+          subjectCategory: "",
+          typeOfGrade: "",
+          gradesData: [],
+        });
+        setEnabledGrades({});
+        setOpen(false);
+      },
+    });
   };
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button variant="default">
-          <PlusCircle className="h-4 w-4" />
-          Tạo môn học
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
       <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle>Tạo môn học mới</DialogTitle>
@@ -208,13 +213,13 @@ export const CreateSubjectModal = () => {
             )}
           </div>
           <div className="space-y-2">
-            <Label htmlFor="type-of-grade">Phương thức tính điểm</Label>
+            <Label htmlFor="type-of-grade">Hình thức tính điểm</Label>
             <Select
               onValueChange={(value) => setValue("typeOfGrade", value)}
               defaultValue={watch("typeOfGrade")}
             >
               <SelectTrigger className="w-full">
-                <SelectValue placeholder="Chọn phương thức tính điểm" />
+                <SelectValue placeholder="Chọn hình thức tính điểm" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="Tính điểm">Tính điểm</SelectItem>

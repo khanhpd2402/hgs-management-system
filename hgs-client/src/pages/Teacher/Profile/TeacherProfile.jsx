@@ -87,14 +87,14 @@ export default function TeacherProfile() {
     permanentAddress: z
       .string()
       .min(1, "Địa chỉ không được để trống")
-      .regex(/^[\p{L}\d\s,]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
+      .regex(/^[\p{L}\d\s,\/-]+$/u, "Địa chỉ không được chứa ký tự đặc biệt"),
 
     // Employment information
     mainSubject: z.string().optional(),
     isHeadOfDepartment: z.boolean().optional().default(false),
     employmentType: z.string().min(1, "Vui lòng chọn loại hợp đồng"),
     employmentStatus: z.string().min(1, "Vui lòng chọn trạng thái"),
-    recruitmentAgency: z.string().min(1, "Vui nhập cơ quan tuyển dụng"),
+    recruitmentAgency: z.string().optional(),
     insuranceNumber: z.string().min(1, "Vui nhập số bảo hiểm"),
 
     // Employment dates
@@ -120,17 +120,7 @@ export default function TeacherProfile() {
           });
         }
       }),
-    permanentEmploymentDate: z
-      .date()
-      .nullable()
-      .superRefine((val, ctx) => {
-        if (val === null) {
-          ctx.addIssue({
-            code: z.ZodIssueCode.custom,
-            message: "Vui lòng chọn ngày vào biên chế",
-          });
-        }
-      }),
+    permanentEmploymentDate: z.date().nullable(),
     phoneNumber: z
       .string()
       .min(10, "Số điện thoại phải có ít nhất 10 chữ số")
@@ -174,6 +164,8 @@ export default function TeacherProfile() {
       phoneNumber: "",
       email: "",
     },
+    mode: "onBlur",
+    reValidateMode: "onBlur",
   });
 
   useEffect(() => {
@@ -376,7 +368,7 @@ export default function TeacherProfile() {
             name="department"
             label="Tổ bộ môn"
             type="select"
-            options={["Khoa học xã hội", "Khoa học tự nhiên"]}
+            options={["Khoa học xã hội", "Khoa học tự nhiên", "Toàn trường"]}
             isRequired
           />
           <FormField

@@ -9,6 +9,6 @@
         public int SemesterId { get; set; }
         public int CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public List<QuestionDto> Questions { get; set; } = new List<QuestionDto>();
+        public string FileUrl { get; set; } 
     }
 }

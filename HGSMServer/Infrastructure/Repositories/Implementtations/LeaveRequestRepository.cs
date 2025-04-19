@@ -18,44 +18,32 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<List<LeaveRequest>> GetAllAsync()
-        {
-            return await _context.LeaveRequests.ToListAsync();
-        }
-
         public async Task<LeaveRequest?> GetByIdAsync(int id)
+         => await _context.LeaveRequests.FindAsync(id);
+
+        public async Task<IEnumerable<LeaveRequest>> GetAllAsync(int? teacherId = null, string? status = null)
         {
-            return await _context.LeaveRequests.FindAsync(id);
+            var query = _context.LeaveRequests.AsQueryable();
+
+            if (teacherId.HasValue)
+                query = query.Where(r => r.TeacherId == teacherId.Value);
+
+            if (!string.IsNullOrEmpty(status))
+                query = query.Where(r => r.Status == status);
+
+            return await query.ToListAsync();
         }
 
-        public async Task<List<LeaveRequest>> GetByTeacherIdAsync(int teacherId)
-        {
-            return await _context.LeaveRequests
-                                 .Where(lr => lr.TeacherId == teacherId)
-                                 .ToListAsync();
-        }
 
-        public async Task AddAsync(LeaveRequest leaveRequest)
-        {
-            await _context.LeaveRequests.AddAsync(leaveRequest);
-            await _context.SaveChangesAsync();
-        }
+        public async Task AddAsync(LeaveRequest request)
+            => await _context.LeaveRequests.AddAsync(request);
 
-        public async Task UpdateAsync(LeaveRequest leaveRequest)
-        {
-            _context.LeaveRequests.Update(leaveRequest);
-            await _context.SaveChangesAsync();
-        }
+        public void Update(LeaveRequest request) => _context.LeaveRequests.Update(request);
 
-        public async Task DeleteAsync(int id)
-        {
-            var leaveRequest = await _context.LeaveRequests.FindAsync(id);
-            if (leaveRequest != null)
-            {
-                _context.LeaveRequests.Remove(leaveRequest);
-                await _context.SaveChangesAsync();
-            }
-        }
+        public void Delete(LeaveRequest request) => _context.LeaveRequests.Remove(request);
+
+        public async Task SaveAsync() => await _context.SaveChangesAsync();
     }
-
 }
+
+

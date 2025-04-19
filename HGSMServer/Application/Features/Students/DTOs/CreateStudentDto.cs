@@ -7,6 +7,8 @@ namespace Application.Features.Students.DTOs
     public class CreateStudentDto : IParentInfoDto
     {
         // Thông tin học sinh
+        [Range(1, int.MaxValue, ErrorMessage = "AcademicYearId must be greater than 0 if provided.")]
+        public int? AcademicYearId { get; set; }
         [Required(ErrorMessage = "FullName is required.")]
         public string FullName { get; set; } = null!;
 
@@ -34,6 +36,7 @@ namespace Application.Features.Students.DTOs
 
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
+        public int? ParentId { get; set; }
 
         // Thông tin cha
         public string? FullNameFather { get; set; }

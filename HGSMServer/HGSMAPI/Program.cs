@@ -8,7 +8,7 @@ using Microsoft.OpenApi.Models;
 using System.Text;
 using System.Text.Json.Serialization;
 using NLog;
-using Infrastructure.Repositories.Implementations; // Sửa namespace
+using Infrastructure.Repositories.Implementations;
 using Infrastructure.Repositories.Interfaces;
 using Common.Constants;
 using Application.Features.Students.Interfaces;
@@ -16,14 +16,15 @@ using Application.Features.Students.Services;
 using Application.Features.Users.Interfaces;
 using Application.Features.Users.Services;
 using Application.Features.Teachers.Interfaces;
-//using Application.Features.Teachers.Services;
 using Application.Features.Role.Interfaces;
 using Application.Features.Role.Services;
 using Common.Utils;
 using Application.Features.Timetables.Services;
-using Application.Features.Timetables.Interfaces; // Thêm namespace cho ITimetableService
+using Application.Features.Timetables.Interfaces;
 using Application.Features.Classes.Interfaces;
 using Application.Features.Classes.Services;
+using Application.Features.HomeRooms.Services;
+using Application.Features.HomeRooms.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using Application.Features.Attendances.Interfaces;
 using Application.Features.Attendances.Services;
@@ -57,6 +58,12 @@ using Application.Features.Periods.Interfaces;
 using Application.Features.Periods.Services;
 using Application.Features.StudentClass.Interfaces;
 using Application.Features.StudentClass.Services;
+using Application.Features.TeacherSubjects.Services;
+using Application.Features.TeacherSubjects.Interfaces;
+using Application.Features.SubstituteTeachings.Interfaces;
+using Application.Features.SubstituteTeachings.Services;
+using Application.Features.Conducts.Interfaces;
+using Application.Features.Conducts.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -125,8 +132,8 @@ builder.Services.AddSession(options =>
 
 // Đăng ký các dịch vụ và repository
 //Exam, Question Management
-builder.Services.AddScoped<IQuestionService, QuestionService>();
-builder.Services.AddScoped<IQuestionRepository, QuestionRepository>();
+builder.Services.AddScoped<IExamProposalService, ExamProposalService>();
+builder.Services.AddScoped<IExamProposalRepository, ExamProposalRepository>();
 builder.Services.AddScoped<GoogleDriveService>();
 //Parent Management
 builder.Services.AddScoped<IParentRepository, ParentRepository>();
@@ -147,10 +154,12 @@ builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
+builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
+builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
-
+builder.Services.AddScoped<IAssignHomeRoomService, AssignHomeRoomService>();
 // Class & Timetable Management
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
@@ -162,6 +171,8 @@ builder.Services.AddScoped<IGradeLevelService, GradeLevelService>();
 builder.Services.AddScoped<IGradeLevelRepository, GradeLevelRepository>();
 builder.Services.AddScoped<IPeriodService, PeriodService>();
 builder.Services.AddScoped<IPeriodRepository, PeriodRepository>();
+builder.Services.AddScoped<ISubstituteTeachingRepository, SubstituteTeachingRepository>();
+builder.Services.AddScoped<ISubstituteTeachingService, SubstituteTeachingService>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
@@ -173,6 +184,8 @@ builder.Services.AddScoped<IAttendanceService, AttendanceService>();
 builder.Services.AddScoped<IAttendanceRepository, AttendanceRepository>();
 builder.Services.AddScoped<ILeaveRequestService, LeaveRequestService>();
 builder.Services.AddScoped<ILeaveRequestRepository, LeaveRequestRepository>();
+builder.Services.AddScoped<IConductRepository, ConductRepository>();
+builder.Services.AddScoped<IConductService, ConductService>();
 
 // User & Role Management
 builder.Services.AddScoped<IUserService, UserService>();
@@ -182,10 +195,6 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // System & Utility Services
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<ISmsService, TwilioSmsService>();
-
-// Cấu hình Twilio
-builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio"));
 
 // Đăng ký Logger
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();
@@ -318,7 +327,6 @@ if (!app.Environment.IsDevelopment())
     app.UseHttpsRedirection();
 }
 
-// Thêm middleware session trước Authentication và Authorization
 app.UseSession();
 
 app.UseAuthentication();

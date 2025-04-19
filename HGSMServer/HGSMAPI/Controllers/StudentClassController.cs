@@ -207,5 +207,32 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred.", Detail = ex.Message });
             }
         }
+        /// <summary>
+        /// Lấy thông tin tất cả các lớp cùng số lượng học sinh
+        /// </summary>
+        /// <param name="academicYearId">ID của năm học (tùy chọn)</param>
+        /// <returns>Danh sách các lớp với thông tin và số học sinh</returns>
+        [HttpGet("classes-with-student-count")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> GetClassesWithStudentCount([FromQuery] int? academicYearId = null)
+        {
+            try
+            {
+                var classes = await _studentClassService.GetClassesWithStudentCountAsync(academicYearId);
+                return Ok(classes);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Unauthorized(new { Message = ex.Message });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi lấy thông tin lớp.", Detail = ex.Message });
+            }
+        }
     }
 }

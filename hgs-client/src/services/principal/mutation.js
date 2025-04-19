@@ -1,10 +1,21 @@
 import { useMutation } from "@tanstack/react-query";
 import {
   addGradeBatch,
+  assignTeaching,
   changeUserStatus,
   configueSubject,
+  createAcademicYear,
+  createClass,
+  createHomeroom,
   createSubject,
+  deleteSubjectConfigue,
+  deleteTeachingAssignment,
   resetUserPassword,
+  updateClass,
+  updateHomeroom,
+  updateSubject,
+  updateSubjectConfigue,
+  updateTeachingAssignment,
 } from "./api";
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
@@ -91,10 +102,11 @@ export function useCreateSubject() {
     mutationFn: (data) => {
       const subjectData = {
         subjectName: data.subjectName,
-        typeOfGrade: data.subjectCode,
+        typeOfGrade: data.typeOfGrade,
         subjectCategory: data.subjectCategory,
       };
-      return createSubject(data);
+      console.log(subjectData);
+      return createSubject(subjectData);
     },
     onSettled: async (data, error, variables) => {
       if (error) {
@@ -104,13 +116,12 @@ export function useCreateSubject() {
         console.log(data);
         const newData = variables?.gradesData.map((item) => {
           return {
-            subjectId: data.subjectId,
+            subjectId: data.subjectID,
             ...item,
           };
         });
         for (let i = 0; i < newData.length; i++) {
           try {
-            console.log(newData[i]);
             await configueSubject(newData[i]);
           } catch (error) {
             console.log(error);
@@ -119,6 +130,218 @@ export function useCreateSubject() {
         }
         queryClient.invalidateQueries({ queryKey: ["subjects"] });
         toast.success("Tạo môn học thành công");
+      }
+    },
+  });
+}
+
+export function useUpdateSubject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      const subjectData = {
+        subjectName: data.subjectName,
+        typeOfGrade: data.typeOfGrade,
+        subjectCategory: data.subjectCategory,
+      };
+      return updateSubject(data.subjectId, subjectData);
+    },
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Cập nhật môn học thất bại");
+      } else {
+        const configData = variables?.gradesData.map((item) => {
+          return {
+            subjectId: data.subjectId,
+            ...item,
+          };
+        });
+        for (let i = 0; i < configData.length; i++) {
+          try {
+            if (configData[i].status === "add") {
+              const { status, ...newData } = configData[i];
+              await configueSubject(newData);
+            } else if (configData[i].status === "update") {
+              const { status, ...newData } = configData[i];
+              await updateSubjectConfigue(newData.gradeLevelSubjectId, newData);
+            } else if (configData[i].status === "delete") {
+              const { status, ...newData } = configData[i];
+              await deleteSubjectConfigue(newData.gradeLevelSubjectId);
+            }
+          } catch (e) {
+            console.log(e);
+            toast.error("Cấu hình môn học thất bại");
+          }
+        }
+        queryClient.invalidateQueries({ queryKey: ["subjects"] });
+        queryClient.invalidateQueries({
+          queryKey: ["subjectConfig", { id: variables.subjectId }],
+        });
+        toast.success("Cập nhật môn học thành công");
+      }
+    },
+  });
+}
+
+export function useAssginTeaching() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return assignTeaching(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+      }
+    },
+  });
+}
+
+export function useUpdateTeachingAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      console.log(data);
+      return updateTeachingAssignment(data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "teaching-assignments-by-teacher",
+            {
+              teacherId: variables[0].teacherId,
+              semesterId: variables[0]?.semesterId,
+            },
+          ],
+        });
+      }
+    },
+  });
+}
+
+export function useDeleteTeachingAssignment() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ teacherId, semesterId }) => {
+      return deleteTeachingAssignment(teacherId, semesterId);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Xóa phân công giảng dạy thành công");
+        queryClient.invalidateQueries({ queryKey: ["teaching-assignments"] });
+      }
+    },
+  });
+}
+
+//academicYear
+export function useCreateAcademicYear() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return createAcademicYear(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Tạo năm học thành công");
+        queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
+      }
+    },
+  });
+}
+
+//class
+export function useCreateClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      const { homerooms, ...classData } = data;
+      return createClass(classData);
+    },
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        const homerooms = variables?.homerooms.map((item) => {
+          return {
+            classId: data.classId,
+            ...item,
+          };
+        });
+        if (homerooms.length > 0) {
+          for (let i = 0; i < homerooms.length; i++) {
+            try {
+              await createHomeroom(homerooms[i]);
+            } catch (e) {
+              console.log(e);
+              toast.error("Đã có lỗi xảy ra");
+            }
+          }
+        }
+
+        toast.success("Tạo lớp thành công");
+        queryClient.invalidateQueries({
+          queryKey: ["classes-with-student-count"],
+        });
+
+        queryClient.invalidateQueries({ queryKey: ["classes"] });
+        queryClient.invalidateQueries({ queryKey: ["hoomroom-teachers"] });
+      }
+    },
+  });
+}
+
+export function useUpdateClass() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      const { homerooms, ...classData } = data;
+      return updateClass(data.classId, classData);
+    },
+    onSettled: async (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        try {
+          await updateHomeroom(variables.homerooms);
+        } catch (e) {
+          console.log(e);
+          toast.error("Đã có lỗi xảy ra");
+        }
+        toast.success("Cập nhật lớp thành công");
+        queryClient.invalidateQueries({
+          queryKey: ["classes-with-student-count"],
+        });
+        queryClient.invalidateQueries({ queryKey: ["classes"] });
+        queryClient.invalidateQueries({ queryKey: ["hoomroom-teachers"] });
+        queryClient.invalidateQueries({
+          queryKey: ["class", { id: variables.classId }],
+        });
       }
     },
   });
