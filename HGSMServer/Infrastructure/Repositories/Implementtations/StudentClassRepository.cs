@@ -19,8 +19,7 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.StudentClasses
                 .Include(sc => sc.Student)
                 .Where(sc => sc.ClassId == classId
-                             && sc.AcademicYearId == academicYearId
-                             && sc.Student.Status == AppConstants.StudentStatus.STUDYING)
+                             && sc.AcademicYearId == academicYearId)
                 .ToListAsync();
         }
 

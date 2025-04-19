@@ -93,7 +93,7 @@ namespace Application.Features.HomeRooms.Services
             if (dtos.Any(d => d == null)) throw new ArgumentException("The list contains null DTO entries.", nameof(dtos));
 
             var duplicateCheck = dtos
-               .Where(d => !string.IsNullOrWhiteSpace(d.Status) && d.Status == "Hoạt Động" && d.TeacherId > 0)
+               .Where(d => d.TeacherId > 0)  // We're only checking for teacher duplicates now
                .GroupBy(d => new { d.ClassId, d.SemesterId })
                .Where(g => g.Count() > 1)
                .Select(g => $"ClassId {g.Key.ClassId}, SemesterId {g.Key.SemesterId}")
@@ -122,40 +122,35 @@ namespace Application.Features.HomeRooms.Services
             {
                 if (!existingClasses.ContainsKey(dto.ClassId)) throw new ArgumentException($"Class with Id {dto.ClassId} provided in DTO does not exist.");
                 if (!existingSemesters.ContainsKey(dto.SemesterId)) throw new ArgumentException($"Semester with Id {dto.SemesterId} provided in DTO does not exist.");
-                var currentSemesterInfo = existingSemesters[dto.SemesterId];
                 int targetTeacherId = dto.TeacherId;
                 if (targetTeacherId > 0 && !existingTeachers.ContainsKey(targetTeacherId)) throw new ArgumentException($"Teacher with Id {targetTeacherId} provided for ClassId {dto.ClassId}, SemesterId {dto.SemesterId} does not exist.");
 
                 var currentAssignmentsForDto = assignmentLookup[new { dto.ClassId, dto.SemesterId }].ToList();
                 var assignmentToUpdate = currentAssignmentsForDto.FirstOrDefault(a => a.Status == "Hoạt Động") ?? currentAssignmentsForDto.FirstOrDefault();
 
-
-
                 if (assignmentToUpdate == null)
                 {
                     if (targetTeacherId <= 0) { Console.WriteLine($"Skipping creation for ClassId {dto.ClassId}, SemesterId {dto.SemesterId} due to missing TeacherId."); continue; }
 
-                    string targetStatusCreate = !string.IsNullOrWhiteSpace(dto.Status) ? dto.Status : "Hoạt Động";
+                    // Since we're not getting Status from DTO, new assignments are always "Hoạt Động"
+                    string targetStatusCreate = "Hoạt Động";
 
                     bool classAlreadyHasActive = relevantAssignments.Any(ha => ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động") ||
                                                  _context.HomeroomAssignments.Local.Any(ha => ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
                     if (targetStatusCreate == "Hoạt Động" && classAlreadyHasActive)
                     {
-                        throw new InvalidOperationException($"Cannot create assignment. Class {existingClasses[dto.ClassId].ClassName} already has an active homeroom teacher in semester {currentSemesterInfo.SemesterName}.");
+                        throw new InvalidOperationException($"Cannot create assignment. Class {existingClasses[dto.ClassId].ClassName} already has an active homeroom teacher in semester {existingSemesters[dto.SemesterId].SemesterName}.");
                     }
 
-                    if (targetStatusCreate == "Hoạt Động")
+                    bool teacherAlreadyActiveInSemester = relevantAssignments.Any(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động") ||
+                                                         _context.HomeroomAssignments.Local.Any(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
+                    if (teacherAlreadyActiveInSemester)
                     {
-                        bool teacherAlreadyActiveInSemester = relevantAssignments.Any(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động") ||
-                                                             _context.HomeroomAssignments.Local.Any(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
-                        if (teacherAlreadyActiveInSemester)
-                        {
-                            var existingAssignmentOtherClass = relevantAssignments.FirstOrDefault(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động")
-                              ?? _context.HomeroomAssignments.Local.FirstOrDefault(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
-                            string existingClassName = "another class";
-                            if (existingAssignmentOtherClass != null && existingClasses.ContainsKey(existingAssignmentOtherClass.ClassId)) existingClassName = existingClasses[existingAssignmentOtherClass.ClassId].ClassName;
-                            throw new InvalidOperationException($"Cannot assign Teacher {existingTeachers[targetTeacherId].FullName} (ID: {targetTeacherId}). Teacher is already active homeroom teacher for '{existingClassName}' in semester {currentSemesterInfo.SemesterName}.");
-                        }
+                        var existingAssignmentOtherClass = relevantAssignments.FirstOrDefault(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động")
+                          ?? _context.HomeroomAssignments.Local.FirstOrDefault(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
+                        string existingClassName = "another class";
+                        if (existingAssignmentOtherClass != null && existingClasses.ContainsKey(existingAssignmentOtherClass.ClassId)) existingClassName = existingClasses[existingAssignmentOtherClass.ClassId].ClassName;
+                        throw new InvalidOperationException($"Cannot assign Teacher {existingTeachers[targetTeacherId].FullName} (ID: {targetTeacherId}). Teacher is already active homeroom teacher for '{existingClassName}' in semester {existingSemesters[dto.SemesterId].SemesterName}.");
                     }
 
                     var newAssignment = new HomeroomAssignment { TeacherId = targetTeacherId, ClassId = dto.ClassId, SemesterId = dto.SemesterId, Status = targetStatusCreate };
@@ -166,46 +161,17 @@ namespace Application.Features.HomeRooms.Services
                 else
                 {
                     bool teacherChanged = targetTeacherId > 0 && targetTeacherId != assignmentToUpdate.TeacherId;
-                    bool statusChanged = !string.IsNullOrWhiteSpace(dto.Status) && dto.Status != assignmentToUpdate.Status;
-                    if (!teacherChanged && !statusChanged) { Console.WriteLine($"No changes needed for assignment {assignmentToUpdate.HomeroomAssignmentId}."); continue; }
+                    if (!teacherChanged) { Console.WriteLine($"No changes needed for assignment {assignmentToUpdate.HomeroomAssignmentId}."); continue; }
 
-                    string targetStatusUpdate = statusChanged ? dto.Status : assignmentToUpdate.Status;
                     int finalTeacherId = teacherChanged ? targetTeacherId : assignmentToUpdate.TeacherId;
 
-                    if (targetStatusUpdate == "Hoạt Động")
-                    {
-                        bool classHasOtherActive = relevantAssignments.Any(ha => ha.HomeroomAssignmentId != assignmentToUpdate.HomeroomAssignmentId && ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động") ||
-                                                   _context.HomeroomAssignments.Local.Any(ha => ha.HomeroomAssignmentId != assignmentToUpdate.HomeroomAssignmentId && ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
-                        if (classHasOtherActive)
-                        {
-                            throw new InvalidOperationException($"Cannot update assignment {assignmentToUpdate.HomeroomAssignmentId}. Class {existingClasses[dto.ClassId].ClassName} already has another active homeroom teacher in semester {currentSemesterInfo.SemesterName}.");
-                        }
+                    // We no longer check or update status here!
 
-                        bool teacherAlreadyActiveInSemester = relevantAssignments.Any(ha => ha.HomeroomAssignmentId != assignmentToUpdate.HomeroomAssignmentId &&
-                                                                ha.TeacherId == finalTeacherId &&
-                                                                ha.SemesterId == dto.SemesterId &&
-                                                                ha.Status == "Hoạt Động") ||
-                                                            _context.HomeroomAssignments.Local.Any(ha => ha.HomeroomAssignmentId != assignmentToUpdate.HomeroomAssignmentId &&
-                                                                ha.TeacherId == finalTeacherId &&
-                                                                ha.SemesterId == dto.SemesterId &&
-                                                                ha.Status == "Hoạt Động");
-                        if (teacherAlreadyActiveInSemester)
-                        {
-                            var existingAssignmentOtherClass = relevantAssignments.FirstOrDefault(ha => ha.HomeroomAssignmentId != assignmentToUpdate.HomeroomAssignmentId && ha.TeacherId == finalTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động")
-                               ?? _context.HomeroomAssignments.Local.FirstOrDefault(ha => ha.HomeroomAssignmentId != assignmentToUpdate.HomeroomAssignmentId && ha.TeacherId == finalTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
-                            string existingClassName = "another class";
-                            if (existingAssignmentOtherClass != null && existingClasses.ContainsKey(existingAssignmentOtherClass.ClassId)) existingClassName = existingClasses[existingAssignmentOtherClass.ClassId].ClassName;
-                            throw new InvalidOperationException($"Cannot assign Teacher {existingTeachers[finalTeacherId].FullName} (ID: {finalTeacherId}). Teacher is already active homeroom teacher for '{existingClassName}' in semester {currentSemesterInfo.SemesterName}.");
-                        }
-                    }
-
-                    bool updated = false;
-                    if (teacherChanged) { assignmentToUpdate.TeacherId = finalTeacherId; updated = true; }
-                    if (assignmentToUpdate.Status != targetStatusUpdate) { assignmentToUpdate.Status = targetStatusUpdate; updated = true; }
-                    if (updated)
+                    if (teacherChanged)
                     {
+                        assignmentToUpdate.TeacherId = finalTeacherId;
                         _context.HomeroomAssignments.Update(assignmentToUpdate);
-                        Console.WriteLine($"Marking assignment {assignmentToUpdate.HomeroomAssignmentId} for update. New TeacherId: {assignmentToUpdate.TeacherId}, New Status: {assignmentToUpdate.Status}.");
+                        Console.WriteLine($"Marking assignment {assignmentToUpdate.HomeroomAssignmentId} for update. New TeacherId: {assignmentToUpdate.TeacherId}.");
                     }
                 }
             }
@@ -250,7 +216,6 @@ namespace Application.Features.HomeRooms.Services
                 }
             }
 
-            // Thực thi truy vấn và map sang DTO
             var assignmentList = await query.ToListAsync();
             return assignmentList.Select(ha => new HomeroomAssignmentResponseDto
             {
