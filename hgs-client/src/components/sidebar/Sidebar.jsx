@@ -27,6 +27,10 @@ const menuItems = [
       { label: "Quản lý đơn xin nghỉ phép", path: "/system/leave-request" },
       { label: "Liên hệ", path: "/system/contact" },
       { label: "Quản lý năm học", path: "/system/academic-year" },
+      {
+        label: "Cấu hình môn học",
+        path: "/system/teacher-subject",
+      },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
     ],
@@ -79,7 +83,8 @@ const menuItems = [
     label: "Học Sinh",
     icon: Users,
     path: "/student",
-    children: [{ label: "Hồ sơ học sinh", path: "/student/profile" },
+    children: [
+      { label: "Hồ sơ học sinh", path: "/student/profile" },
       {
         label: "Thời khóa biểu học sinh",
         path: "/student/schedule",

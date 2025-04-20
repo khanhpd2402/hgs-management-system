@@ -46,11 +46,6 @@ const AcademicYearManagement = () => {
       return bYear - aYear;
     });
 
-  // const paginatedData = combinedData?.slice(
-  //   (page - 1) * pageSize,
-  //   page * pageSize,
-  // );
-
   const { page, pageSize } = filter;
 
   const totalPages = Math.ceil(combinedData.length / pageSize);

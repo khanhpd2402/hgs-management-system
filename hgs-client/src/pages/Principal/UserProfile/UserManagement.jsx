@@ -165,9 +165,6 @@ const UserManagement = () => {
           />
           <Search className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
         </div>
-        <Button className="bg-blue-600 hover:bg-blue-700">
-          Thêm người dùng
-        </Button>
       </div>
 
       <Card className="mb-6 overflow-hidden border border-gray-200">

@@ -8,12 +8,14 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { PlusCircle, Pencil, Trash2 } from "lucide-react";
+import { PlusCircle, Settings } from "lucide-react";
 import { useGradeLevels } from "@/services/common/queries";
 import ClassModal from "./ClassModal";
 import { useClassesWithStudentCount } from "@/services/principal/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import UpdateClassModal from "./UpdateClassModal";
+import MyPagination from "@/components/MyPagination";
+import PaginationControls from "@/components/PaginationControls";
 
 export default function ClassManagement() {
   const { currentYear } = useLayout();
@@ -24,6 +26,26 @@ export default function ClassManagement() {
     currentYear?.academicYearID,
   );
   const gradelevelQuery = useGradeLevels();
+
+  const [filter, setFilter] = useState({
+    page: 1,
+    pageSize: 5,
+  });
+
+  const { page, pageSize } = filter;
+
+  const totalPages = Math.ceil(classesWithStudentQuery.data?.length / pageSize);
+  const currentData = classesWithStudentQuery.data?.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
+  );
+
+  const startIndex =
+    classesWithStudentQuery.data?.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(
+    page * pageSize,
+    classesWithStudentQuery.data?.length,
+  );
 
   // You should implement these handlers to call your API
 
@@ -59,7 +81,7 @@ export default function ClassManagement() {
         currentYear={currentYear}
       />
 
-      <div className="overflow-x-auto">
+      <div className="max-h-[400px] overflow-x-auto">
         <Table className="min-w-full border border-gray-300">
           <TableHeader>
             <TableRow className="bg-gray-100">
@@ -77,7 +99,7 @@ export default function ClassManagement() {
             </TableRow>
           </TableHeader>
           <TableBody>
-            {classesWithStudentQuery?.data?.map((classItem) => (
+            {currentData?.map((classItem) => (
               <TableRow
                 key={classItem.classId}
                 className="border-b border-gray-300"
@@ -123,10 +145,7 @@ export default function ClassManagement() {
                       }}
                       title="Chỉnh sửa"
                     >
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button variant="destructive" size="icon" title="Xóa">
-                      <Trash2 className="h-4 w-4" />
+                      <Settings className="h-4 w-4" />
                     </Button>
                   </div>
                 </TableCell>
@@ -134,6 +153,21 @@ export default function ClassManagement() {
             ))}
           </TableBody>
         </Table>
+      </div>
+      <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
+        <PaginationControls
+          pageSize={pageSize}
+          setFilter={setFilter}
+          totalItems={classesWithStudentQuery.data?.length || 0}
+          startIndex={startIndex}
+          endIndex={endIndex}
+        />
+
+        <MyPagination
+          totalPages={totalPages}
+          currentPage={page}
+          onPageChange={setFilter}
+        />
       </div>
     </div>
   );

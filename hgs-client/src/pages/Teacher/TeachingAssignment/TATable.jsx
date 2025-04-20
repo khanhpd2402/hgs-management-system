@@ -32,6 +32,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import { useTeachers } from "@/services/teacher/queries";
 
 export default function TATable() {
   const [filter, setFilter] = useState({
@@ -47,6 +48,8 @@ export default function TATable() {
   const classQuery = useClasses();
   const subjectConfigQuery = useSubjectConfigue();
   const deleteTeachingAssignmentMutation = useDeleteTeachingAssignment();
+  const teacherQuery = useTeachers();
+  const teachers = teacherQuery.data?.teachers || [];
   // console.log(semester);
   // console.log(subjectConfigQuery.data);
   // console.log(TAQuery.data);
@@ -74,34 +77,35 @@ export default function TATable() {
     }
   }, [semesters, currentYear]);
 
-  // const { data, isPending, error, isError, isFetching } = useTA(filter);
+  const groupedData = teachers?.map((teacher) => {
+    // Get all assignments for this teacher
+    const assignments = data.filter(
+      (item) => item.teacherId === teacher.teacherId,
+    );
 
-  const groupedData = Object.values(
-    data.reduce((acc, curr) => {
-      if (!acc[curr.teacherId]) {
-        acc[curr.teacherId] = {
-          teacherId: curr.teacherId,
-          teacherName: curr.teacherName,
-          subjects: {},
-        };
-      }
-      if (!acc[curr.teacherId].subjects[curr.subjectName]) {
-        acc[curr.teacherId].subjects[curr.subjectName] = {
+    // Group assignments by subject
+    const subjects = {};
+    assignments.forEach((curr) => {
+      if (!subjects[curr.subjectName]) {
+        subjects[curr.subjectName] = {
           subjectName: curr.subjectName,
-          subjectId: curr.subjectId, // <-- Add this line
+          subjectId: curr.subjectId,
           classes: [],
           semesters: new Set(),
         };
       }
-      acc[curr.teacherId].subjects[curr.subjectName].classes.push(
-        curr.className,
-      );
-      acc[curr.teacherId].subjects[curr.subjectName].semesters.add(
-        curr.semesterName,
-      );
-      return acc;
-    }, {}),
-  );
+      subjects[curr.subjectName].classes.push(curr.className);
+      subjects[curr.subjectName].semesters.add(curr.semesterName);
+    });
+
+    return {
+      teacherId: teacher.teacherId,
+      teacherName: teacher.fullName,
+      subjects,
+    };
+  });
+
+  console.log(groupedData);
 
   // Tính toán hàng hiển thị
   if (isPending) {
@@ -194,7 +198,7 @@ export default function TATable() {
         )}
 
         {/* Container cho bảng với overflow-x-auto */}
-        <div className="max-h-[500px] overflow-auto">
+        <div className="max-h-[400px] overflow-auto">
           <div className="min-w-max">
             <Table
               className="w-full border border-gray-300"
@@ -228,6 +232,56 @@ export default function TATable() {
               <TableBody>
                 {paginatedTeachers.map((teacher) => {
                   const subjectEntries = Object.values(teacher.subjects);
+
+                  if (subjectEntries.length === 0) {
+                    // Render a row for teachers with no assignments, with all columns present
+                    return (
+                      <TableRow key={teacher.teacherId + "_no_assignment"}>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          <div className="flex items-center justify-center gap-2">
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => {
+                                setTeacherToDelete(teacher);
+                                setShowDeleteConfirm(true);
+                              }}
+                            >
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="icon"
+                              onClick={() => {
+                                setSelectedTeacherId(teacher.teacherId);
+                                setOpenUpdateModal(true);
+                              }}
+                            >
+                              <Settings className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </TableCell>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          {teacher.teacherName}
+                        </TableCell>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          {/* Môn học */}
+                        </TableCell>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          {/* Lớp phân công */}
+                        </TableCell>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          0
+                        </TableCell>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          19
+                        </TableCell>
+                        <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
+                          Thiếu
+                        </TableCell>
+                      </TableRow>
+                    );
+                  }
 
                   // Calculate total assigned periods for the teacher (all subjects)
                   let totalAssignedPeriods = 0;
