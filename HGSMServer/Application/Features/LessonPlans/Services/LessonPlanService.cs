@@ -41,7 +41,7 @@ namespace Application.Features.LessonPlans.Services
             var creatorTeacher = await _teacherRepository.GetByIdAsync(creatorTeacherId);
 
             bool isAuthorized = (creatorTeacher?.IsHeadOfDepartment ?? false);
-            // Thêm logic kiểm tra quyền Admin nếu cần
+            
 
             if (!isAuthorized)
             {
@@ -57,7 +57,6 @@ namespace Application.Features.LessonPlans.Services
                 throw new ArgumentException("DeadlineDate must be on or after StartDate.");
             }
 
-            // Optional: Add validation logic for teacher assignment here
 
             var lessonPlan = new LessonPlan
             {
@@ -65,7 +64,7 @@ namespace Application.Features.LessonPlans.Services
                 SubjectId = createDto.SubjectId,
                 SemesterId = createDto.SemesterId,
                 PlanContent = createDto.PlanContent ?? string.Empty,
-                Status = "Pending",
+                Status = "Đang chờ",
                 Title = createDto.Title,
                 StartDate = createDto.StartDate,
                 EndDate = createDto.EndDate,
@@ -93,7 +92,7 @@ namespace Application.Features.LessonPlans.Services
             if (lessonPlan.TeacherId != teacherId)
                 throw new UnauthorizedAccessException("You are not authorized to update this lesson plan.");
 
-            if (lessonPlan.Status == "Approved" || lessonPlan.Status == "Submitted")
+            if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Đã nộp")
             {
                 throw new InvalidOperationException($"Cannot update lesson plan with status '{lessonPlan.Status}'.");
             }
@@ -113,7 +112,7 @@ namespace Application.Features.LessonPlans.Services
             lessonPlan.Title = updateDto.Title;
             lessonPlan.AttachmentUrl = updateDto.AttachmentUrl;
             lessonPlan.SubmittedDate = DateTime.Now;
-            lessonPlan.Status = "Processing";
+            lessonPlan.Status = "Đang chờ";
 
             await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
         }
@@ -123,8 +122,8 @@ namespace Application.Features.LessonPlans.Services
             if (reviewDto == null || reviewDto.PlanId <= 0 || string.IsNullOrEmpty(reviewDto.Status))
                 throw new ArgumentException("PlanId and status are required.");
 
-            if (reviewDto.Status != "Approved" && reviewDto.Status != "Rejected")
-                throw new ArgumentException("Status must be 'Approved' or 'Rejected'.");
+            if (reviewDto.Status != "Đã duyệt" && reviewDto.Status != "Từ chối")
+                throw new ArgumentException("Status must be 'Đã duyệt' or 'Từ chối'.");
 
             var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdAsync(reviewDto.PlanId);
             if (lessonPlan == null)
