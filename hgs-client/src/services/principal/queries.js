@@ -10,6 +10,7 @@ import {
   getSubjectConfigues,
   getSubjectDetail,
   getTeacherSubjects,
+  getTeacherSubjectsByTeacherId,
   getTeachingAssignments,
   getTeachingAssignmentsByTeacher,
   getUsers,
@@ -123,5 +124,16 @@ export function useClass(id) {
     queryKey: ["class", id],
     queryFn: () => getClassById(id),
     enabled: !!id,
+  });
+}
+
+//teacher subject
+export function useTeacherSubject(teacherId) {
+  return useQuery({
+    queryKey: ["teacher-subject", { teacherId }],
+    queryFn: () => {
+      return getTeacherSubjectsByTeacherId(teacherId);
+    },
+    enabled: !!teacherId,
   });
 }

@@ -155,3 +155,9 @@ export const updateHomeroom = async (data) => {
 export const getClassById = async (id) => {
   return (await axiosInstance.get(`Classes/${id}`)).data;
 };
+
+//teacher Subjects
+export const getTeacherSubjectsByTeacherId = async (teacherId) => {
+  return (await axiosInstance.get(`TeacherSubject/by-teacher/${teacherId}`))
+    .data;
+};
