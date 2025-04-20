@@ -277,9 +277,9 @@ const LeaveRequestDetail = () => {
       disabled: leaveRequest?.status !== 'Approved',
       content: (
         <Card loading={loading}>
-          {/* {leaveRequest?.status === 'Approved' ? ( */}
+          {leaveRequest?.status === 'Approved' ? (
             <SubstituteTeacherAssignment leaveRequest={leaveRequest} allTeachers={teachers} />
-          {/* ) : (
+         ) : (
              <Alert
                  message={`Chưa thể phân công dạy thay.`}
                  description={leaveRequest?.status === 'Rejected'
@@ -288,7 +288,7 @@ const LeaveRequestDetail = () => {
                  type="info"
                  showIcon
               />
-          )} */}
+          )} 
         </Card>
       )
     }
