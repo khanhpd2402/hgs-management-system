@@ -18,6 +18,9 @@ import { useSubjects } from "@/services/common/queries";
 import { useTeacherSubject } from "@/services/principal/queries";
 import { useTeacher } from "@/services/teacher/queries";
 import { useState, useEffect } from "react";
+import { Input } from "@/components/ui/input";
+import { useUpdateTeacherSubject } from "@/services/principal/mutation";
+import { Button } from "@/components/ui/button";
 export default function UpdateTeacherSubjectModal({
   open,
   onClose,
@@ -31,10 +34,11 @@ export default function UpdateTeacherSubjectModal({
   const subjectQuery = useSubjects();
   const subjects = subjectQuery.data || [];
 
+  const updateTeacherSubjectMutation = useUpdateTeacherSubject();
+
   // State for selected subjects and main subject
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [mainSubjectId, setMainSubjectId] = useState(null);
-  const [savedSubjects, setSavedSubjects] = useState([]);
 
   useEffect(() => {
     // Initialize state from teacherSubjects when modal opens
@@ -42,8 +46,6 @@ export default function UpdateTeacherSubjectModal({
       setSelectedSubjects(teacherSubjects.map((s) => s.subjectId));
       const main = teacherSubjects.find((s) => s.isMainSubject);
       setMainSubjectId(main ? main.subjectId : null);
-      // Reset savedSubjects when modal opens
-      setSavedSubjects([]);
     }
   }, [open, teacherSubjects]);
 
@@ -59,16 +61,23 @@ export default function UpdateTeacherSubjectModal({
     }
   };
 
-  const handleMainSubjectChange = (subjectID) => {
-    setMainSubjectId(subjectID);
-    // Ensure main subject is also checked
-    if (!selectedSubjects.includes(subjectID)) {
-      setSelectedSubjects((prev) => [...prev, subjectID]);
-    }
-  };
-
   const handleSave = () => {
-    onClose();
+    const data = {
+      teacherId,
+      subjects: selectedSubjects.map((subjectId) => ({
+        subjectId,
+        isMainSubject: subjectId === mainSubjectId,
+      })),
+    };
+    console.log(data); // You can replace this with your API call
+    updateTeacherSubjectMutation.mutate(
+      { teacherId, data },
+      {
+        onSuccess: () => {
+          onClose();
+        },
+      },
+    );
   };
 
   const handleClose = () => {
@@ -89,8 +98,15 @@ export default function UpdateTeacherSubjectModal({
         {teacher && (
           <>
             <div className="mt-4 mb-2">
-              <span className="font-medium">Tên giáo viên:</span>{" "}
-              {teacher.fullName}
+              <Label htmlFor="teacher-fullname" className="font-medium">
+                Tên giáo viên:
+              </Label>
+              <Input
+                id="teacher-fullname"
+                value={teacher.fullName || ""}
+                readOnly
+                className="mt-2"
+              />
             </div>
             <div className="mt-4">
               <Label htmlFor="main-subject-select" className="font-medium">
@@ -153,20 +169,16 @@ export default function UpdateTeacherSubjectModal({
               </form>
             </div>
             <div className="flex justify-end gap-2">
-              <button
-                className="rounded bg-gray-200 px-4 py-2 hover:bg-gray-300"
-                onClick={handleClose}
-                type="button"
-              >
+              <Button className="px-4 py-2" onClick={handleClose} type="button">
                 Đóng
-              </button>
-              <button
-                className="rounded bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
+              </Button>
+              <Button
+                className="bg-blue-600 px-4 py-2 text-white hover:bg-blue-700"
                 onClick={handleSave}
                 type="button"
               >
                 Lưu
-              </button>
+              </Button>
             </div>
           </>
         )}

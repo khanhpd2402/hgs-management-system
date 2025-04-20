@@ -16,6 +16,7 @@ import {
   updateHomeroom,
   updateSubject,
   updateSubjectConfigue,
+  updateTeacherSubjectByTeacherId,
   updateTeachingAssignment,
 } from "./api";
 import toast from "react-hot-toast";
@@ -377,6 +378,29 @@ export function useUpdateClass() {
         queryClient.invalidateQueries({
           queryKey: ["class", { id: variables.classId }],
         });
+      }
+    },
+  });
+}
+
+//teacher subject
+export function useUpdateTeacherSubject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ teacherId, data }) => {
+      return updateTeacherSubjectByTeacherId(teacherId, data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật môn học thành công");
+        queryClient.invalidateQueries({
+          queryKey: ["teacher-subject", { teacherId: variables.teacherId }],
+        });
+        queryClient.invalidateQueries({ queryKey: ["teacherSubjects"] });
       }
     },
   });

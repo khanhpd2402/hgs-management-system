@@ -161,3 +161,8 @@ export const getTeacherSubjectsByTeacherId = async (teacherId) => {
   return (await axiosInstance.get(`TeacherSubject/by-teacher/${teacherId}`))
     .data;
 };
+
+export const updateTeacherSubjectByTeacherId = async (id, data) => {
+  return (await axiosInstance.put(`TeacherSubject/by-teacher/${id}`, data))
+    .data;
+};

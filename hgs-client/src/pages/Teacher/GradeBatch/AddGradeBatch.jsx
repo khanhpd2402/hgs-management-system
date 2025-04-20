@@ -234,8 +234,8 @@ export default function AddGradeBatch({ semester }) {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg border-0 shadow-lg sm:max-w-[600px]">
-          <DialogHeader className="rounded-t-lg bg-blue-50 p-4">
-            <DialogTitle className="text-xl font-bold text-blue-700">
+          <DialogHeader className="rounded-t-lg p-4">
+            <DialogTitle className="text-xl font-bold">
               Thêm mới đợt nhập điểm
             </DialogTitle>
             <Button
@@ -248,10 +248,7 @@ export default function AddGradeBatch({ semester }) {
           <div className="grid gap-5 px-4 py-6">
             {/* Tên đợt */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <label
-                htmlFor="name"
-                className="text-right font-medium text-gray-700"
-              >
+              <label htmlFor="name" className="font-medium text-gray-700">
                 Tên đợt
               </label>
               <div className="col-span-3">
@@ -271,9 +268,7 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Thời gian */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right font-medium text-gray-700">
-                Từ ngày
-              </label>
+              <label className="font-medium text-gray-700">Từ ngày</label>
               <div className="col-span-3">
                 <DatePicker
                   value={formData.startDate}
@@ -290,9 +285,7 @@ export default function AddGradeBatch({ semester }) {
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right font-medium text-gray-700">
-                Đến ngày
-              </label>
+              <label className="font-medium text-gray-700">Đến ngày</label>
               <div className="col-span-3">
                 <DatePicker
                   value={formData.endDate}
@@ -335,7 +328,7 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Các cột điểm */}
             <div className="grid grid-cols-4 gap-4">
-              <label className="text-right font-medium text-gray-700">
+              <label className="font-medium text-gray-700">
                 Các cột điểm của đợt
               </label>
               <div className="col-span-3">
@@ -405,7 +398,7 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Môn học áp dụng */}
             <div className="grid grid-cols-4 gap-4">
-              <label className="text-right font-medium text-gray-700">
+              <label className="font-medium text-gray-700">
                 Môn học áp dụng
               </label>
               <div className="col-span-3">
