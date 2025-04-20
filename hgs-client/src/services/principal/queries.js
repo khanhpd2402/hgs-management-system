@@ -16,10 +16,15 @@ import {
   getUsers,
 } from "./api";
 
-export function useGradeBatchs() {
+export function useGradeBatchs(academicYearId) {
   return useQuery({
-    queryKey: ["grade-batchs"],
-    queryFn: getGradeBatches,
+    queryKey: [
+      "grade-batchs",
+      {
+        academicYearId,
+      },
+    ],
+    queryFn: () => getGradeBatches(academicYearId),
   });
 }
 

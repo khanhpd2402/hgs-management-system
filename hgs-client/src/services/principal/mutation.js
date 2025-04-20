@@ -28,14 +28,19 @@ export function useAddGradeBatch() {
     mutationFn: (data) => {
       return addGradeBatch(data);
     },
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         toast.error("Thêm thất bại");
       } else {
         console.log(data);
-        queryClient.invalidateQueries({ queryKey: ["grade-batchs"] });
-        toast.success("Thêm thành công");
+        queryClient.invalidateQueries({
+          queryKey: [
+            "grade-batchs",
+            { academicYearId: variables.academicYearId },
+          ],
+        });
+        toast.success("Thêm đợt nhập điểm thành công");
       }
     },
   });
