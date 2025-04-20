@@ -9,9 +9,13 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddLessonPlanAsync(LessonPlan lessonPlan);
         Task UpdateLessonPlanAsync(LessonPlan lessonPlan);
         Task<LessonPlan> GetLessonPlanByIdAsync(int planId);
-        Task<List<LessonPlan>> GetAllLessonPlansAsync(); 
-        Task<List<LessonPlan>> GetLessonPlansByStatusAsync(string status);
-        Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetAllLessonPlansAsync(int pageNumber, int pageSize);
-        Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize);
+        Task<LessonPlan> GetLessonPlanByIdIncludingDetailsAsync(int planId);
+        Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetAllLessonPlansIncludingDetailsAsync(int pageNumber, int pageSize);
+        Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetLessonPlansByTeacherIncludingDetailsAsync(int teacherId, int pageNumber, int pageSize);
+        Task<(List<LessonPlan> LessonPlans, int TotalCount)> GetLessonPlansByStatusIncludingDetailsAsync(string status, int pageNumber, int pageSize);
+
+        // Task<List<LessonPlan>> GetAllLessonPlansAsync();
+        // Task<List<LessonPlan>> GetLessonPlansByStatusAsync(string status);
+        
     }
 }

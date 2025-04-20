@@ -59,11 +59,11 @@ namespace HGSMAPI.Controllers
 
         // GET: api/SubstituteTeachings?timetableDetailId=1&teacherId=2&date=2025-04-15
         [HttpGet]
-        public async Task<IActionResult> GetAll([FromQuery] int? timetableDetailId = null, [FromQuery] int? teacherId = null, [FromQuery] DateOnly? date = null)
+        public async Task<IActionResult> GetAll([FromQuery] int? timetableDetailId = null, [FromQuery] int? OriginalTeacherId = null, [FromQuery] int? SubstituteTeacherId = null, [FromQuery] DateOnly? date = null)
         {
             try
             {
-                var results = await _service.GetAllAsync(timetableDetailId, teacherId, date);
+                var results = await _service.GetAllAsync(timetableDetailId, OriginalTeacherId, SubstituteTeacherId, date);
                 return Ok(results);
             }
             catch (Exception ex)

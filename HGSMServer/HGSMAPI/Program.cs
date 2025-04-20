@@ -195,10 +195,6 @@ builder.Services.AddScoped<IRoleRepository, RoleRepository>();
 
 // System & Utility Services
 builder.Services.AddScoped<ITokenService, TokenService>();
-builder.Services.AddScoped<ISmsService, TwilioSmsService>();
-
-// Cấu hình Twilio
-builder.Services.Configure<TwilioSettings>(builder.Configuration.GetSection("Twilio"));
 
 // Đăng ký Logger
 builder.Services.AddSingleton<ILoggerManager, LoggerManager>();

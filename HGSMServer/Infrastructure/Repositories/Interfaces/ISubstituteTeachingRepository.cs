@@ -11,7 +11,7 @@ namespace Infrastructure.Repositories.Interfaces
     {
         Task<SubstituteTeaching> CreateAsync(SubstituteTeaching entity);
         Task<SubstituteTeaching> GetByIdAsync(int substituteId);
-        Task<IEnumerable<SubstituteTeaching>> GetAllAsync(int? timetableDetailId = null, int? teacherId = null, DateOnly? date = null);
+        Task<IEnumerable<SubstituteTeaching>> GetAllAsync(int? timetableDetailId = null, int? OriginalTeacherId = null, int? SubstituteTeacherId = null, DateOnly? date = null);
         Task UpdateAsync(SubstituteTeaching entity);
         Task DeleteAsync(int substituteId);
     }

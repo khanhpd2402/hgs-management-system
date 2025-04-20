@@ -21,7 +21,14 @@ namespace Application.Features.StudentClass.DTOs
         public int ClassId { get; set; }
         public string ClassName { get; set; }
         public int GradeLevelId { get; set; }
-        public int StudentCount { get; set; } 
-        public string HomeroomTeacherName { get; set; } 
+        public int StudentCount { get; set; }
+        public string? Status { get; set; }
+        public List<HomeroomTeacherInfo> HomeroomTeachers { get; set; } = new List<HomeroomTeacherInfo>();
+    }
+    public class HomeroomTeacherInfo
+    {
+        public int SemesterId { get; set; }
+        public string SemesterName { get; set; }
+        public string TeacherName { get; set; }
     }
 }

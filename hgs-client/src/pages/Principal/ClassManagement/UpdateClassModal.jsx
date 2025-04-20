@@ -12,7 +12,7 @@ import {
   useSemestersByAcademicYear,
 } from "@/services/common/queries";
 import { useTeachers } from "@/services/teacher/queries";
-import { useHomeroomTeachers } from "@/services/principal/queries";
+import { useClass, useHomeroomTeachers } from "@/services/principal/queries";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
   Select,
@@ -21,11 +21,11 @@ import {
   SelectItem,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { useCreateClass } from "@/services/principal/mutation";
+import { useUpdateClass } from "@/services/principal/mutation";
 
 const classSchema = z.object({
   gradeLevelId: z.string().min(1, "Vui lòng chọn khối"),
@@ -42,10 +42,14 @@ const classSchema = z.object({
     }),
   homeroomTeacherHK1: z.string().optional(),
   homeroomTeacherHK2: z.string().optional(),
-  classStatus: z.boolean(),
 });
 
-export default function ClassModal({ open, onOpenChange, currentYear }) {
+export default function UpdateClassModal({
+  open,
+  onOpenChange,
+  classId,
+  currentYear,
+}) {
   const {
     control,
     handleSubmit,
@@ -58,17 +62,20 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
       className: "",
       homeroomTeacherHK1: "",
       homeroomTeacherHK2: "",
-      classStatus: false,
     },
     mode: "onSubmit",
     reValidateMode: "onSubmit",
   });
 
+  const classQuery = useClass(classId);
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
   const gradelevelQuery = useGradeLevels();
   const teacherQuery = useTeachers();
-  const hoomroomsTeachers = useHomeroomTeachers();
-  const createClassMutation = useCreateClass();
+  const homeroomTeachers = useHomeroomTeachers();
+  const updateClassMutation = useUpdateClass();
+  const [classStatus, setClassStatus] = useState(false);
+  const [teacherHK1Status, setTeacherHK1Status] = useState(false);
+  const [teacherHK2Status, setTeacherHK2Status] = useState(false);
 
   const semester1 = semesterQuery?.data?.find(
     (semester) => semester.semesterName === "Học kỳ 1",
@@ -79,21 +86,21 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
 
   const availableTeachersHK1 =
     teacherQuery?.data?.teachers?.filter((teacher) => {
-      // Check if this teacher is already assigned as homeroom teacher for semester1
-      return !hoomroomsTeachers?.data?.some(
+      return !homeroomTeachers?.data?.some(
         (homeroom) =>
           homeroom.teacherId === teacher.teacherId &&
-          homeroom.semesterId === semester1?.semesterID,
+          homeroom.semesterId === semester1?.semesterID &&
+          homeroom.classId !== classId,
       );
     }) || [];
 
   const availableTeachersHK2 =
     teacherQuery?.data?.teachers?.filter((teacher) => {
-      // Check if this teacher is already assigned as homeroom teacher for semester1
-      return !hoomroomsTeachers?.data?.some(
+      return !homeroomTeachers?.data?.some(
         (homeroom) =>
           homeroom.teacherId === teacher.teacherId &&
-          homeroom.semesterId === semester2?.semesterID,
+          homeroom.semesterId === semester2?.semesterID &&
+          homeroom.classId !== classId,
       );
     }) || [];
 
@@ -101,39 +108,70 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
     const homerooms = [];
     if (values.homeroomTeacherHK1) {
       homerooms.push({
+        classId: classId,
         teacherId: Number(values.homeroomTeacherHK1),
         semesterId: semester1?.semesterID,
+        status: teacherHK1Status ? "Hoạt Động" : "Không Hoạt Động",
       });
     }
     if (values.homeroomTeacherHK2) {
       homerooms.push({
+        classId: classId,
         teacherId: Number(values.homeroomTeacherHK2),
         semesterId: semester2?.semesterID,
+        status: teacherHK2Status ? "Hoạt Động" : "Không Hoạt Động",
       });
     }
     const data = {
+      classId: classId,
       className: values.className,
       gradeLevelId: values.gradeLevelId
         ? Number(values.gradeLevelId)
         : undefined,
-      status: values.classStatus ? "Hoạt Động" : "Không Hoạt Động",
+      status: classStatus ? "Hoạt Động" : "Không Hoạt Động",
       homerooms,
     };
     console.log(data);
-    createClassMutation.mutate(data);
-    // reset();
+    updateClassMutation.mutate(data);
   };
 
   useEffect(() => {
-    if (!open) {
-      reset();
+    if (classQuery.data) {
+      const classData = classQuery.data;
+      // Find homeroom teachers for each semester
+      const homeroomHK1 = homeroomTeachers?.data?.find(
+        (t) => t.semesterName === "Học kỳ 1" && t.classId === classId,
+      );
+
+      const homeroomHK2 = homeroomTeachers?.data?.find(
+        (t) => (t.semesterName === "Học kỳ 2") & (t.classId === classId),
+      );
+
+      console.log(homeroomHK2);
+
+      reset({
+        gradeLevelId: classData.gradeLevelId
+          ? String(classData.gradeLevelId)
+          : "",
+        className: classData.className || "",
+        homeroomTeacherHK1: homeroomHK1?.teacherId
+          ? String(homeroomHK1.teacherId)
+          : "",
+        homeroomTeacherHK2: homeroomHK2?.teacherId
+          ? String(homeroomHK2.teacherId)
+          : "",
+      });
+      setClassStatus(classData.status === "Hoạt Động");
+      setTeacherHK1Status(false);
+      setTeacherHK2Status(false);
     }
-  }, [open, reset]);
+  }, [classQuery.data, homeroomTeachers.data, reset]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Thêm Lớp Học Mới</DialogTitle>
+          <DialogTitle>Cập nhật lớp học</DialogTitle>
         </DialogHeader>
         <form onSubmit={handleSubmit(onSubmit)} className="mt-4 space-y-4">
           <div className="grid w-full gap-2">
@@ -183,6 +221,7 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
               </span>
             )}
           </div>
+
           <div className="grid w-full gap-2">
             <Label htmlFor="homeroomTeacherHK1">
               Giáo Viên Chủ Nhiệm Học Kỳ 1
@@ -217,6 +256,19 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
                 {errors.homeroomTeacherHK1.message}
               </span>
             )}
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="teacherHK1Status"
+              checked={teacherHK1Status}
+              onChange={(e) => {
+                setTeacherHK1Status(e.target.checked);
+              }}
+            />
+            <Label htmlFor="teacherHK1Status" className="mb-0">
+              Hoạt động học kỳ 1
+            </Label>
           </div>
           <div className="grid w-full gap-2">
             <Label htmlFor="homeroomTeacherHK2">
@@ -254,26 +306,36 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
             )}
           </div>
           <div className="flex items-center gap-2">
-            <Controller
-              name="classStatus"
-              control={control}
-              render={({ field }) => (
-                <Checkbox
-                  id="classStatus"
-                  checked={field.value}
-                  onCheckedChange={field.onChange}
-                />
-              )}
+            <input
+              type="checkbox"
+              id="teacherHK2Status"
+              checked={teacherHK2Status}
+              onChange={(e) => {
+                setTeacherHK2Status(e.target.checked);
+              }}
+            />
+            <Label htmlFor="teacherHK2Status" className="mb-0">
+              Hoạt động học kỳ 2
+            </Label>
+          </div>
+          <div className="flex items-center gap-2">
+            <input
+              type="checkbox"
+              id="classStatus"
+              checked={classStatus}
+              onChange={(e) => {
+                setClassStatus(e.target.checked);
+              }}
             />
             <Label htmlFor="classStatus" className="mb-0">
-              Hoạt động
+              Hoạt động lớp
             </Label>
           </div>
           <Button
             type="submit"
             className="w-full bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
           >
-            Thêm
+            Cập nhật
           </Button>
         </form>
       </DialogContent>

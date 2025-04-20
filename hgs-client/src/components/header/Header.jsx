@@ -77,7 +77,13 @@ const Header = ({ setCurrentYear }) => {
                 <SelectValue>{selectedYear?.yearName}</SelectValue>
               </SelectTrigger>
               <SelectContent>
-                {academicYears?.data?.map((item) => (
+                {(
+                  academicYears?.data?.slice()?.sort((a, b) => {
+                    const aYear = parseInt(a.yearName?.split("-")[0] || 0, 10);
+                    const bYear = parseInt(b.yearName?.split("-")[0] || 0, 10);
+                    return bYear - aYear;
+                  }) || []
+                ).map((item) => (
                   <SelectItem
                     key={item.academicYearID}
                     value={item.academicYearID}

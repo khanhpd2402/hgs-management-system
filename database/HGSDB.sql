@@ -264,6 +264,8 @@ CREATE TABLE [dbo].[LessonPlans] (
     [SubjectID] INT NOT NULL,
     [PlanContent] NVARCHAR(MAX) NOT NULL,
     [Status] NVARCHAR(20) NULL,
+	[StartDate] DATETIME  NULL
+	[EndDate] DATETIME  NULL,
     [SemesterID] INT NOT NULL,
     PRIMARY KEY CLUSTERED ([PlanID] ASC),
     CONSTRAINT [FK_LessonPlans_Teachers] FOREIGN KEY ([TeacherID]) REFERENCES [dbo].[Teachers] ([TeacherID]) ON DELETE CASCADE,
@@ -272,7 +274,7 @@ CREATE TABLE [dbo].[LessonPlans] (
 )
 
 -- Thêm các cột vào LessonPlans sau khi bảng được tạo
-ALTER TABLE [dbo].[LessonPlans]
+ALTER TABLE [dbo].[LessonPlans] 
 ADD
     [Title] NVARCHAR(255) NULL,
     [AttachmentUrl] NVARCHAR(500) NULL,
@@ -350,15 +352,19 @@ CREATE TABLE [dbo].[SubstituteTeachings] (
     FOREIGN KEY ([SubstituteTeacherId]) REFERENCES [dbo].[Teachers]([TeacherId])
 );
 Go
-CREATE TABLE [dbo].[Attendances] (
-    [AttendanceID] INT IDENTITY(1,1) NOT NULL,
-    [StudentID] INT NOT NULL,
-    [Status] NVARCHAR(1) NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')),
-    [Note] NVARCHAR(255) NULL,
-	[Date] DATE NOT NULL,
-    [CreatedAt] DATETIME DEFAULT GETDATE(),
-    PRIMARY KEY CLUSTERED ([AttendanceID] ASC),
-    CONSTRAINT [FK_Attendances_Students] FOREIGN KEY ([StudentID]) REFERENCES [dbo].[Students] ([StudentID]) ON DELETE CASCADE
+CREATE TABLE Attendances (
+    AttendanceID INT IDENTITY(1,1) PRIMARY KEY,
+    StudentClassID INT NOT NULL,
+    [Date] DATE NOT NULL,
+    [Session] NVARCHAR(10) NOT NULL CHECK ([Session] IN (N'Sáng', N'Chiều')),
+    [Status] NVARCHAR(2) NOT NULL CHECK ([Status] IN ('C', 'P', 'K', 'X')), -- Có, Phép, Không phép, Không rõ
+    Note NVARCHAR(255) NULL,
+    CreatedAt DATETIME NOT NULL DEFAULT GETDATE(),
+
+    CONSTRAINT FK_Attendances_StudentClasses FOREIGN KEY (StudentClassID)
+        REFERENCES StudentClasses(ID) ON DELETE CASCADE,
+
+    CONSTRAINT UQ_Attendances_StudentClass_Date_Session UNIQUE (StudentClassID, [Date], [Session])
 );
 GO
 CREATE TRIGGER trg_EnsureOnlyOneActiveTimetable

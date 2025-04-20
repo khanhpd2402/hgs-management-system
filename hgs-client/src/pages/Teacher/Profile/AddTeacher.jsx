@@ -158,8 +158,8 @@ export default function AddTeacher() {
       phoneNumber: "",
       email: "",
     },
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
   });
 
   // Submit handler

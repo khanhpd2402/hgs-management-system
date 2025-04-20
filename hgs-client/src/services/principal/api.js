@@ -118,3 +118,36 @@ export const getClassesWithStudentCount = async (academicYearId) => {
     )
   ).data;
 };
+
+export const getHomeroomTeachers = async () => {
+  return (await axiosInstance.get(`AssignHomeRoom/all`)).data;
+};
+
+export const createAcademicYear = async (data) => {
+  return (await axiosInstance.post(`AcademicYear`, data)).data;
+};
+
+export const getAllSemesters = async () => {
+  return (await axiosInstance.get(`Semester/all`)).data;
+};
+
+//class
+export const createClass = async (data) => {
+  return (await axiosInstance.post(`Classes`, data)).data;
+};
+
+export const updateClass = async (id, data) => {
+  return (await axiosInstance.put(`Classes/${id}`, data)).data;
+};
+
+export const createHomeroom = async (data) => {
+  return (await axiosInstance.post(`AssignHomeRoom/assign`, data)).data;
+};
+
+export const updateHomeroom = async (data) => {
+  return (await axiosInstance.put(`AssignHomeRoom/update`, data)).data;
+};
+
+export const getClassById = async (id) => {
+  return (await axiosInstance.get(`Classes/${id}`)).data;
+};

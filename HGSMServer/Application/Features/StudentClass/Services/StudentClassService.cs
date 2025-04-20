@@ -438,6 +438,16 @@ namespace Application.Features.StudentClass.Services
             foreach (var classEntity in classes.Where(c => c != null))
             {
                 int studentCount = 0;
+                var classDto = new StudentClass.DTOs.ClassDto
+                {
+                    ClassId = classEntity.ClassId,
+                    ClassName = classEntity.ClassName,
+                    GradeLevelId = classEntity.GradeLevelId,
+                    StudentCount = studentCount,
+                    Status = classEntity.Status,
+                    HomeroomTeachers = new List<HomeroomTeacherInfo>()
+                };
+
                 if (semesterId.HasValue)
                 {
                     var semesterr = await _semesterRepository.GetByIdAsync(semesterId.Value);
@@ -445,6 +455,34 @@ namespace Application.Features.StudentClass.Services
                     {
                         var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, semesterr.AcademicYearId);
                         studentCount = studentCountQuery.Count();
+
+                        var homeroomAssignment = await _context.HomeroomAssignments
+                            .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semesterId.Value)
+                            .Include(ha => ha.Teacher)
+                            .FirstOrDefaultAsync();
+
+                        classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
+                        {
+                            SemesterId = semesterr.SemesterId,
+                            SemesterName = semesterr.SemesterName,
+                            TeacherName = homeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                        });
+
+                        var otherSemesters = await _semesterRepository.GetByAcademicYearIdAsync(semesterr.AcademicYearId);
+                        foreach (var otherSemester in otherSemesters.Where(s => s.SemesterId != semesterId.Value))
+                        {
+                            var otherHomeroomAssignment = await _context.HomeroomAssignments
+                                .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == otherSemester.SemesterId )
+                                .Include(ha => ha.Teacher)
+                                .FirstOrDefaultAsync();
+
+                            classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
+                            {
+                                SemesterId = otherSemester.SemesterId,
+                                SemesterName = otherSemester.SemesterName,
+                                TeacherName = otherHomeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                            });
+                        }
                     }
                 }
                 else
@@ -453,27 +491,7 @@ namespace Application.Features.StudentClass.Services
                     studentCount = studentCountQuery.Count();
                 }
 
-                var classDto = new StudentClass.DTOs.ClassDto
-                {
-                    ClassId = classEntity.ClassId,
-                    ClassName = classEntity.ClassName,
-                    GradeLevelId = classEntity.GradeLevelId,
-                    StudentCount = studentCount,
-                    HomeroomTeacherName = "Chưa có"
-                };
-
-                if (semesterId.HasValue)
-                {
-                    var homeroomAssignment = await _context.HomeroomAssignments
-                        .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semesterId.Value && ha.Status == "Hoạt Động")
-                        .Include(ha => ha.Teacher)
-                        .FirstOrDefaultAsync();
-                    if (homeroomAssignment != null)
-                    {
-                        classDto.HomeroomTeacherName = homeroomAssignment.Teacher?.FullName ?? "Chưa có";
-                    }
-                }
-
+                classDto.StudentCount = studentCount;
                 classDtos.Add(classDto);
             }
 
@@ -501,6 +519,7 @@ namespace Application.Features.StudentClass.Services
 
             return filterData;
         }
+
 
         public async Task<List<ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null)
         {
@@ -533,25 +552,38 @@ namespace Application.Features.StudentClass.Services
                     ClassName = classEntity.ClassName,
                     GradeLevelId = classEntity.GradeLevelId,
                     StudentCount = studentCount,
-                    HomeroomTeacherName = "Chưa có"
+                    Status = classEntity.Status,
+                    HomeroomTeachers = new List<HomeroomTeacherInfo>()
                 };
 
                 if (academicYearId.HasValue)
                 {
                     var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYearId.Value);
-                    foreach (var semester in semesters)
+                    foreach (var semester in semesters.OrderBy(s => s.SemesterName))
                     {
                         var homeroomAssignment = await _context.HomeroomAssignments
-                            .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semester.SemesterId && ha.Status == "Hoạt Động")
+                            .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semester.SemesterId)
                             .Include(ha => ha.Teacher)
                             .FirstOrDefaultAsync();
-                        if (homeroomAssignment != null)
+
+                        classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
                         {
-                            classDto.HomeroomTeacherName = homeroomAssignment.Teacher?.FullName ?? "Chưa có";
-                            break; // Lấy GVCN đầu tiên tìm thấy trong năm học
-                        }
+                            SemesterId = semester.SemesterId,
+                            SemesterName = semester.SemesterName,
+                            TeacherName = homeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                        });
                     }
                 }
+                else
+                {
+                    classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
+                    {
+                        SemesterId = 0,
+                        SemesterName = "N/A",
+                        TeacherName = "N/A"
+                    });
+                }
+
 
                 result.Add(classDto);
             }

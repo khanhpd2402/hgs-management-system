@@ -6,10 +6,8 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Attendances.DTOs
 {
-    public class TwilioSettings
+    public class AttendanceUpdateDto : AttendanceCreateDto
     {
-        public string AccountSid { get; set; }
-        public string AuthToken { get; set; }
-        public string FromNumber { get; set; }
+        public int AttendanceId { get; set; }
     }
 }
