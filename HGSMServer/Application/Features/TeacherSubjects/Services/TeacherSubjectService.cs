@@ -5,7 +5,9 @@ using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore; // Cần thêm namespace này
 
 namespace Application.Features.TeacherSubjects.Services
 {
@@ -84,34 +86,43 @@ namespace Application.Features.TeacherSubjects.Services
             await _repository.AddAsync(teacherSubject);
         }
 
-        public async Task UpdateAsync(UpdateTeacherSubjectDto dto)
+        public async Task UpdateAsync(UpdateTeacherSubjectDto dto) 
         {
-            var teacherSubject = await _repository.GetByIdAsync(dto.Id);
-            if (teacherSubject == null)
-            {
-                throw new ArgumentException($"TeacherSubject with Id {dto.Id} does not exist.");
-            }
-
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
             if (teacher == null)
             {
                 throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
             }
 
-            var subject = await _subjectRepository.GetByIdAsync(dto.SubjectId);
-            if (subject == null)
-            {
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
-            }
+            var existingTeacherSubjects = await _repository.GetAllAsync(); 
 
-            var existingTeacherSubject = await _repository.GetAllAsync();
-            if (existingTeacherSubject.Any(ts => ts.Id != dto.Id && ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId))
+            foreach (var subjectInfo in dto.Subjects)
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} is already assigned to Subject with Id {dto.SubjectId}.");
-            }
+                var subject = await _subjectRepository.GetByIdAsync(subjectInfo.SubjectId);
+                if (subject == null)
+                {
+                    throw new ArgumentException($"Subject with Id {subjectInfo.SubjectId} does not exist.");
+                }
 
-            _mapper.Map(dto, teacherSubject);
-            await _repository.UpdateAsync(teacherSubject);
+                var teacherSubject = existingTeacherSubjects
+                    .FirstOrDefault(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == subjectInfo.SubjectId);
+
+                if (teacherSubject != null)
+                {
+                    teacherSubject.IsMainSubject = subjectInfo.IsMainSubject;
+                    await _repository.UpdateAsync(teacherSubject);
+                }
+                else
+                {
+                    var newTeacherSubject = new TeacherSubject
+                    {
+                        TeacherId = dto.TeacherId,
+                        SubjectId = subjectInfo.SubjectId,
+                        IsMainSubject = subjectInfo.IsMainSubject
+                    };
+                    await _repository.AddAsync(newTeacherSubject);
+                }
+            }
         }
 
         public async Task DeleteAsync(int id)
