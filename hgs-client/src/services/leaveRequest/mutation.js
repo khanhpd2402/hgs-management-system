@@ -1,7 +1,7 @@
 import toast from "react-hot-toast";
 import { useQueryClient } from "@tanstack/react-query";
 import { useMutation } from "@tanstack/react-query";
-import { createLeaveRequest } from "./api";
+import { createLeaveRequest, deleteLeaverRequestById } from "./api";
 
 export const useCreateLeaveRequest = () => {
   const queryClient = useQueryClient();
@@ -9,11 +9,35 @@ export const useCreateLeaveRequest = () => {
   return useMutation({
     mutationFn: createLeaveRequest,
     onSuccess: (data) => {
-      toast.success(data?.message || "Yêu cầu nghỉ phép đã được gửi thành công!");
-      queryClient.invalidateQueries({ queryKey: ['leaveRequests'] });
+      toast.success(
+        data?.message || "Yêu cầu nghỉ phép đã được gửi thành công!",
+      );
+      queryClient.invalidateQueries({ queryKey: ["leaveRequests"] });
     },
     onError: (error) => {
-      const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi gửi yêu cầu nghỉ phép.';
+      const errorMessage =
+        error.response?.data?.message ||
+        "Có lỗi xảy ra khi gửi yêu cầu nghỉ phép.";
+      toast.error(errorMessage);
+    },
+  });
+};
+
+export const useDeleteLeaveRequest = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: deleteLeaverRequestById,
+    onSuccess: (data) => {
+      toast.success(
+        data?.message || "Yêu cầu nghỉ phép đã được xóa thành công!",
+      );
+      queryClient.invalidateQueries({ queryKey: ["leaveRequests"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Có lỗi xảy ra khi xóa yêu cầu nghỉ phép.";
       toast.error(errorMessage);
     },
   });

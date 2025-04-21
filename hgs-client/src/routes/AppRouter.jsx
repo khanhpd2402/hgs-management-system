@@ -15,6 +15,7 @@ import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+// Remove these direct imports
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
 // import Contact from "@/pages/contact/Contact";
@@ -23,15 +24,17 @@ import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 // import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
 // import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
-import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
-import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
-import Contact from "@/pages/contact/Contact";
-import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
-import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
-import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
-import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
-import RequestLessonPlan from "@/pages/RequestLessonPlan/RequestLessonPlan";
-import ReviewDetail from "@/pages/RequestLessonPlan/ReviewList/ReviewDetail";
+// Add these lazy imports with the existing lazy imports
+const ListLeaveRequest = lazy(() => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"));
+const LeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"));
+const Contact = lazy(() => import("@/pages/contact/Contact"));
+const TeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"));
+const CreateTeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"));
+const LessonPlanList = lazy(() => import("@/pages/RequestLessonPlan/LessonPlanList"));
+const UploadLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/UploadLessonPlan"));
+const RequestLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/RequestLessonPlan"));
+const ReviewDetail = lazy(() => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"));
+const TeacherLeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"));
 // import AcademicYearManagement from "@/pages/Principal/AcademicYearManagement/AcademicYearManagement";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
@@ -328,6 +331,18 @@ const teacherRouter = [
         <Suspense fallback={<div>Loading...</div>}>
 
           <CreateTeacherLeaveRequest />
+        </Suspense>
+
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/leave-request/:id",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+
+          <TeacherLeaveRequestDetail />
         </Suspense>
 
       </ProtectedRoute>

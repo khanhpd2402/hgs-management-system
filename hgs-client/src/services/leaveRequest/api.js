@@ -1,33 +1,64 @@
 import { axiosInstance } from "../axios";
 
-export const getLeaveRequestByTeacherId = async (teacherId) => {
-    const token = JSON.parse(localStorage.getItem("token"));
+export const getLeaveRequestByTeacherId = async (teacherId, status) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+  const url = status
+    ? `LeaveRequest?teacherId=${teacherId}&status=${status}`
+    : `LeaveRequest?teacherId=${teacherId}`;
 
-    return (await axiosInstance.get(`LeaveRequest/by-teacher/${teacherId}`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })).data;
+  return (
+    await axiosInstance.get(url, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).data;
 };
 
 export const createLeaveRequest = async (data) => {
-    const token = JSON.parse(localStorage.getItem("token"));
+  const token = JSON.parse(localStorage.getItem("token"));
 
-    return (await axiosInstance.post(`LeaveRequest`, data, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })).data;
+  return (
+    await axiosInstance.post(`LeaveRequest`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).data;
 };
 
 export const getLeaveRequestByAdmin = async () => {
-    const token = JSON.parse(localStorage.getItem("token"));
+  const token = JSON.parse(localStorage.getItem("token"));
 
-    return (await axiosInstance.get(`LeaveRequest`, {
-        headers: {
-            Authorization: `Bearer ${token}`
-        }
-    })).data;
+  return (
+    await axiosInstance.get(`LeaveRequest`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).data;
 };
 
+export const getLeaveRequestById = async (id) => {
+  const token = JSON.parse(localStorage.getItem("token"));
 
+  return (
+    await axiosInstance.get(`LeaveRequest/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).data;
+};
+
+export const deleteLeaverRequestById = async (id) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+
+  return (
+    await axiosInstance.delete(`/LeaveRequest/${id}`, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    })
+  ).data;
+};
