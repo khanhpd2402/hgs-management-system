@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, Table, Form, Select, Button, message } from 'antd';
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
+import { useTeachers } from '../../../services/teacher/queries';
 
 const { Option } = Select;
 
@@ -22,6 +23,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
   const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
+  const { data: teachersData, isLoading: teachersLoading } = useTeachers();
   const [filteredSchedules, setFilteredSchedules] = useState([]);
 
 
@@ -139,10 +141,14 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
           <Select
             placeholder="Chọn giáo viên dạy thay"
             optionFilterProp="children"
+            loading={teachersLoading}
           >
-            {mockTeachers.map(teacher => (
-              <Option key={teacher.id} value={teacher.id}>
-                {teacher.name}
+            {teachersData?.teachers?.map(teacher => (
+              <Option
+                key={teacher.teacherId}
+                value={teacher.teacherId}
+              >
+                {teacher.fullName} - {teacher.teacherId}
               </Option>
             ))}
           </Select>

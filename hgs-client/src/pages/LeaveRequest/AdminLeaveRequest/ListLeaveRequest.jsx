@@ -4,6 +4,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { useGetLeaveRequestByAdmin } from '../../../services/leaveRequest/queries';
+import { useTeachers } from '../../../services/teacher/queries';
 
 const { Option } = Select;
 
@@ -18,7 +19,21 @@ const ListLeaveRequest = () => {
   const debounceTimeoutRef = useRef(null);
 
   const { data: leaveRequestsData, isLoading: loadingLeaveRequests, error: errorLeaveRequests } = useGetLeaveRequestByAdmin();
+  const { data: teachersData, isLoading: loadingTeachers } = useTeachers();
 
+  useEffect(() => {
+    if (teachersData?.teachers) {
+      const formattedTeachers = teachersData.teachers.map(teacher => ({
+        teacherId: teacher.teacherId || teacher.id,
+        fullName: teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim(),
+        dob: teacher.dob
+      })).filter(teacher => teacher.teacherId && teacher.fullName);
+
+      setTeachers(formattedTeachers);
+    }
+  }, [teachersData]);
+
+  // Remove the fetchTeachers function and its useEffect
   useEffect(() => {
     fetchTeachers();
   }, []);
