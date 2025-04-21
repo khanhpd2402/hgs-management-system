@@ -29,9 +29,9 @@ public partial class LessonPlan
 
     public int? ReviewerId { get; set; }
 
-    public DateTime? EndDate { get; set; }
+    public DateOnly? EndDate { get; set; }
 
-    public DateTime? StartDate { get; set; }
+    public DateOnly? Startdate { get; set; }
 
     public virtual Teacher? Reviewer { get; set; }
 
