@@ -3,8 +3,9 @@ import { Form, Input, Button, DatePicker } from 'antd';
 import dayjs from 'dayjs';
 import isSameOrAfter from 'dayjs/plugin/isSameOrAfter';
 import './CreateTeacherLeaveRequest.scss';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate } from 'react-router-dom';
 import { useCreateLeaveRequest } from '../../../services/leaveRequest/mutation';
+import { jwtDecode } from 'jwt-decode';
 
 dayjs.extend(isSameOrAfter);
 
@@ -31,21 +32,34 @@ const CreateTeacherLeaveRequest = () => {
   };
 
   const onFinish = (values) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      console.warn('Token not found');
+      return;
+    }
+    const decoded = jwtDecode(token);
+    if (decoded.exp * 1000 < Date.now()) {
+      console.warn('Token expired');
+      localStorage.removeItem('token');
+      return <Navigate to="/login" replace />;
+    }
+    const teacherId = decoded.teacherId || decoded.id || decoded.userId || 1;
+
     const payload = {
-      teacherId: 1,
+      teacherId,
       leaveFromDate: values.leaveFromDate.format('YYYY-MM-DD'),
       leaveToDate: values.leaveToDate.format('YYYY-MM-DD'),
       reason: values.reason,
     };
 
     createLeaveRequestMutation.mutate(payload, {
-        onSuccess: () => {
-            form.resetFields();
-            setStartDate(null);
-            setTimeout(() => {
-                navigate('/teacher/leave-request');
-            }, 1500);
-        },
+      onSuccess: () => {
+        form.resetFields();
+        setStartDate(null);
+        setTimeout(() => {
+          navigate('/teacher/leave-request');
+        }, 1500);
+      },
     });
   };
 

@@ -1,21 +1,41 @@
 import React, { useState } from 'react';
 import { Table, Tag, Button, Input, Select } from 'antd';
 import dayjs from 'dayjs';
-import { Link } from 'react-router-dom';
+import { Link, Navigate } from 'react-router-dom';
 import { useGetLeaveRequestByTeacherId } from '../../../services/leaveRequest/queries';
+import { jwtDecode } from 'jwt-decode';
 
 const statusOptions = [
   { value: 'All', label: 'Tất cả trạng thái' },
-  { value: 'Pending', label: 'Đang chờ duyệt' },
-  { value: 'Approved', label: 'Đã phê duyệt' },
-  { value: 'Rejected', label: 'Đã từ chối' },
+  { value: 'Chờ Duyệt', label: 'Đang chờ duyệt' },
+  { value: 'Đã Duyệt', label: 'Đã phê duyệt' },
+  { value: 'Từ Chối', label: 'Đã từ chối' },
 ];
 
 const TeacherLeaveRequest = () => {
   const [statusFilter, setStatusFilter] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  const teacherId = 1;
+  // const teacherId = 1;
+
+  let teacherId;
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
+  const decoded = jwtDecode(token);
+  if (decoded.exp * 1000 < Date.now()) {
+    console.warn('Token expired');
+    localStorage.removeItem('token');
+    return <Navigate to="/login" replace />;
+  }
+  teacherId = decoded.teacherId || decoded.id || decoded.userId || 1;
+
+
+
+
+
+
   const { data: leaveRequestsData, isLoading, error } = useGetLeaveRequestByTeacherId(teacherId);
 
   if (error) {
@@ -24,12 +44,13 @@ const TeacherLeaveRequest = () => {
 
   const filteredRequests = (leaveRequestsData || []).filter(request => {
     const statusMatch = statusFilter === 'All' || request.status === statusFilter;
-    const searchTermMatch = !searchTerm ||
-      request.reason.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      request.requestId.toString().includes(searchTerm) ||
-      dayjs(request.requestDate).format('DD/MM/YYYY').includes(searchTerm) ||
-      dayjs(request.leaveFromDate).format('DD/MM/YYYY').includes(searchTerm) ||
-      dayjs(request.leaveToDate).format('DD/MM/YYYY').includes(searchTerm);
+    const searchTermMatch = !searchTerm || [
+      request.reason,
+      request.requestId?.toString(),
+      request.requestDate && dayjs(request.requestDate).format('DD/MM/YYYY'),
+      request.leaveFromDate && dayjs(request.leaveFromDate).format('DD/MM/YYYY'),
+      request.leaveToDate && dayjs(request.leaveToDate).format('DD/MM/YYYY')
+    ].some(field => field?.toLowerCase?.()?.includes?.(searchTerm.toLowerCase()));
 
     return statusMatch && searchTermMatch;
   });
@@ -59,30 +80,35 @@ const TeacherLeaveRequest = () => {
       render: (date) => dayjs(date).format('DD/MM/YYYY'),
     },
     {
-      title: 'Lý do',
-      dataIndex: 'reason',
-      key: 'reason',
-    },
-    {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',
       render: (status) => {
         let color = 'default';
         let text = status;
-        if (status === 'Pending') {
+        if (status === 'Chờ Duyệt') {
           color = 'gold';
           text = 'Đang chờ duyệt';
-        } else if (status === 'Approved') {
+        } else if (status === 'Đã Duyệt') {
           color = 'green';
           text = 'Đã phê duyệt';
-        } else if (status === 'Rejected') {
+        } else if (status === 'Từ chối') {
           color = 'red';
           text = 'Đã từ chối';
         }
         return <Tag color={color}>{text}</Tag>;
       },
-    },
+    }, {
+      title: 'Xem chi tiết',
+      key: 'action',
+      render: (_, record) => (
+        <Link to={`/teacher/leave-request/${record.requestId}`}>
+          <Button type="primary" size="small">
+            Xem chi tiết
+          </Button>
+        </Link>
+      ),
+    }
   ];
 
   return (

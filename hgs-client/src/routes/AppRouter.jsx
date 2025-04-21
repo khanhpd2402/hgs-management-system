@@ -15,6 +15,7 @@ import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
+// Remove these direct imports
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
 // import Contact from "@/pages/contact/Contact";
@@ -23,6 +24,41 @@ import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 // import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
 // import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
+// Add these lazy imports with the existing lazy imports
+const ListLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"),
+);
+const LeaveRequestDetail = lazy(
+  () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
+);
+const Contact = lazy(() => import("@/pages/contact/Contact"));
+const TeacherLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"),
+);
+const CreateTeacherLeaveRequest = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"
+    ),
+);
+const LessonPlanList = lazy(
+  () => import("@/pages/RequestLessonPlan/LessonPlanList"),
+);
+const UploadLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/UploadLessonPlan"),
+);
+const RequestLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/RequestLessonPlan"),
+);
+const ReviewDetail = lazy(
+  () => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"),
+);
+const TeacherLeaveRequestDetail = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"
+    ),
+);
 // import AcademicYearManagement from "@/pages/Principal/AcademicYearManagement/AcademicYearManagement";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
@@ -162,34 +198,62 @@ const adminRouter = [
     path: "/system/schedule",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <ScheduleManagement />
+        <Suspense fallback={<div>Loading...</div>}>
+          <ScheduleManagement />
+        </Suspense>
       </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/system/leave-request",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-  //       <ListLeaveRequest />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/system/leave-request/:id",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-  //       <LeaveRequestDetail />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/system/contact",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-  //       <Contact />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/system/leave-request",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ListLeaveRequest />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/leave-request/:id",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <LeaveRequestDetail />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/contact",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <Contact />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/lesson-plan",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <RequestLessonPlan />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/review-detail/:id",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ReviewDetail />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
 ];
 
 const teacherRouter = [
@@ -290,38 +354,56 @@ const teacherRouter = [
       // </ProtectedRoute>
     ),
   },
-  // {
-  //   path: "/teacher/leave-request",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <TeacherLeaveRequest />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/teacher/leave-request/create",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <CreateTeacherLeaveRequest />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/teacher/lesson-plan",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <LessonPlanList />
-  //     </ProtectedRoute>
-  //   ),
-  // },
-  // {
-  //   path: "/teacher/lesson-plan/create",
-  //   element: (
-  //     <ProtectedRoute requiredRoles={["Giáo viên"]}>
-  //       <UploadLessonPlan />
-  //     </ProtectedRoute>
-  //   ),
-  // },
+  {
+    path: "/teacher/leave-request",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TeacherLeaveRequest />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/leave-request/create",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <CreateTeacherLeaveRequest />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/leave-request/:id",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TeacherLeaveRequestDetail />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/lesson-plan",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <LessonPlanList />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/lesson-plan/create",
+    element: (
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <UploadLessonPlan />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
 ];
 
 const studentRouter = [

@@ -1,21 +1,21 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { 
-    Card, 
-    Form, 
-    Input, 
-    Select, 
-    Button, 
-    Descriptions, 
-    Space, 
-    message, 
+import {
+    Card,
+    Form,
+    Input,
+    Select,
+    Button,
+    Descriptions,
+    Space,
+    message,
     Divider,
     Typography
 } from 'antd';
-import { 
-    RollbackOutlined, 
-    CheckCircleOutlined, 
-    FileTextOutlined 
+import {
+    RollbackOutlined,
+    CheckCircleOutlined,
+    FileTextOutlined
 } from '@ant-design/icons';
 import axios from 'axios';
 import dayjs from 'dayjs';
@@ -47,6 +47,7 @@ const ReviewDetail = () => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
             );
+            console.log(response.data)
             setPlan(response.data);
         } catch (error) {
             console.error('Lỗi khi tải chi tiết:', error);
@@ -83,7 +84,7 @@ const ReviewDetail = () => {
 
     return (
         <div className="review-detail-container">
-            <Card 
+            <Card
                 loading={loading}
                 className="review-detail-card"
                 title={
@@ -95,8 +96,8 @@ const ReviewDetail = () => {
                 {plan && (
                     <>
                         <div className="plan-info-section">
-                            <Descriptions 
-                                bordered 
+                            <Descriptions
+                                bordered
                                 column={{ xxl: 2, xl: 2, lg: 2, md: 1, sm: 1, xs: 1 }}
                             >
                                 <Descriptions.Item label="ID kế hoạch">
@@ -131,7 +132,7 @@ const ReviewDetail = () => {
                                             title="File Preview"
                                             className="file-preview"
                                         />
-                                        <Button 
+                                        <Button
                                             type="primary"
                                             onClick={() => window.open(plan.attachmentUrl, '_blank')}
                                             className="open-new-tab-button"
@@ -174,15 +175,15 @@ const ReviewDetail = () => {
                                     label="Phản hồi"
                                     rules={[{ required: true, message: 'Vui lòng nhập phản hồi!' }]}
                                 >
-                                    <TextArea 
-                                        rows={4} 
+                                    <TextArea
+                                        rows={4}
                                         placeholder="Nhập phản hồi của bạn..."
                                     />
                                 </Form.Item>
 
                                 <Form.Item>
                                     <Space size="middle" className="form-buttons">
-                                        <Button 
+                                        <Button
                                             icon={<RollbackOutlined />}
                                             onClick={() => navigate(-1)}
                                         >
