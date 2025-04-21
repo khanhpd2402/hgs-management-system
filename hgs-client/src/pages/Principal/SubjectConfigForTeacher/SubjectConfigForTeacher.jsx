@@ -13,6 +13,13 @@ import { Settings } from "lucide-react";
 import UpdateTeacherSubjectModal from "./UpdateTeacherSubjectModal";
 import PaginationControls from "@/components/PaginationControls";
 import MyPagination from "@/components/MyPagination";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 export default function SubjectConfigForTeacher() {
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
@@ -24,35 +31,71 @@ export default function SubjectConfigForTeacher() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
+    teacher: null,
   });
+
+  const filteredData = filter.teacher
+    ? teachers.filter((t) => t.teacherId === Number(filter.teacher))
+    : teachers;
 
   const { page, pageSize } = filter;
 
-  const totalPages = Math.ceil(teachers?.length / pageSize);
-  const currentData = teachers.slice((page - 1) * pageSize, page * pageSize);
+  const totalPages = Math.ceil(filteredData?.length / pageSize);
+  const currentData = filteredData.slice(
+    (page - 1) * pageSize,
+    page * pageSize,
+  );
 
-  const startIndex = teachers.length === 0 ? 0 : (page - 1) * pageSize + 1;
-  const endIndex = Math.min(page * pageSize, teachers.length);
+  const startIndex = filteredData.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  const endIndex = Math.min(page * pageSize, filteredData.length);
 
   return (
     <div className="mt-6">
-      <h2 className="mb-6 text-2xl font-bold">
-        Cấu hình môn học cho giáo viên
-      </h2>
+      <div className="flex items-center justify-between">
+        <h2 className="mb-6 text-2xl font-bold">
+          Cấu hình môn học cho giáo viên
+        </h2>
+        <Select
+          value={filter.teacher ?? ""}
+          onValueChange={(value) =>
+            setFilter((prev) => ({
+              ...prev,
+              teacher: value === "all" ? null : value,
+              page: 1, // reset to first page when filter changes
+            }))
+          }
+        >
+          <SelectTrigger className="w-56">
+            <SelectValue placeholder="Lọc theo giáo viên" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">Tất cả</SelectItem>
+            {teachers.map((teacher) => (
+              <SelectItem
+                value={teacher.teacherId + ""}
+                key={teacher.teacherId}
+              >
+                {teacher.fullName}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
       <div className="mt-2 text-sm text-gray-600">
         <span>
           Môn học có dấu
           <span className="text-red-500"> *</span> là môn dạy chính
         </span>
       </div>
-      <div className="min-h-[400px] overflow-auto">
+      <div className="max-h-[400px] overflow-auto">
         <Table className="mt-2 w-full rounded-lg bg-white shadow">
           <TableHeader>
             <TableRow>
               <TableHead className="w-16">STT</TableHead>
-              <TableHead>Giáo viên</TableHead>
+              <TableHead className="w-96">Giáo viên</TableHead>
               <TableHead>Môn học có thể dạy</TableHead>
-              <TableHead>Thao tác</TableHead>
+              <TableHead className="w-32">Thao tác</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

@@ -1,7 +1,13 @@
-import React, { useState } from "react";
+import { useState } from "react";
 import UploadExamModal from "./UploadExamModal";
 import { useGradeLevels } from "@/services/common/queries";
 function UploadExam() {
+  //phan trang
+  const [filter, setFilter] = useState({
+    page: 1,
+    pageSize: 5,
+  });
+
   const [exams, setExams] = useState([
     {
       id: 1,
@@ -21,7 +27,6 @@ function UploadExam() {
 
   const gradeLevelQuery = useGradeLevels();
   const gradeLevels = gradeLevelQuery.data || [];
-  console.log(gradeLevels);
 
   // Handler to add a new exam from the upload form
   const handleAddExam = (exam) => {
@@ -33,6 +38,13 @@ function UploadExam() {
       },
     ]);
   };
+
+  const { page, pageSize } = filter;
+  // const totalPages = Math.ceil(teachers?.length / pageSize);
+  // const currentData = teachers.slice((page - 1) * pageSize, page * pageSize);
+
+  // const startIndex = teachers.length === 0 ? 0 : (page - 1) * pageSize + 1;
+  // const endIndex = Math.min(page * pageSize, teachers.length);
 
   return (
     <div>
@@ -46,11 +58,12 @@ function UploadExam() {
         <table className="min-w-full border text-sm">
           <thead>
             <tr className="bg-gray-100">
-              <th className="border px-4 py-2">#</th>
+              <th className="border px-4 py-2">STT</th>
               <th className="border px-4 py-2">Khối lớp</th>
               <th className="border px-4 py-2">Môn học</th>
               <th className="border px-4 py-2">Tiêu đề</th>
               <th className="border px-4 py-2">Tên file</th>
+              <th className="border px-4 py-2">Trạng thái</th>
             </tr>
           </thead>
           <tbody>
@@ -61,6 +74,7 @@ function UploadExam() {
                 <td className="border px-4 py-2 text-center">{exam.subject}</td>
                 <td className="border px-4 py-2">{exam.title}</td>
                 <td className="border px-4 py-2">{exam.filename}</td>
+                <td className="border px-4 py-2">Đang chờ duyệt</td>
               </tr>
             ))}
           </tbody>
