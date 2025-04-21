@@ -31,12 +31,6 @@ const ListLeaveRequest = lazy(
 const LeaveRequestDetail = lazy(
   () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
 );
-const ListLeaveRequest = lazy(
-  () => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"),
-);
-const LeaveRequestDetail = lazy(
-  () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
-);
 const Contact = lazy(() => import("@/pages/contact/Contact"));
 const TeacherLeaveRequest = lazy(
   () => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"),
@@ -260,7 +254,6 @@ const adminRouter = [
         </Suspense>
       </ProtectedRoute>
     ),
-  },
   },
 ];
 
