@@ -77,6 +77,10 @@ const menuItems = [
         label: "Tạo lịch giảng dạy",
         path: "/teacher/lesson-plan/create",
       },
+      {
+        label: "Nộp đề thi",
+        path: "/teacher/upload-exam",
+      },
     ],
   },
   {

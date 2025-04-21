@@ -4,6 +4,7 @@ import {
   deleteTeacher,
   importTeachers,
   updateTeacher,
+  uploadExam,
 } from "./api";
 
 import toast from "react-hot-toast";
@@ -71,6 +72,21 @@ export function useDeleteTeacher() {
         console.log("xóa thành công");
         toast.success("Xóa thành công");
         queryClient.invalidateQueries("teachers");
+      }
+    },
+  });
+}
+
+export function useUploadExam(data) {
+  return useMutation({
+    mutationFn: (data) => uploadExam(data),
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        console.log("đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        console.log("Tải lên đề thi thành công");
       }
     },
   });

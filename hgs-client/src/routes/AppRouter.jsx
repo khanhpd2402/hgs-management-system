@@ -78,6 +78,10 @@ const SubjectConfigForTeacher = lazy(
     import("@/pages/Principal/SubjectConfigForTeacher/SubjectConfigForTeacher"),
 );
 
+const UploadExam = lazy(
+  () => import("@/pages/Teacher/ExamProposal/UploadExam"),
+);
+
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -274,6 +278,16 @@ const teacherRouter = [
           <ScheduleTeacher />
         </Suspense>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/teacher/upload-exam",
+    element: (
+      // <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <UploadExam />
+      </Suspense>
+      // </ProtectedRoute>
     ),
   },
   // {
