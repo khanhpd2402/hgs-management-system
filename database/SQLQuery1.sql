@@ -161,7 +161,9 @@ CREATE TABLE [dbo].[ExamProposals](
 	[SemesterID] [int] NOT NULL,
 	[CreatedBy] [int] NOT NULL,
 	[CreatedDate] [datetime] NULL,
+	[Comment] [nvarchar](max) NULL,
 	[FileUrl] [nvarchar](500) NULL,
+	Status NVARCHAR(20) NOT NULL DEFAULT 'Chờ duyệt'
 PRIMARY KEY CLUSTERED 
 (
 	[ProposalID] ASC
@@ -296,7 +298,7 @@ CREATE TABLE [dbo].[LessonPlans](
 	[ReviewedDate] [datetime] NULL,
 	[ReviewerId] [int] NULL,
 	[EndDate] [datetime] NULL,
-	[Startdate] [datetime] NULL,
+	[StartDate] [datetime] NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[PlanID] ASC
@@ -810,7 +812,7 @@ SET IDENTITY_INSERT [dbo].[HomeroomAssignments] OFF
 GO
 SET IDENTITY_INSERT [dbo].[LessonPlans] ON 
 GO
-INSERT [dbo].[LessonPlans] ([PlanID], [TeacherID], [SubjectID], [PlanContent], [Status], [SemesterID], [Title], [AttachmentUrl], [Feedback], [SubmittedDate], [ReviewedDate], [ReviewerId], [EndDate], [startdate]) VALUES (1, 1, 1, N'...', N'Pending', 7, N'Đề cương cuối kì', NULL, NULL, CAST(N'2025-04-19T23:59:17.017' AS DateTime), NULL, NULL, CAST(N'2025-05-19' AS Date), CAST(N'2025-04-19' AS Date))
+INSERT [dbo].[LessonPlans] ([PlanID], [TeacherID], [SubjectID], [PlanContent], [Status], [SemesterID], [Title], [AttachmentUrl], [Feedback], [SubmittedDate], [ReviewedDate], [ReviewerId], [EndDate], [startdate]) VALUES (1, 1, 1, N'...', N'Chờ duyệt', 7, N'Đề cương cuối kì', NULL, NULL, CAST(N'2025-04-19T23:59:17.017' AS DateTime), NULL, NULL, CAST(N'2025-05-19' AS Date), CAST(N'2025-04-19' AS Date))
 GO
 SET IDENTITY_INSERT [dbo].[LessonPlans] OFF
 GO
@@ -4444,3 +4446,7 @@ SET status = (
     SELECT status FROM Users WHERE userid = 1
 )
 WHERE userid != 1;
+ 
+ALTER TABLE ExamProposals
+ADD CONSTRAINT CHK_ExamProposalStatus
+CHECK (Status IN (N'Chờ duyệt', N'Đã duyệt', N'Từ chối'));

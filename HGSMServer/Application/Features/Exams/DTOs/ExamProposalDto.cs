@@ -9,6 +9,8 @@
         public int SemesterId { get; set; }
         public int CreatedBy { get; set; }
         public DateTime? CreatedDate { get; set; }
-        public string FileUrl { get; set; } 
+        public string FileUrl { get; set; }
+        public string Status { get; set; }
+        public string? Comment { get; set; }
     }
 }
