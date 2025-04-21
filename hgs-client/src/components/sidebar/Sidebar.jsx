@@ -27,6 +27,8 @@ const menuItems = [
       { label: "Quản lý đơn xin nghỉ phép", path: "/system/leave-request" },
       { label: "Liên hệ", path: "/system/contact" },
       { label: "Quản lý năm học", path: "/system/academic-year" },
+      { label: "Quản lý giáo án", path: "/system/lesson-plan" },
+
       {
         label: "Cấu hình môn học",
         path: "/system/teacher-subject",
@@ -87,6 +89,7 @@ const menuItems = [
     label: "Học Sinh",
     icon: Users,
     path: "/student",
+
     children: [
       { label: "Hồ sơ học sinh", path: "/student/profile" },
       {
