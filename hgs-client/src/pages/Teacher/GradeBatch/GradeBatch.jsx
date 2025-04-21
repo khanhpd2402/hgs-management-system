@@ -77,7 +77,7 @@ export default function GradeBatch() {
 
       <div className="mt-4 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
         {currentGradeBatchs?.map((batch) => (
-          <Card key={batch.id} className="overflow-hidden">
+          <Card key={batch.batchID} className="overflow-hidden">
             <CardHeader className="pb-2">
               <div className="flex justify-between">
                 <CardTitle className="line-clamp-1 text-lg font-semibold">
@@ -134,6 +134,7 @@ export default function GradeBatch() {
                   }}
                   gradeBatchId={gradeBatchId}
                   semester={semester}
+                  currentYear={currentYear}
                 />
               </div>
             </CardContent>

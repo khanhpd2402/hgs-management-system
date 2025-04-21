@@ -11,9 +11,11 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useAddGradeBatch } from "@/services/principal/mutation";
+import {
+  useAddGradeBatch,
+  useUpdateGradeBatch,
+} from "@/services/principal/mutation";
 import { formatDate } from "@/helpers/formatDate";
-import { PlusCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { cleanString } from "@/helpers/removeWhiteSpace";
 import { useGradeBatch } from "@/services/principal/queries";
@@ -34,9 +36,8 @@ export default function GradeBatchDetail({
 
   const gradeBatchQuery = useGradeBatch(gradeBatchId);
   const gradeBatch = gradeBatchQuery.data || {};
-  console.log(gradeBatch);
+  const gradeBatchUpdateMutation = useUpdateGradeBatch();
 
-  const gradeBatchMutation = useAddGradeBatch();
   const [formData, setFormData] = useState({
     name: "",
     startDate: null,
@@ -92,9 +93,9 @@ export default function GradeBatchDetail({
     }
 
     const payload = {
-      academicYearId: currentYear?.academicYearID,
       batchName: cleanString(formData.name.trim()),
-      semesterId: semester,
+      semesterId: semester.semesterID,
+      academicYearId: semester.academicYearID,
       startDate: formatDate(formData.startDate),
       endDate: formatDate(formData.endDate),
       status: formData.isLocked ? "Không Hoạt Động" : "Hoạt Động",
@@ -102,9 +103,16 @@ export default function GradeBatchDetail({
 
     console.log("Form data submitted:", payload);
 
-    gradeBatchMutation.mutate(payload);
+    gradeBatchUpdateMutation.mutate(
+      { gradeBatchId, payload },
+      {
+        onSuccess: () => {
+          // setIsModalOpen(false);
+        },
+      },
+    );
 
-    setIsModalOpen(false);
+    // setIsModalOpen(false);
   };
 
   useEffect(() => {
