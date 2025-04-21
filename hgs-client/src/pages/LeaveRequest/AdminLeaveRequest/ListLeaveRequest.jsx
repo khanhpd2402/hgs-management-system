@@ -60,15 +60,15 @@ const ListLeaveRequest = () => {
 
   const fetchTeachers = async () => {
     const token = localStorage.getItem('token');
-    
+
     if (!token) {
       console.error("Không tìm thấy token trong localStorage.");
-      setTeachers([]); 
-      return; 
+      setTeachers([]);
+      return;
     }
 
     const cleanedToken = token.replace(/^"|"$/g, '');
-    console.log("Cleaned Token:", cleanedToken); 
+    console.log("Cleaned Token:", cleanedToken);
 
     try {
       console.log("Đang gọi API để lấy danh sách giáo viên...");
@@ -79,22 +79,22 @@ const ListLeaveRequest = () => {
         }
       });
 
-      console.log("API Response Data:", response.data); 
+      console.log("API Response Data:", response.data);
 
       if (response.data && response.data.teachers && Array.isArray(response.data.teachers)) {
         const formattedTeachers = response.data.teachers.map(teacher => ({
-          teacherId: teacher.teacherId || teacher.id, 
-          fullName: teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim(), 
-          dob: teacher.dob 
-        })).filter(teacher => teacher.teacherId && teacher.fullName); 
+          teacherId: teacher.teacherId || teacher.id,
+          fullName: teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim(),
+          dob: teacher.dob
+        })).filter(teacher => teacher.teacherId && teacher.fullName);
 
-        console.log("Formatted Teachers Data:", formattedTeachers); 
+        console.log("Formatted Teachers Data:", formattedTeachers);
 
         setTeachers(formattedTeachers);
         console.log("Đã cập nhật state teachers.");
       } else {
-         console.error("Dữ liệu API không hợp lệ hoặc không chứa mảng 'teachers':", response.data);
-         setTeachers([]); 
+        console.error("Dữ liệu API không hợp lệ hoặc không chứa mảng 'teachers':", response.data);
+        setTeachers([]);
       }
     } catch (error) {
       console.error("Lỗi nghiêm trọng khi tải danh sách giáo viên:");
@@ -108,7 +108,7 @@ const ListLeaveRequest = () => {
         console.error("Error setting up request:", error.message);
       }
       console.error("Full Error Object:", error.config);
-      setTeachers([]); 
+      setTeachers([]);
     }
   };
 
@@ -173,9 +173,9 @@ const ListLeaveRequest = () => {
             onChange={(value) => handleFilterChange('status', value)}
           >
             <Option value="all">Tất cả trạng thái</Option>
-            <Option value="Pending">Đang chờ duyệt</Option>
-            <Option value="Approved">Đã phê duyệt</Option>
-            <Option value="Rejected">Đã từ chối</Option>
+            <Option value="Chờ Duyệt">Đang chờ duyệt</Option>
+            <Option value="Đã Duyệt">Đã phê duyệt</Option>
+            <Option value="Từ Chối">Đã từ chối</Option>
           </Select>
         </Form.Item>
 
@@ -200,14 +200,14 @@ const ListLeaveRequest = () => {
         </Form.Item>
 
         <Form.Item label="Tìm kiếm">
-           <Input.Search
-              placeholder="Nhập tên GV hoặc lý do..."
-              allowClear
-              onChange={handleSearchChange}
-              onSearch={handleSearchSubmit}
-              style={{ width: 240 }}
-              defaultValue={filters.searchTerm}
-           />
+          <Input.Search
+            placeholder="Nhập tên GV hoặc lý do..."
+            allowClear
+            onChange={handleSearchChange}
+            onSearch={handleSearchSubmit}
+            style={{ width: 240 }}
+            defaultValue={filters.searchTerm}
+          />
         </Form.Item>
       </Form>
     </Card>
@@ -225,7 +225,7 @@ const ListLeaveRequest = () => {
       key: 'teacherId',
       render: (teacherId) => getTeacherInfo(teacherId),
     },
-    
+
     {
       title: 'Ngày yêu cầu',
       dataIndex: 'requestDate',
@@ -255,13 +255,13 @@ const ListLeaveRequest = () => {
       key: 'status',
       render: (status) => (
         <Tag color={
-          status === 'Pending' ? 'gold' 
-          : status === 'Approved' ? 'green' 
-          : 'red'
+          status === 'Chờ Duyệt' ? 'gold'
+            : status === 'Đã Duyệt' ? 'green'
+              : 'red'
         }>
-          {status === 'Pending' ? 'Đang chờ duyệt'
-           : status === 'Approved' ? 'Đã phê duyệt'
-           : 'Đã từ chối'}
+          {status === 'Chờ Duyệt' ? 'Đang chờ duyệt'
+            : status === 'Đã Duyệt' ? 'Đã phê duyệt'
+              : 'Đã từ chối'}
         </Tag>
       ),
     },
@@ -286,7 +286,7 @@ const ListLeaveRequest = () => {
   return (
     <div style={{ padding: '24px' }}>
       <h1>Danh sách yêu cầu nghỉ phép</h1>
-      
+
       <FilterSection />
 
       <Table

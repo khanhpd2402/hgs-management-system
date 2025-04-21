@@ -62,3 +62,17 @@ export const deleteLeaverRequestById = async (id) => {
     })
   ).data;
 };
+
+export const updateLeaveRequestById = async (id, data) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+
+  return (
+    await axiosInstance.put(`LeaveRequest/${id}`, data, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type":
+          "application/json;odata.metadata=minimal;odata.streaming=true",
+      },
+    })
+  ).data;
+};
