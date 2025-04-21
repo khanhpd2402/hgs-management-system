@@ -31,6 +31,12 @@ const ListLeaveRequest = lazy(
 const LeaveRequestDetail = lazy(
   () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
 );
+const ListLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"),
+);
+const LeaveRequestDetail = lazy(
+  () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
+);
 const Contact = lazy(() => import("@/pages/contact/Contact"));
 const TeacherLeaveRequest = lazy(
   () => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"),
@@ -59,6 +65,7 @@ const TeacherLeaveRequestDetail = lazy(
       "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"
     ),
 );
+
 // import AcademicYearManagement from "@/pages/Principal/AcademicYearManagement/AcademicYearManagement";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
@@ -253,6 +260,7 @@ const adminRouter = [
         </Suspense>
       </ProtectedRoute>
     ),
+  },
   },
 ];
 
