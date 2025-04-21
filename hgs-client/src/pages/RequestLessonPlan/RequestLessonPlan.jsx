@@ -4,12 +4,11 @@ import LessonPlanList from './LessonPlanList.jsx';
 import ReviewList from './ReviewList/ReviewList.jsx';
 
 const RequestLessonPlan = () => {
-    const [activeTab, setActiveTab] = useState('upload'); // Mặc định hiển thị form upload
+    const [activeTab, setActiveTab] = useState('list'); // Mặc định hiển thị form upload
 
     const renderContent = () => {
         switch (activeTab) {
-            case 'upload':
-                return <UploadLessonPlan />;
+
             case 'list':
                 return <LessonPlanList />;
             case 'review':
@@ -24,13 +23,6 @@ const RequestLessonPlan = () => {
         <div className="p-6">
             {/* Bộ lọc */}
             <div className="mb-4 flex space-x-4">
-                <button
-                    onClick={() => setActiveTab('upload')}
-                    className={`py-2 px-4 rounded text-black transition-colors border
-                    ${activeTab === 'upload' ? 'border-gray-500 bg-gray-100' : 'border-gray-300 hover:bg-gray-100'}`}
-                >
-                    Tạo Kế Hoạch Mới
-                </button>
 
                 <button
                     onClick={() => setActiveTab('list')}

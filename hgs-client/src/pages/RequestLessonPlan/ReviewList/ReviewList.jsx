@@ -37,7 +37,7 @@ const ReviewList = () => {
     }, []);
 
     const handleReviewClick = (planId) => {
-        navigate(`/teacher/review-detail/${planId}`);
+        navigate(`/system/review-detail/${planId}`);
     };
 
     const handlePreviewClick = (planId) => {
@@ -45,7 +45,7 @@ const ReviewList = () => {
         console.log('Xem trước:', planId);
     };
 
-    const filteredPlans = lessonPlans.filter(plan => 
+    const filteredPlans = lessonPlans.filter(plan =>
         plan.teacherName?.toLowerCase().includes(searchText.toLowerCase()) ||
         plan.subjectName?.toLowerCase().includes(searchText.toLowerCase()) ||
         plan.planContent?.toLowerCase().includes(searchText.toLowerCase()) ||
@@ -97,7 +97,7 @@ const ReviewList = () => {
             key: 'action',
             render: (_, record) => (
                 <Space size="middle">
-                   
+
                     <Button
                         type="primary"
                         icon={<CheckCircleOutlined />}
