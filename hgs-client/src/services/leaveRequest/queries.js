@@ -1,19 +1,28 @@
 import { useQuery } from "@tanstack/react-query";
-import { getLeaveRequestByTeacherId, getLeaveRequestByAdmin } from "./api";
+import {
+  getLeaveRequestByTeacherId,
+  getLeaveRequestByAdmin,
+  getLeaveRequestById,
+} from "./api";
 
-export const useGetLeaveRequestByTeacherId = (teacherId) => {
+export const useGetLeaveRequestByTeacherId = (teacherId, status) => {
   return useQuery({
-    queryKey: ['leaveRequests', 'teacher', teacherId],
-    queryFn: () => getLeaveRequestByTeacherId(teacherId),
+    queryKey: ["leaveRequests", "teacher", teacherId, status],
+    queryFn: () => getLeaveRequestByTeacherId(teacherId, status),
     enabled: !!teacherId,
   });
 };
 
 export const useGetLeaveRequestByAdmin = () => {
   return useQuery({
-    queryKey: ['leaveRequests', 'admin'],
+    queryKey: ["leaveRequests", "admin"],
     queryFn: getLeaveRequestByAdmin,
   });
 };
-
-
+export const useGetLeaveRequestById = (id) => {
+  return useQuery({
+    queryKey: ["leaveRequests", "id", id],
+    queryFn: () => getLeaveRequestById(id),
+    enabled: !!id,
+  });
+};
