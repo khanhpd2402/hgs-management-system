@@ -85,6 +85,11 @@ const ClassManagement = lazy(
   () => import("@/pages/Principal/ClassManagement/ClassManagement"),
 );
 
+const SubjectConfigForTeacher = lazy(
+  () =>
+    import("@/pages/Principal/SubjectConfigForTeacher/SubjectConfigForTeacher"),
+);
+
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -147,6 +152,16 @@ const adminRouter = [
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <ClassManagement />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/teacher-subject",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <SubjectConfigForTeacher />
         </Suspense>
       </ProtectedRoute>
     ),

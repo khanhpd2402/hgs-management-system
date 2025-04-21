@@ -11,10 +11,12 @@ import {
   deleteSubjectConfigue,
   deleteTeachingAssignment,
   resetUserPassword,
+  updateAcademicYear,
   updateClass,
   updateHomeroom,
   updateSubject,
   updateSubjectConfigue,
+  updateTeacherSubjectByTeacherId,
   updateTeachingAssignment,
 } from "./api";
 import toast from "react-hot-toast";
@@ -26,14 +28,19 @@ export function useAddGradeBatch() {
     mutationFn: (data) => {
       return addGradeBatch(data);
     },
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         toast.error("Thêm thất bại");
       } else {
         console.log(data);
-        queryClient.invalidateQueries({ queryKey: ["grade-batchs"] });
-        toast.success("Thêm thành công");
+        queryClient.invalidateQueries({
+          queryKey: [
+            "grade-batchs",
+            { academicYearId: variables.academicYearId },
+          ],
+        });
+        toast.success("Thêm đợt nhập điểm thành công");
       }
     },
   });
@@ -258,7 +265,7 @@ export function useCreateAcademicYear() {
     mutationFn: (data) => {
       return createAcademicYear(data);
     },
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         toast.error("Đã có lỗi xảy ra");
@@ -266,6 +273,37 @@ export function useCreateAcademicYear() {
         console.log(data);
         toast.success("Tạo năm học thành công");
         queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
+        queryClient.invalidateQueries({
+          queryKey: ["all-semesters"],
+        });
+      }
+    },
+  });
+}
+
+export function useUpdateAcademicYear() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ academicYearId, data }) => {
+      return updateAcademicYear(academicYearId, data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật năm học thành công");
+        queryClient.invalidateQueries({ queryKey: ["AcademicYears"] });
+        queryClient.invalidateQueries({
+          queryKey: ["AcademicYear", { id: variables.academicYearId }],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["semesters", { academicYearId: variables.academicYearId }],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["all-semesters"],
+        });
       }
     },
   });
@@ -304,7 +342,10 @@ export function useCreateClass() {
 
         toast.success("Tạo lớp thành công");
         queryClient.invalidateQueries({
-          queryKey: ["classes-with-student-count"],
+          queryKey: [
+            "classes-with-student-count",
+            { academicYearId: variables.academicYearId },
+          ],
         });
 
         queryClient.invalidateQueries({ queryKey: ["classes"] });
@@ -342,6 +383,29 @@ export function useUpdateClass() {
         queryClient.invalidateQueries({
           queryKey: ["class", { id: variables.classId }],
         });
+      }
+    },
+  });
+}
+
+//teacher subject
+export function useUpdateTeacherSubject() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ teacherId, data }) => {
+      return updateTeacherSubjectByTeacherId(teacherId, data);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật môn học thành công");
+        queryClient.invalidateQueries({
+          queryKey: ["teacher-subject", { teacherId: variables.teacherId }],
+        });
+        queryClient.invalidateQueries({ queryKey: ["teacherSubjects"] });
       }
     },
   });

@@ -2,6 +2,7 @@
 using Application.Features.TeacherSubjects.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -76,21 +77,22 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPut("{id}")]
+        [HttpPut("by-teacher/{teacherId}")] 
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> Update(int id, [FromBody] UpdateTeacherSubjectDto dto)
+        public async Task<IActionResult> UpdateByTeacherId(int teacherId, [FromBody] UpdateTeacherSubjectDto dto)
         {
             try
             {
-                if (id != dto.Id) return BadRequest("ID mismatch.");
-                await _service.UpdateAsync(dto);
-                return Ok(new { message = "TeacherSubject updated successfully!" });
+                if (teacherId != dto.TeacherId) return BadRequest("Teacher ID mismatch."); 
+                await _service.UpdateAsync(dto); 
+                return Ok(new { message = "Teacher's subjects updated successfully!" });
             }
             catch (Exception ex)
             {
                 return BadRequest(ex.Message);
             }
         }
+
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]

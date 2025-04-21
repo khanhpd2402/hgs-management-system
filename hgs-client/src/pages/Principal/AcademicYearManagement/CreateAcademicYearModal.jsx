@@ -22,17 +22,20 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
 
   const createAcademicYearMutation = useCreateAcademicYear();
 
-  // Validation logic
   const isEndSemester1Valid =
     endSemester1 && startSemester1 && endSemester1 > startSemester1;
   const isStartSemester2Valid =
     startSemester2 && endSemester1 && startSemester2 > endSemester1;
+
+  const isStartSemester1Valid =
+    startSemester1 && startSemester1.getFullYear() >= year;
   const isEndSemester2Valid =
     endSemester2 &&
     startSemester2 &&
     endSemester1 &&
     endSemester2 > endSemester1 &&
-    endSemester2 > startSemester2;
+    endSemester2 > startSemester2 &&
+    endSemester2.getFullYear() <= year + 1;
 
   const isFormValid =
     year &&
@@ -42,7 +45,8 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
     endSemester2 &&
     isEndSemester1Valid &&
     isStartSemester2Valid &&
-    isEndSemester2Valid;
+    isEndSemester2Valid &&
+    isStartSemester1Valid;
 
   const handleSave = () => {
     if (isFormValid) {
@@ -57,6 +61,7 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
       };
       console.log(data);
       createAcademicYearMutation.mutate(data);
+      onCancel();
     }
   };
 
@@ -110,6 +115,12 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
             <DatePicker
               value={startSemester1}
               onSelect={(date) => {
+                if (date && date.getFullYear() < year) {
+                  toast.error(
+                    "Ngày bắt đầu học kỳ 1 không được nhỏ hơn năm học hiện tại",
+                  );
+                  return;
+                }
                 if (endSemester1 && date && endSemester1 <= date) {
                   toast.error(
                     "Ngày bắt đầu học kỳ 1 phải nhỏ hơn ngày kết thúc học kỳ 1",
@@ -174,6 +185,12 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
             <DatePicker
               value={endSemester2}
               onSelect={(date) => {
+                if (date && date.getFullYear() > year + 1) {
+                  toast.error(
+                    "Ngày kết thúc học kỳ 2 không được vượt quá năm học tiếp theo",
+                  );
+                  return;
+                }
                 if (
                   (startSemester2 && date && date <= startSemester2) ||
                   (endSemester1 && date && date <= endSemester1)

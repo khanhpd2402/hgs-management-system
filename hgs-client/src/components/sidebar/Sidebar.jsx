@@ -28,6 +28,11 @@ const menuItems = [
       { label: "Liên hệ", path: "/system/contact" },
       { label: "Quản lý năm học", path: "/system/academic-year" },
       { label: "Quản lý giáo án", path: "/system/lesson-plan" },
+
+      {
+        label: "Cấu hình môn học",
+        path: "/system/teacher-subject",
+      },
       // { label: "Quản lý giáo viên", path: "/admin/teacher" },
       // { label: "Quản lý học sinh", path: "/admin/student" },
     ],
@@ -78,11 +83,13 @@ const menuItems = [
     label: "Học Sinh",
     icon: Users,
     path: "/student",
-    children: [{ label: "Hồ sơ học sinh", path: "/student/profile" },
-    {
-      label: "Thời khóa biểu học sinh",
-      path: "/student/schedule",
-    },
+
+    children: [
+      { label: "Hồ sơ học sinh", path: "/student/profile" },
+      {
+        label: "Thời khóa biểu học sinh",
+        path: "/student/schedule",
+      },
     ],
   },
   {

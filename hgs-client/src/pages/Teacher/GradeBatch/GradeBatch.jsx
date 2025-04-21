@@ -7,24 +7,25 @@ import GradeBatchDetail from "./GradeBatchDetail";
 import { cn } from "@/lib/utils";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
 import { useGradeBatchs } from "@/services/principal/queries";
-import { formatDate } from "@/helpers/formatDate";
+import { formatDate, formatDateString } from "@/helpers/formatDate";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 
 export default function GradeBatch() {
   const { currentYear } = useLayout();
   const [semester, setSemester] = useState(null);
 
-  const gradeBatchs = useGradeBatchs();
+  const gradeBatchs = useGradeBatchs(currentYear?.academicYearID);
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
+  console.log(gradeBatchs.data);
   const semesters = semesterQuery.data || [];
   const currentGradeBatchs = gradeBatchs?.data?.filter(
     (batch) => batch.semesterId === semester,
   );
   const getStatusBadge = (status) => {
     switch (status) {
-      case true:
+      case "Hoạt Động":
         return <Badge className="bg-green-500">Đang mở</Badge>;
-      case false:
+      case "Không Hoạt Động":
         return <Badge className="bg-gray-500">Đã đóng</Badge>;
 
       default:
@@ -78,7 +79,7 @@ export default function GradeBatch() {
                 <CardTitle className="line-clamp-1 text-lg font-semibold">
                   {batch.batchName}
                 </CardTitle>
-                {getStatusBadge(batch.isActive)}
+                {getStatusBadge(batch.status)}
               </div>
             </CardHeader>
             <Separator />
@@ -87,7 +88,8 @@ export default function GradeBatch() {
                 <div className="flex justify-between">
                   <span className="text-gray-500">Thời gian:</span>
                   <span>
-                    {formatDate(batch.startDate)} - {formatDate(batch.endDate)}
+                    {formatDateString(formatDate(batch.startDate))} -{" "}
+                    {formatDateString(formatDate(batch.endDate))}
                   </span>
                 </div>
               </div>
