@@ -5,6 +5,7 @@ import {
   createLeaveRequest,
   deleteLeaverRequestById,
   updateLeaveRequestById,
+  substituteTeacher,
 } from "./api";
 
 export const useCreateLeaveRequest = () => {
@@ -62,6 +63,27 @@ export const useUpdateLeaveRequest = () => {
       const errorMessage =
         error.response?.data?.message ||
         "Có lỗi xảy ra khi cập nhật yêu cầu nghỉ phép.";
+      toast.error(errorMessage);
+    },
+  });
+};
+
+export const useSubstituteTeacher = () => {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (payload) => substituteTeacher(payload),
+    onSuccess: (data) => {
+      toast.success(
+        data?.message || "Phân công giáo viên thay thế thành công!",
+      );
+      queryClient.invalidateQueries({ queryKey: ["leaveRequests"] });
+      queryClient.invalidateQueries({ queryKey: ["substituteTeachings"] });
+    },
+    onError: (error) => {
+      const errorMessage =
+        error.response?.data?.message ||
+        "Có lỗi xảy ra khi phân công giáo viên thay thế.";
       toast.error(errorMessage);
     },
   });

@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Form, Select, Button, message } from 'antd';
+import { Card, Table, Form, Select, Button, message, Input } from 'antd';
 import dayjs from 'dayjs';
+import axios from 'axios';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
+import { useTeachers } from '../../../services/teacher/queries';
 
 const { Option } = Select;
 
@@ -22,46 +24,98 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     const [loading, setLoading] = useState(false);
     const [form] = Form.useForm();
     const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
+    const { data: teachersData, isLoading: teachersLoading } = useTeachers();
     const [filteredSchedules, setFilteredSchedules] = useState([]);
 
-
-    // Process teacher schedule when data changes
-    useEffect(() => {
-        if (teacherSchedule && leaveRequest?.leaveFromDate && leaveRequest?.leaveToDate) {
-            const startDate = dayjs(leaveRequest.leaveFromDate);
-            const endDate = dayjs(leaveRequest.leaveToDate);
-            const processedSchedules = [];
-
-            let currentDate = startDate;
-            while (currentDate.isSame(endDate) || currentDate.isBefore(endDate)) {
-                const weekday = getWeekdayName(currentDate);
-                const daySchedules = teacherSchedule.filter(schedule => schedule.dayOfWeek === weekday);
-
-                daySchedules.forEach(schedule => {
-                    processedSchedules.push({
-                        scheduleId: `${currentDate.format('YYYY-MM-DD')}-${schedule.timetableDetailId}`,
-                        date: currentDate.format('YYYY-MM-DD'),
-                        dayOfWeek: schedule.dayOfWeek,
-                        period: schedule.periodName,
-                        className: schedule.className,
-                        subject: schedule.subjectName,
-                        timetableDetailId: schedule.timetableDetailId
-                    });
-                });
-
-                currentDate = currentDate.add(1, 'day');
+    const handleSaveAssignment = async (record, teacherId, note) => {
+        try {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            if (!token) {
+                message.error('Không tìm thấy token!');
+                return;
             }
 
-            setFilteredSchedules(processedSchedules);
-        }
-    }, [teacherSchedule, leaveRequest?.leaveFromDate, leaveRequest?.leaveToDate]);
+            const payload = {
+                timetableDetailId: record.timetableDetailId,
+                originalTeacherId: leaveRequest.teacherId,
+                substituteTeacherId: teacherId,
+                date: record.date,
+                note: note || ''
+            };
 
-    const mockTeachers = [
-        { id: 'T001', name: 'Nguyễn Văn A' },
-        { id: 'T002', name: 'Trần Thị B' },
-        { id: 'T003', name: 'Lê Văn C' },
-        { id: 'T004', name: 'Phạm Thị D' }
-    ];
+            await axios.post('https://localhost:8386/api/SubstituteTeachings', payload, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                }
+            });
+
+            message.success('Đã lưu phân công cho tiết học này!');
+        } catch (error) {
+            console.error('Error saving assignment:', error);
+            message.error('Lỗi khi lưu phân công: ' + (error.response?.data?.message || error.message));
+        }
+    };
+
+    // Process teacher schedule when data changes
+    // Add this mapping function at the top of the component
+    const mapWeekdayToAPI = (weekday) => {
+        const weekdayMapping = {
+            'Chủ Nhật': 'Chủ Nhật',
+            'Thứ Hai': 'Thứ Hai',
+            'Thứ Ba': 'Thứ Ba',
+            'Thứ Tư': 'Thứ Tư',
+            'Thứ Năm': 'Thứ Năm',
+            'Thứ Sáu': 'Thứ Sáu',
+            'Thứ Bảy': 'Thứ Bảy'
+        };
+        return weekdayMapping[weekday];
+    };
+
+    // Update the useEffect that processes the schedule
+    // Add console logs to debug the data
+    // First, add this console log outside useEffect to track initial data
+    console.log('Initial render:', { teacherSchedule, leaveRequest });
+
+    // Then update the useEffect
+    useEffect(() => {
+        if (!teacherSchedule?.[0]?.details || !leaveRequest) {
+            return;
+        }
+
+        const scheduleDetails = teacherSchedule[0].details;
+        const startDate = dayjs(leaveRequest.leaveFromDate);
+        const endDate = dayjs(leaveRequest.leaveToDate);
+        const processedSchedules = [];
+
+        let currentDate = startDate;
+        while (currentDate.isSame(endDate) || currentDate.isBefore(endDate)) {
+            const weekday = getWeekdayName(currentDate);
+
+            // Get all schedules for the current weekday
+            const daySchedules = scheduleDetails.filter(schedule => {
+                return schedule.dayOfWeek === weekday;
+            });
+
+            // Add each schedule for this day
+            daySchedules.forEach(schedule => {
+                processedSchedules.push({
+                    scheduleId: `${currentDate.format('YYYY-MM-DD')}-${schedule.timetableDetailId}`,
+                    date: currentDate.format('YYYY-MM-DD'),
+                    dayOfWeek: weekday,
+                    period: schedule.periodName,
+                    className: schedule.className,
+                    subject: schedule.subjectName,
+                    timetableDetailId: schedule.timetableDetailId
+                });
+            });
+
+            currentDate = currentDate.add(1, 'day');
+        }
+
+        setFilteredSchedules(processedSchedules);
+    }, [teacherSchedule, leaveRequest]);
+
 
     const handleAssignSubstitute = async (values) => {
         try {
@@ -111,14 +165,54 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                     <Select
                         placeholder="Chọn giáo viên dạy thay"
                         optionFilterProp="children"
+                        loading={teachersLoading}
                     >
-                        {mockTeachers.map(teacher => (
-                            <Option key={teacher.id} value={teacher.id}>
-                                {teacher.name}
+                        {teachersData?.teachers?.map(teacher => (
+                            <Option
+                                key={teacher.teacherId}
+                                value={teacher.teacherId}
+                            >
+                                {teacher.fullName} - {teacher.teacherId}
                             </Option>
                         ))}
                     </Select>
                 </Form.Item>
+            )
+        },
+        {
+            title: 'Ghi chú',
+            key: 'note',
+            render: (_, record) => (
+                <Form.Item
+                    name={['notes', record.scheduleId]}
+                    style={{ margin: 0 }}
+                >
+                    <Input.TextArea
+                        placeholder="Nhập ghi chú"
+                        autoSize={{ minRows: 1, maxRows: 3 }}
+                    />
+                </Form.Item>
+            )
+        },
+        {
+            title: 'Lưu',
+            key: 'save',
+            render: (_, record) => (
+                <Button
+                    type="primary"
+                    size="small"
+                    onClick={async () => {
+                        const teacherId = form.getFieldValue(['assignments', record.scheduleId]);
+                        const note = form.getFieldValue(['notes', record.scheduleId]);
+                        if (!teacherId) {
+                            message.error('Vui lòng chọn giáo viên trước khi lưu!');
+                            return;
+                        }
+                        await handleSaveAssignment(record, teacherId, note);
+                    }}
+                >
+                    Lưu
+                </Button>
             )
         }
     ];
@@ -127,32 +221,11 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     return (
         <div>
             <Card title="Thông tin lịch dạy cần thay thế" style={{ marginBottom: 16 }}>
-                <p><strong>Giáo viên nghỉ:</strong> {leaveRequest?.teacherId}</p>
                 <p>
                     <strong>Thời gian nghỉ:</strong> {dayjs(leaveRequest?.leaveFromDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveFromDate)})
                     - {dayjs(leaveRequest?.leaveToDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveToDate)})
                 </p>
-                <div style={{ marginTop: 8 }}>
-                    <strong>Các ngày nghỉ:</strong>
-                    <ul style={{ marginTop: 4, marginBottom: 0 }}>
-                        {(() => {
-                            const days = [];
-                            let currentDate = dayjs(leaveRequest?.leaveFromDate);
-                            const endDate = dayjs(leaveRequest?.leaveToDate);
 
-                            while (currentDate.isSame(endDate) || currentDate.isBefore(endDate)) {
-                                days.push(
-                                    <li key={currentDate.format('YYYY-MM-DD')}>
-                                        {currentDate.format('DD/MM/YYYY')} ({getWeekdayName(currentDate)})
-                                    </li>
-                                );
-                                currentDate = currentDate.add(1, 'day');
-                            }
-
-                            return days;
-                        })()}
-                    </ul>
-                </div>
             </Card>
 
             <Card title="Phân công giáo viên dạy thay">

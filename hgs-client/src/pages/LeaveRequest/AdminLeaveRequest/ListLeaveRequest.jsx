@@ -19,7 +19,7 @@ const ListLeaveRequest = () => {
   const debounceTimeoutRef = useRef(null);
 
   const { data: leaveRequestsData, isLoading: loadingLeaveRequests, error: errorLeaveRequests } = useGetLeaveRequestByAdmin();
-  const { data: teachersData, isLoading: loadingTeachers } = useTeachers();
+  const { data: teachersData, isLoading: teachersLoading } = useTeachers();
 
   useEffect(() => {
     if (teachersData?.teachers) {
@@ -33,10 +33,7 @@ const ListLeaveRequest = () => {
     }
   }, [teachersData]);
 
-  // Remove the fetchTeachers function and its useEffect
-  useEffect(() => {
-    fetchTeachers();
-  }, []);
+
 
   useEffect(() => {
     if (leaveRequestsData) {
@@ -71,60 +68,6 @@ const ListLeaveRequest = () => {
     }
 
     setFilteredData(result);
-  };
-
-  const fetchTeachers = async () => {
-    const token = localStorage.getItem('token');
-
-    if (!token) {
-      console.error("Không tìm thấy token trong localStorage.");
-      setTeachers([]);
-      return;
-    }
-
-    const cleanedToken = token.replace(/^"|"$/g, '');
-    console.log("Cleaned Token:", cleanedToken);
-
-    try {
-      console.log("Đang gọi API để lấy danh sách giáo viên...");
-      const response = await axios.get('https://localhost:8386/api/Teachers', {
-        headers: {
-          'accept': '*/*',
-          'Authorization': `Bearer ${cleanedToken}`
-        }
-      });
-
-      console.log("API Response Data:", response.data);
-
-      if (response.data && response.data.teachers && Array.isArray(response.data.teachers)) {
-        const formattedTeachers = response.data.teachers.map(teacher => ({
-          teacherId: teacher.teacherId || teacher.id,
-          fullName: teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim(),
-          dob: teacher.dob
-        })).filter(teacher => teacher.teacherId && teacher.fullName);
-
-        console.log("Formatted Teachers Data:", formattedTeachers);
-
-        setTeachers(formattedTeachers);
-        console.log("Đã cập nhật state teachers.");
-      } else {
-        console.error("Dữ liệu API không hợp lệ hoặc không chứa mảng 'teachers':", response.data);
-        setTeachers([]);
-      }
-    } catch (error) {
-      console.error("Lỗi nghiêm trọng khi tải danh sách giáo viên:");
-      if (error.response) {
-        console.error("Status:", error.response.status);
-        console.error("Data:", error.response.data);
-        console.error("Headers:", error.response.headers);
-      } else if (error.request) {
-        console.error("Request Error: Không nhận được phản hồi từ server.", error.request);
-      } else {
-        console.error("Error setting up request:", error.message);
-      }
-      console.error("Full Error Object:", error.config);
-      setTeachers([]);
-    }
   };
 
   const getTeacherInfo = (teacherId) => {

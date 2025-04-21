@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Form, Select, Button, message } from 'antd';
+import { Card, Table, Form, Select, Button, message, Input } from 'antd';
 import dayjs from 'dayjs';
+import axios from 'axios';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
-
+import { useSubstituteTeacher } from '../../../services/leaveRequest/mutation'
 const { Option } = Select;
+
 
 const getWeekdayName = (date) => {
   const weekdays = {
@@ -25,6 +27,25 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
   const { data: teachersData, isLoading: teachersLoading } = useTeachers();
   const [filteredSchedules, setFilteredSchedules] = useState([]);
+  const substituteTeacherMutation = useSubstituteTeacher();
+
+  const handleSaveAssignment = async (record, teacherId, note) => {
+    try {
+      const payload = {
+        timetableDetailId: record.timetableDetailId,
+        originalTeacherId: leaveRequest.teacherId,
+        substituteTeacherId: teacherId,
+        date: record.date,
+        note: note || ''
+      };
+
+      await substituteTeacherMutation.mutateAsync(payload);
+      message.success('Đã lưu phân công cho tiết học này!');
+    } catch (error) {
+      console.error('Error saving assignment:', error);
+      message.error('Lỗi khi lưu phân công: ' + (error.response?.data?.message || error.message));
+    }
+  };
 
 
   // Process teacher schedule when data changes
@@ -86,22 +107,27 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     setFilteredSchedules(processedSchedules);
   }, [teacherSchedule, leaveRequest]);
 
-  const mockTeachers = [
-    { id: 'T001', name: 'Nguyễn Văn A' },
-    { id: 'T002', name: 'Trần Thị B' },
-    { id: 'T003', name: 'Lê Văn C' },
-    { id: 'T004', name: 'Phạm Thị D' }
-  ];
 
   const handleAssignSubstitute = async (values) => {
     try {
       setLoading(true);
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      console.log('Dữ liệu phân công:', values);
-      message.success('Phân công giáo viên dạy thay thành công');
-      form.resetFields(['assignments']);
+      const assignments = values.assignments || {};
+      const notes = values.notes || {};
+
+      // Save assignments one by one
+      for (const schedule of filteredSchedules) {
+        const teacherId = assignments[schedule.scheduleId];
+        const note = notes[schedule.scheduleId];
+
+        if (teacherId) {
+          await handleSaveAssignment(schedule, teacherId, note);
+        }
+      }
+
+      message.success('Đã lưu tất cả phân công thành công!');
+      form.resetFields(['assignments', 'notes']);
     } catch (error) {
-      message.error('Phân công giáo viên dạy thay thất bại');
+      message.error('Có lỗi xảy ra khi lưu phân công');
     } finally {
       setLoading(false);
     }
@@ -154,6 +180,42 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
           </Select>
         </Form.Item>
       )
+    },
+    {
+      title: 'Ghi chú',
+      key: 'note',
+      render: (_, record) => (
+        <Form.Item
+          name={['notes', record.scheduleId]}
+          style={{ margin: 0 }}
+        >
+          <Input.TextArea
+            placeholder="Nhập ghi chú"
+            autoSize={{ minRows: 1, maxRows: 3 }}
+          />
+        </Form.Item>
+      )
+    },
+    {
+      title: 'Lưu',
+      key: 'save',
+      render: (_, record) => (
+        <Button
+          type="primary"
+          size="small"
+          onClick={async () => {
+            const teacherId = form.getFieldValue(['assignments', record.scheduleId]);
+            const note = form.getFieldValue(['notes', record.scheduleId]);
+            if (!teacherId) {
+              message.error('Vui lòng chọn giáo viên trước khi lưu!');
+              return;
+            }
+            await handleSaveAssignment(record, teacherId, note);
+          }}
+        >
+          Lưu
+        </Button>
+      )
     }
   ];
   console.log("filteredSchedules", filteredSchedules)
@@ -177,11 +239,11 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
             pagination={false}
             loading={scheduleLoading}
           />
-          <Form.Item style={{ marginTop: 16, textAlign: 'right' }}>
+          {/* <Form.Item style={{ marginTop: 16, textAlign: 'right' }}>
             <Button type="primary" htmlType="submit" loading={loading}>
               Lưu phân công
             </Button>
-          </Form.Item>
+          </Form.Item> */}
         </Form>
       </Card>
     </div>

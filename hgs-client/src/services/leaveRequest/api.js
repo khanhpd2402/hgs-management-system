@@ -76,3 +76,16 @@ export const updateLeaveRequestById = async (id, data) => {
     })
   ).data;
 };
+
+export const substituteTeacher = async (payload) => {
+  const token = JSON.parse(localStorage.getItem("token"));
+
+  return (
+    await axiosInstance.post(`SubstituteTeachings`, payload, {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+    })
+  ).data;
+};
