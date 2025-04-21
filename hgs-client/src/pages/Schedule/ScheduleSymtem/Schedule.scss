@@ -1,4 +1,4 @@
-.table-container {
+.schedule-container {
     width: 100%;
     max-width: calc(100vw - 20rem); /* Điều chỉnh linh hoạt theo màn hình */
     overflow-x: auto; /* Cuộn ngang nếu bảng quá rộng */
@@ -289,6 +289,28 @@ button {
     padding: 4px;
 }
 
+    
+}
+
+.schedule-table td {
+    transition: background-color 0.2s;
+    
+    &[draggable="true"]:hover {
+        background-color: #f5f5f5;
+    }
+    
+    &.drag-over {
+        background-color: #e0e0e0;
+    }
+}
+
+.empty-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+}
+
 .cell-select {
     width: 100%;
     padding: 2px;
@@ -433,3 +455,48 @@ button {
         transform: rotate(-10deg);
     }
 }
+.timetable-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.timetable-wrapper.top-scroll {
+    height: 20px; // chỉ để hiển thị thanh cuộn
+    margin-bottom: 8px;
+}
+
+.timetable-table.dummy-scroll {
+    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+    height: 1px; // để nội dung không hiển thị
+}
+
+.schedule-container {
+    width: 100%;
+    max-width: calc(100vw - 20rem);
+    position: relative;
+    margin-top: 50px;
+    overflow: hidden; /* Changed from overflow-x: auto to hidden */
+}
+
+.sticky-filter {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: #fff;
+    width: 100%;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Move the horizontal scroll to table container */
+    padding: 0 16px;
+    margin-top: 16px;
+}
+
+/* Rest of your existing styles... */

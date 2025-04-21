@@ -18,7 +18,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 const DatePicker = ({ value, onSelect, locale = vi, disabled = true }) => {
   const [month, setMonth] = useState(
@@ -27,6 +27,13 @@ const DatePicker = ({ value, onSelect, locale = vi, disabled = true }) => {
   const [year, setYear] = useState(
     value ? value.getFullYear() : new Date().getFullYear(),
   );
+
+  useEffect(() => {
+    if (value) {
+      setMonth(value.getMonth());
+      setYear(value.getFullYear());
+    }
+  }, [value]);
 
   // Generate years from 1950 to current year + 5
   const currentYear = new Date().getFullYear();
@@ -80,6 +87,7 @@ const DatePicker = ({ value, onSelect, locale = vi, disabled = true }) => {
     setMonth(parseInt(selectedMonth));
   };
 
+const DatePicker = ({ value, onSelect, locale = vi }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>

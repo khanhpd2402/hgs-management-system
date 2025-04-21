@@ -4,6 +4,7 @@ import axios from 'axios';
 import dayjs from 'dayjs';
 import { Link } from 'react-router-dom';
 import { useGetLeaveRequestByAdmin } from '../../../services/leaveRequest/queries';
+import { useTeachers } from '../../../services/teacher/queries';
 
 const { Option } = Select;
 
@@ -18,10 +19,21 @@ const ListLeaveRequest = () => {
   const debounceTimeoutRef = useRef(null);
 
   const { data: leaveRequestsData, isLoading: loadingLeaveRequests, error: errorLeaveRequests } = useGetLeaveRequestByAdmin();
+  const { data: teachersData, isLoading: teachersLoading } = useTeachers();
 
   useEffect(() => {
-    fetchTeachers();
-  }, []);
+    if (teachersData?.teachers) {
+      const formattedTeachers = teachersData.teachers.map(teacher => ({
+        teacherId: teacher.teacherId || teacher.id,
+        fullName: teacher.fullName || `${teacher.firstName || ''} ${teacher.lastName || ''}`.trim(),
+        dob: teacher.dob
+      })).filter(teacher => teacher.teacherId && teacher.fullName);
+
+      setTeachers(formattedTeachers);
+    }
+  }, [teachersData]);
+
+
 
   useEffect(() => {
     if (leaveRequestsData) {
@@ -173,9 +185,9 @@ const ListLeaveRequest = () => {
             onChange={(value) => handleFilterChange('status', value)}
           >
             <Option value="all">Tất cả trạng thái</Option>
-            <Option value="Pending">Đang chờ duyệt</Option>
-            <Option value="Approved">Đã phê duyệt</Option>
-            <Option value="Rejected">Đã từ chối</Option>
+            <Option value="Chờ Duyệt">Đang chờ duyệt</Option>
+            <Option value="Đã Duyệt">Đã phê duyệt</Option>
+            <Option value="Từ Chối">Đã từ chối</Option>
           </Select>
         </Form.Item>
 
@@ -200,14 +212,14 @@ const ListLeaveRequest = () => {
         </Form.Item>
 
         <Form.Item label="Tìm kiếm">
-           <Input.Search
-              placeholder="Nhập tên GV hoặc lý do..."
-              allowClear
-              onChange={handleSearchChange}
-              onSearch={handleSearchSubmit}
-              style={{ width: 240 }}
-              defaultValue={filters.searchTerm}
-           />
+          <Input.Search
+            placeholder="Nhập tên GV hoặc lý do..."
+            allowClear
+            onChange={handleSearchChange}
+            onSearch={handleSearchSubmit}
+            style={{ width: 240 }}
+            defaultValue={filters.searchTerm}
+          />
         </Form.Item>
       </Form>
     </Card>
@@ -225,7 +237,7 @@ const ListLeaveRequest = () => {
       key: 'teacherId',
       render: (teacherId) => getTeacherInfo(teacherId),
     },
-    
+
     {
       title: 'Ngày yêu cầu',
       dataIndex: 'requestDate',
@@ -255,13 +267,13 @@ const ListLeaveRequest = () => {
       key: 'status',
       render: (status) => (
         <Tag color={
-          status === 'Pending' ? 'gold' 
-          : status === 'Approved' ? 'green' 
-          : 'red'
+          status === 'Chờ Duyệt' ? 'gold'
+            : status === 'Đã Duyệt' ? 'green'
+              : 'red'
         }>
-          {status === 'Pending' ? 'Đang chờ duyệt'
-           : status === 'Approved' ? 'Đã phê duyệt'
-           : 'Đã từ chối'}
+          {status === 'Chờ Duyệt' ? 'Đang chờ duyệt'
+            : status === 'Đã Duyệt' ? 'Đã phê duyệt'
+              : 'Đã từ chối'}
         </Tag>
       ),
     },
@@ -286,7 +298,7 @@ const ListLeaveRequest = () => {
   return (
     <div style={{ padding: '24px' }}>
       <h1>Danh sách yêu cầu nghỉ phép</h1>
-      
+
       <FilterSection />
 
       <Table

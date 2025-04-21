@@ -10,15 +10,22 @@ import {
   getSubjectConfigues,
   getSubjectDetail,
   getTeacherSubjects,
+  getTeacherSubjectsByTeacherId,
   getTeachingAssignments,
   getTeachingAssignmentsByTeacher,
   getUsers,
 } from "./api";
 
-export function useGradeBatchs() {
+export function useGradeBatchs(academicYearId) {
   return useQuery({
-    queryKey: ["grade-batchs"],
-    queryFn: getGradeBatches,
+    queryKey: [
+      "grade-batchs",
+      {
+        academicYearId,
+      },
+    ],
+    queryFn: () => getGradeBatches(academicYearId),
+    enabled: !!academicYearId,
   });
 }
 
@@ -100,7 +107,7 @@ export function useHomeroomTeachers() {
 
 export function useClassesWithStudentCount(academicYearId) {
   return useQuery({
-    queryKey: ["classes-with-student-count", academicYearId],
+    queryKey: ["classes-with-student-count", { academicYearId }],
     queryFn: () => {
       return getClassesWithStudentCount(academicYearId);
     },
@@ -123,5 +130,16 @@ export function useClass(id) {
     queryKey: ["class", id],
     queryFn: () => getClassById(id),
     enabled: !!id,
+  });
+}
+
+//teacher subject
+export function useTeacherSubject(teacherId) {
+  return useQuery({
+    queryKey: ["teacher-subject", { teacherId }],
+    queryFn: () => {
+      return getTeacherSubjectsByTeacherId(teacherId);
+    },
+    enabled: !!teacherId,
   });
 }

@@ -1,5 +1,8 @@
 import { useState } from "react";
-import { useSubjects } from "@/services/common/queries";
+import {
+  useSemestersByAcademicYear,
+  useSubjects,
+} from "@/services/common/queries";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -14,9 +17,22 @@ import {
 import { useAddGradeBatch } from "@/services/principal/mutation";
 import { formatDate } from "@/helpers/formatDate";
 import { PlusCircle } from "lucide-react";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import toast from "react-hot-toast";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function AddGradeBatch({ semester }) {
-  const subjectsQuery = useSubjects();
+  const { currentYear } = useLayout();
+  const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
+  const semesters = semesterQuery.data || [];
+  const currentSemester = semesters?.find((s) => s.semesterID === semester);
+  const semesterStartDate = currentSemester
+    ? new Date(currentSemester.startDate)
+    : null;
+  const semesterEndDate = currentSemester
+    ? new Date(currentSemester.endDate)
+    : null;
+
   const gradeBatchMutation = useAddGradeBatch();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
@@ -34,71 +50,45 @@ export default function AddGradeBatch({ semester }) {
   });
   const [errors, setErrors] = useState({});
 
-  // Initialize subjects from the query data
-  useState(() => {
-    if (subjectsQuery.data) {
-      const subjectsState = {};
-      subjectsQuery.data.forEach((subject) => {
-        subjectsState[subject.subjectId] = false;
-      });
-      setFormData((prev) => ({
-        ...prev,
-        subjects: subjectsState,
-      }));
+  const validateName = (name) => {
+    const cleanedName = cleanString(name.trim());
+    if (cleanedName.length > 50) {
+      return "Tên đợt không được vượt quá 30 ký tự";
     }
-  }, [subjectsQuery.data]);
-
-  const handleInputChange = (e) => {
-    const { name, value } = e.target;
-    setFormData((prev) => ({
-      ...prev,
-      [name]: value,
-    }));
-
-    // Clear error when user types
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: null,
-      }));
+    if (!/^[\p{L}\p{N} ]*$/u.test(cleanedName)) {
+      return "Tên đợt không được chứa ký tự đặc biệt";
     }
+    if (!/[\p{L}]/u.test(cleanedName)) {
+      return "Tên đợt phải chứa ít nhất 1 chữ cái";
+    }
+    return "";
   };
 
-  const handleCheckboxChange = (category, name) => {
-    setFormData((prev) => ({
-      ...prev,
-      [category]: {
-        ...prev[category],
-        [name]: !prev[category][name],
-      },
-    }));
-
-    // Clear category error when user selects an option
-    if (errors[category]) {
-      setErrors((prev) => ({
-        ...prev,
-        [category]: null,
-      }));
-    }
+  const validateStartDate = (startDate, endDate) => {
+    if (!semesterStartDate || !semesterEndDate) return "";
+    if (!startDate) return "";
+    if (startDate <= semesterStartDate)
+      return "Ngày bắt đầu phải lớn hơn ngày bắt đầu học kỳ";
+    if (startDate >= semesterEndDate)
+      return "Ngày bắt đầu phải nhỏ hơn ngày kết thúc học kỳ";
+    if (endDate && startDate >= endDate)
+      return "Ngày bắt đầu phải nhỏ hơn ngày kết thúc đợt";
+    return "";
   };
 
-  const handleDateChange = (name, date) => {
-    setFormData((prev) => ({
-      ...prev,
-      [name]: date,
-    }));
-
-    // Clear error when user selects a date
-    if (errors[name]) {
-      setErrors((prev) => ({
-        ...prev,
-        [name]: null,
-      }));
-    }
+  const validateEndDate = (endDate, startDate) => {
+    if (!semesterStartDate || !semesterEndDate) return "";
+    if (!endDate) return "";
+    if (endDate <= semesterStartDate)
+      return "Ngày kết thúc phải lớn hơn ngày bắt đầu học kỳ";
+    if (startDate && endDate <= startDate)
+      return "Ngày kết thúc phải lớn hơn ngày bắt đầu đợt";
+    if (endDate >= semesterEndDate)
+      return "Ngày kết thúc phải nhỏ hơn ngày kết thúc học kỳ";
+    return "";
   };
 
-  const validateForm = () => {
-    const newErrors = {};
+  const isFormValid = formData.name && formData.startDate && formData.endDate;
 
     // Validate name
     if (!formData.name.trim()) {
@@ -141,20 +131,11 @@ export default function AddGradeBatch({ semester }) {
   };
 
   const handleSubmit = () => {
-    if (validateForm()) {
-      // Transform the form data to match the required API structure
-      const selectedSubjectIds = Object.entries(formData.subjects)
-        .filter(([_, isSelected]) => isSelected)
-        .map(([subjectId]) => parseInt(subjectId));
-
-      const gradeTypes = [];
-
-      // Add grade types based on selections
-      if (formData.gradeColumns.regular) {
-        // For regular grades, add the count of columns
-        for (let i = 1; i <= formData.regularColumnCount; i++) {
-          gradeTypes.push(`DDGTX${i}`);
-        }
+    const nameError = validateName(formData.name);
+    if (nameError) {
+      toast.error(nameError);
+      return;
+    }
       }
 
       if (formData.gradeColumns.midterm) {
@@ -166,24 +147,20 @@ export default function AddGradeBatch({ semester }) {
       }
       console.log(formData.startDate, formData.endDate);
 
-      const payload = {
-        gradeBatch: {
-          batchName: formData.name,
-          semesterId: semester, // You might need to get this from somewhere
-          startDate: formatDate(formData.startDate),
-          endDate: formatDate(formData.endDate),
-          isActive: !formData.isLocked,
-        },
-        subjectIds: selectedSubjectIds,
-        assessmentTypes: gradeTypes,
-      };
+    const payload = {
+      academicYearId: currentYear?.academicYearID,
+      batchName: cleanString(formData.name.trim()),
+      semesterId: semester,
+      startDate: formatDate(formData.startDate),
+      endDate: formatDate(formData.endDate),
+      status: formData.isLocked ? "Không Hoạt Động" : "Hoạt Động",
+    };
 
-      console.log("Form data submitted:", payload);
-      // Here you would typically call an API to save the data
-      // Example: createGradeBatch(payload);
-      gradeBatchMutation.mutate(payload);
+    console.log("Form data submitted:", payload);
 
-      setIsModalOpen(false);
+    gradeBatchMutation.mutate(payload);
+
+    setIsModalOpen(false);
     }
   };
 
@@ -223,7 +200,7 @@ export default function AddGradeBatch({ semester }) {
   const regularColumnOptions = [2, 3, 4];
 
   return (
-    <div className="p-4">
+    <div className="">
       <Button
         onClick={openModal}
         className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
@@ -234,8 +211,8 @@ export default function AddGradeBatch({ semester }) {
 
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg border-0 shadow-lg sm:max-w-[600px]">
-          <DialogHeader className="rounded-t-lg bg-blue-50 p-4">
-            <DialogTitle className="text-xl font-bold text-blue-700">
+          <DialogHeader className="">
+            <DialogTitle className="text-xl font-bold">
               Thêm mới đợt nhập điểm
             </DialogTitle>
             <Button
@@ -248,10 +225,7 @@ export default function AddGradeBatch({ semester }) {
           <div className="grid gap-5 px-4 py-6">
             {/* Tên đợt */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <label
-                htmlFor="name"
-                className="text-right font-medium text-gray-700"
-              >
+              <label htmlFor="name" className="font-medium text-gray-700">
                 Tên đợt
               </label>
               <div className="col-span-3">
@@ -259,8 +233,13 @@ export default function AddGradeBatch({ semester }) {
                   id="name"
                   name="name"
                   value={formData.name}
-                  onChange={handleInputChange}
-                  className={`focus:ring-opacity-50 rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200 ${errors.name ? "border-red-500" : ""}`}
+                  onChange={(e) =>
+                    setFormData((prev) => ({
+                      ...prev,
+                      name: e.target.value,
+                    }))
+                  }
+                  className={`focus:ring-opacity-50 rounded-md border-gray-300 focus:border-blue-500 focus:ring focus:ring-blue-200`}
                   placeholder="Nhập tên đợt nhập điểm"
                 />
                 {errors.name && (
@@ -271,13 +250,24 @@ export default function AddGradeBatch({ semester }) {
 
             {/* Thời gian */}
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right font-medium text-gray-700">
-                Từ ngày
-              </label>
+              <label className="font-medium text-gray-700">Từ ngày</label>
               <div className="col-span-3">
                 <DatePicker
                   value={formData.startDate}
-                  onSelect={(date) => handleDateChange("startDate", date)}
+                  onSelect={(date) => {
+                    const startDateError = validateStartDate(
+                      formData.startDate,
+                      formData.endDate,
+                    );
+                    if (startDateError) {
+                      toast.error(startDateError);
+                      return;
+                    }
+                    return setFormData((prev) => ({
+                      ...prev,
+                      startDate: date,
+                    }));
+                  }}
                   disabled={false}
                   className="w-full"
                 />
@@ -290,13 +280,24 @@ export default function AddGradeBatch({ semester }) {
             </div>
 
             <div className="grid grid-cols-4 items-center gap-4">
-              <label className="text-right font-medium text-gray-700">
-                Đến ngày
-              </label>
+              <label className="font-medium text-gray-700">Đến ngày</label>
               <div className="col-span-3">
                 <DatePicker
                   value={formData.endDate}
-                  onSelect={(date) => handleDateChange("endDate", date)}
+                  onSelect={(date) => {
+                    const endDateError = validateEndDate(
+                      formData.endDate,
+                      formData.startDate,
+                    );
+                    if (endDateError) {
+                      toast.error(endDateError);
+                      return;
+                    }
+                    return setFormData((prev) => ({
+                      ...prev,
+                      endDate: date,
+                    }));
+                  }}
                   disabled={false}
                   className="w-full"
                 />
@@ -314,7 +315,7 @@ export default function AddGradeBatch({ semester }) {
             {/* Khóa đợt */}
             <div className="grid grid-cols-4 items-center gap-4">
               <div className="col-span-4">
-                <div className="flex items-center space-x-2 rounded-md bg-gray-50 p-3">
+                <div className="flex items-center space-x-2 rounded-md bg-gray-50">
                   <Checkbox
                     id="isLocked"
                     checked={formData.isLocked}
@@ -451,7 +452,7 @@ export default function AddGradeBatch({ semester }) {
             </div>
           </div>
 
-          <DialogFooter className="flex justify-end gap-2 rounded-b-lg bg-gray-50 p-4">
+          <DialogFooter className="flex justify-end gap-2 rounded-b-lg bg-gray-50">
             <Button
               variant="outline"
               onClick={() => setIsModalOpen(false)}
@@ -462,8 +463,9 @@ export default function AddGradeBatch({ semester }) {
             <Button
               onClick={handleSubmit}
               className="bg-blue-600 text-white hover:bg-blue-700"
+              disabled={!isFormValid}
             >
-              Lưu
+              Thêm
             </Button>
           </DialogFooter>
         </DialogContent>

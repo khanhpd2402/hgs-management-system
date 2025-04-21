@@ -3,6 +3,7 @@ using Application.Features.Exams.Interfaces;
 using AutoMapper;
 using Domain.Models;
 using HGSMAPI;
+using Infrastructure.Repositories.Implementations;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
@@ -58,6 +59,7 @@ namespace Application.Features.Exams.Services
                 Status = "Chờ duyệt", 
             };
 
+            // Upload file Word lên Google Drive
             proposal.FileUrl = await _googleDriveService.UploadWordFileAsync(
                 request.File,
                 request.SubjectId,

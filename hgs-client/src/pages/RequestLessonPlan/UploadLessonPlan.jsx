@@ -148,8 +148,8 @@ const UploadLessonPlan = () => {
                         <label>Học kỳ:</label>
                         <select name="semesterId" value={formData.semesterId} onChange={handleChange} required>
                             <option value="">-- Chọn học kỳ --</option>
-                            <option value="2">Học kỳ 1</option>
-                            <option value="3">Học kỳ 2</option>
+                            <option value="3">Học kỳ 1</option>
+                            <option value="44">Học kỳ 2</option>
                         </select>
                     </div>
                     <div className="form-field">
@@ -157,8 +157,8 @@ const UploadLessonPlan = () => {
                         <select name="subjectId" value={formData.subjectId} onChange={handleChange} required>
                             <option value="">-- Tất cả --</option>
                             {subjects.map(subject => (
-                                <option key={subject.subjectId} value={subject.subjectId}>
-                                    {subject.subjectName}
+                                <option key={subject.subjectID} value={subject.subjectID}>
+                                    {subject.subjectName}--{subject.subjectID}
                                 </option>
                             ))}
                         </select>

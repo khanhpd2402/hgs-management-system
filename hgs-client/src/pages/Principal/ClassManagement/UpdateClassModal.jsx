@@ -125,6 +125,7 @@ export default function UpdateClassModal({
     const data = {
       classId: classId,
       className: values.className,
+      academicYearId: currentYear?.academicYearID,
       gradeLevelId: values.gradeLevelId
         ? Number(values.gradeLevelId)
         : undefined,
@@ -132,7 +133,11 @@ export default function UpdateClassModal({
       homerooms,
     };
     console.log(data);
-    updateClassMutation.mutate(data);
+    updateClassMutation.mutate(data, {
+      onSuccess: () => {
+        onOpenChange(false);
+      },
+    });
   };
 
   useEffect(() => {
@@ -161,11 +166,18 @@ export default function UpdateClassModal({
           ? String(homeroomHK2.teacherId)
           : "",
       });
+
       setClassStatus(classData.status === "Hoạt Động");
       setTeacherHK1Status(false);
       setTeacherHK2Status(false);
     }
   }, [classQuery.data, homeroomTeachers.data, reset]);
+
+  const isLoading =
+    classQuery.isLoading ||
+    semesterQuery.isLoading ||
+    teacherQuery.isLoading ||
+    homeroomTeachers.isLoading;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -257,19 +269,7 @@ export default function UpdateClassModal({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="teacherHK1Status"
-              checked={teacherHK1Status}
-              onChange={(e) => {
-                setTeacherHK1Status(e.target.checked);
-              }}
-            />
-            <Label htmlFor="teacherHK1Status" className="mb-0">
-              Hoạt động học kỳ 1
-            </Label>
-          </div>
+
           <div className="grid w-full gap-2">
             <Label htmlFor="homeroomTeacherHK2">
               Giáo Viên Chủ Nhiệm Học Kỳ 2
@@ -305,29 +305,17 @@ export default function UpdateClassModal({
               </span>
             )}
           </div>
+
           <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
-              id="teacherHK2Status"
-              checked={teacherHK2Status}
-              onChange={(e) => {
-                setTeacherHK2Status(e.target.checked);
-              }}
-            />
-            <Label htmlFor="teacherHK2Status" className="mb-0">
-              Hoạt động học kỳ 2
-            </Label>
-          </div>
-          <div className="flex items-center gap-2">
-            <input
-              type="checkbox"
+            <Checkbox
               id="classStatus"
               checked={classStatus}
-              onChange={(e) => {
-                setClassStatus(e.target.checked);
+              onCheckedChange={(checked) => {
+                setClassStatus(checked);
               }}
+              className="cursor-pointer"
             />
-            <Label htmlFor="classStatus" className="mb-0">
+            <Label htmlFor="classStatus" className="mb-0 cursor-pointer">
               Hoạt động lớp
             </Label>
           </div>
