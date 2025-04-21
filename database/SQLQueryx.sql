@@ -1,9 +1,8 @@
 USE [master]
 GO
-/****** Object:  Database [HGSDB]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Database [HGSDB]    Script Date: 4/22/2025 2:30:52 AM ******/
 CREATE DATABASE [HGSDB]
  CONTAINMENT = NONE
-
 GO
 ALTER DATABASE [HGSDB] SET COMPATIBILITY_LEVEL = 160
 GO
@@ -80,7 +79,7 @@ ALTER DATABASE [HGSDB] SET QUERY_STORE (OPERATION_MODE = READ_WRITE, CLEANUP_POL
 GO
 USE [HGSDB]
 GO
-/****** Object:  Table [dbo].[AcademicYears]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[AcademicYears]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -96,7 +95,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Attendances]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Attendances]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -115,7 +114,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Classes]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Classes]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -131,7 +130,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Conducts]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Conducts]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -148,7 +147,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[ExamProposals]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[ExamProposals]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -163,14 +162,14 @@ CREATE TABLE [dbo].[ExamProposals](
 	[CreatedDate] [datetime] NULL,
 	[Comment] [nvarchar](max) NULL,
 	[FileUrl] [nvarchar](500) NULL,
-	Status NVARCHAR(20) NOT NULL DEFAULT 'Chờ duyệt'
+	[Status] [nvarchar](20) NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[ProposalID] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
-) ON [PRIMARY]
+) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[GradeBatches]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[GradeBatches]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -188,7 +187,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[GradeLevels]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[GradeLevels]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -202,7 +201,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[GradeLevelSubjects]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[GradeLevelSubjects]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -223,7 +222,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Grades]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Grades]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -242,7 +241,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[HomeroomAssignments]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[HomeroomAssignments]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -259,7 +258,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[LeaveRequests]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[LeaveRequests]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -279,7 +278,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[LessonPlans]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[LessonPlans]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -305,7 +304,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Notifications]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Notifications]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -322,7 +321,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY] TEXTIMAGE_ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Parents]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Parents]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -354,7 +353,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Periods]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Periods]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -371,7 +370,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Roles]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Roles]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -385,7 +384,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Semesters]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Semesters]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -402,7 +401,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[StudentClasses]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[StudentClasses]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -418,7 +417,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Students]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Students]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -444,7 +443,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Subjects]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Subjects]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -460,7 +459,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[SubstituteTeachings]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[SubstituteTeachings]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -479,7 +478,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Teachers]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Teachers]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -512,7 +511,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[TeacherSubjects]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[TeacherSubjects]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -528,7 +527,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[TeachingAssignments]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[TeachingAssignments]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -545,7 +544,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[TimetableDetails]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[TimetableDetails]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -564,7 +563,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Timetables]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Timetables]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -581,7 +580,7 @@ PRIMARY KEY CLUSTERED
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 ) ON [PRIMARY]
 GO
-/****** Object:  Table [dbo].[Users]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Table [dbo].[Users]    Script Date: 4/22/2025 2:30:52 AM ******/
 SET ANSI_NULLS ON
 GO
 SET QUOTED_IDENTIFIER ON
@@ -637,6 +636,12 @@ GO
 INSERT [dbo].[Classes] ([ClassID], [ClassName], [GradeLevelId], [Status]) VALUES (36, N'6avb', 1, N'Hoạt động')
 GO
 SET IDENTITY_INSERT [dbo].[Classes] OFF
+GO
+SET IDENTITY_INSERT [dbo].[ExamProposals] ON 
+GO
+INSERT [dbo].[ExamProposals] ([ProposalID], [SubjectID], [Grade], [Title], [SemesterID], [CreatedBy], [CreatedDate], [Comment], [FileUrl], [Status]) VALUES (1, 89, 8, N'hehehe', 7, 2, CAST(N'2025-04-22T01:33:39.923' AS DateTime), N'như lồn', NULL, N'Từ chối')
+GO
+SET IDENTITY_INSERT [dbo].[ExamProposals] OFF
 GO
 SET IDENTITY_INSERT [dbo].[GradeLevels] ON 
 GO
@@ -812,7 +817,7 @@ SET IDENTITY_INSERT [dbo].[HomeroomAssignments] OFF
 GO
 SET IDENTITY_INSERT [dbo].[LessonPlans] ON 
 GO
-INSERT [dbo].[LessonPlans] ([PlanID], [TeacherID], [SubjectID], [PlanContent], [Status], [SemesterID], [Title], [AttachmentUrl], [Feedback], [SubmittedDate], [ReviewedDate], [ReviewerId], [EndDate], [startdate]) VALUES (1, 1, 1, N'...', N'Chờ duyệt', 7, N'Đề cương cuối kì', NULL, NULL, CAST(N'2025-04-19T23:59:17.017' AS DateTime), NULL, NULL, CAST(N'2025-05-19' AS Date), CAST(N'2025-04-19' AS Date))
+INSERT [dbo].[LessonPlans] ([PlanID], [TeacherID], [SubjectID], [PlanContent], [Status], [SemesterID], [Title], [AttachmentUrl], [Feedback], [SubmittedDate], [ReviewedDate], [ReviewerId], [EndDate], [StartDate]) VALUES (1, 1, 1, N'...', N'Chờ duyệt', 7, N'Đề cương cuối kì', NULL, NULL, CAST(N'2025-04-19T23:59:17.017' AS DateTime), NULL, NULL, CAST(N'2025-05-19T00:00:00.000' AS DateTime), CAST(N'2025-04-19T00:00:00.000' AS DateTime))
 GO
 SET IDENTITY_INSERT [dbo].[LessonPlans] OFF
 GO
@@ -3252,785 +3257,785 @@ INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumbe
 GO
 INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (2, N'anhvth1', N'$2a$11$FaIzK4B0orQaEBC4ri8LzuYrCGwQfYbq2Vp.7pb96nCRiiaxmD1VK', N'anhngoc24062000@gmail.com', N'0373405863', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (3, N'anhttu1', N'$2a$11$FaIzK4B0orQaEBC4ri8LzuYrCGwQfYbq2Vp.7pb96nCRiiaxmD1VK', N'tuananhgv77@gmail.com', N'0985836971', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (3, N'anhttu1', N'$2a$11$FaIzK4B0orQaEBC4ri8LzuYrCGwQfYbq2Vp.7pb96nCRiiaxmD1VK', N'tuananhgv77@gmail.com', N'0985836971', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (4, N'duyenpth1', N'$2a$11$W959.SpxpGcg.6vn2vuhteuW1hjaU//PndSEyBvc6gBa55axGPqFK', N'36366512022@gmail.com', N'0914877368', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (4, N'duyenpth1', N'$2a$11$W959.SpxpGcg.6vn2vuhteuW1hjaU//PndSEyBvc6gBa55axGPqFK', N'36366512022@gmail.com', N'0914877368', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (5, N'doanpco1', N'$2a$11$wkg1SfmJb5rXpNcVhBagbuojsTBSfVz6Db.Tb/3HDc46qZwPwN5Qy', N'phamcongdoan5@gmail.com', N'0834622538', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (5, N'doanpco1', N'$2a$11$wkg1SfmJb5rXpNcVhBagbuojsTBSfVz6Db.Tb/3HDc46qZwPwN5Qy', N'phamcongdoan5@gmail.com', N'0834622538', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (6, N'duomnth1', N'$2a$11$BsEqdioVhqPVfggPo1O7Kuwujs/xj0ATWhoDOrfZqz3EmnDyLQTbW', N'nguyenthiduom1984@gmail.com', N'0977470375', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (6, N'duomnth1', N'$2a$11$BsEqdioVhqPVfggPo1O7Kuwujs/xj0ATWhoDOrfZqz3EmnDyLQTbW', N'nguyenthiduom1984@gmail.com', N'0977470375', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (7, N'haipth1', N'$2a$11$3Ja8De2KwyuJLdUtw3P4Y.ZFDeTo5IIWxskhp2uuTohyouq/3PAfW', N'phamthihai1982hg@gmail.com', N'0857124936', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (7, N'haipth1', N'$2a$11$3Ja8De2KwyuJLdUtw3P4Y.ZFDeTo5IIWxskhp2uuTohyouq/3PAfW', N'phamthihai1982hg@gmail.com', N'0857124936', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (8, N'hanglth1', N'$2a$11$9K9OHgVkYXmzpm.OxHq0CexnfXScKBhD.VduuolImZCwzaJ3CGpuC', N'Hangphuongbch@gmail.com', N'0917824977', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (8, N'hanglth1', N'$2a$11$9K9OHgVkYXmzpm.OxHq0CexnfXScKBhD.VduuolImZCwzaJ3CGpuC', N'Hangphuongbch@gmail.com', N'0917824977', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (9, N'hiennth1', N'$2a$11$Wp2pHprPC9afns3ymugDKOfEW1pLNe89QiZhda02Qz7sTFPfFKO8K', N'nguyenhienthcshaigiang@gmail.com', N'0967523327', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (9, N'hiennth1', N'$2a$11$Wp2pHprPC9afns3ymugDKOfEW1pLNe89QiZhda02Qz7sTFPfFKO8K', N'nguyenhienthcshaigiang@gmail.com', N'0967523327', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (10, N'hoaivth1', N'$2a$11$xzR0txYBSWjgEtZexPiaEOCtDJ7B./9btobP0STyvw.WL18O6teHO', N'vuhoaihaigiang@gmail.com', N'0947945228', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (10, N'hoaivth1', N'$2a$11$xzR0txYBSWjgEtZexPiaEOCtDJ7B./9btobP0STyvw.WL18O6teHO', N'vuhoaihaigiang@gmail.com', N'0947945228', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (11, N'huevth1', N'$2a$11$2E0S/Hgyh/97vHNUoXdcEuShTm8gthR5r/65UtToP6Jc0zFlgmZR6', N'vuhuehaigiang@gmail.com', N'0906657796', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (11, N'huevth1', N'$2a$11$2E0S/Hgyh/97vHNUoXdcEuShTm8gthR5r/65UtToP6Jc0zFlgmZR6', N'vuhuehaigiang@gmail.com', N'0906657796', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (12, N'huyennth1', N'$2a$11$Bd7aCzV7AzDJWVKfpOzp5uaHnYwX2fFf/1E/u5bmm83qQkmbutA76', N'nguyenthihuyenhaian@gmail.com', N'0988886828', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (12, N'huyennth1', N'$2a$11$Bd7aCzV7AzDJWVKfpOzp5uaHnYwX2fFf/1E/u5bmm83qQkmbutA76', N'nguyenthihuyenhaian@gmail.com', N'0988886828', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (13, N'lantth1', N'$2a$11$elarj.zQTFWjTTwjzbfWf.iQjkNyH49u4ILA1Yjb0fhCSyKrG0gQ.', N'lamtranngocanh2017@gmail.com', N'0974559178', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (13, N'lantth1', N'$2a$11$elarj.zQTFWjTTwjzbfWf.iQjkNyH49u4ILA1Yjb0fhCSyKrG0gQ.', N'lamtranngocanh2017@gmail.com', N'0974559178', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (14, N'luannhu1', N'$2a$11$Q9E6DIdjxRFowYVeADdhNORWsx9vs4sYY2HPb/DP0/mzLlVaIud4K', N'chanbetgame7773@gmail.com', N'0972461837', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (14, N'luannhu1', N'$2a$11$Q9E6DIdjxRFowYVeADdhNORWsx9vs4sYY2HPb/DP0/mzLlVaIud4K', N'chanbetgame7773@gmail.com', N'0972461837', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (15, N'luongvvi1', N'$2a$11$YU3py528jMOvm/d46.uTX.d0K9C1nkml5xY48dQEprR64jAxMwe/y', N'vietluong.71@gmail.com', N'972461838', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (15, N'luongvvi1', N'$2a$11$YU3py528jMOvm/d46.uTX.d0K9C1nkml5xY48dQEprR64jAxMwe/y', N'vietluong.71@gmail.com', N'972461838', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (16, N'nguyettth1', N'$2a$11$m4SGsvHv/1hjR8/.KOKi6OOliwjOCzR1hMGlIz5FdRdfsg61yN6Ca', N'nguyetthcshaigiang@gmail.com', N'0357539288', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (16, N'nguyettth1', N'$2a$11$m4SGsvHv/1hjR8/.KOKi6OOliwjOCzR1hMGlIz5FdRdfsg61yN6Ca', N'nguyetthcshaigiang@gmail.com', N'0357539288', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (17, N'nhunglho1', N'$2a$11$oNhKpnLrYXPAlf8zytyRe.0dSthm2Bf.NzLtG6CMJzPqry26t4yju', N'hongnhungsptphcm@gmail.com', N'0356187521', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (17, N'nhunglho1', N'$2a$11$oNhKpnLrYXPAlf8zytyRe.0dSthm2Bf.NzLtG6CMJzPqry26t4yju', N'hongnhungsptphcm@gmail.com', N'0356187521', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (18, N'nhungtth1', N'$2a$11$/firEv31WwvsjwXUx/ngqezKLgU.phBW1Tc0Y/doMVJ8cMDs2wJe2', N'nhunghaitoan@gmail.com', N'0987678162', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (18, N'nhungtth1', N'$2a$11$/firEv31WwvsjwXUx/ngqezKLgU.phBW1Tc0Y/doMVJ8cMDs2wJe2', N'nhunghaitoan@gmail.com', N'0987678162', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (19, N'thudth1', N'$2a$11$xWmIHNrdKEOZQweP53SaRuE5zvns17g4F6IFItgzYKV6KTJkqmvuO', N'dothu8983@gmail.com', N'0989762305', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (19, N'thudth1', N'$2a$11$xWmIHNrdKEOZQweP53SaRuE5zvns17g4F6IFItgzYKV6KTJkqmvuO', N'dothu8983@gmail.com', N'0989762305', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (20, N'thuypth1', N'$2a$11$I0RJhjw5i8yvFu966ZnLrOrs2pq6rEydBwkOfMZsOKwLzTdZUaIwO', N'thuy1980pham@gmail.com', N'0964670817', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (20, N'thuypth1', N'$2a$11$I0RJhjw5i8yvFu966ZnLrOrs2pq6rEydBwkOfMZsOKwLzTdZUaIwO', N'thuy1980pham@gmail.com', N'0964670817', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (21, N'trangnng1', N'$2a$11$TcGX4sJO0pqaUjYKB3/PP.CESG/eRdc2tsjgJrltUnThg4tNZnmK6', N'ntrang79@gmail.com', N'0977442719', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (21, N'trangnng1', N'$2a$11$TcGX4sJO0pqaUjYKB3/PP.CESG/eRdc2tsjgJrltUnThg4tNZnmK6', N'ntrang79@gmail.com', N'0977442719', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (22, N'trangbva1', N'$2a$11$hHjMqgf/zyCIFXYp.MZeoOysmvsu9Gs0Jl0hMzAEqLte.ycOYUMba', N'buivantrang1541979@gmail.com', N'0973126848', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (22, N'trangbva1', N'$2a$11$hHjMqgf/zyCIFXYp.MZeoOysmvsu9Gs0Jl0hMzAEqLte.ycOYUMba', N'buivantrang1541979@gmail.com', N'0973126848', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (23, N'duyvva23', N'$2a$11$uzcKWK4eFPtJsgnztjU4KOouK9iP8F0pOJSCfuXJX42dRn7Pw.hlC', N'', N'0463733021', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (23, N'duyvva23', N'$2a$11$uzcKWK4eFPtJsgnztjU4KOouK9iP8F0pOJSCfuXJX42dRn7Pw.hlC', N'', N'0463733021', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (24, N'thaonva24', N'$2a$11$TvaJvQLqI/83t3TscM3hmO7NDGZD4EOcOjhGS9XsPY0uUs8o0FRlq', N'', N'0338733875', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (24, N'thaonva24', N'$2a$11$TvaJvQLqI/83t3TscM3hmO7NDGZD4EOcOjhGS9XsPY0uUs8o0FRlq', N'', N'0338733875', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (25, N'tuyentva25', N'$2a$11$Um3ycXnbABtfDAiA6d2cHOdQxP6/mhJEx6PQGfabmZve66/mHPH42', N'', N'0460990840', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (25, N'tuyentva25', N'$2a$11$Um3ycXnbABtfDAiA6d2cHOdQxP6/mhJEx6PQGfabmZve66/mHPH42', N'', N'0460990840', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (26, N'duongpva26', N'$2a$11$smWeHdVaJFbalgiPrz/hv.Ce3NnIJfe0o59KMt37srmVRSLsXZrHO', N'', N'0346191382', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (26, N'duongpva26', N'$2a$11$smWeHdVaJFbalgiPrz/hv.Ce3NnIJfe0o59KMt37srmVRSLsXZrHO', N'', N'0346191382', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (27, N'vietnva27', N'$2a$11$OCIzA2oN6lwz.Rr.8lnmlOBNKfPDdy/pwRifHvwbLHq8i9LG29ely', N'', N'0553425449', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (27, N'vietnva27', N'$2a$11$OCIzA2oN6lwz.Rr.8lnmlOBNKfPDdy/pwRifHvwbLHq8i9LG29ely', N'', N'0553425449', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (28, N'bacnva28', N'$2a$11$G8g0faS/yoYq1RwBas4svudlo/VTOvnvAmsqWdlpDxm3G1YAvdpE.', N'', N'0286966168', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (28, N'bacnva28', N'$2a$11$G8g0faS/yoYq1RwBas4svudlo/VTOvnvAmsqWdlpDxm3G1YAvdpE.', N'', N'0286966168', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (29, N'duynva29', N'$2a$11$7tBDSUBneFQSDchIQ2EG2.7VNR3f9GKwPtRYTOuYZ9Wv2Yllvgi8i', N'', N'0189365249', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (29, N'duynva29', N'$2a$11$7tBDSUBneFQSDchIQ2EG2.7VNR3f9GKwPtRYTOuYZ9Wv2Yllvgi8i', N'', N'0189365249', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (30, N'hoangnva30', N'$2a$11$9MlT7tOju8C1TlIEUnXvPuU9UeNdCuBaQDlMd270rtpIG9JyCzsyW', N'', N'0866854286', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (30, N'hoangnva30', N'$2a$11$9MlT7tOju8C1TlIEUnXvPuU9UeNdCuBaQDlMd270rtpIG9JyCzsyW', N'', N'0866854286', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (31, N'hanhvva31', N'$2a$11$qGDscgTvepgk3reENLcdy..q6NsDrXwOEDDTuo6Puw7LVV6mHFLee', N'', N'0999078339', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (31, N'hanhvva31', N'$2a$11$qGDscgTvepgk3reENLcdy..q6NsDrXwOEDDTuo6Puw7LVV6mHFLee', N'', N'0999078339', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (32, N'donglva32', N'$2a$11$8CAe461ezId55COPnstY2e9AiHNlgMsgZDX343JfhJ.n3bHAVEwxW', N'', N'0352082693', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (32, N'donglva32', N'$2a$11$8CAe461ezId55COPnstY2e9AiHNlgMsgZDX343JfhJ.n3bHAVEwxW', N'', N'0352082693', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (33, N'thuyenpva33', N'$2a$11$SRxoDnQJBdyCV/jVrXJF5.O8nl/eQ0DN7GV3dUl0rNbjROeTo8cFG', N'', N'0512790089', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (33, N'thuyenpva33', N'$2a$11$SRxoDnQJBdyCV/jVrXJF5.O8nl/eQ0DN7GV3dUl0rNbjROeTo8cFG', N'', N'0512790089', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (34, N'hungnva34', N'$2a$11$Kh7O2Mek37NorbMwspoQhuIcK.KCBU9CkTAvs6XxrUEpS7R6HICBi', N'', N'0365256524', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (34, N'hungnva34', N'$2a$11$Kh7O2Mek37NorbMwspoQhuIcK.KCBU9CkTAvs6XxrUEpS7R6HICBi', N'', N'0365256524', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (35, N'giangnva35', N'$2a$11$0vKR/fg1BfqR7zQmyyYLiOz/GAaIy4egPfwzTJ2M2Mfnuny0pFudK', N'', N'0422841352', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (35, N'giangnva35', N'$2a$11$0vKR/fg1BfqR7zQmyyYLiOz/GAaIy4egPfwzTJ2M2Mfnuny0pFudK', N'', N'0422841352', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (36, N'diepnva36', N'$2a$11$2h.lbEu6Lvv.F1piYMCIIOmnIRxXJOTlfV0yaPOEUaSFGuhnNdlYO', N'', N'0448884475', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (36, N'diepnva36', N'$2a$11$2h.lbEu6Lvv.F1piYMCIIOmnIRxXJOTlfV0yaPOEUaSFGuhnNdlYO', N'', N'0448884475', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (37, N'trieuvqu37', N'$2a$11$98aaAq9rW9d4zERfMN5scuiD1eANZ18vGBXKdXhLE13CxWjMwiIfS', N'', N'0843112283', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (37, N'trieuvqu37', N'$2a$11$98aaAq9rW9d4zERfMN5scuiD1eANZ18vGBXKdXhLE13CxWjMwiIfS', N'', N'0843112283', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (38, N'luyennva38', N'$2a$11$hELKS0aSAiENEnFvqqWeHOPt.FSeAVsj31tkOe5nVVFYe4MSUaIhy', N'', N'0437107324', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (38, N'luyennva38', N'$2a$11$hELKS0aSAiENEnFvqqWeHOPt.FSeAVsj31tkOe5nVVFYe4MSUaIhy', N'', N'0437107324', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (39, N'thanhnva39', N'$2a$11$t/ull6FG13ZUJQJz.Uq05u9ikBqh8VWvZDbd9Hlq5ur0sZiXWkagy', N'', N'0843836802', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (39, N'thanhnva39', N'$2a$11$t/ull6FG13ZUJQJz.Uq05u9ikBqh8VWvZDbd9Hlq5ur0sZiXWkagy', N'', N'0843836802', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (40, N'thanhnva40', N'$2a$11$1fyl5KvRFniN4Whpqwrx8OY1Qnh6ALzy4MPLhDmWJWWgHKk7lS/L.', N'', N'0201254570', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (40, N'thanhnva40', N'$2a$11$1fyl5KvRFniN4Whpqwrx8OY1Qnh6ALzy4MPLhDmWJWWgHKk7lS/L.', N'', N'0201254570', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (41, N'dungnva41', N'$2a$11$3fOFt8YL4rGCsxVp0GPqzuFnOcB9INcLuR8IWVoHcloVaVXe9d6L.', N'', N'0564932662', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (41, N'dungnva41', N'$2a$11$3fOFt8YL4rGCsxVp0GPqzuFnOcB9INcLuR8IWVoHcloVaVXe9d6L.', N'', N'0564932662', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (42, N'duylxu42', N'$2a$11$sJIjVV3skTG.ojxgepgxY.b.aD8ZRUTqEP5bQjlRXDwMSwMaz4V0y', N'', N'0959854197', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (42, N'duylxu42', N'$2a$11$sJIjVV3skTG.ojxgepgxY.b.aD8ZRUTqEP5bQjlRXDwMSwMaz4V0y', N'', N'0959854197', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (43, N'quangvva43', N'$2a$11$b7rqz8nYp1ZYnbrUoysk5eHbMqdrc0/ryC.FhXbGRELfZgMkRdSvy', N'', N'0435972160', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (43, N'quangvva43', N'$2a$11$b7rqz8nYp1ZYnbrUoysk5eHbMqdrc0/ryC.FhXbGRELfZgMkRdSvy', N'', N'0435972160', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (44, N'tatmi44', N'$2a$11$9OeWFGSF666TM4T0bA20JuxrAHzoYmBUMkYfNYaSe89oOFaehwts6', N'', N'0868720567', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (44, N'tatmi44', N'$2a$11$9OeWFGSF666TM4T0bA20JuxrAHzoYmBUMkYfNYaSe89oOFaehwts6', N'', N'0868720567', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (45, N'hiennva45', N'$2a$11$DulXZ6MlInw.QEk.nKgxOew/PsXk1mjmcmxTR2enA7YO/DNeStJ/e', N'', N'0455918461', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (45, N'hiennva45', N'$2a$11$DulXZ6MlInw.QEk.nKgxOew/PsXk1mjmcmxTR2enA7YO/DNeStJ/e', N'', N'0455918461', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (46, N'toibva46', N'$2a$11$LjaPywLw2CcrKM51Yx1EuOpkU.rAMsNMLymbiKDYzc4F08GpTIjNu', N'', N'0331745433', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (46, N'toibva46', N'$2a$11$LjaPywLw2CcrKM51Yx1EuOpkU.rAMsNMLymbiKDYzc4F08GpTIjNu', N'', N'0331745433', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (47, N'gioinva47', N'$2a$11$CBKEWuFbYc.CyFglNamD.e/ZCR3PL15bs4VY.bM/AiRhh/.TJ9ISi', N'', N'0910752552', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (47, N'gioinva47', N'$2a$11$CBKEWuFbYc.CyFglNamD.e/ZCR3PL15bs4VY.bM/AiRhh/.TJ9ISi', N'', N'0910752552', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (48, N'luannhu48', N'$2a$11$RDztHv0xLffLhV9K/tVrROnt0N6PJrBBYWaHj9AtZTEThHXxYuzWy', N'', N'0298017084', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (48, N'luannhu48', N'$2a$11$RDztHv0xLffLhV9K/tVrROnt0N6PJrBBYWaHj9AtZTEThHXxYuzWy', N'', N'0298017084', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (49, N'thuynva49', N'$2a$11$7aWR/ksvBAHVzxbPbV0QKuZBYCamFEgq6cbls/1zquJdFXbt/ky0e', N'', N'0732115823', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (49, N'thuynva49', N'$2a$11$7aWR/ksvBAHVzxbPbV0QKuZBYCamFEgq6cbls/1zquJdFXbt/ky0e', N'', N'0732115823', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (50, N'chungnth50', N'$2a$11$wm1z7PkJz2g0uZ3JpEQF8uHU8VlOlCnpMJ0yYTuHlrkns7W7Bo.Im', N'', N'0435892605', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (50, N'chungnth50', N'$2a$11$wm1z7PkJz2g0uZ3JpEQF8uHU8VlOlCnpMJ0yYTuHlrkns7W7Bo.Im', N'', N'0435892605', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (51, N'phuocthu51', N'$2a$11$pXDcEH2/.St5xet654rxYuO1eAd1eNkAWXiGK0sWNzgDqhk8t4/ne', N'', N'0725093263', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (51, N'phuocthu51', N'$2a$11$pXDcEH2/.St5xet654rxYuO1eAd1eNkAWXiGK0sWNzgDqhk8t4/ne', N'', N'0725093263', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (52, N'trieupva52', N'$2a$11$J0.SlPO.CH7IMSMdc5Ff5eR9mAf6H7k5AiozxcA9ke2UtptyO9uTy', N'', N'0699648272', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (52, N'trieupva52', N'$2a$11$J0.SlPO.CH7IMSMdc5Ff5eR9mAf6H7k5AiozxcA9ke2UtptyO9uTy', N'', N'0699648272', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (53, N'thanhdva53', N'$2a$11$5HLO.kwN8Hdi7yzZUw16qOTzoQJ1/E/TjA2wChv2Efg9kaLEX0ccy', N'', N'0218262296', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (53, N'thanhdva53', N'$2a$11$5HLO.kwN8Hdi7yzZUw16qOTzoQJ1/E/TjA2wChv2Efg9kaLEX0ccy', N'', N'0218262296', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (54, N'giangbva54', N'$2a$11$ycErmDwXwC8s6B8bR8L3f.Dz9xsku54LGzBjTk1Zu4stFcHMCv4Ka', N'', N'0129333066', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (54, N'giangbva54', N'$2a$11$ycErmDwXwC8s6B8bR8L3f.Dz9xsku54LGzBjTk1Zu4stFcHMCv4Ka', N'', N'0129333066', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (55, N'annth55', N'$2a$11$dYQpz..CFEklBlFjcu7nLuqfonk6HwYoO.h3xM/6P5bY6Ha7mLWcq', N'', N'0214132231', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (55, N'annth55', N'$2a$11$dYQpz..CFEklBlFjcu7nLuqfonk6HwYoO.h3xM/6P5bY6Ha7mLWcq', N'', N'0214132231', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (56, N'vienpva56', N'$2a$11$8QaWH9ikhSLJHaE6cichYuBw1Y5Wx8Fbzy5F1cC.ozUItGxUlCpIm', N'', N'0449450314', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (56, N'vienpva56', N'$2a$11$8QaWH9ikhSLJHaE6cichYuBw1Y5Wx8Fbzy5F1cC.ozUItGxUlCpIm', N'', N'0449450314', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (57, N'thaitva57', N'$2a$11$aAFBUovVVmlyfq638.xT8uYT7uA1XpIaLRid82Pa9T1iu04O0dQ5u', N'', N'0243099337', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (57, N'thaitva57', N'$2a$11$aAFBUovVVmlyfq638.xT8uYT7uA1XpIaLRid82Pa9T1iu04O0dQ5u', N'', N'0243099337', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (58, N'phucvva58', N'$2a$11$If8Hmr36EA7jHItCffjlH.g.xrYOs/6i/el1rgGfCAJfd7Hv2KWSy', N'', N'0657092452', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (58, N'phucvva58', N'$2a$11$If8Hmr36EA7jHItCffjlH.g.xrYOs/6i/el1rgGfCAJfd7Hv2KWSy', N'', N'0657092452', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (59, N'toipva59', N'$2a$11$aKndvzjds5xwn7ukJN2l1OpabaoTagG8WNDMcJI9r8/uV3k/zSfDC', N'', N'0649042552', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (59, N'toipva59', N'$2a$11$aKndvzjds5xwn7ukJN2l1OpabaoTagG8WNDMcJI9r8/uV3k/zSfDC', N'', N'0649042552', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (60, N'thienbva60', N'$2a$11$rRdcN0Bc6tGRUOkolW6hXuO.StmdDpbHgcwf2T/3yO03g/eBYu.b2', N'', N'0515153920', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (60, N'thienbva60', N'$2a$11$rRdcN0Bc6tGRUOkolW6hXuO.StmdDpbHgcwf2T/3yO03g/eBYu.b2', N'', N'0515153920', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (61, N'quanpva61', N'$2a$11$vEgewVv2/j.YYQLen83BB.EFc850MKD1dbL7EX7jDmfRKtuZoRXAi', N'', N'0659684807', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (61, N'quanpva61', N'$2a$11$vEgewVv2/j.YYQLen83BB.EFc850MKD1dbL7EX7jDmfRKtuZoRXAi', N'', N'0659684807', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (62, N'thanhnva62', N'$2a$11$ami8YLUEm5MeYLnF4QKmQ.gwNgd0dT4c9IT7Jmufp7KUdkySoj...', N'', N'0491247177', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (62, N'thanhnva62', N'$2a$11$ami8YLUEm5MeYLnF4QKmQ.gwNgd0dT4c9IT7Jmufp7KUdkySoj...', N'', N'0491247177', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (63, N'truongvva63', N'$2a$11$gJWEmUCcSJ/PASIoXn7RKew5w1a/TXlX.n66DpHq8vZJ/ednYTkIK', N'', N'0819844979', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (63, N'truongvva63', N'$2a$11$gJWEmUCcSJ/PASIoXn7RKew5w1a/TXlX.n66DpHq8vZJ/ednYTkIK', N'', N'0819844979', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (64, N'dieptva64', N'$2a$11$xIbndrkUzGTKfPS0TcZzceRDu2uff/p1JNAuYI55ji4jwXBD7pCZ6', N'', N'0307946836', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (64, N'dieptva64', N'$2a$11$xIbndrkUzGTKfPS0TcZzceRDu2uff/p1JNAuYI55ji4jwXBD7pCZ6', N'', N'0307946836', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (65, N'sinhpva65', N'$2a$11$aPZ2ewIOMduInSXj1yW1huu9GfFLEzJi.fKMEA2G4I5RvXK8gET/K', N'', N'0590705472', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (65, N'sinhpva65', N'$2a$11$aPZ2ewIOMduInSXj1yW1huu9GfFLEzJi.fKMEA2G4I5RvXK8gET/K', N'', N'0590705472', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (66, N'vietvdi66', N'$2a$11$kNvWBaFGxkVOK3sQ3Ubwnu29A.SO5vugMok32Y2zvkdOpe6SZ4Dem', N'', N'0294986939', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (66, N'vietvdi66', N'$2a$11$kNvWBaFGxkVOK3sQ3Ubwnu29A.SO5vugMok32Y2zvkdOpe6SZ4Dem', N'', N'0294986939', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (67, N'sinhvkh67', N'$2a$11$G32j5YpTK/RU6FuOgbc8..79Kvm.l0yFg9wFXSPSzW8ssTwYRlg12', N'', N'0143220418', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (67, N'sinhvkh67', N'$2a$11$G32j5YpTK/RU6FuOgbc8..79Kvm.l0yFg9wFXSPSzW8ssTwYRlg12', N'', N'0143220418', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (68, N'tungnva68', N'$2a$11$FaWIF9v2KVaNxa.4X5N0j.si5iblqGzIZBKdw6bDt8lVbdBvW4TRq', N'', N'0959036338', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (68, N'tungnva68', N'$2a$11$FaWIF9v2KVaNxa.4X5N0j.si5iblqGzIZBKdw6bDt8lVbdBvW4TRq', N'', N'0959036338', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (69, N'hanhvdi69', N'$2a$11$tXS0bG4OZQ60zE2F25GfnuEW2SF5O.UklItXSsgjOcA7Bpn1ANK9u', N'', N'0298789507', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (69, N'hanhvdi69', N'$2a$11$tXS0bG4OZQ60zE2F25GfnuEW2SF5O.UklItXSsgjOcA7Bpn1ANK9u', N'', N'0298789507', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (70, N'tuelva70', N'$2a$11$HHklqmTIJFCKbZG95pUDye5zrdZqpTVtMUM89XQp5eD5aouq.KTo6', N'', N'0911677217', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (70, N'tuelva70', N'$2a$11$HHklqmTIJFCKbZG95pUDye5zrdZqpTVtMUM89XQp5eD5aouq.KTo6', N'', N'0911677217', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (71, N'chinhtva71', N'$2a$11$5oxtIydIS8s/0V4vc0lNBOxLydKwq9mijSDX5LOgwJM/9Jivms9/C', N'', N'0195322436', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (71, N'chinhtva71', N'$2a$11$5oxtIydIS8s/0V4vc0lNBOxLydKwq9mijSDX5LOgwJM/9Jivms9/C', N'', N'0195322436', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (72, N'thaidva72', N'$2a$11$SpKSVKQtRW7ZWyvkT.DL.OA7IEq0gfHRCIyAoeNP9FrCL67xZLABO', N'', N'0721211731', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (72, N'thaidva72', N'$2a$11$SpKSVKQtRW7ZWyvkT.DL.OA7IEq0gfHRCIyAoeNP9FrCL67xZLABO', N'', N'0721211731', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (73, N'dannho73', N'$2a$11$7vIdAorUBYU3BqSgaFTn.eodWWG0L6qvTGyO5C.T5wjoiC8B5O/qm', N'', N'0581818991', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (73, N'dannho73', N'$2a$11$7vIdAorUBYU3BqSgaFTn.eodWWG0L6qvTGyO5C.T5wjoiC8B5O/qm', N'', N'0581818991', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (74, N'trinhnqu74', N'$2a$11$pH5WM5ewQTIdm4kuw1v.i.NrBfz1a6/E43Qc.ZKsmy7sP.oxRyFKq', N'', N'0678921771', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (74, N'trinhnqu74', N'$2a$11$pH5WM5ewQTIdm4kuw1v.i.NrBfz1a6/E43Qc.ZKsmy7sP.oxRyFKq', N'', N'0678921771', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (75, N'hoppva75', N'$2a$11$vJftGFPgAhLqjYXKbaKideSkj1nnIiYSa1hYteAZYzqPk3LW3f/fy', N'', N'0169589751', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (75, N'hoppva75', N'$2a$11$vJftGFPgAhLqjYXKbaKideSkj1nnIiYSa1hYteAZYzqPk3LW3f/fy', N'', N'0169589751', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (76, N'bactva76', N'$2a$11$gPvkMShpG3/cjW3KCMtcau.nKDctNLPiWehSZbMFmRfJIXysIiB8S', N'', N'0495406854', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (76, N'bactva76', N'$2a$11$gPvkMShpG3/cjW3KCMtcau.nKDctNLPiWehSZbMFmRfJIXysIiB8S', N'', N'0495406854', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (77, N'dunva77', N'$2a$11$gJRjOlU9FiKGPecYWkbEm.pONw17ELM0waEHMeHyCEPZMRIIQsxxu', N'', N'0593242412', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (77, N'dunva77', N'$2a$11$gJRjOlU9FiKGPecYWkbEm.pONw17ELM0waEHMeHyCEPZMRIIQsxxu', N'', N'0593242412', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (78, N'luyenpva78', N'$2a$11$0E9Ee1cB9Vtj2N3kLkuPSOWIObKOAkHCKLMMp5eUU26ICaBH1QRyW', N'', N'0167625141', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (78, N'luyenpva78', N'$2a$11$0E9Ee1cB9Vtj2N3kLkuPSOWIObKOAkHCKLMMp5eUU26ICaBH1QRyW', N'', N'0167625141', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (79, N'dongnva79', N'$2a$11$nZqiUsH.ViHOpwi03mfzuOUU4RgRi9aj3qU30jp0D141HxYBCLwgW', N'', N'0659558743', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (79, N'dongnva79', N'$2a$11$nZqiUsH.ViHOpwi03mfzuOUU4RgRi9aj3qU30jp0D141HxYBCLwgW', N'', N'0659558743', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (80, N'tiennva80', N'$2a$11$GMlu.KyhkMvoqkpSKJnpXu6CnePztDVKjNhARY3WrDS3NQYa6gN9m', N'', N'0582262575', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (80, N'tiennva80', N'$2a$11$GMlu.KyhkMvoqkpSKJnpXu6CnePztDVKjNhARY3WrDS3NQYa6gN9m', N'', N'0582262575', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (81, N'truongmva81', N'$2a$11$LFn.S5CN.DvobxnV73ypt.SG2A0gTAPWxFNb6OovPmkBxvEiqgmba', N'', N'0387387162', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (81, N'truongmva81', N'$2a$11$LFn.S5CN.DvobxnV73ypt.SG2A0gTAPWxFNb6OovPmkBxvEiqgmba', N'', N'0387387162', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (82, N'binhnva82', N'$2a$11$TT98v/aN2PpzptmFtFyv0OrJkp3KeADFY2nU0sDBYmxRGlzNds4Ba', N'', N'0846055150', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (82, N'binhnva82', N'$2a$11$TT98v/aN2PpzptmFtFyv0OrJkp3KeADFY2nU0sDBYmxRGlzNds4Ba', N'', N'0846055150', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (83, N'thoanvdi83', N'$2a$11$1NoTt6x4rtrJ8R2G4rCHKuLFmWujym9OGHZTJfK0ISyaY4.e/QD8u', N'', N'0466675943', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (83, N'thoanvdi83', N'$2a$11$1NoTt6x4rtrJ8R2G4rCHKuLFmWujym9OGHZTJfK0ISyaY4.e/QD8u', N'', N'0466675943', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (84, N'sangnva84', N'$2a$11$2FadReF8ug28sUiF2BPKauzrVIvKxdyU.KlLKKEsP6MwUuGpx.GMy', N'', N'0358689296', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (84, N'sangnva84', N'$2a$11$2FadReF8ug28sUiF2BPKauzrVIvKxdyU.KlLKKEsP6MwUuGpx.GMy', N'', N'0358689296', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (85, N'henva85', N'$2a$11$81x0PjOI5yEBGdmzqtD6HOEYsWFezMY7.V6//UfiZkx5u0vDNs8tS', N'', N'0989772039', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (85, N'henva85', N'$2a$11$81x0PjOI5yEBGdmzqtD6HOEYsWFezMY7.V6//UfiZkx5u0vDNs8tS', N'', N'0989772039', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (86, N'manhbng86', N'$2a$11$Q1OeID616ocS4fOJFwO2UuhXudoUaiyrukSRKAi8zZlfOBQHJVvHW', N'', N'0368905401', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (86, N'manhbng86', N'$2a$11$Q1OeID616ocS4fOJFwO2UuhXudoUaiyrukSRKAi8zZlfOBQHJVvHW', N'', N'0368905401', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (87, N'quynhpva87', N'$2a$11$yl9/UwnhHms9HMxUzTQ7h.Pcp04dh4PPjNsQuMQjR5EqtL8Fb9RA6', N'', N'0833110541', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (87, N'quynhpva87', N'$2a$11$yl9/UwnhHms9HMxUzTQ7h.Pcp04dh4PPjNsQuMQjR5EqtL8Fb9RA6', N'', N'0833110541', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (88, N'minhlva88', N'$2a$11$wa9HXybvVa9mm0mB0KLlB.jquIXdFMbWLl5ZXoE9QWonDib98W1AO', N'', N'0879429447', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (88, N'minhlva88', N'$2a$11$wa9HXybvVa9mm0mB0KLlB.jquIXdFMbWLl5ZXoE9QWonDib98W1AO', N'', N'0879429447', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (89, N'thucnva89', N'$2a$11$c/2Hd0SP8SCJmgWwiOConup0XBlr6X4jHnuSBvJNUkVzju7VRz/by', N'', N'0192419749', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (89, N'thucnva89', N'$2a$11$c/2Hd0SP8SCJmgWwiOConup0XBlr6X4jHnuSBvJNUkVzju7VRz/by', N'', N'0192419749', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (90, N'chungtva90', N'$2a$11$0WPWxczP3VrGIpez.13jmeBnsdu.deiBrol3r8epuW0GifZg59Vi6', N'', N'0691357779', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (90, N'chungtva90', N'$2a$11$0WPWxczP3VrGIpez.13jmeBnsdu.deiBrol3r8epuW0GifZg59Vi6', N'', N'0691357779', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (91, N'thinhnva91', N'$2a$11$sa3jMrVTxNw0gNetkInG..WG2AfHFsWXRtM2kjnBfIwv6bCPnbF3G', N'', N'0899566882', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (91, N'thinhnva91', N'$2a$11$sa3jMrVTxNw0gNetkInG..WG2AfHFsWXRtM2kjnBfIwv6bCPnbF3G', N'', N'0899566882', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (92, N'damlva92', N'$2a$11$iuK3uCcRVsYw6vdITbKjuOOSghRJbLkENggwu.dOwTmzlTOFFHgQW', N'', N'0503619992', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (92, N'damlva92', N'$2a$11$iuK3uCcRVsYw6vdITbKjuOOSghRJbLkENggwu.dOwTmzlTOFFHgQW', N'', N'0503619992', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (93, N'tiendva93', N'$2a$11$lY7RXkK7JPa2psBGd89loeJWoFEbsRaF7Oc0RY3/EebjnRcDUtdMK', N'', N'0274169403', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (93, N'tiendva93', N'$2a$11$lY7RXkK7JPa2psBGd89loeJWoFEbsRaF7Oc0RY3/EebjnRcDUtdMK', N'', N'0274169403', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (94, N'thuannva94', N'$2a$11$wpl8twgg0CvKGvaUciaN5OQi87eDpT6OTLt1PiyV1.IyhO82o21Je', N'', N'0208144950', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (94, N'thuannva94', N'$2a$11$wpl8twgg0CvKGvaUciaN5OQi87eDpT6OTLt1PiyV1.IyhO82o21Je', N'', N'0208144950', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (95, N'thuanvva95', N'$2a$11$utOIuIRCHqTq8B06FngEVeJLMjcrviFUZ1b0WQrCDBvF9fWJlgBEO', N'', N'0588096970', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (95, N'thuanvva95', N'$2a$11$utOIuIRCHqTq8B06FngEVeJLMjcrviFUZ1b0WQrCDBvF9fWJlgBEO', N'', N'0588096970', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (96, N'viennva96', N'$2a$11$xztvyws/iUf.I/En5OpHu.Ms8TqDudU0.3RA8rwBBcqeGObFJu2Li', N'', N'0646354925', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (96, N'viennva96', N'$2a$11$xztvyws/iUf.I/En5OpHu.Ms8TqDudU0.3RA8rwBBcqeGObFJu2Li', N'', N'0646354925', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (97, N'duyvva97', N'$2a$11$KkaMqV/lhYKy7Sx83bB4p.wZzA5Iqxp1F8Uv40ueGOUVjTzeulCYO', N'', N'0645989018', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (97, N'duyvva97', N'$2a$11$KkaMqV/lhYKy7Sx83bB4p.wZzA5Iqxp1F8Uv40ueGOUVjTzeulCYO', N'', N'0645989018', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (98, N'thieuvva98', N'$2a$11$4IeX36J0Sq67GuIzKeG2QOmm6ajP6wK2WNZKbTCav7e38bHTviaOa', N'', N'0517612862', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (98, N'thieuvva98', N'$2a$11$4IeX36J0Sq67GuIzKeG2QOmm6ajP6wK2WNZKbTCav7e38bHTviaOa', N'', N'0517612862', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (99, N'dinhdva99', N'$2a$11$AW2J9LuRwaWUvpXoL75GnuSXJwGuwqQq9wpKIMsQ8r1WtKbTf8Q9O', N'', N'0109912961', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (99, N'dinhdva99', N'$2a$11$AW2J9LuRwaWUvpXoL75GnuSXJwGuwqQq9wpKIMsQ8r1WtKbTf8Q9O', N'', N'0109912961', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (100, N'anhva100', N'$2a$11$SLIUHCrp.B9Y8ptZA.g4xOmkrXXT40Wdmlmcr6VESm251Lc.KNzCS', N'', N'0955247771', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (100, N'anhva100', N'$2a$11$SLIUHCrp.B9Y8ptZA.g4xOmkrXXT40Wdmlmcr6VESm251Lc.KNzCS', N'', N'0955247771', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (101, N'tondki101', N'$2a$11$QKvcscH5pVKMsD2aGOgvfOlZo.b6cWndYqJNodP3c5HXE1r2gAuYG', N'', N'0621288019', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (101, N'tondki101', N'$2a$11$QKvcscH5pVKMsD2aGOgvfOlZo.b6cWndYqJNodP3c5HXE1r2gAuYG', N'', N'0621288019', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (102, N'thinhpva102', N'$2a$11$oB0.JAIiBxNX26kHnP0zXuGzWcU2lgxQJEWom4RiNCbminiahH9Ta', N'', N'0810783243', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (102, N'thinhpva102', N'$2a$11$oB0.JAIiBxNX26kHnP0zXuGzWcU2lgxQJEWom4RiNCbminiahH9Ta', N'', N'0810783243', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (103, N'cuongnva103', N'$2a$11$PUd3nyC/p7BiNVbaLQVbSOcqxRtpqOMBfvTUSCHEbng64iBmFXN8a', N'', N'0598199671', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (103, N'cuongnva103', N'$2a$11$PUd3nyC/p7BiNVbaLQVbSOcqxRtpqOMBfvTUSCHEbng64iBmFXN8a', N'', N'0598199671', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (104, N'binhnva104', N'$2a$11$APdvczJhFKjc4wNI/UH3TeATJrlailuCknLcXqCM06OaxVPQ92u0y', N'', N'0111994087', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (104, N'binhnva104', N'$2a$11$APdvczJhFKjc4wNI/UH3TeATJrlailuCknLcXqCM06OaxVPQ92u0y', N'', N'0111994087', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (105, N'hanhnva105', N'$2a$11$L7HKN6Ui/gLxeY4ideY93ek0JodhChItBvX3INGy8mYSC0b0isdJq', N'', N'0611229735', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (105, N'hanhnva105', N'$2a$11$L7HKN6Ui/gLxeY4ideY93ek0JodhChItBvX3INGy8mYSC0b0isdJq', N'', N'0611229735', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (106, N'hoahva106', N'$2a$11$c1GAeINdJROsvCoc.gxhjO2gqMxMT7OXa1kZc1YxcG3CB1trlRsS6', N'', N'0585416102', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (106, N'hoahva106', N'$2a$11$c1GAeINdJROsvCoc.gxhjO2gqMxMT7OXa1kZc1YxcG3CB1trlRsS6', N'', N'0585416102', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (107, N'tulva107', N'$2a$11$SuUI8sKfhO277fmo1fMyJeCK5IwbZqce9SmBAlBOCwPDQzKMTIcC2', N'', N'0465927070', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (107, N'tulva107', N'$2a$11$SuUI8sKfhO277fmo1fMyJeCK5IwbZqce9SmBAlBOCwPDQzKMTIcC2', N'', N'0465927070', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (108, N'sangnqu108', N'$2a$11$16HBgcijGFd2UhxmTi68de0HyzTRrw9nEo4lskv6glSOJvAgVHuRG', N'', N'0458933961', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (108, N'sangnqu108', N'$2a$11$16HBgcijGFd2UhxmTi68de0HyzTRrw9nEo4lskv6glSOJvAgVHuRG', N'', N'0458933961', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (109, N'haibva109', N'$2a$11$0zRZR71BgIQSEmFkJAe/P.DeH7b6qdf026jxD9bEvkkZY7/DHoBkW', N'', N'0845043903', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (109, N'haibva109', N'$2a$11$0zRZR71BgIQSEmFkJAe/P.DeH7b6qdf026jxD9bEvkkZY7/DHoBkW', N'', N'0845043903', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (110, N'locnva110', N'$2a$11$jj7tv9EXTJcvBk875m2Jc.BbqNegeTcylNW2m4fK2WsnXbKVB1OSS', N'', N'0785072231', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (110, N'locnva110', N'$2a$11$jj7tv9EXTJcvBk875m2Jc.BbqNegeTcylNW2m4fK2WsnXbKVB1OSS', N'', N'0785072231', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (111, N'tienpva111', N'$2a$11$80xiHTW1ketu2lCag2qSD.wbud9rOG6KIMUJOllh/1lOKaGPqlQu6', N'', N'0988662785', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (111, N'tienpva111', N'$2a$11$80xiHTW1ketu2lCag2qSD.wbud9rOG6KIMUJOllh/1lOKaGPqlQu6', N'', N'0988662785', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (112, N'minhnva112', N'$2a$11$u0ZqgVG5UZHGcLcmhbZfZuFWf7I9urQNqSIaaXTB9eHTLVhvtWD8S', N'', N'0250614511', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (112, N'minhnva112', N'$2a$11$u0ZqgVG5UZHGcLcmhbZfZuFWf7I9urQNqSIaaXTB9eHTLVhvtWD8S', N'', N'0250614511', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (113, N'tuannva113', N'$2a$11$yEVKn2U3l7./CrTHo5nxkezVU5r/tkmEa/TcEocdN0cg0T1WyGWcu', N'', N'0315339165', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (113, N'tuannva113', N'$2a$11$yEVKn2U3l7./CrTHo5nxkezVU5r/tkmEa/TcEocdN0cg0T1WyGWcu', N'', N'0315339165', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (114, N'thuongvva114', N'$2a$11$7Rc7pTQs8UW7DQSh.Q2rju1JFrnymvyDMigB3kDyHEHx/5/7ChGsq', N'', N'0663175702', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (114, N'thuongvva114', N'$2a$11$7Rc7pTQs8UW7DQSh.Q2rju1JFrnymvyDMigB3kDyHEHx/5/7ChGsq', N'', N'0663175702', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (115, N'thanhtva115', N'$2a$11$f1BTmFO0D7J76m4HIPJByuR64dQFQE5EE1XUtQj0vnACHzNs9Gbs6', N'', N'0412384599', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (115, N'thanhtva115', N'$2a$11$f1BTmFO0D7J76m4HIPJByuR64dQFQE5EE1XUtQj0vnACHzNs9Gbs6', N'', N'0412384599', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (116, N'hanhnva116', N'$2a$11$63o.u0gxO7xzsf1Ls5G01O4z1Lre9fIIQax4cQE987uus2Ig42f/y', N'', N'0530352389', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (116, N'hanhnva116', N'$2a$11$63o.u0gxO7xzsf1Ls5G01O4z1Lre9fIIQax4cQE987uus2Ig42f/y', N'', N'0530352389', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (117, N'hungtva117', N'$2a$11$WgukN9zWGYgfkMD2pKM.iuWQ0vyXhrAAFN6itLrvw6eqYRTV98CxK', N'', N'0448415571', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (117, N'hungtva117', N'$2a$11$WgukN9zWGYgfkMD2pKM.iuWQ0vyXhrAAFN6itLrvw6eqYRTV98CxK', N'', N'0448415571', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (118, N'tungnva118', N'$2a$11$Io0YvK8xYsa/cU1ivlSwtuPphMyOeQI2w5vhVWjWo3hx5HFKhUuja', N'', N'0272076368', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (118, N'tungnva118', N'$2a$11$Io0YvK8xYsa/cU1ivlSwtuPphMyOeQI2w5vhVWjWo3hx5HFKhUuja', N'', N'0272076368', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (119, N'banva119', N'$2a$11$S5UpJCPbIF0sEwddJlNfhufuyDmI0xoXAuS9JXHruxXmkYsgG.gQy', N'', N'0886292952', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (119, N'banva119', N'$2a$11$S5UpJCPbIF0sEwddJlNfhufuyDmI0xoXAuS9JXHruxXmkYsgG.gQy', N'', N'0886292952', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (120, N'tuanpva120', N'$2a$11$ZyzIQpw4LtfBSO7Z5B5n.u5.Hq4mwlJ.pORttelTlYV63zCzUhZua', N'', N'0531796276', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (120, N'tuanpva120', N'$2a$11$ZyzIQpw4LtfBSO7Z5B5n.u5.Hq4mwlJ.pORttelTlYV63zCzUhZua', N'', N'0531796276', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (121, N'dinhnva121', N'$2a$11$UjhgLFznOGgN5kAX053/JuZqYE2HSMytaCYiJzt6Zb/3AqR2cS84K', N'', N'0899577075', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (121, N'dinhnva121', N'$2a$11$UjhgLFznOGgN5kAX053/JuZqYE2HSMytaCYiJzt6Zb/3AqR2cS84K', N'', N'0899577075', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (122, N'cuongvva122', N'$2a$11$s.hUasx6bHB2WLYESOmVi.NdFw1AAf9Pv/KuuguWkTezStGzEuamm', N'', N'0477112364', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (122, N'cuongvva122', N'$2a$11$s.hUasx6bHB2WLYESOmVi.NdFw1AAf9Pv/KuuguWkTezStGzEuamm', N'', N'0477112364', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (123, N'hanhnph123', N'$2a$11$l6uD.l8Ns5Gg7Znn471uJOdz1hN3MuN5RqkV4s7ghTJBUn/Mf/g72', N'', N'0320623439', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (123, N'hanhnph123', N'$2a$11$l6uD.l8Ns5Gg7Znn471uJOdz1hN3MuN5RqkV4s7ghTJBUn/Mf/g72', N'', N'0320623439', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (124, N'hopnva124', N'$2a$11$s2WhOksY2/EH5j0SqTB8jewZ1sSpS2iq5MAOpWRR7OwZ/aMsrwnEe', N'', N'0505489385', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (124, N'hopnva124', N'$2a$11$s2WhOksY2/EH5j0SqTB8jewZ1sSpS2iq5MAOpWRR7OwZ/aMsrwnEe', N'', N'0505489385', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (125, N'giangnva125', N'$2a$11$04rAN0/.xiHs/mDoTXMmt.q8LXZINy4k3rhQhcJFZrNLKhNGq98Ya', N'', N'0973444038', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (125, N'giangnva125', N'$2a$11$04rAN0/.xiHs/mDoTXMmt.q8LXZINy4k3rhQhcJFZrNLKhNGq98Ya', N'', N'0973444038', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (126, N'tannma126', N'$2a$11$t3HQ3v0oliza8XdYdrZjtuCwpMy27zInNfIquGRTXHTlSUU5Ny0g.', N'', N'0495672607', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (126, N'tannma126', N'$2a$11$t3HQ3v0oliza8XdYdrZjtuCwpMy27zInNfIquGRTXHTlSUU5Ny0g.', N'', N'0495672607', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (127, N'nhanva127', N'$2a$11$OFIFFk3e32erGISf/k.Ffe/iry9dUuLVQHozo0.TFDme/eUXo9Rtq', N'', N'0669459313', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (127, N'nhanva127', N'$2a$11$OFIFFk3e32erGISf/k.Ffe/iry9dUuLVQHozo0.TFDme/eUXo9Rtq', N'', N'0669459313', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (128, N'quangnth128', N'$2a$11$SkMHX1eMS1BbedzFb//bsu7vJEJw/NN5PYfgOE2pU9hsOoU.VIGj6', N'', N'0270431959', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (128, N'quangnth128', N'$2a$11$SkMHX1eMS1BbedzFb//bsu7vJEJw/NN5PYfgOE2pU9hsOoU.VIGj6', N'', N'0270431959', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (129, N'lamnva129', N'$2a$11$6.Sd0l96flBpnZ.5mImEHOv3c5PpqRzYjeXOEA0voVeddrJHLKGMO', N'', N'0369265729', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (129, N'lamnva129', N'$2a$11$6.Sd0l96flBpnZ.5mImEHOv3c5PpqRzYjeXOEA0voVeddrJHLKGMO', N'', N'0369265729', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (130, N'hopvva130', N'$2a$11$UuWxXbH4YhtQZ2znOqSJ8eiavV1kEnMLk.RXNsAmqF4gStF4MjLdK', N'', N'0161259293', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (130, N'hopvva130', N'$2a$11$UuWxXbH4YhtQZ2znOqSJ8eiavV1kEnMLk.RXNsAmqF4gStF4MjLdK', N'', N'0161259293', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (131, N'chinhmva131', N'$2a$11$S6/egf0WYLi0.2ErD64txegfWhgXIPe4rK/lMHLgAOPd4ITA34ZnW', N'', N'0238543981', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (131, N'chinhmva131', N'$2a$11$S6/egf0WYLi0.2ErD64txegfWhgXIPe4rK/lMHLgAOPd4ITA34ZnW', N'', N'0238543981', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (132, N'tuant132', N'$2a$11$Fox2F4sad2VqOcvFIBcnhuPnfn16wWblXo4oGvfZTIAJWW5CRbGGK', N'', N'0690643775', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (132, N'tuant132', N'$2a$11$Fox2F4sad2VqOcvFIBcnhuPnfn16wWblXo4oGvfZTIAJWW5CRbGGK', N'', N'0690643775', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (133, N'tuandma133', N'$2a$11$INsVw5xDG5RQVI0YiT1dh.DNRQMGh79L3WtY0Z3OVn5JNV0QQu0mm', N'', N'0151232820', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (133, N'tuandma133', N'$2a$11$INsVw5xDG5RQVI0YiT1dh.DNRQMGh79L3WtY0Z3OVn5JNV0QQu0mm', N'', N'0151232820', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (134, N'chivva134', N'$2a$11$RKsk6fqU86psfidcEdx8Vu42VCmzD6R4o3ZbZgJVmou.Ws6bxFgxS', N'', N'0612550401', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (134, N'chivva134', N'$2a$11$RKsk6fqU86psfidcEdx8Vu42VCmzD6R4o3ZbZgJVmou.Ws6bxFgxS', N'', N'0612550401', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (135, N'haitva135', N'$2a$11$41IJ8hOh12iGZu1Q5Tj59eW9fKCqi6VEuLqEFT88W0V195ItPOTOO', N'', N'0618093508', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (135, N'haitva135', N'$2a$11$41IJ8hOh12iGZu1Q5Tj59eW9fKCqi6VEuLqEFT88W0V195ItPOTOO', N'', N'0618093508', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (136, N'doanhmva136', N'$2a$11$vDqMQTyW/rLQ/Dzs3j.mM.Wh/inXaJaEdURY.jSnW7rdM6qcX161u', N'', N'0876726639', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (136, N'doanhmva136', N'$2a$11$vDqMQTyW/rLQ/Dzs3j.mM.Wh/inXaJaEdURY.jSnW7rdM6qcX161u', N'', N'0876726639', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (137, N'thanhvva137', N'$2a$11$W5zEKX/ss4NOTDNs8R7VGewi04fqMucDzX2h.bBnZ8szp3YpJ6FZe', N'', N'0343789893', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (137, N'thanhvva137', N'$2a$11$W5zEKX/ss4NOTDNs8R7VGewi04fqMucDzX2h.bBnZ8szp3YpJ6FZe', N'', N'0343789893', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (138, N'thoivan138', N'$2a$11$fJeE1fgTDS7pDTEZ7j1R4.U.Nh1s33pzEgvBEODFk.mAhAg21uZtG', N'', N'0707462191', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (138, N'thoivan138', N'$2a$11$fJeE1fgTDS7pDTEZ7j1R4.U.Nh1s33pzEgvBEODFk.mAhAg21uZtG', N'', N'0707462191', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (139, N'datdva139', N'$2a$11$nFCg87RSq.DMVm0aX0TbtuMiUUFkwO6j/AWKZCyOXkTRDGdELJyD2', N'', N'0340609115', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (139, N'datdva139', N'$2a$11$nFCg87RSq.DMVm0aX0TbtuMiUUFkwO6j/AWKZCyOXkTRDGdELJyD2', N'', N'0340609115', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (140, N'tangtva140', N'$2a$11$fxI8XHudnrvIMMD3HpWCDeUaeTpodfdgR7D6iWQwXj.Vtc6BJjOZe', N'', N'0112426888', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (140, N'tangtva140', N'$2a$11$fxI8XHudnrvIMMD3HpWCDeUaeTpodfdgR7D6iWQwXj.Vtc6BJjOZe', N'', N'0112426888', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (141, N'ngoctva141', N'$2a$11$iPMSxlEndYtpOZMAf8f8KONmC36Qdmf0FgB1ZMEFdWFgyvqlDrRyu', N'', N'0451947933', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (141, N'ngoctva141', N'$2a$11$iPMSxlEndYtpOZMAf8f8KONmC36Qdmf0FgB1ZMEFdWFgyvqlDrRyu', N'', N'0451947933', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (142, N'quyetnva142', N'$2a$11$zmwGzZEYPoL7xSaTKPxCwu9RaWXNOPNVLgDiz6/iGetOZfqBUYdb.', N'', N'0862211704', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (142, N'quyetnva142', N'$2a$11$zmwGzZEYPoL7xSaTKPxCwu9RaWXNOPNVLgDiz6/iGetOZfqBUYdb.', N'', N'0862211704', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (143, N'duynva143', N'$2a$11$63DAZNdEEwK3n3S3GdGxb.y19KZnLFxDb8xzikpkML5Xnvz1hDLPu', N'', N'0463689678', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (143, N'duynva143', N'$2a$11$63DAZNdEEwK3n3S3GdGxb.y19KZnLFxDb8xzikpkML5Xnvz1hDLPu', N'', N'0463689678', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (144, N'sangnva144', N'$2a$11$RUaynkk1fgWwMR0XCYoYduu74IyOd8YN9BvWKkGyd34cC4lJHT4VC', N'', N'0906197893', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (144, N'sangnva144', N'$2a$11$RUaynkk1fgWwMR0XCYoYduu74IyOd8YN9BvWKkGyd34cC4lJHT4VC', N'', N'0906197893', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (145, N'tantva145', N'$2a$11$w4UdBd051qQfkyxh9bsHCOO44rUV/ax1TqfQdFOTlJWgZ36eq1bY2', N'', N'0206596833', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (145, N'tantva145', N'$2a$11$w4UdBd051qQfkyxh9bsHCOO44rUV/ax1TqfQdFOTlJWgZ36eq1bY2', N'', N'0206596833', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (146, N'chieudva146', N'$2a$11$WVys0WctE0i6PTJIWhcK8eym4Bg/usJXMPBaq8r4vijJ8GHXoONuy', N'', N'0815379261', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (146, N'chieudva146', N'$2a$11$WVys0WctE0i6PTJIWhcK8eym4Bg/usJXMPBaq8r4vijJ8GHXoONuy', N'', N'0815379261', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (147, N'ngonva147', N'$2a$11$uV9pVGGInBdk7nenMkzopOFeQ3./El4arKS1/A2GR9vqud.v99GjC', N'', N'0477844232', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (147, N'ngonva147', N'$2a$11$uV9pVGGInBdk7nenMkzopOFeQ3./El4arKS1/A2GR9vqud.v99GjC', N'', N'0477844232', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (148, N'chieuvva148', N'$2a$11$6iD53x7honHjBBR4y95NnOfCWmFBLVlXpD/TK5Ghz7IAIAJZO4F4e', N'', N'0567762553', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (148, N'chieuvva148', N'$2a$11$6iD53x7honHjBBR4y95NnOfCWmFBLVlXpD/TK5Ghz7IAIAJZO4F4e', N'', N'0567762553', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (149, N'luyenvdi149', N'$2a$11$fZai/VWANT0UEXDZz12hnufF/RPo4yZ7HDFT5tVa.wtvc7SOuKqO6', N'', N'0534817892', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (149, N'luyenvdi149', N'$2a$11$fZai/VWANT0UEXDZz12hnufF/RPo4yZ7HDFT5tVa.wtvc7SOuKqO6', N'', N'0534817892', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (150, N'tinhvva150', N'$2a$11$sYSIc7hlE4rxVSTJcMwspOkQyJJg3lJVlmJJsuFyBTQJYcz8a0EHC', N'', N'0316970968', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (150, N'tinhvva150', N'$2a$11$sYSIc7hlE4rxVSTJcMwspOkQyJJg3lJVlmJJsuFyBTQJYcz8a0EHC', N'', N'0316970968', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (151, N'duongnva151', N'$2a$11$9t1xygCzk21kAELdBafcieuaQbUGCvZtCAQMrjkKWXX4vjXFREvX.', N'', N'0739304465', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (151, N'duongnva151', N'$2a$11$9t1xygCzk21kAELdBafcieuaQbUGCvZtCAQMrjkKWXX4vjXFREvX.', N'', N'0739304465', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (152, N'thuannva152', N'$2a$11$mUSlWOVZhsLNz9j3pG14S.0YCqIi7BiYQe3cZ6.rClRzcnIc0zAqu', N'', N'0109675800', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (152, N'thuannva152', N'$2a$11$mUSlWOVZhsLNz9j3pG14S.0YCqIi7BiYQe3cZ6.rClRzcnIc0zAqu', N'', N'0109675800', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (153, N'kettva153', N'$2a$11$i31kvWOxbl4OX7QTcg7nW.a57xpiz28fvS5j8ONNRgCygJxnqyp5a', N'', N'0255196315', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (153, N'kettva153', N'$2a$11$i31kvWOxbl4OX7QTcg7nW.a57xpiz28fvS5j8ONNRgCygJxnqyp5a', N'', N'0255196315', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (154, N'dongvva154', N'$2a$11$VSouU.ZyS55oRpNopV/S4uW7oqWHRy7zgEP5kOvLoy/t1uXO6IosS', N'', N'0942481207', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (154, N'dongvva154', N'$2a$11$VSouU.ZyS55oRpNopV/S4uW7oqWHRy7zgEP5kOvLoy/t1uXO6IosS', N'', N'0942481207', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (155, N'luongvva155', N'$2a$11$HKUx3aruLDI3Rr2w23p4cOtqK0a4DMr4PJW6qL8kAAS7Sh.3cvhX6', N'', N'0627837222', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (155, N'luongvva155', N'$2a$11$HKUx3aruLDI3Rr2w23p4cOtqK0a4DMr4PJW6qL8kAAS7Sh.3cvhX6', N'', N'0627837222', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (156, N'habva156', N'$2a$11$AlOdjeZdNCnnouykK2JpFuOlQKbjVJAmji2kyi.qva60qsxAXUvXy', N'', N'0773887097', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (156, N'habva156', N'$2a$11$AlOdjeZdNCnnouykK2JpFuOlQKbjVJAmji2kyi.qva60qsxAXUvXy', N'', N'0773887097', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (157, N'dongnva157', N'$2a$11$FMU.dMQjviRCiWlTlz7JM.58bP9aAfshYkNrnbsTn30x5IreC6Iiu', N'', N'0198133713', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (157, N'dongnva157', N'$2a$11$FMU.dMQjviRCiWlTlz7JM.58bP9aAfshYkNrnbsTn30x5IreC6Iiu', N'', N'0198133713', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (158, N'chinhvva158', N'$2a$11$OaeWwZR9gsmj.BB/arr7UOpFIeyTRsCVgmX0TpICdOCdwEphQe4Va', N'', N'0931955146', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (158, N'chinhvva158', N'$2a$11$OaeWwZR9gsmj.BB/arr7UOpFIeyTRsCVgmX0TpICdOCdwEphQe4Va', N'', N'0931955146', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (159, N'thanhtvi159', N'$2a$11$qLlkKLvdNa/d/7ty.xYcT.SOXBwHeLbSAGBJoShZfAzy34be60v1C', N'', N'0529557007', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (159, N'thanhtvi159', N'$2a$11$qLlkKLvdNa/d/7ty.xYcT.SOXBwHeLbSAGBJoShZfAzy34be60v1C', N'', N'0529557007', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (160, N'luyenpva160', N'$2a$11$8XBpNE7NLnKq7uQiOBHsuOJNaKfemNhUWkLfM6lTncqWIhS9qABgO', N'', N'0783302938', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (160, N'luyenpva160', N'$2a$11$8XBpNE7NLnKq7uQiOBHsuOJNaKfemNhUWkLfM6lTncqWIhS9qABgO', N'', N'0783302938', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (161, N'chinhtva161', N'$2a$11$.FRv4PugTzLHcF8Ts8tYbejT4flA5ZRtMkB82RNf278zp9ia/TV7K', N'', N'0351160603', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (161, N'chinhtva161', N'$2a$11$.FRv4PugTzLHcF8Ts8tYbejT4flA5ZRtMkB82RNf278zp9ia/TV7K', N'', N'0351160603', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (162, N'hungnva162', N'$2a$11$rx1HYy/wimIaQfhSjpXQv.A9Z2c8/Yda03WcldVDnm6VR1ekSU/TC', N'', N'0154051232', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (162, N'hungnva162', N'$2a$11$rx1HYy/wimIaQfhSjpXQv.A9Z2c8/Yda03WcldVDnm6VR1ekSU/TC', N'', N'0154051232', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (163, N'thucpva163', N'$2a$11$IKZirF9nmh4h5npT7/IZSuy4HDC.j/mYX48qCd5IQeW3GS9b.koBW', N'', N'0444738477', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (163, N'thucpva163', N'$2a$11$IKZirF9nmh4h5npT7/IZSuy4HDC.j/mYX48qCd5IQeW3GS9b.koBW', N'', N'0444738477', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (164, N'hoangnva164', N'$2a$11$rzigeXpsfUlV01Vzxn4lfOOE2CvySrRQRKpKqS1a0OruosWd02Qg.', N'', N'0418349349', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (164, N'hoangnva164', N'$2a$11$rzigeXpsfUlV01Vzxn4lfOOE2CvySrRQRKpKqS1a0OruosWd02Qg.', N'', N'0418349349', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (165, N'ninhlva165', N'$2a$11$F1Zi.5CQM89s9T4aofOmbes/rONtIPpFfnK/GVg21YZGBtCbMFGjG', N'', N'0829248911', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (165, N'ninhlva165', N'$2a$11$F1Zi.5CQM89s9T4aofOmbes/rONtIPpFfnK/GVg21YZGBtCbMFGjG', N'', N'0829248911', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (166, N'hopnva166', N'$2a$11$uGdE0OzqGO4ER1g6Vs7S1OS15vN9UNmnIR666AjAdElUxm1A9Pse2', N'', N'0795103693', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (166, N'hopnva166', N'$2a$11$uGdE0OzqGO4ER1g6Vs7S1OS15vN9UNmnIR666AjAdElUxm1A9Pse2', N'', N'0795103693', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (167, N'thuyenvdi167', N'$2a$11$XH63M6fFZyHwtfIY6Z3NgefAlwfk56OGC87AXPqdMdrVm3XUTTSiW', N'', N'0620628947', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (167, N'thuyenvdi167', N'$2a$11$XH63M6fFZyHwtfIY6Z3NgefAlwfk56OGC87AXPqdMdrVm3XUTTSiW', N'', N'0620628947', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (168, N'dampva168', N'$2a$11$O5XNmhrLRmod5NJ4jaT45OYdZz/BlvEjUgwOyjQNFECeXfuWRU7ZK', N'', N'0118534386', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (168, N'dampva168', N'$2a$11$O5XNmhrLRmod5NJ4jaT45OYdZz/BlvEjUgwOyjQNFECeXfuWRU7ZK', N'', N'0118534386', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (169, N'haolva169', N'$2a$11$Mz9E70VqUqIbDUjfx2gmNefUKlGlgY5rMq9XLFyzTgiz8pFKUxr5G', N'', N'0370124465', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (169, N'haolva169', N'$2a$11$Mz9E70VqUqIbDUjfx2gmNefUKlGlgY5rMq9XLFyzTgiz8pFKUxr5G', N'', N'0370124465', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (170, N'hiennva170', N'$2a$11$rHc451Nu.8t6QtTBWUHVVOdpWpKRtdoh5TV8Dc9bM7P2Z501mYBs.', N'', N'0173185038', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (170, N'hiennva170', N'$2a$11$rHc451Nu.8t6QtTBWUHVVOdpWpKRtdoh5TV8Dc9bM7P2Z501mYBs.', N'', N'0173185038', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (171, N'damvva171', N'$2a$11$iPDyrdFNsctJFEfg0BFO8.GaKkkkoh.an65sj0jFfESARlO2Sm1V2', N'', N'0609260886', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (171, N'damvva171', N'$2a$11$iPDyrdFNsctJFEfg0BFO8.GaKkkkoh.an65sj0jFfESARlO2Sm1V2', N'', N'0609260886', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (172, N'giangnva172', N'$2a$11$HtNZGLkrbc47UXt72Qxrt.sw/b8LDPuyBJ7YfkWfdalwu2weIGn.K', N'', N'0609010636', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (172, N'giangnva172', N'$2a$11$HtNZGLkrbc47UXt72Qxrt.sw/b8LDPuyBJ7YfkWfdalwu2weIGn.K', N'', N'0609010636', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (173, N'huongtng173', N'$2a$11$nTeC3kxOwZ2iuQTgAfKqFOt3dBAyVyTOcPfOkSUx4eQjAfNYvFx6m', N'', N'0454579502', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (173, N'huongtng173', N'$2a$11$nTeC3kxOwZ2iuQTgAfKqFOt3dBAyVyTOcPfOkSUx4eQjAfNYvFx6m', N'', N'0454579502', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (174, N'bonvva174', N'$2a$11$RYSNptiwf5G4/0Cq4SMAzuItMc1cfpEJMaTcXxjXnY1fKtzxAMYbm', N'', N'0877168560', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (174, N'bonvva174', N'$2a$11$RYSNptiwf5G4/0Cq4SMAzuItMc1cfpEJMaTcXxjXnY1fKtzxAMYbm', N'', N'0877168560', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (175, N'thangnva175', N'$2a$11$KqAJe/zlkCXz9pU8dx9Ope8sbmT.CD5FweKoB6bsQaQHic7QdudYq', N'', N'0350264424', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (175, N'thangnva175', N'$2a$11$KqAJe/zlkCXz9pU8dx9Ope8sbmT.CD5FweKoB6bsQaQHic7QdudYq', N'', N'0350264424', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (176, N'loipva176', N'$2a$11$c2Xmxdx1AzYnnD7vZMONgelFpCS6HtS8xw/uQkbZBuSURfWlBW10C', N'', N'0552137720', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (176, N'loipva176', N'$2a$11$c2Xmxdx1AzYnnD7vZMONgelFpCS6HtS8xw/uQkbZBuSURfWlBW10C', N'', N'0552137720', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (177, N'truongnva177', N'$2a$11$rw5LvAYp6cNGDwA7qlFufui3LmqK61v/mBlHG/FcNyel6lK8PXI6a', N'', N'0651785165', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (177, N'truongnva177', N'$2a$11$rw5LvAYp6cNGDwA7qlFufui3LmqK61v/mBlHG/FcNyel6lK8PXI6a', N'', N'0651785165', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (178, N'thamnde178', N'$2a$11$MysePrV4jhGFQE.6ZkGmRePeIiEbEIhisTn4GXBHqZwojqfFMuoqm', N'', N'0430790829', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (178, N'thamnde178', N'$2a$11$MysePrV4jhGFQE.6ZkGmRePeIiEbEIhisTn4GXBHqZwojqfFMuoqm', N'', N'0430790829', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (179, N'huypva179', N'$2a$11$TVJhX4DkvZfcc79rFrk/ze0ofCAAfSCMnykUK9C5Gi.2jyVhAIuyK', N'', N'0578679841', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (179, N'huypva179', N'$2a$11$TVJhX4DkvZfcc79rFrk/ze0ofCAAfSCMnykUK9C5Gi.2jyVhAIuyK', N'', N'0578679841', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (180, N'tuvdi180', N'$2a$11$PArud79WxgPK1Yr9D7juGOzIlzj6kFgVC2PDUi0qhvj6YFewm/sVm', N'', N'0724044787', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (180, N'tuvdi180', N'$2a$11$PArud79WxgPK1Yr9D7juGOzIlzj6kFgVC2PDUi0qhvj6YFewm/sVm', N'', N'0724044787', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (181, N'duyvva181', N'$2a$11$3XoRzIU7ucGWAktjFxHb2ummBjkOlc.bd0FjwElUiL3sKomLp3hJ2', N'', N'0489604002', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (181, N'duyvva181', N'$2a$11$3XoRzIU7ucGWAktjFxHb2ummBjkOlc.bd0FjwElUiL3sKomLp3hJ2', N'', N'0489604002', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (182, N'havva182', N'$2a$11$R6/eIfjIoR7zcgCS1KU.7eKMv/A/GCGXFPtKnw9F/hH3AeVnah6kC', N'', N'0981714200', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (182, N'havva182', N'$2a$11$R6/eIfjIoR7zcgCS1KU.7eKMv/A/GCGXFPtKnw9F/hH3AeVnah6kC', N'', N'0981714200', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (183, N'hinhpva183', N'$2a$11$tBHrjQTSZhjatjCPbfXy.eVo7RPOX6uzJd..kjcuGyGGku8xZ7l5.', N'', N'0757770079', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (183, N'hinhpva183', N'$2a$11$tBHrjQTSZhjatjCPbfXy.eVo7RPOX6uzJd..kjcuGyGGku8xZ7l5.', N'', N'0757770079', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (184, N'dungpva184', N'$2a$11$CAJywXprJ9IMg0Sdu9ahTuX8EjyYA.v1VGkwmgQjFLkxOrik.T38G', N'', N'0316193020', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (184, N'dungpva184', N'$2a$11$CAJywXprJ9IMg0Sdu9ahTuX8EjyYA.v1VGkwmgQjFLkxOrik.T38G', N'', N'0316193020', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (185, N'thinlva185', N'$2a$11$.hchyLTLjszkOxBo2mf/8.gnvMjGRAqHNRYIpGXIUQRxs7mFj.iSC', N'', N'0649902468', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (185, N'thinlva185', N'$2a$11$.hchyLTLjszkOxBo2mf/8.gnvMjGRAqHNRYIpGXIUQRxs7mFj.iSC', N'', N'0649902468', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (186, N'vinhnva186', N'$2a$11$zCPPM064pNHZ8e2d1GbheuKfxrjSLS38cpzl6Agu1Z85V2K55ud26', N'', N'0315589308', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (186, N'vinhnva186', N'$2a$11$zCPPM064pNHZ8e2d1GbheuKfxrjSLS38cpzl6Agu1Z85V2K55ud26', N'', N'0315589308', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (187, N'daivdi187', N'$2a$11$OA6uQJZHsMXN/lWsGjCa9uRUEV6WugsHrOcYtY3ZajHGbmk8i3ici', N'', N'0836833232', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (187, N'daivdi187', N'$2a$11$OA6uQJZHsMXN/lWsGjCa9uRUEV6WugsHrOcYtY3ZajHGbmk8i3ici', N'', N'0836833232', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (188, N'thuyvva188', N'$2a$11$LpE6fLDb42QLSTtzql5/IOUSdEs8bDYf.3En5sUwIAaP6JBMWmi9K', N'', N'0661938130', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (188, N'thuyvva188', N'$2a$11$LpE6fLDb42QLSTtzql5/IOUSdEs8bDYf.3En5sUwIAaP6JBMWmi9K', N'', N'0661938130', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (189, N'tuantva189', N'$2a$11$GtDAARCMInxfcHXFYp0KseNe/Kzv4QvNPx2GDWgtiilknVz2cuTB2', N'', N'0788863426', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (189, N'tuantva189', N'$2a$11$GtDAARCMInxfcHXFYp0KseNe/Kzv4QvNPx2GDWgtiilknVz2cuTB2', N'', N'0788863426', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (190, N'dieunva190', N'$2a$11$Hjm/sl7fgkAk6AIhcYK7veW1vclkl8NDQfHJMieyJSl0UyTZ.LTlm', N'', N'0195117568', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (190, N'dieunva190', N'$2a$11$Hjm/sl7fgkAk6AIhcYK7veW1vclkl8NDQfHJMieyJSl0UyTZ.LTlm', N'', N'0195117568', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (191, N'phuongbti191', N'$2a$11$F3pN.bw6bAhZ35Rk1J5OFu3w2TP.F.0YcfgwJQYazuenKhEHfdaPy', N'', N'0534015053', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (191, N'phuongbti191', N'$2a$11$F3pN.bw6bAhZ35Rk1J5OFu3w2TP.F.0YcfgwJQYazuenKhEHfdaPy', N'', N'0534015053', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (192, N'luyennva192', N'$2a$11$2Tpxr4m5.eCS2MKghk7bXewK0agxx5.KzRwcSPGkkKAieT7Q12Pu2', N'', N'0188092863', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (192, N'luyennva192', N'$2a$11$2Tpxr4m5.eCS2MKghk7bXewK0agxx5.KzRwcSPGkkKAieT7Q12Pu2', N'', N'0188092863', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (193, N'manhvva193', N'$2a$11$oynp3Nib04Nc6qr9YzqCZeBHHjpH6MRY67RfnQFKA95K24pxbDKEK', N'', N'0282298642', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (193, N'manhvva193', N'$2a$11$oynp3Nib04Nc6qr9YzqCZeBHHjpH6MRY67RfnQFKA95K24pxbDKEK', N'', N'0282298642', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (194, N'ninhbva194', N'$2a$11$35blzNqKkRMZ84MWnPOKSeQzvbrMVY93CjSZeDwJwK9PNGiO4F7Oq', N'', N'0524113678', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (194, N'ninhbva194', N'$2a$11$35blzNqKkRMZ84MWnPOKSeQzvbrMVY93CjSZeDwJwK9PNGiO4F7Oq', N'', N'0524113678', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (195, N'lampxu195', N'$2a$11$YD5JWemm/HANz/uC4oG5WunjBLiueDt0zTDs2.RpSItleyjlssDJi', N'', N'0644121450', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (195, N'lampxu195', N'$2a$11$YD5JWemm/HANz/uC4oG5WunjBLiueDt0zTDs2.RpSItleyjlssDJi', N'', N'0644121450', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (196, N'aitva196', N'$2a$11$54HJc4sy/gQCtqiptjcFqueUnOan5a6La5ENPxE4Ldh2EmXq5Y70K', N'', N'0391489493', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (196, N'aitva196', N'$2a$11$54HJc4sy/gQCtqiptjcFqueUnOan5a6La5ENPxE4Ldh2EmXq5Y70K', N'', N'0391489493', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (197, N'kiennva197', N'$2a$11$/iA4IrkOaeTWQ9GUEcnKZOcY6g4rYPmUijZmFD4XUAUBxsyKIArQ2', N'', N'0995961290', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (197, N'kiennva197', N'$2a$11$/iA4IrkOaeTWQ9GUEcnKZOcY6g4rYPmUijZmFD4XUAUBxsyKIArQ2', N'', N'0995961290', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (198, N'letva198', N'$2a$11$WmgVHL3u5tpO3S/AIq.DaunulKpo2yD4dYiUZxlI0F49mJ3BC27.q', N'', N'0936568117', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (198, N'letva198', N'$2a$11$WmgVHL3u5tpO3S/AIq.DaunulKpo2yD4dYiUZxlI0F49mJ3BC27.q', N'', N'0936568117', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (199, N'hoanva199', N'$2a$11$Hxl9fHSwkXtxfBFcVekZJuDx.fD96xyKk.mJeUyFWQJPpeZt74GB.', N'', N'0971430987', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (199, N'hoanva199', N'$2a$11$Hxl9fHSwkXtxfBFcVekZJuDx.fD96xyKk.mJeUyFWQJPpeZt74GB.', N'', N'0971430987', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (200, N'tanvdi200', N'$2a$11$np3mq2axzqEilptP5J3JgeLxlOjFkpRD2WUVp.RVBbf//JByY1EOu', N'', N'0340542328', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (200, N'tanvdi200', N'$2a$11$np3mq2axzqEilptP5J3JgeLxlOjFkpRD2WUVp.RVBbf//JByY1EOu', N'', N'0340542328', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (201, N'quyenvva201', N'$2a$11$7F8IV1M2jbQGrcPzhvKXU.sosV8WyaCPbyU.lOjWgUiZC9ZFyIODK', N'', N'0380858451', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (201, N'quyenvva201', N'$2a$11$7F8IV1M2jbQGrcPzhvKXU.sosV8WyaCPbyU.lOjWgUiZC9ZFyIODK', N'', N'0380858451', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (202, N'hungpva202', N'$2a$11$K0q.1.ZlkeO9qDbNjvgE5e8osiBrrUb019otU4BMvWtYPll6BYdIe', N'', N'0810709643', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (202, N'hungpva202', N'$2a$11$K0q.1.ZlkeO9qDbNjvgE5e8osiBrrUb019otU4BMvWtYPll6BYdIe', N'', N'0810709643', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (203, N'tuantva203', N'$2a$11$tY2peRATUORdWwwC5Mfq5.EjnGx0fw8//gnQySmEt4pOrGjy/9Ldq', N'', N'0287507385', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (203, N'tuantva203', N'$2a$11$tY2peRATUORdWwwC5Mfq5.EjnGx0fw8//gnQySmEt4pOrGjy/9Ldq', N'', N'0287507385', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (204, N'ducnva204', N'$2a$11$YlUpfcn2XeSaUVCokiGbUeHvS3H1hnLYZsDMpRiKBS5K2mB0F4XXm', N'', N'0401810204', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (204, N'ducnva204', N'$2a$11$YlUpfcn2XeSaUVCokiGbUeHvS3H1hnLYZsDMpRiKBS5K2mB0F4XXm', N'', N'0401810204', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (205, N'truongvva205', N'$2a$11$pLh0alT0vAfG2TiE9udy2eohjK3YPiNG/pfYBL0QPLJzOin6LL2uK', N'', N'0993563610', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (205, N'truongvva205', N'$2a$11$pLh0alT0vAfG2TiE9udy2eohjK3YPiNG/pfYBL0QPLJzOin6LL2uK', N'', N'0993563610', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (206, N'phuongtva206', N'$2a$11$ByngRf4d3uS/R7rK9hDxpeEvGr7fiF/hGFsIrFdDW6BDdif1Gttqa', N'', N'0408067798', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (206, N'phuongtva206', N'$2a$11$ByngRf4d3uS/R7rK9hDxpeEvGr7fiF/hGFsIrFdDW6BDdif1Gttqa', N'', N'0408067798', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (207, N'truongbva207', N'$2a$11$AC2vMSNkBkGcFWivNlzdZuenwKOoIUb5NiexGMybLhnw4IVklS3X6', N'', N'0114012020', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (207, N'truongbva207', N'$2a$11$AC2vMSNkBkGcFWivNlzdZuenwKOoIUb5NiexGMybLhnw4IVklS3X6', N'', N'0114012020', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (208, N'luannhu208', N'$2a$11$6pS.L9HLKs2oJ5gQy.NmK.5f.LLoY3l0CoHdj8n8BME6hgGUhO0AC', N'', N'0791558992', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (208, N'luannhu208', N'$2a$11$6pS.L9HLKs2oJ5gQy.NmK.5f.LLoY3l0CoHdj8n8BME6hgGUhO0AC', N'', N'0791558992', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (209, N'truyenpva209', N'$2a$11$59n66uleXeSQvIwxGJ59q.yq3usqfFNs2xK4ExEAlRF68xcjzng3S', N'', N'0441529160', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (209, N'truyenpva209', N'$2a$11$59n66uleXeSQvIwxGJ59q.yq3usqfFNs2xK4ExEAlRF68xcjzng3S', N'', N'0441529160', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (210, N'thangvva210', N'$2a$11$Oi6NO9VZW5QX1VJwn91BQ.5z6G.p9AtAIistilKR/rrfH.JkObT16', N'', N'0437535405', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (210, N'thangvva210', N'$2a$11$Oi6NO9VZW5QX1VJwn91BQ.5z6G.p9AtAIistilKR/rrfH.JkObT16', N'', N'0437535405', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (211, N'hungnva211', N'$2a$11$9.Bdna9EYsLQxVG9wnqCw.PjXG.aBH3nRmTRkZzZ5NeG4RIT2tkWC', N'', N'0630516427', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (211, N'hungnva211', N'$2a$11$9.Bdna9EYsLQxVG9wnqCw.PjXG.aBH3nRmTRkZzZ5NeG4RIT2tkWC', N'', N'0630516427', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (212, N'toitva212', N'$2a$11$8nmybOwj3Ju5RaZXo0Clt.qXRwd7uyMREnt.3yvNc3PKjfiaUH3Au', N'', N'0352324092', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (212, N'toitva212', N'$2a$11$8nmybOwj3Ju5RaZXo0Clt.qXRwd7uyMREnt.3yvNc3PKjfiaUH3Au', N'', N'0352324092', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (213, N'thieumva213', N'$2a$11$HBFIw3s08junaAXps7YZIesVcJqOh0Kd6/E4pGguGcp3g0t.G4vdK', N'', N'0453398901', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (213, N'thieumva213', N'$2a$11$HBFIw3s08junaAXps7YZIesVcJqOh0Kd6/E4pGguGcp3g0t.G4vdK', N'', N'0453398901', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (214, N'hanhnva214', N'$2a$11$My.Q2RRJxQ2/rIvmlh20bux8e8/83gbMYCThKZj8j5ZoLD4xs4fsq', N'', N'0944431066', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (214, N'hanhnva214', N'$2a$11$My.Q2RRJxQ2/rIvmlh20bux8e8/83gbMYCThKZj8j5ZoLD4xs4fsq', N'', N'0944431066', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (215, N'sypva215', N'$2a$11$5Ve0foG2e7nnm7da/nDnD.IgIVhqzfzXdVWmWILiATnM.3PHZNpNW', N'', N'0407314795', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (215, N'sypva215', N'$2a$11$5Ve0foG2e7nnm7da/nDnD.IgIVhqzfzXdVWmWILiATnM.3PHZNpNW', N'', N'0407314795', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (216, N'phuctva216', N'$2a$11$.SRv/HTHnhsdl.nHHSQVI.zd3Gy.1/Ab1X4huuEQZP740.HgmDsFO', N'', N'0954472935', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (216, N'phuctva216', N'$2a$11$.SRv/HTHnhsdl.nHHSQVI.zd3Gy.1/Ab1X4huuEQZP740.HgmDsFO', N'', N'0954472935', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (217, N'thoaitva217', N'$2a$11$lHJQudfCS/kH1SvhPb2vieX1TTF1YlNCCgQx.UmU749IEHpKSxUEq', N'', N'0874320536', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (217, N'thoaitva217', N'$2a$11$lHJQudfCS/kH1SvhPb2vieX1TTF1YlNCCgQx.UmU749IEHpKSxUEq', N'', N'0874320536', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (218, N'khanhlva218', N'$2a$11$uOzmyZKRb9YUDsoj5BtHpefniX10jYvtFIm1eoJvc0EyEoEBMtppa', N'', N'0424561667', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (218, N'khanhlva218', N'$2a$11$uOzmyZKRb9YUDsoj5BtHpefniX10jYvtFIm1eoJvc0EyEoEBMtppa', N'', N'0424561667', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (219, N'hainva219', N'$2a$11$nFLX3XW8pj6nMUwjd/ex1usVOs7X.oZTOt2ljy.55SzOW3g22j8re', N'', N'0863236469', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (219, N'hainva219', N'$2a$11$nFLX3XW8pj6nMUwjd/ex1usVOs7X.oZTOt2ljy.55SzOW3g22j8re', N'', N'0863236469', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (220, N'taindi220', N'$2a$11$bBN3Xi5EndAMWOlVvi/2Ee1/cGN/CBHljYzqZrXRIGsWym4MPw96e', N'', N'0422767484', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (220, N'taindi220', N'$2a$11$bBN3Xi5EndAMWOlVvi/2Ee1/cGN/CBHljYzqZrXRIGsWym4MPw96e', N'', N'0422767484', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (221, N'linhnma221', N'$2a$11$deWcxRTTf0gLfEgLD1PW6e6xeqKl7A2KoEvXVsT/cbzD0sXTeF2oe', N'', N'0186258178', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (221, N'linhnma221', N'$2a$11$deWcxRTTf0gLfEgLD1PW6e6xeqKl7A2KoEvXVsT/cbzD0sXTeF2oe', N'', N'0186258178', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (222, N'anhbxu222', N'$2a$11$QQgxxZtGdWhZuoVhgtegDu/UhrMV8BXNrmvmVIr1okDHL5y5KCNPq', N'', N'0563284873', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (222, N'anhbxu222', N'$2a$11$QQgxxZtGdWhZuoVhgtegDu/UhrMV8BXNrmvmVIr1okDHL5y5KCNPq', N'', N'0563284873', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (223, N'nghiattr223', N'$2a$11$8xD.AiTOg6heXdgYxjEBZuHK7we5PXbE1hm6XLzMEKPaM2ESxrP1S', N'', N'0148458451', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (223, N'nghiattr223', N'$2a$11$8xD.AiTOg6heXdgYxjEBZuHK7we5PXbE1hm6XLzMEKPaM2ESxrP1S', N'', N'0148458451', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (224, N'quangpva224', N'$2a$11$KRkV6OM.X9EoCjt3CreskObfEPiDEgni4rOblB9ym4hOWPcUb3knu', N'', N'0987926733', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (224, N'quangpva224', N'$2a$11$KRkV6OM.X9EoCjt3CreskObfEPiDEgni4rOblB9ym4hOWPcUb3knu', N'', N'0987926733', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (225, N'duymkh225', N'$2a$11$SHdiypW9e/uQz8G/GVlie.g1rRmHHS6CUNsXxGLxYTlVKifVlQTAG', N'', N'0753304845', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (225, N'duymkh225', N'$2a$11$SHdiypW9e/uQz8G/GVlie.g1rRmHHS6CUNsXxGLxYTlVKifVlQTAG', N'', N'0753304845', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (226, N'thanhpdu226', N'$2a$11$DXlji7QJA35PY6wH0uoC1OGeTeBuxfsMNqNJN1cUwFvDZcCCToFd.', N'', N'0399571633', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (226, N'thanhpdu226', N'$2a$11$DXlji7QJA35PY6wH0uoC1OGeTeBuxfsMNqNJN1cUwFvDZcCCToFd.', N'', N'0399571633', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (227, N'giangbva227', N'$2a$11$VtAZVxAYiXUWM2hKo8otB.kJq2bxGH.WMkhBB5bOoaX7nJcGrVJuC', N'', N'0752317899', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (227, N'giangbva227', N'$2a$11$VtAZVxAYiXUWM2hKo8otB.kJq2bxGH.WMkhBB5bOoaX7nJcGrVJuC', N'', N'0752317899', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (228, N'dinhvti228', N'$2a$11$xRkqFUyOSqNvpsIeeTgaNePSel9Gjm8ehNUCVow0YRbapMGekabiS', N'', N'0863189208', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (228, N'dinhvti228', N'$2a$11$xRkqFUyOSqNvpsIeeTgaNePSel9Gjm8ehNUCVow0YRbapMGekabiS', N'', N'0863189208', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (229, N'thuyenvva229', N'$2a$11$Pl6zqvARA.z8aIxAi12gmejsZq.TEvUpVWmYD7FK9yhfdn1YalAXG', N'', N'0791994959', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (229, N'thuyenvva229', N'$2a$11$Pl6zqvARA.z8aIxAi12gmejsZq.TEvUpVWmYD7FK9yhfdn1YalAXG', N'', N'0791994959', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (230, N'thonva230', N'$2a$11$pFFgtJWiNwoV.gc07GALpeNpTlwX9yOLSLlvxz5W4gu0yT4X./79S', N'', N'0615068674', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (230, N'thonva230', N'$2a$11$pFFgtJWiNwoV.gc07GALpeNpTlwX9yOLSLlvxz5W4gu0yT4X./79S', N'', N'0615068674', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (231, N'hadqu231', N'$2a$11$62uYTECwCexpaJPbcgdaEeXHAjhesjiGk4mxfDLTKOiJH8x3Kms4q', N'', N'0236124628', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (231, N'hadqu231', N'$2a$11$62uYTECwCexpaJPbcgdaEeXHAjhesjiGk4mxfDLTKOiJH8x3Kms4q', N'', N'0236124628', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (232, N'thuongvva232', N'$2a$11$A.pHPJvfnYyy74l7b0bMse/NJhEv9LRTrqn5.CDiT8OqI2xoAQHy6', N'', N'0445875465', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (232, N'thuongvva232', N'$2a$11$A.pHPJvfnYyy74l7b0bMse/NJhEv9LRTrqn5.CDiT8OqI2xoAQHy6', N'', N'0445875465', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (233, N'tinhpva233', N'$2a$11$OsoULOw3qrrkS2Pn8cr7d.FzmkVCF/s3TVHUoXm1GDUYfj3fOzDI2', N'', N'0966616851', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (233, N'tinhpva233', N'$2a$11$OsoULOw3qrrkS2Pn8cr7d.FzmkVCF/s3TVHUoXm1GDUYfj3fOzDI2', N'', N'0966616851', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (234, N'thanhntr234', N'$2a$11$Z20Dg2ZwKpmzCOlV7yM90.FxJwG0g7c4IcGoPW4XoUsTcPcC4YgKy', N'', N'0848161005', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (234, N'thanhntr234', N'$2a$11$Z20Dg2ZwKpmzCOlV7yM90.FxJwG0g7c4IcGoPW4XoUsTcPcC4YgKy', N'', N'0848161005', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (235, N'chungtva235', N'$2a$11$6BblR7TtawCBTR8NKMUCOej86ZE65Yeqz1tBilmfYoILouejUhOKG', N'', N'0190973609', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (235, N'chungtva235', N'$2a$11$6BblR7TtawCBTR8NKMUCOej86ZE65Yeqz1tBilmfYoILouejUhOKG', N'', N'0190973609', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (236, N'bactva236', N'$2a$11$BT8I6sfuUbf6HWwrAOtaq.QmRcr7bR6s7wizDParY3qjTE5oKiu6e', N'', N'0643950593', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (236, N'bactva236', N'$2a$11$BT8I6sfuUbf6HWwrAOtaq.QmRcr7bR6s7wizDParY3qjTE5oKiu6e', N'', N'0643950593', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (237, N'hiennva237', N'$2a$11$.QQQZzWON9KDxcEuqjvda.YkMfTNx7XvwK0AMhahQXbKzV1iyuICu', N'', N'0409525257', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (237, N'hiennva237', N'$2a$11$.QQQZzWON9KDxcEuqjvda.YkMfTNx7XvwK0AMhahQXbKzV1iyuICu', N'', N'0409525257', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (238, N'duynva238', N'$2a$11$B7hbkCZr4nfIV8Kw/uckfOKM56dbh.DYhOEKMoo.rE3RaBwJRLw6W', N'', N'0833034420', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (238, N'duynva238', N'$2a$11$B7hbkCZr4nfIV8Kw/uckfOKM56dbh.DYhOEKMoo.rE3RaBwJRLw6W', N'', N'0833034420', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (239, N'sangnqu239', N'$2a$11$/vvp48eNsJKZAJ.ROvEbjebkGXwvWxr/HqhhQCasQEnlMh2fZrkWG', N'', N'0120557469', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (239, N'sangnqu239', N'$2a$11$/vvp48eNsJKZAJ.ROvEbjebkGXwvWxr/HqhhQCasQEnlMh2fZrkWG', N'', N'0120557469', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (240, N'sangnva240', N'$2a$11$RCMDP8nxLZCSQJYTlLhW4.Xn89uIwPCG1dpPmDTKSEVEG/qzlt7ja', N'', N'0527586710', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (240, N'sangnva240', N'$2a$11$RCMDP8nxLZCSQJYTlLhW4.Xn89uIwPCG1dpPmDTKSEVEG/qzlt7ja', N'', N'0527586710', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (241, N'nampva241', N'$2a$11$HPF9m4wiMVDy911rIirct.z/adoKZ.w9L5zDvM1HGCXNpG0hVQyBO', N'', N'0166453820', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (241, N'nampva241', N'$2a$11$HPF9m4wiMVDy911rIirct.z/adoKZ.w9L5zDvM1HGCXNpG0hVQyBO', N'', N'0166453820', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (242, N'dungnva242', N'$2a$11$VdLIodiG80A0o9i6HqAHhe.zdtKXGTDp/wLzLHLfX4cM8EY6v4ngq', N'', N'0863737988', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (242, N'dungnva242', N'$2a$11$VdLIodiG80A0o9i6HqAHhe.zdtKXGTDp/wLzLHLfX4cM8EY6v4ngq', N'', N'0863737988', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (243, N'baonva243', N'$2a$11$zXxJlU2dOIXmtSe1ryH.v.E.OLLStfb7PmkrV8ez/Hg4mcFS/SkPq', N'', N'0548978990', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (243, N'baonva243', N'$2a$11$zXxJlU2dOIXmtSe1ryH.v.E.OLLStfb7PmkrV8ez/Hg4mcFS/SkPq', N'', N'0548978990', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (244, N'thinhpva244', N'$2a$11$XdwW.3XSJwIcx0sbCdgvbus1zlLixCUVjgfrIaWy2linRvzn5qu7G', N'', N'0605725467', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (244, N'thinhpva244', N'$2a$11$XdwW.3XSJwIcx0sbCdgvbus1zlLixCUVjgfrIaWy2linRvzn5qu7G', N'', N'0605725467', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (245, N'quanpva245', N'$2a$11$5DhNVxUVOIjXObXGSfXNKOTou0WRNEKeYUsp/UVY0T6INCuJt2OCC', N'', N'0566827589', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (245, N'quanpva245', N'$2a$11$5DhNVxUVOIjXObXGSfXNKOTou0WRNEKeYUsp/UVY0T6INCuJt2OCC', N'', N'0566827589', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (246, N'suotdva246', N'$2a$11$F5plFzN.e/OyCR8xyEoGquAZeZ3gf9trzcnHbdvLC3FtJ8672UTHy', N'', N'0683246564', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (246, N'suotdva246', N'$2a$11$F5plFzN.e/OyCR8xyEoGquAZeZ3gf9trzcnHbdvLC3FtJ8672UTHy', N'', N'0683246564', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (247, N'bangnva247', N'$2a$11$HKJunegQ0fXYnTOi2K/aZ.dV9XejzAS8VR..LGsUrNCFEbDRthr0u', N'', N'0953563612', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (247, N'bangnva247', N'$2a$11$HKJunegQ0fXYnTOi2K/aZ.dV9XejzAS8VR..LGsUrNCFEbDRthr0u', N'', N'0953563612', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (248, N'phongmva248', N'$2a$11$i4ZE1QOCRUP8Ve8VmWPxEu5ZRLPkwlWfuXkYFiiSK8pTWJswGdhum', N'', N'0927640545', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (248, N'phongmva248', N'$2a$11$i4ZE1QOCRUP8Ve8VmWPxEu5ZRLPkwlWfuXkYFiiSK8pTWJswGdhum', N'', N'0927640545', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (249, N'phienpva249', N'$2a$11$.LKzpHpgozM4btsJyVQobucnLgyZI7W8FiGw8BXeV3eRpW80uqU6C', N'', N'0619075518', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (249, N'phienpva249', N'$2a$11$.LKzpHpgozM4btsJyVQobucnLgyZI7W8FiGw8BXeV3eRpW80uqU6C', N'', N'0619075518', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (250, N'thonva250', N'$2a$11$UguYnMaoKgouyqiUypS/auRdqlRH5RQAayLk4aH.v7/471gUOebpa', N'', N'0397523283', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (250, N'thonva250', N'$2a$11$UguYnMaoKgouyqiUypS/auRdqlRH5RQAayLk4aH.v7/471gUOebpa', N'', N'0397523283', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (251, N'chinhhva251', N'$2a$11$wAIEYHO8Kh8pzvnKB.3Yde61gYzhTzVgMjibjiL2T8XkqbMc2RPA2', N'', N'0622671931', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (251, N'chinhhva251', N'$2a$11$wAIEYHO8Kh8pzvnKB.3Yde61gYzhTzVgMjibjiL2T8XkqbMc2RPA2', N'', N'0622671931', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (252, N'quanpva252', N'$2a$11$7WvQqgyfPC.iB9dpP7qJ6e4C0f.wXx45LeLcrzsT.mfwIt6To2zSi', N'', N'0309500157', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (252, N'quanpva252', N'$2a$11$7WvQqgyfPC.iB9dpP7qJ6e4C0f.wXx45LeLcrzsT.mfwIt6To2zSi', N'', N'0309500157', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (253, N'thinhpva253', N'$2a$11$no1fD/ckWjcfIn6lXITa3OslQZzKEcpxpqGRHhsauodTmzxvmy1RS', N'', N'0330942970', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (253, N'thinhpva253', N'$2a$11$no1fD/ckWjcfIn6lXITa3OslQZzKEcpxpqGRHhsauodTmzxvmy1RS', N'', N'0330942970', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (254, N'phucvva254', N'$2a$11$iILIlWrkXnJWL4nG1m2.qe1c2y2GG./zZZxSRVhzOIxPtxyFBFuRm', N'', N'0714582061', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (254, N'phucvva254', N'$2a$11$iILIlWrkXnJWL4nG1m2.qe1c2y2GG./zZZxSRVhzOIxPtxyFBFuRm', N'', N'0714582061', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (255, N'thoipva255', N'$2a$11$YyCIJG2uVniw3c9bSFDyFev.Ue.NoziRIFM/Mwz8oWQQeh3KM/joa', N'', N'0638512200', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (255, N'thoipva255', N'$2a$11$YyCIJG2uVniw3c9bSFDyFev.Ue.NoziRIFM/Mwz8oWQQeh3KM/joa', N'', N'0638512200', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (256, N'nhatvva256', N'$2a$11$6GDbc1p/TOQEaeAOp4OgdOMeZR2TBIMVOefW69F8cuzedGGG/Wp8e', N'', N'0285929548', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (256, N'nhatvva256', N'$2a$11$6GDbc1p/TOQEaeAOp4OgdOMeZR2TBIMVOefW69F8cuzedGGG/Wp8e', N'', N'0285929548', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (257, N'dangvdi257', N'$2a$11$IuuqPfC2X5x/faeLCMQUBOeDSBtWj4niZJb/QzLDq1pRzbLj0uTCa', N'', N'0554804211', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (257, N'dangvdi257', N'$2a$11$IuuqPfC2X5x/faeLCMQUBOeDSBtWj4niZJb/QzLDq1pRzbLj0uTCa', N'', N'0554804211', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (258, N'namnva258', N'$2a$11$Rvtew7JISR87IlxwIAop2eKFL29CP3rtLa8jfNr7VOr5csoY0OBYy', N'', N'0708550095', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (258, N'namnva258', N'$2a$11$Rvtew7JISR87IlxwIAop2eKFL29CP3rtLa8jfNr7VOr5csoY0OBYy', N'', N'0708550095', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (259, N'thinhnva259', N'$2a$11$s23vBOcJ6H9DoWhCGH1Ck.CFr/VzyUE/7PTDY6g6e8OO5ExvBYci2', N'', N'0684952825', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (259, N'thinhnva259', N'$2a$11$s23vBOcJ6H9DoWhCGH1Ck.CFr/VzyUE/7PTDY6g6e8OO5ExvBYci2', N'', N'0684952825', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (260, N'tutva260', N'$2a$11$57d3.LJCGqHgXabDw5oHuu23xmkw8DD.awDRcFp4jP6I6z/son0iy', N'', N'0286573493', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (260, N'tutva260', N'$2a$11$57d3.LJCGqHgXabDw5oHuu23xmkw8DD.awDRcFp4jP6I6z/son0iy', N'', N'0286573493', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (261, N'khiemnva261', N'$2a$11$o8/u8BZeNRqkRltSTIlVPOt/opRErVEgnbJJynypMVkrlDnP4SQ1C', N'', N'0357974916', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (261, N'khiemnva261', N'$2a$11$o8/u8BZeNRqkRltSTIlVPOt/opRErVEgnbJJynypMVkrlDnP4SQ1C', N'', N'0357974916', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (262, N'thuyenpva262', N'$2a$11$4BGfwzNgypC.b9pnEh2T5.8GaF7tBO5iea3XX8N2uc69NZi7joo2u', N'', N'0308730363', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (262, N'thuyenpva262', N'$2a$11$4BGfwzNgypC.b9pnEh2T5.8GaF7tBO5iea3XX8N2uc69NZi7joo2u', N'', N'0308730363', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (263, N'batva263', N'$2a$11$vqQXDyndXOysVre/KnGu9.dbvnVcJuTGWoAyj4aVW4tVg0eiEfiC.', N'', N'0580334872', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (263, N'batva263', N'$2a$11$vqQXDyndXOysVre/KnGu9.dbvnVcJuTGWoAyj4aVW4tVg0eiEfiC.', N'', N'0580334872', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (264, N'hoahva264', N'$2a$11$TDqgZb5ASxlOCXOl1iPAR.egk0t7.HSU3u/aCNqD4o.Quqk/ZB4wO', N'', N'0237658798', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (264, N'hoahva264', N'$2a$11$TDqgZb5ASxlOCXOl1iPAR.egk0t7.HSU3u/aCNqD4o.Quqk/ZB4wO', N'', N'0237658798', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (265, N'duongvva265', N'$2a$11$pMr3W2kT10Oowx3jTVxdTedsjy9SUTyv9bldmP68/IV4iITR8p1Uu', N'', N'0918024665', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (265, N'duongvva265', N'$2a$11$pMr3W2kT10Oowx3jTVxdTedsjy9SUTyv9bldmP68/IV4iITR8p1Uu', N'', N'0918024665', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (266, N'diemvmi266', N'$2a$11$04Xbiu.CQHvAfWd/sPVskuKttSMIQgQMglXLt326xlazIwSdDFPdm', N'', N'0313664126', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (266, N'diemvmi266', N'$2a$11$04Xbiu.CQHvAfWd/sPVskuKttSMIQgQMglXLt326xlazIwSdDFPdm', N'', N'0313664126', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (267, N'thachvqu267', N'$2a$11$Q7cpG0.JwORNRdpQWIAnEOSZg8NKSy0T0sqOAdhITPYNpLmE9MTjO', N'', N'0235284560', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (267, N'thachvqu267', N'$2a$11$Q7cpG0.JwORNRdpQWIAnEOSZg8NKSy0T0sqOAdhITPYNpLmE9MTjO', N'', N'0235284560', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (268, N'tuyenpva268', N'$2a$11$QJPVeWcvh712tvqsBaA65eff80xB23kDsiK0fN/xFk70pyTVOr4ie', N'', N'0688556802', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (268, N'tuyenpva268', N'$2a$11$QJPVeWcvh712tvqsBaA65eff80xB23kDsiK0fN/xFk70pyTVOr4ie', N'', N'0688556802', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (269, N'hienpva269', N'$2a$11$yycnhoh7H8/iA/pxHppHC.v8u2UZlA9D8OaleW3DJ2qcbEi2Eix5W', N'', N'0643089443', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (269, N'hienpva269', N'$2a$11$yycnhoh7H8/iA/pxHppHC.v8u2UZlA9D8OaleW3DJ2qcbEi2Eix5W', N'', N'0643089443', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (270, N'tuannva270', N'$2a$11$dPfHvo9AWbYi8gEEHm3lRuxCLUbnfgU.D0gyDh8A.mp.ZaZHOq0DS', N'', N'0830193424', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (270, N'tuannva270', N'$2a$11$dPfHvo9AWbYi8gEEHm3lRuxCLUbnfgU.D0gyDh8A.mp.ZaZHOq0DS', N'', N'0830193424', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (271, N'tiennva271', N'$2a$11$H.b84ZHhxRvT4k6yaMT86uuD8cVlbwIUXLxGNywitNBuHR5Vf/she', N'', N'0735525768', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (271, N'tiennva271', N'$2a$11$H.b84ZHhxRvT4k6yaMT86uuD8cVlbwIUXLxGNywitNBuHR5Vf/she', N'', N'0735525768', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (272, N'chungpva272', N'$2a$11$AroHfXTL.D0SInJMQuDdu.NVQ1S1IQDb85slswhUZULCDToEETRK2', N'', N'0463345873', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (272, N'chungpva272', N'$2a$11$AroHfXTL.D0SInJMQuDdu.NVQ1S1IQDb85slswhUZULCDToEETRK2', N'', N'0463345873', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (273, N'duvva273', N'$2a$11$aOQLkT/U3EzPEAp0TWRXnOpAFVZYH6jVKL5l4tWBCl29RPXNlnBNu', N'', N'0417184144', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (273, N'duvva273', N'$2a$11$aOQLkT/U3EzPEAp0TWRXnOpAFVZYH6jVKL5l4tWBCl29RPXNlnBNu', N'', N'0417184144', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (274, N'hinhdxu274', N'$2a$11$DSTfcCxeaLa1roOQmpxtie1rD8PAvV2Hw8LPT7jhbTjR7My9/kkOC', N'', N'0837523579', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (274, N'hinhdxu274', N'$2a$11$DSTfcCxeaLa1roOQmpxtie1rD8PAvV2Hw8LPT7jhbTjR7My9/kkOC', N'', N'0837523579', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (275, N'phongmva275', N'$2a$11$wv918LiqUN2gsKfm9M/j9uFbeb0/jh234z9/Fu7gqKgnKms5CcUOy', N'', N'0249692529', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (275, N'phongmva275', N'$2a$11$wv918LiqUN2gsKfm9M/j9uFbeb0/jh234z9/Fu7gqKgnKms5CcUOy', N'', N'0249692529', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (276, N'huyvdi276', N'$2a$11$y8oz6sNwwNb4Z/l6PQlazee57ICcf8VMLmksLlac9rLseN9PTj9Zi', N'', N'0837373912', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (276, N'huyvdi276', N'$2a$11$y8oz6sNwwNb4Z/l6PQlazee57ICcf8VMLmksLlac9rLseN9PTj9Zi', N'', N'0837373912', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (277, N'loipva277', N'$2a$11$CliOXOHsd2yl6PSuNM2ku.6CdkoMy83jr0Yrf8DUTGX/PVaH9wsP.', N'', N'0970515066', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (277, N'loipva277', N'$2a$11$CliOXOHsd2yl6PSuNM2ku.6CdkoMy83jr0Yrf8DUTGX/PVaH9wsP.', N'', N'0970515066', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (278, N'chinhpva278', N'$2a$11$xt96/A54IbPqGaoCK8s4m.0JCVOrUMto5lWn9P8DQJIgV.l6tm/ES', N'', N'0676285696', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (278, N'chinhpva278', N'$2a$11$xt96/A54IbPqGaoCK8s4m.0JCVOrUMto5lWn9P8DQJIgV.l6tm/ES', N'', N'0676285696', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (279, N'quantva279', N'$2a$11$iiat5ZFswAUwmXuNeFZ05.T06b7cfRGhHG666Ut09eNBALjLSWbl6', N'', N'0962141531', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (279, N'quantva279', N'$2a$11$iiat5ZFswAUwmXuNeFZ05.T06b7cfRGhHG666Ut09eNBALjLSWbl6', N'', N'0962141531', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (280, N'hainva280', N'$2a$11$qH9R3jxFAdNd61jb53HES.w19IuLAJtw28xJoPgt81kvYTlcHSH0e', N'', N'0938820850', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (280, N'hainva280', N'$2a$11$qH9R3jxFAdNd61jb53HES.w19IuLAJtw28xJoPgt81kvYTlcHSH0e', N'', N'0938820850', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (281, N'luongpva281', N'$2a$11$1KePIb3.RxzHama8e3B8zubKu0tR5CgxfrOf2EhbVyn0Up5sqAbCK', N'', N'0474792414', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (281, N'luongpva281', N'$2a$11$1KePIb3.RxzHama8e3B8zubKu0tR5CgxfrOf2EhbVyn0Up5sqAbCK', N'', N'0474792414', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (282, N'hienvva282', N'$2a$11$h4O6vtmAStIDQY1Su3O76ehg8vm8zC6lIyr9.kVbL19RumKwN7MLu', N'', N'0262599158', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (282, N'hienvva282', N'$2a$11$h4O6vtmAStIDQY1Su3O76ehg8vm8zC6lIyr9.kVbL19RumKwN7MLu', N'', N'0262599158', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (283, N'tuyenpva283', N'$2a$11$rWm8OKgl0UiCc.6X0J8onO49ucopnXB89RJxil.T3na2wC/DuLKCu', N'', N'0930764621', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (283, N'tuyenpva283', N'$2a$11$rWm8OKgl0UiCc.6X0J8onO49ucopnXB89RJxil.T3na2wC/DuLKCu', N'', N'0930764621', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (284, N'tuyenlva284', N'$2a$11$sQNJJDKwzbuZseCi2YU5vuTv.9HRJPBUICdVty9z6a/bHBIm/w4wi', N'', N'0575261151', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (284, N'tuyenlva284', N'$2a$11$sQNJJDKwzbuZseCi2YU5vuTv.9HRJPBUICdVty9z6a/bHBIm/w4wi', N'', N'0575261151', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (285, N'tientva285', N'$2a$11$5nys6wmbcWWH0N9ssa8QkecHAHpfT4qNE34jLmf1Kd9koVezjoUba', N'', N'0463542801', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (285, N'tientva285', N'$2a$11$5nys6wmbcWWH0N9ssa8QkecHAHpfT4qNE34jLmf1Kd9koVezjoUba', N'', N'0463542801', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (286, N'supva286', N'$2a$11$x774EQztMp6Umy8jdsGwt.FEaTVGg0.loe3gb/SDUCmnApQdgMz5e', N'', N'0227134132', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (286, N'supva286', N'$2a$11$x774EQztMp6Umy8jdsGwt.FEaTVGg0.loe3gb/SDUCmnApQdgMz5e', N'', N'0227134132', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (287, N'hanhnhu287', N'$2a$11$8ZO2J9tiwldsB9Wn6SthSeG9iI8CxM4FHin.MZiOZuv/adZFwc6j.', N'', N'0569801300', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (287, N'hanhnhu287', N'$2a$11$8ZO2J9tiwldsB9Wn6SthSeG9iI8CxM4FHin.MZiOZuv/adZFwc6j.', N'', N'0569801300', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (288, N'thinng288', N'$2a$11$4Ly.iIlJDjRaeF5IEzGZp.5.DGtdO.o8N4ssMQKjKUDT6TP2NzWDy', N'', N'0585226309', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (288, N'thinng288', N'$2a$11$4Ly.iIlJDjRaeF5IEzGZp.5.DGtdO.o8N4ssMQKjKUDT6TP2NzWDy', N'', N'0585226309', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (289, N'locnva289', N'$2a$11$GmtS.e/CfbdyVNGc.P2o6erkZfXVRKDsooEJJvSn8vbfwXH9dyMMC', N'', N'0277421742', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (289, N'locnva289', N'$2a$11$GmtS.e/CfbdyVNGc.P2o6erkZfXVRKDsooEJJvSn8vbfwXH9dyMMC', N'', N'0277421742', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (290, N'dangvva290', N'$2a$11$Db29DM7zx7kKXrXMIIBhs.q0IpCeS8/IxLWx3cmeex1X1kCVEXDfW', N'', N'0579174065', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (290, N'dangvva290', N'$2a$11$Db29DM7zx7kKXrXMIIBhs.q0IpCeS8/IxLWx3cmeex1X1kCVEXDfW', N'', N'0579174065', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (291, N'tieunva291', N'$2a$11$QUHY.XZqLMvv/gE3iGxqpu/gyFKJyTT1vaoLtOeLRzHp6r.qeU/WO', N'', N'0357651227', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (291, N'tieunva291', N'$2a$11$QUHY.XZqLMvv/gE3iGxqpu/gyFKJyTT1vaoLtOeLRzHp6r.qeU/WO', N'', N'0357651227', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (292, N'thutva292', N'$2a$11$K1B/ON2FaEj8S/i9ZzKlE.ywPT2MUZYJ659eDewgJcOR80SUXHE9a', N'', N'0714767348', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (292, N'thutva292', N'$2a$11$K1B/ON2FaEj8S/i9ZzKlE.ywPT2MUZYJ659eDewgJcOR80SUXHE9a', N'', N'0714767348', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (293, N'henva293', N'$2a$11$VNVYoVoL8EJtgUhiFW3ktue.H4sZQIa9nwYW.ifhwjWpLWdJ0H6t6', N'', N'0734526163', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (293, N'henva293', N'$2a$11$VNVYoVoL8EJtgUhiFW3ktue.H4sZQIa9nwYW.ifhwjWpLWdJ0H6t6', N'', N'0734526163', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (294, N'vinhnva294', N'$2a$11$oHpr15p8v.FvrshCfpUJ2ep19tr/kfwsHpo1EDI6x7X3K3juZbMw.', N'', N'0495678186', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (294, N'vinhnva294', N'$2a$11$oHpr15p8v.FvrshCfpUJ2ep19tr/kfwsHpo1EDI6x7X3K3juZbMw.', N'', N'0495678186', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (295, N'hieuvva295', N'$2a$11$H8k/zQPfxB7LEibt7Py0XOJ6UFe7VOvKq/VpBvaOviQTWWZie0GAi', N'', N'0569686716', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (295, N'hieuvva295', N'$2a$11$H8k/zQPfxB7LEibt7Py0XOJ6UFe7VOvKq/VpBvaOviQTWWZie0GAi', N'', N'0569686716', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (296, N'quynhvva296', N'$2a$11$7VEeCxWtQup4N8cSelv6b.V4Z5Ll9FZTl4s1cZ9uTQaQZSGCbXiaG', N'', N'0419017326', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (296, N'quynhvva296', N'$2a$11$7VEeCxWtQup4N8cSelv6b.V4Z5Ll9FZTl4s1cZ9uTQaQZSGCbXiaG', N'', N'0419017326', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (297, N'bonnva297', N'$2a$11$XCWC91fywKcy2hPag86Ese6U3nzRqCTNs0SvKfNodbqpOD/HZn1B.', N'', N'0825706893', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (297, N'bonnva297', N'$2a$11$XCWC91fywKcy2hPag86Ese6U3nzRqCTNs0SvKfNodbqpOD/HZn1B.', N'', N'0825706893', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (298, N'tientva298', N'$2a$11$3CH34DIZoBBtnPmnvss6nePexA3zankHMbwEfw/1qPsL.dvjPa3ne', N'', N'0135344004', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (298, N'tientva298', N'$2a$11$3CH34DIZoBBtnPmnvss6nePexA3zankHMbwEfw/1qPsL.dvjPa3ne', N'', N'0135344004', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (299, N'luongthi299', N'$2a$11$AC1EOY6Vn7WyoGUENsLkfubNH9jqM9SciyuKkAVB.j8TUMteXukbe', N'', N'0336065238', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (299, N'luongthi299', N'$2a$11$AC1EOY6Vn7WyoGUENsLkfubNH9jqM9SciyuKkAVB.j8TUMteXukbe', N'', N'0336065238', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (300, N'thuydth300', N'$2a$11$SbI88ZL4rx7roTAVu37bzOS4AL7mgUOTuCSYdNUAE7Z9pL36G1U86', N'', N'0457926738', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (300, N'thuydth300', N'$2a$11$SbI88ZL4rx7roTAVu37bzOS4AL7mgUOTuCSYdNUAE7Z9pL36G1U86', N'', N'0457926738', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (301, N'chinhnva301', N'$2a$11$m1cgz6bIOupkhRfgncW6N.JMq/AKURlgqOsWAVqLcQcAljQilOthO', N'', N'0934881168', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (301, N'chinhnva301', N'$2a$11$m1cgz6bIOupkhRfgncW6N.JMq/AKURlgqOsWAVqLcQcAljQilOthO', N'', N'0934881168', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (302, N'hungpqu302', N'$2a$11$19kGHKcJZhDLrpdui4koaul2L.iJB0C2UC0pq7tNAzvZsjrUoqBAu', N'', N'0877669811', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (302, N'hungpqu302', N'$2a$11$19kGHKcJZhDLrpdui4koaul2L.iJB0C2UC0pq7tNAzvZsjrUoqBAu', N'', N'0877669811', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (303, N'sylva303', N'$2a$11$gTP1WgX2T5iSAggblpnzWebzEdOaugVyAH67lP8vzHNA/yQ9Eb5PK', N'', N'0524541920', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (303, N'sylva303', N'$2a$11$gTP1WgX2T5iSAggblpnzWebzEdOaugVyAH67lP8vzHNA/yQ9Eb5PK', N'', N'0524541920', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (304, N'daitva304', N'$2a$11$Atk.yRUOVTVMA8pWv7lmzeByuKKdXC7pkXeGk.TC8/EwC6sW9zVyy', N'', N'0401961481', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (304, N'daitva304', N'$2a$11$Atk.yRUOVTVMA8pWv7lmzeByuKKdXC7pkXeGk.TC8/EwC6sW9zVyy', N'', N'0401961481', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (305, N'truongvxu305', N'$2a$11$zA0xMy2a7SN205Lvm.PmRO95xRIiI7yELJXOH29RTaROqNk36KPAy', N'', N'0884345132', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (305, N'truongvxu305', N'$2a$11$zA0xMy2a7SN205Lvm.PmRO95xRIiI7yELJXOH29RTaROqNk36KPAy', N'', N'0884345132', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (306, N'hichlth306', N'$2a$11$7Pk0qNE48/7OZeepQ911nOvh1LmN0MNMdLNB/8B.fRPdIgcD9Xlkm', N'', N'0387017178', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (306, N'hichlth306', N'$2a$11$7Pk0qNE48/7OZeepQ911nOvh1LmN0MNMdLNB/8B.fRPdIgcD9Xlkm', N'', N'0387017178', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (307, N'luctva307', N'$2a$11$rMx5uwaAJ9mRiMyX1JV87eXrbSZPLo8NwwShH/tJ5U1mxG0EypGtO', N'', N'0548282045', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (307, N'luctva307', N'$2a$11$rMx5uwaAJ9mRiMyX1JV87eXrbSZPLo8NwwShH/tJ5U1mxG0EypGtO', N'', N'0548282045', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (308, N'oanhvng308', N'$2a$11$KIJjUEE0WBa0uWUd3EKRPuA81Sdp1xBV7j1pcVZZ1.1t/UQP0eLfi', N'', N'0400394427', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (308, N'oanhvng308', N'$2a$11$KIJjUEE0WBa0uWUd3EKRPuA81Sdp1xBV7j1pcVZZ1.1t/UQP0eLfi', N'', N'0400394427', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (309, N'quangpva309', N'$2a$11$aGKSQBfCv2CKQFf6nfbfdOnzDNf.bdDeygtIlKoUs3fS.Dhr1SJNm', N'', N'0905086332', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (309, N'quangpva309', N'$2a$11$aGKSQBfCv2CKQFf6nfbfdOnzDNf.bdDeygtIlKoUs3fS.Dhr1SJNm', N'', N'0905086332', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (310, N'bandva310', N'$2a$11$YF7eAjnat3apN2kT6m1ffelTxqmHFl0c0811g144xA6Er8Em.POGu', N'', N'0501673460', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (310, N'bandva310', N'$2a$11$YF7eAjnat3apN2kT6m1ffelTxqmHFl0c0811g144xA6Er8Em.POGu', N'', N'0501673460', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (311, N'xuongnva311', N'$2a$11$vFI.th6LT4KTAjg7h/kHCO3IsHWdS2H.5XPQn3YGnAGsjFGjPMVH2', N'', N'0798673552', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (311, N'xuongnva311', N'$2a$11$vFI.th6LT4KTAjg7h/kHCO3IsHWdS2H.5XPQn3YGnAGsjFGjPMVH2', N'', N'0798673552', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (312, N'hiennmi312', N'$2a$11$mGigPCUk4Q5by8UWrGgnn.gyASqulFQTmOTkyuWnBuu1E60a/hTuG', N'', N'0791138851', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (312, N'hiennmi312', N'$2a$11$mGigPCUk4Q5by8UWrGgnn.gyASqulFQTmOTkyuWnBuu1E60a/hTuG', N'', N'0791138851', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (313, N'thangnva313', N'$2a$11$6BZtV9Cw.PKHiWBbj/bJOuhrqtjB/IcvS1IKYZG/cu59RrFMnqEB2', N'', N'0132096225', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (313, N'thangnva313', N'$2a$11$6BZtV9Cw.PKHiWBbj/bJOuhrqtjB/IcvS1IKYZG/cu59RrFMnqEB2', N'', N'0132096225', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (314, N'manhvva314', N'$2a$11$k2mMJS5ayXDqWTl6Z6LfRekVaKErZ2LpYp5crEp21ERW/b1Mckdja', N'', N'0947914290', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (314, N'manhvva314', N'$2a$11$k2mMJS5ayXDqWTl6Z6LfRekVaKErZ2LpYp5crEp21ERW/b1Mckdja', N'', N'0947914290', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (315, N'baynva315', N'$2a$11$EZCNNdOcrrclGIhu.UbNpur6.1ydV3v49ngnikIHlzzL4jN1R6Eaq', N'', N'0803139537', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (315, N'baynva315', N'$2a$11$EZCNNdOcrrclGIhu.UbNpur6.1ydV3v49ngnikIHlzzL4jN1R6Eaq', N'', N'0803139537', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (316, N'phuocthu316', N'$2a$11$PQ/k4dnanDXVtsIBZz/WEeBSXjhsY52Nd5gPgsmYa73/PDwoL5Lhe', N'', N'0573175466', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (316, N'phuocthu316', N'$2a$11$PQ/k4dnanDXVtsIBZz/WEeBSXjhsY52Nd5gPgsmYa73/PDwoL5Lhe', N'', N'0573175466', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (317, N'mainth317', N'$2a$11$O7GTwZSq2.dZQbXIfECYc.qzDSE2dpe3lz5a64lM.KAJbk0bKg8cG', N'', N'0865201669', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (317, N'mainth317', N'$2a$11$O7GTwZSq2.dZQbXIfECYc.qzDSE2dpe3lz5a64lM.KAJbk0bKg8cG', N'', N'0865201669', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (318, N'xuongtva318', N'$2a$11$xvKpEQMFDabfkMXRqsAk/.LjHsJdohY9AqbIOXlHSRn02C2i0JBAO', N'', N'0479066085', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (318, N'xuongtva318', N'$2a$11$xvKpEQMFDabfkMXRqsAk/.LjHsJdohY9AqbIOXlHSRn02C2i0JBAO', N'', N'0479066085', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (319, N'bangvva319', N'$2a$11$Bvz56oOGxmP4SrVgY/loquJD6wR2FZ2XJ4S6J/DcyuwSh8h8PLdnC', N'', N'0307950752', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (319, N'bangvva319', N'$2a$11$Bvz56oOGxmP4SrVgY/loquJD6wR2FZ2XJ4S6J/DcyuwSh8h8PLdnC', N'', N'0307950752', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (320, N'sontva320', N'$2a$11$Yc6vaFr1zuRydBwsPOgoiuFt69yEAIJ9I8HwQ7L5zry9LpPFO16dG', N'', N'0788942015', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (320, N'sontva320', N'$2a$11$Yc6vaFr1zuRydBwsPOgoiuFt69yEAIJ9I8HwQ7L5zry9LpPFO16dG', N'', N'0788942015', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (321, N'quannva321', N'$2a$11$Zo6DpGUvYUhPoQsurovU8.Iqp2gHK/0IIYKkvnwRvfj0eh.KMjRlq', N'', N'0511782437', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (321, N'quannva321', N'$2a$11$Zo6DpGUvYUhPoQsurovU8.Iqp2gHK/0IIYKkvnwRvfj0eh.KMjRlq', N'', N'0511782437', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (322, N'hieuvva322', N'$2a$11$zgNLoe7z93J28f4ZlZGt.eZNkUo7m5cXdjUqYShj/sLaGzW2xyttS', N'', N'0939568543', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (322, N'hieuvva322', N'$2a$11$zgNLoe7z93J28f4ZlZGt.eZNkUo7m5cXdjUqYShj/sLaGzW2xyttS', N'', N'0939568543', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (323, N'hoangvva323', N'$2a$11$V5HALbyT73THowEGxXLS9.nGrpx9QXBTgoWPLhgEPxUJGAqIKafo2', N'', N'0586038106', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (323, N'hoangvva323', N'$2a$11$V5HALbyT73THowEGxXLS9.nGrpx9QXBTgoWPLhgEPxUJGAqIKafo2', N'', N'0586038106', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (324, N'huypva324', N'$2a$11$iQ8C2wVuT/VNWsegUmwgluQVYGaPis8au7mAv2T7OKM0lZJME/iNe', N'', N'0600895774', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (324, N'huypva324', N'$2a$11$iQ8C2wVuT/VNWsegUmwgluQVYGaPis8au7mAv2T7OKM0lZJME/iNe', N'', N'0600895774', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (325, N'tuanbva325', N'$2a$11$JN5ofu0.dPUiEZhHA00HZegc1PM6BFPpznQeFN.Y3AsZ6oiZLzsKC', N'', N'0262273699', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (325, N'tuanbva325', N'$2a$11$JN5ofu0.dPUiEZhHA00HZegc1PM6BFPpznQeFN.Y3AsZ6oiZLzsKC', N'', N'0262273699', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (326, N'nhoivva326', N'$2a$11$xRPxlTCvjDx/lcTLgKz6ZemuFDTRV/xR.JI/FCUFN6E1u5GcDq.Ji', N'', N'0754037141', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (326, N'nhoivva326', N'$2a$11$xRPxlTCvjDx/lcTLgKz6ZemuFDTRV/xR.JI/FCUFN6E1u5GcDq.Ji', N'', N'0754037141', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (327, N'nhanva327', N'$2a$11$4PuVksIijRzUkWXwHyf0dOsmyBPx/pUT8BzVOPtyzVe8pFGc3LPxe', N'', N'0569805163', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (327, N'nhanva327', N'$2a$11$4PuVksIijRzUkWXwHyf0dOsmyBPx/pUT8BzVOPtyzVe8pFGc3LPxe', N'', N'0569805163', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (328, N'toitva328', N'$2a$11$giDrfQ3nyUrnUygPXpfgXeho//8DwCI0tfNESqXaz3nQju91XF5oK', N'', N'0793076050', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (328, N'toitva328', N'$2a$11$giDrfQ3nyUrnUygPXpfgXeho//8DwCI0tfNESqXaz3nQju91XF5oK', N'', N'0793076050', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (329, N'hiennva329', N'$2a$11$RP0O7bcCMiOaLKwIex0vBeYggYc4YKcjPtFss/efC4.OwtW8tC6HS', N'', N'0380288535', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (329, N'hiennva329', N'$2a$11$RP0O7bcCMiOaLKwIex0vBeYggYc4YKcjPtFss/efC4.OwtW8tC6HS', N'', N'0380288535', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (330, N'thamnde330', N'$2a$11$NUgd8eg8VAPkOjh2Xqf.CetKH0kL5g3NnsnwxMYJAKVwli1FjDZFy', N'', N'0341325640', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (330, N'thamnde330', N'$2a$11$NUgd8eg8VAPkOjh2Xqf.CetKH0kL5g3NnsnwxMYJAKVwli1FjDZFy', N'', N'0341325640', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (331, N'huyendho331', N'$2a$11$hPb2//0IcG25KOL0I5fzc.2Moj7WxHDCwvZc3Nxk2OCMVkXBIIkK6', N'', N'0408940643', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (331, N'huyendho331', N'$2a$11$hPb2//0IcG25KOL0I5fzc.2Moj7WxHDCwvZc3Nxk2OCMVkXBIIkK6', N'', N'0408940643', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (332, N'camdng332', N'$2a$11$vwbIuZ33p1ogFxHYApFpNeDc23fBC4LByCGkZQ7GILUCCdyZJlj.u', N'', N'0297666680', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (332, N'camdng332', N'$2a$11$vwbIuZ33p1ogFxHYApFpNeDc23fBC4LByCGkZQ7GILUCCdyZJlj.u', N'', N'0297666680', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (333, N'duongpva333', N'$2a$11$kCG7yzer2t7B2eo2.Z7WH.kRiTUp9W9tmk9jq5gBR3BIgEk2Tkd/6', N'', N'0525525432', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (333, N'duongpva333', N'$2a$11$kCG7yzer2t7B2eo2.Z7WH.kRiTUp9W9tmk9jq5gBR3BIgEk2Tkd/6', N'', N'0525525432', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (334, N'tinhnva334', N'$2a$11$Y.d7eLC5YUBU6K6AygIA0OtnxS9IJeqC8xrNR9J4w1ncqKv1Kf6k2', N'', N'0553588581', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (334, N'tinhnva334', N'$2a$11$Y.d7eLC5YUBU6K6AygIA0OtnxS9IJeqC8xrNR9J4w1ncqKv1Kf6k2', N'', N'0553588581', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (335, N'tondki335', N'$2a$11$/UsFwsyiDnbpumzQihOX1OZGFKBMIbhlEm5cF0EhsPUpPZjpjA.uW', N'', N'0753230923', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (335, N'tondki335', N'$2a$11$/UsFwsyiDnbpumzQihOX1OZGFKBMIbhlEm5cF0EhsPUpPZjpjA.uW', N'', N'0753230923', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (336, N'phongmva336', N'$2a$11$hPTdM8yVAxhInMKhaDURLuHKi3HdEebXOzOExLkrWCQT712rNITGW', N'', N'0146558535', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (336, N'phongmva336', N'$2a$11$hPTdM8yVAxhInMKhaDURLuHKi3HdEebXOzOExLkrWCQT712rNITGW', N'', N'0146558535', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (337, N'thapvva337', N'$2a$11$nEBVfqGYPNYmlotZbW1k6e3Q6aLci/3dtCBnT6kDrRjeM.akquqDK', N'', N'0358561784', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (337, N'thapvva337', N'$2a$11$nEBVfqGYPNYmlotZbW1k6e3Q6aLci/3dtCBnT6kDrRjeM.akquqDK', N'', N'0358561784', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (338, N'thanhtva338', N'$2a$11$MpChrGA36i8ZL6OSj/rEUeXVQdkRt3uk0U6fJLlpK2m08TRgGapcy', N'', N'0440343785', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (338, N'thanhtva338', N'$2a$11$MpChrGA36i8ZL6OSj/rEUeXVQdkRt3uk0U6fJLlpK2m08TRgGapcy', N'', N'0440343785', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (339, N'huydng339', N'$2a$11$AM.sADLyHqRn5iVtqLy49uXUCSlaQy1ytHqEtiT1EQcr0Im89bHe6', N'', N'0460372537', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (339, N'huydng339', N'$2a$11$AM.sADLyHqRn5iVtqLy49uXUCSlaQy1ytHqEtiT1EQcr0Im89bHe6', N'', N'0460372537', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (340, N'doanhtva340', N'$2a$11$ov.Tnhqs7tWawNrNmiBIyOW/X62vDmJvzbsDLZhgWTWMVUU1zLV7a', N'', N'0447912013', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (340, N'doanhtva340', N'$2a$11$ov.Tnhqs7tWawNrNmiBIyOW/X62vDmJvzbsDLZhgWTWMVUU1zLV7a', N'', N'0447912013', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (341, N'hanhvdi341', N'$2a$11$Hh08.J1fFCVtkJVJnykjz.hBJNTSwwprru1ihUNmdHK7VzxEPUr5m', N'', N'0511166387', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (341, N'hanhvdi341', N'$2a$11$Hh08.J1fFCVtkJVJnykjz.hBJNTSwwprru1ihUNmdHK7VzxEPUr5m', N'', N'0511166387', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (342, N'taonva342', N'$2a$11$NWUA6a5OSWqmLPB1CWUkSewyngytFX93CEEmbCuyuEy6pxppXIgle', N'', N'0637534856', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (342, N'taonva342', N'$2a$11$NWUA6a5OSWqmLPB1CWUkSewyngytFX93CEEmbCuyuEy6pxppXIgle', N'', N'0637534856', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (343, N'tutva343', N'$2a$11$WQIKsamSVVXUyAu78Nii5OYKIejYAuSlJHufDIhexCHlm1XdnUeje', N'', N'0828784674', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (343, N'tutva343', N'$2a$11$WQIKsamSVVXUyAu78Nii5OYKIejYAuSlJHufDIhexCHlm1XdnUeje', N'', N'0828784674', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (344, N'thuyenvdi344', N'$2a$11$arUdd4K52Qx8KjFQnNJe6.Otmu6QV1dtzgTSMBL8jmhM24OancTaW', N'', N'0287719547', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (344, N'thuyenvdi344', N'$2a$11$arUdd4K52Qx8KjFQnNJe6.Otmu6QV1dtzgTSMBL8jmhM24OancTaW', N'', N'0287719547', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (345, N'thuanpva345', N'$2a$11$0VrUzchhj9.zeCRUd.w.7.gICBi03xZqolR3SCj7oAOM/f0KsEA2K', N'', N'0181611949', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (345, N'thuanpva345', N'$2a$11$0VrUzchhj9.zeCRUd.w.7.gICBi03xZqolR3SCj7oAOM/f0KsEA2K', N'', N'0181611949', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (346, N'phienpva346', N'$2a$11$kHA24bXiTo1KNrR2vQgC3eCXR4z91oTscLUFmLyyFPLAtyMgPPtYe', N'', N'0681593680', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (346, N'phienpva346', N'$2a$11$kHA24bXiTo1KNrR2vQgC3eCXR4z91oTscLUFmLyyFPLAtyMgPPtYe', N'', N'0681593680', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (347, N'oanhvng347', N'$2a$11$fqstvLtC8S9V.0YDUibKCusOrO10Fzak46DTew53aU5VGMVTjZVIm', N'', N'0155421680', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (347, N'oanhvng347', N'$2a$11$fqstvLtC8S9V.0YDUibKCusOrO10Fzak46DTew53aU5VGMVTjZVIm', N'', N'0155421680', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (348, N'danglva348', N'$2a$11$bIqqrRXFAFRpZtGP1WfYi.x7OgF5snz2axXxSW.JHFdHYppHhodlq', N'', N'0556368100', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (348, N'danglva348', N'$2a$11$bIqqrRXFAFRpZtGP1WfYi.x7OgF5snz2axXxSW.JHFdHYppHhodlq', N'', N'0556368100', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (349, N'depva349', N'$2a$11$sbVQWf4PU1WQBNPzPiKKkuQgpQXPUZUg.2WOJzQgRjh/8drzh7ZUa', N'', N'0354987579', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (349, N'depva349', N'$2a$11$sbVQWf4PU1WQBNPzPiKKkuQgpQXPUZUg.2WOJzQgRjh/8drzh7ZUa', N'', N'0354987579', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (350, N'damnva350', N'$2a$11$VDsGKcJc1g/3unhL3JkZr.3nkXzcxu7VVRukjTyJkG.v562ucyIeS', N'', N'0148502922', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (350, N'damnva350', N'$2a$11$VDsGKcJc1g/3unhL3JkZr.3nkXzcxu7VVRukjTyJkG.v562ucyIeS', N'', N'0148502922', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (351, N'dungtth351', N'$2a$11$GCHsvv9LBTOdo.73Kf4u9OrWP46cfQ9ARd0PjffLRcc5NDZrf2vaG', N'', N'0398521441', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (351, N'dungtth351', N'$2a$11$GCHsvv9LBTOdo.73Kf4u9OrWP46cfQ9ARd0PjffLRcc5NDZrf2vaG', N'', N'0398521441', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (352, N'duyentth352', N'$2a$11$Y306Wqn8ohFwtRmdRQB7leh2LtoFI6GQt7yr9SAToGIsrMNGCxaVG', N'', N'0849895966', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (352, N'duyentth352', N'$2a$11$Y306Wqn8ohFwtRmdRQB7leh2LtoFI6GQt7yr9SAToGIsrMNGCxaVG', N'', N'0849895966', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (353, N'binhtng353', N'$2a$11$.axNWBoZYE0LdevJjevMdufJondueAphK0zUXn8c2B2MGwlkVByhe', N'', N'0948511296', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (353, N'binhtng353', N'$2a$11$.axNWBoZYE0LdevJjevMdufJondueAphK0zUXn8c2B2MGwlkVByhe', N'', N'0948511296', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (354, N'trieuvqu354', N'$2a$11$34oFdtrECe/Dlockfl38OeG8sLHmvh3TY08/ZeY.Ixq7T4R4VWmKe', N'', N'0917858529', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (354, N'trieuvqu354', N'$2a$11$34oFdtrECe/Dlockfl38OeG8sLHmvh3TY08/ZeY.Ixq7T4R4VWmKe', N'', N'0917858529', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (355, N'kynva355', N'$2a$11$qpL2e.GxeswkEoFtFHCraOYeasURaYMO3mFCKzGVILy.CSqhB.EMK', N'', N'0385738462', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (355, N'kynva355', N'$2a$11$qpL2e.GxeswkEoFtFHCraOYeasURaYMO3mFCKzGVILy.CSqhB.EMK', N'', N'0385738462', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (356, N'huybva356', N'$2a$11$SRwDgXt5cop5LFPOVBGFEOtEkJRLTFE79d4stEzng9fymBIX3p64a', N'', N'0198083770', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (356, N'huybva356', N'$2a$11$SRwDgXt5cop5LFPOVBGFEOtEkJRLTFE79d4stEzng9fymBIX3p64a', N'', N'0198083770', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (357, N'dongnva357', N'$2a$11$tz7BT6wj06XVDH1NXv3hFeZezNTmFpXrAAKTr0T4XurCs6m0WYSse', N'', N'0881842523', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (357, N'dongnva357', N'$2a$11$tz7BT6wj06XVDH1NXv3hFeZezNTmFpXrAAKTr0T4XurCs6m0WYSse', N'', N'0881842523', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (358, N'duynva358', N'$2a$11$zoLlWdbE0EaL37FXoRUWCO3l8/BTq8sOSq1ojKPGBdtk3KzohwTea', N'', N'0661932229', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (358, N'duynva358', N'$2a$11$zoLlWdbE0EaL37FXoRUWCO3l8/BTq8sOSq1ojKPGBdtk3KzohwTea', N'', N'0661932229', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (359, N'tuyennva359', N'$2a$11$jKEi83uMaMBIeL12rtvRG.gta5hw7UaOzSha3ihnmqGe.R68Jbs7O', N'', N'0946315211', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (359, N'tuyennva359', N'$2a$11$jKEi83uMaMBIeL12rtvRG.gta5hw7UaOzSha3ihnmqGe.R68Jbs7O', N'', N'0946315211', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (360, N'khuyendva360', N'$2a$11$MxaVPQH1Y3M/KU.46ABD/.t3P0ot7Qse4YOLEzNYU0b2jDah31RCm', N'', N'0262959969', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (360, N'khuyendva360', N'$2a$11$MxaVPQH1Y3M/KU.46ABD/.t3P0ot7Qse4YOLEzNYU0b2jDah31RCm', N'', N'0262959969', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (361, N'chungnth361', N'$2a$11$TkRqDZLwqfYksH1InK6NWOKQYGKoavASY7wNcBqAon2X/xmV7apZC', N'', N'0172394591', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (361, N'chungnth361', N'$2a$11$TkRqDZLwqfYksH1InK6NWOKQYGKoavASY7wNcBqAon2X/xmV7apZC', N'', N'0172394591', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (362, N'trungtva362', N'$2a$11$wxsDgKE1YddpNFD66cxcW.xqgDkPs5iTQczBtFF4ppUv/JeE95itu', N'', N'0959734034', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (362, N'trungtva362', N'$2a$11$wxsDgKE1YddpNFD66cxcW.xqgDkPs5iTQczBtFF4ppUv/JeE95itu', N'', N'0959734034', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (363, N'khoavdi363', N'$2a$11$J3QF23Ad3g.UMOePv4fHO.0HYvcWtBsr91fxhcVyEhJbq8H3W6OeK', N'', N'0369535773', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (363, N'khoavdi363', N'$2a$11$J3QF23Ad3g.UMOePv4fHO.0HYvcWtBsr91fxhcVyEhJbq8H3W6OeK', N'', N'0369535773', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (364, N'lamtth364', N'$2a$11$wpc.JcpGnkkoRQiAVuH1mew6/6O2yRG8LERgaSZHOL06/4JjLpaPK', N'', N'0368420350', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (364, N'lamtth364', N'$2a$11$wpc.JcpGnkkoRQiAVuH1mew6/6O2yRG8LERgaSZHOL06/4JjLpaPK', N'', N'0368420350', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (365, N'doandva365', N'$2a$11$ROnjJhtB3M/AP64XgvJa3.Tf45GCwMe8V3S3YYz4ZW9bSFWF6zo66', N'', N'0455647236', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (365, N'doandva365', N'$2a$11$ROnjJhtB3M/AP64XgvJa3.Tf45GCwMe8V3S3YYz4ZW9bSFWF6zo66', N'', N'0455647236', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (366, N'tuyennva366', N'$2a$11$YvfjLkpn2jd1pGErV2F/tOnJNnlpt2wwHlQBCB/UCBOc3dUlaWtAu', N'', N'0336074733', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (366, N'tuyennva366', N'$2a$11$YvfjLkpn2jd1pGErV2F/tOnJNnlpt2wwHlQBCB/UCBOc3dUlaWtAu', N'', N'0336074733', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (367, N'manhnva367', N'$2a$11$nekjVki5X2TC7lgLTcphHu9EuB2sC4jWcnNh.WTxylAxL0KXzGhCO', N'', N'0887217777', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (367, N'manhnva367', N'$2a$11$nekjVki5X2TC7lgLTcphHu9EuB2sC4jWcnNh.WTxylAxL0KXzGhCO', N'', N'0887217777', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (368, N'kientva368', N'$2a$11$x6R5BmGPjcJ1Zf5K4Zmk3eOrp7IW0x8zoKpHCF.Q1WN0pWGWSvS.q', N'', N'0400262033', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (368, N'kientva368', N'$2a$11$x6R5BmGPjcJ1Zf5K4Zmk3eOrp7IW0x8zoKpHCF.Q1WN0pWGWSvS.q', N'', N'0400262033', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (369, N'tainva369', N'$2a$11$wHSfkofiUBTEOIuXiNyyVew9zoyY90XWIfcMg9/3hr3jEdC0zxz3y', N'', N'0330459100', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (369, N'tainva369', N'$2a$11$wHSfkofiUBTEOIuXiNyyVew9zoyY90XWIfcMg9/3hr3jEdC0zxz3y', N'', N'0330459100', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (370, N'tungtth370', N'$2a$11$oc1dJx.9oIJHN9uQOVRFpuz3rfIsKpkmv4.cUczMvoNqgX52331xy', N'', N'0125628399', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (370, N'tungtth370', N'$2a$11$oc1dJx.9oIJHN9uQOVRFpuz3rfIsKpkmv4.cUczMvoNqgX52331xy', N'', N'0125628399', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (371, N'trungnva371', N'$2a$11$tqu4zl3z9VUUr4KLqhkdReov1g08D73qFkHs0lY9.HqLk6FPoGCki', N'', N'0801589006', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (371, N'trungnva371', N'$2a$11$tqu4zl3z9VUUr4KLqhkdReov1g08D73qFkHs0lY9.HqLk6FPoGCki', N'', N'0801589006', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (372, N'thuyenntr372', N'$2a$11$wya/ALHv3tk.PI0PLjDGz.I65v.IIAfOO26Dr8STmZAloC5Obufra', N'', N'0333051669', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (372, N'thuyenntr372', N'$2a$11$wya/ALHv3tk.PI0PLjDGz.I65v.IIAfOO26Dr8STmZAloC5Obufra', N'', N'0333051669', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (373, N'thucpva373', N'$2a$11$8aDf1BQsQifvCMOJhWMxb.vydTrqqHtOxC8TqJFUQOw.fqi/adFbW', N'', N'0829380232', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (373, N'thucpva373', N'$2a$11$8aDf1BQsQifvCMOJhWMxb.vydTrqqHtOxC8TqJFUQOw.fqi/adFbW', N'', N'0829380232', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (374, N'ducntr374', N'$2a$11$4DoYLOJpdJA3aFFRqmTEJOKq/mTSqkfqW15pZ2ac.UC4cHAGypQam', N'', N'0661994886', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (374, N'ducntr374', N'$2a$11$4DoYLOJpdJA3aFFRqmTEJOKq/mTSqkfqW15pZ2ac.UC4cHAGypQam', N'', N'0661994886', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (375, N'thanhnva375', N'$2a$11$7raEBNblgbbd7ukyMEd6KeKRidtEl6DJjF1rJz0iY5plWkCOlN4EG', N'', N'0518099898', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (375, N'thanhnva375', N'$2a$11$7raEBNblgbbd7ukyMEd6KeKRidtEl6DJjF1rJz0iY5plWkCOlN4EG', N'', N'0518099898', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (376, N'truongnva376', N'$2a$11$5Y79uEvA0VuK/bniLsfX2u4mgdDcZVg2cERLRhaggIAx2qAPTzFR.', N'', N'0131687939', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (376, N'truongnva376', N'$2a$11$5Y79uEvA0VuK/bniLsfX2u4mgdDcZVg2cERLRhaggIAx2qAPTzFR.', N'', N'0131687939', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (377, N'dungnva377', N'$2a$11$mQCp8KcvqpRFge89LVp68e91WyvdzJJ.QJO6ao4c89ScQR9TCC2Q2', N'', N'0313964587', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (377, N'dungnva377', N'$2a$11$mQCp8KcvqpRFge89LVp68e91WyvdzJJ.QJO6ao4c89ScQR9TCC2Q2', N'', N'0313964587', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (378, N'thoivan378', N'$2a$11$ulWKlobWS4AILXid6gTej.BRsD7SjTrP7YSJtZk8oAqBXWt3TDKGW', N'', N'0391762328', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (378, N'thoivan378', N'$2a$11$ulWKlobWS4AILXid6gTej.BRsD7SjTrP7YSJtZk8oAqBXWt3TDKGW', N'', N'0391762328', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (379, N'dunva379', N'$2a$11$DVpTVclzqvmehX6pUubMi.AoeC5m12PZad38kN5awRsnc7UcjIetm', N'', N'0703236049', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (379, N'dunva379', N'$2a$11$DVpTVclzqvmehX6pUubMi.AoeC5m12PZad38kN5awRsnc7UcjIetm', N'', N'0703236049', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (380, N'thuctmi380', N'$2a$11$Pam22HHgf81hVJWDW6mAE.JMZYyGy086kHwje0AXPBvZv.Jj4A6ey', N'', N'0777964055', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (380, N'thuctmi380', N'$2a$11$Pam22HHgf81hVJWDW6mAE.JMZYyGy086kHwje0AXPBvZv.Jj4A6ey', N'', N'0777964055', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (381, N'tiennva381', N'$2a$11$tQHq3Bp.1DA8MDMHzSDsYORknPkc53nT4cGTP3MOlcoQBlGTjFr7a', N'', N'0395082527', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (381, N'tiennva381', N'$2a$11$tQHq3Bp.1DA8MDMHzSDsYORknPkc53nT4cGTP3MOlcoQBlGTjFr7a', N'', N'0395082527', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (382, N'camvdi382', N'$2a$11$K5xn/y5BF0.9dy7D1lC40eRNsQFKg9E9chM2nDgpjFpB6lPIX0W1C', N'', N'0613569641', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (382, N'camvdi382', N'$2a$11$K5xn/y5BF0.9dy7D1lC40eRNsQFKg9E9chM2nDgpjFpB6lPIX0W1C', N'', N'0613569641', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (383, N'duyvva383', N'$2a$11$Cn7TBrQ7Qa2gTKotEiSouOK2Oh2qiAcAgmiFSdWx8NTcUpFcB61NO', N'', N'0463733025', 3, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (383, N'duyvva383', N'$2a$11$Cn7TBrQ7Qa2gTKotEiSouOK2Oh2qiAcAgmiFSdWx8NTcUpFcB61NO', N'', N'0463733025', 3, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (384, N'kimnho1', N'$2a$11$EcDIF8znA2ra63ljFhYHEefrhSi2noW7G7Bl/aT.gcj8.qdaZZ7LW', N'ngohoangkim2002222@gmail.com', N'0945761516', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (384, N'kimnho1', N'$2a$11$EcDIF8znA2ra63ljFhYHEefrhSi2noW7G7Bl/aT.gcj8.qdaZZ7LW', N'ngohoangkim2002222@gmail.com', N'0945761516', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (385, N'kimnho2', N'$2a$11$mQ.j8T5SsnJ8xJzxyHWldufNJj2zPombB92Jf.0lsd808jBHZQBsu', N'ngohoangkim2002@gmail.com', N'0945761523', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (385, N'kimnho2', N'$2a$11$mQ.j8T5SsnJ8xJzxyHWldufNJj2zPombB92Jf.0lsd808jBHZQBsu', N'ngohoangkim2002@gmail.com', N'0945761523', 5, N'Hoạt động')
 GO
-INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (386, N'kimfsadasnho1', N'$2a$11$yZPAvIVKcTeleEEcx7laCefyAhV9dvt4Pdpantjo6UTUv5iEDUaN6', N'ngohoangkim20022322@gmail.com', N'0945761616', 5, N'Active')
+INSERT [dbo].[Users] ([UserID], [Username], [PasswordHash], [Email], [PhoneNumber], [RoleID], [Status]) VALUES (386, N'kimfsadasnho1', N'$2a$11$yZPAvIVKcTeleEEcx7laCefyAhV9dvt4Pdpantjo6UTUv5iEDUaN6', N'ngohoangkim20022322@gmail.com', N'0945761616', 5, N'Hoạt động')
 GO
 SET IDENTITY_INSERT [dbo].[Users] OFF
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Academic__294C4DA9AD383EA9]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Academic__294C4DA98DD9D1B7]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[AcademicYears] ADD UNIQUE NONCLUSTERED 
 (
 	[YearName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [UQ_Attendance]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ_Attendance]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Attendances] ADD  CONSTRAINT [UQ_Attendance] UNIQUE NONCLUSTERED 
 (
 	[StudentID] ASC,
@@ -4039,20 +4044,20 @@ ALTER TABLE [dbo].[Attendances] ADD  CONSTRAINT [UQ_Attendance] UNIQUE NONCLUSTE
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Classes__F8BF561B4960A58F]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Classes__F8BF561BB87350E5]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Classes] ADD UNIQUE NONCLUSTERED 
 (
 	[ClassName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [UQ_Conduct_Student_Semester]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ_Conduct_Student_Semester]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Conducts] ADD  CONSTRAINT [UQ_Conduct_Student_Semester] UNIQUE NONCLUSTERED 
 (
 	[StudentId] ASC,
 	[SemesterId] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [UQ_GradeLevel_Subject]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ_GradeLevel_Subject]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[GradeLevelSubjects] ADD  CONSTRAINT [UQ_GradeLevel_Subject] UNIQUE NONCLUSTERED 
 (
 	[GradeLevelID] ASC,
@@ -4061,7 +4066,7 @@ ALTER TABLE [dbo].[GradeLevelSubjects] ADD  CONSTRAINT [UQ_GradeLevel_Subject] U
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ_HomeroomAssignments]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ_HomeroomAssignments]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[HomeroomAssignments] ADD  CONSTRAINT [UQ_HomeroomAssignments] UNIQUE NONCLUSTERED 
 (
 	[ClassID] ASC,
@@ -4069,7 +4074,7 @@ ALTER TABLE [dbo].[HomeroomAssignments] ADD  CONSTRAINT [UQ_HomeroomAssignments]
 	[Status] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [UQ__Parents__1788CCAD7C18D82E]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Parents__1788CCADA3226877]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Parents] ADD UNIQUE NONCLUSTERED 
 (
 	[UserID] ASC
@@ -4077,7 +4082,7 @@ ALTER TABLE [dbo].[Parents] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Roles__8A2B6160974E2CE8]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Roles__8A2B6160B3331CEA]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Roles] ADD UNIQUE NONCLUSTERED 
 (
 	[RoleName] ASC
@@ -4085,14 +4090,14 @@ ALTER TABLE [dbo].[Roles] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ_Semesters]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ_Semesters]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Semesters] ADD  CONSTRAINT [UQ_Semesters] UNIQUE NONCLUSTERED 
 (
 	[AcademicYearID] ASC,
 	[SemesterName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [UQ__StudentC__3E91EDDABE5B440D]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__StudentC__3E91EDDAFE2DCA81]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[StudentClasses] ADD UNIQUE NONCLUSTERED 
 (
 	[StudentID] ASC,
@@ -4101,7 +4106,7 @@ ALTER TABLE [dbo].[StudentClasses] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Students__2CEB9836AD97C0A9]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Students__2CEB98367381393B]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Students] ADD UNIQUE NONCLUSTERED 
 (
 	[IDCardNumber] ASC
@@ -4109,13 +4114,13 @@ ALTER TABLE [dbo].[Students] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Subjects__4C5A7D556F93F66C]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Subjects__4C5A7D55E8D00C24]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Subjects] ADD UNIQUE NONCLUSTERED 
 (
 	[SubjectName] ASC
 )WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, SORT_IN_TEMPDB = OFF, IGNORE_DUP_KEY = OFF, ONLINE = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
 GO
-/****** Object:  Index [UQ__Teachers__1788CCAD8227DC84]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Teachers__1788CCADB780D06A]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Teachers] ADD UNIQUE NONCLUSTERED 
 (
 	[UserID] ASC
@@ -4123,7 +4128,7 @@ ALTER TABLE [dbo].[Teachers] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Teachers__2CEB9836160B0002]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Teachers__2CEB9836D2317A72]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Teachers] ADD UNIQUE NONCLUSTERED 
 (
 	[IDCardNumber] ASC
@@ -4131,7 +4136,7 @@ ALTER TABLE [dbo].[Teachers] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Users__536C85E456B7EB04]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Users__536C85E4384D0910]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Users] ADD UNIQUE NONCLUSTERED 
 (
 	[Username] ASC
@@ -4139,7 +4144,7 @@ ALTER TABLE [dbo].[Users] ADD UNIQUE NONCLUSTERED
 GO
 SET ANSI_PADDING ON
 GO
-/****** Object:  Index [UQ__Users__536C85E4E751CC2D]    Script Date: 4/20/2025 10:33:09 PM ******/
+/****** Object:  Index [UQ__Users__536C85E4D7D5788A]    Script Date: 4/22/2025 2:30:52 AM ******/
 ALTER TABLE [dbo].[Users] ADD UNIQUE NONCLUSTERED 
 (
 	[Username] ASC
@@ -4150,6 +4155,8 @@ GO
 ALTER TABLE [dbo].[Classes] ADD  DEFAULT (N'Hoạt động') FOR [Status]
 GO
 ALTER TABLE [dbo].[ExamProposals] ADD  DEFAULT (getdate()) FOR [CreatedDate]
+GO
+ALTER TABLE [dbo].[ExamProposals] ADD  DEFAULT ('Ch? duy?t') FOR [Status]
 GO
 ALTER TABLE [dbo].[GradeBatches] ADD  DEFAULT (N'Hoạt động') FOR [Status]
 GO
@@ -4441,12 +4448,3 @@ USE [master]
 GO
 ALTER DATABASE [HGSDB] SET  READ_WRITE 
 GO
-UPDATE Users
-SET status = (
-    SELECT status FROM Users WHERE userid = 1
-)
-WHERE userid != 1;
- 
-ALTER TABLE ExamProposals
-ADD CONSTRAINT CHK_ExamProposalStatus
-CHECK (Status IN (N'Chờ duyệt', N'Đã duyệt', N'Từ chối'));
