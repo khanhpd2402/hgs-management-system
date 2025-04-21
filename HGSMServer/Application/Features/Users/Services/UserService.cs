@@ -36,17 +36,24 @@ namespace Application.Features.Users.Services
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
         {
             var users = await _userRepository.GetAllUsersWithTeacherAndParentInfoAsync();
-            return users.Select(u => new UserDTO
+            var userDTOs = new List<UserDTO>();
+            foreach (var u in users)
             {
-                UserId = u.UserId,
-                Username = u.Username,
-                Email = u.Email,
-                PhoneNumber = u.PhoneNumber,
-                RoleId = u.RoleId,
-                Status = u.Status,
-                PasswordHash = u.PasswordHash,
-                FullName = u.Teacher?.FullName ?? u.Parent?.FullNameFather ?? u.Parent?.FullNameMother ?? u.Parent?.FullNameGuardian
-            }).ToList();
+                var role = await _roleRepository.GetRoleByIdAsync(u.RoleId);
+                userDTOs.Add(new UserDTO
+                {
+                    UserId = u.UserId,
+                    Username = u.Username,
+                    Email = u.Email,
+                    PhoneNumber = u.PhoneNumber,
+                    RoleId = u.RoleId,
+                    RoleName = role?.RoleName, // Lấy RoleName
+                    Status = u.Status,
+                    PasswordHash = u.PasswordHash,
+                    FullName = u.Teacher?.FullName ?? u.Parent?.FullNameFather ?? u.Parent?.FullNameMother ?? u.Parent?.FullNameGuardian
+                });
+            }
+            return userDTOs;
         }
 
         public async Task<UserDTO?> GetUserByIdAsync(int id)
@@ -54,6 +61,7 @@ namespace Application.Features.Users.Services
             var user = await _userRepository.GetUserWithTeacherAndParentInfoAsync(id);
             if (user == null) return null;
 
+            var role = await _roleRepository.GetRoleByIdAsync(user.RoleId); // Lấy RoleName
             return new UserDTO
             {
                 UserId = user.UserId,
@@ -61,6 +69,7 @@ namespace Application.Features.Users.Services
                 Email = user.Email,
                 PhoneNumber = user.PhoneNumber,
                 RoleId = user.RoleId,
+                RoleName = role?.RoleName,
                 Status = user.Status,
                 PasswordHash = user.PasswordHash,
                 FullName = user.Teacher?.FullName ?? user.Parent?.FullNameFather ?? user.Parent?.FullNameMother ?? user.Parent?.FullNameGuardian
@@ -73,6 +82,7 @@ namespace Application.Features.Users.Services
             if (user == null) return null;
 
             var userWithDetails = await _userRepository.GetUserWithTeacherAndParentInfoAsync(user.UserId);
+            var role = await _roleRepository.GetRoleByIdAsync(userWithDetails.RoleId);
             return new UserDTO
             {
                 UserId = userWithDetails.UserId,
@@ -80,6 +90,7 @@ namespace Application.Features.Users.Services
                 Email = userWithDetails.Email,
                 PhoneNumber = userWithDetails.PhoneNumber,
                 RoleId = userWithDetails.RoleId,
+                RoleName = role?.RoleName,
                 Status = userWithDetails.Status,
                 PasswordHash = userWithDetails.PasswordHash,
                 FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullNameFather ?? userWithDetails.Parent?.FullNameMother ?? userWithDetails.Parent?.FullNameGuardian
@@ -92,6 +103,7 @@ namespace Application.Features.Users.Services
             if (user == null) return null;
 
             var userWithDetails = await _userRepository.GetUserWithTeacherAndParentInfoAsync(user.UserId);
+            var role = await _roleRepository.GetRoleByIdAsync(userWithDetails.RoleId);
             return new UserDTO
             {
                 UserId = userWithDetails.UserId,
@@ -99,6 +111,7 @@ namespace Application.Features.Users.Services
                 Email = userWithDetails.Email,
                 PhoneNumber = userWithDetails.PhoneNumber,
                 RoleId = userWithDetails.RoleId,
+                RoleName = role?.RoleName,
                 Status = userWithDetails.Status,
                 PasswordHash = userWithDetails.PasswordHash,
                 FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullNameFather ?? userWithDetails.Parent?.FullNameMother ?? userWithDetails.Parent?.FullNameGuardian
