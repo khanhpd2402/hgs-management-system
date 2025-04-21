@@ -1,46 +1,89 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, Table, Form, Select, Button, message } from 'antd';
 import dayjs from 'dayjs';
+import { useScheduleTeacher } from '../../../services/schedule/queries';
 
 const { Option } = Select;
+
+const getWeekdayName = (date) => {
+  const weekdays = {
+    0: 'Chủ Nhật',
+    1: 'Thứ Hai',
+    2: 'Thứ Ba',
+    3: 'Thứ Tư',
+    4: 'Thứ Năm',
+    5: 'Thứ Sáu',
+    6: 'Thứ Bảy'
+  };
+  return weekdays[dayjs(date).day()];
+};
 
 const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const [loading, setLoading] = useState(false);
   const [form] = Form.useForm();
+  const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
+  const [filteredSchedules, setFilteredSchedules] = useState([]);
 
-  // Dữ liệu mẫu cho lịch dạy cần thay thế
-  const mockSchedules = [
-    {
-      scheduleId: 1,
-      date: '2024-03-20',
-      period: 'Tiết 1-2',
-      className: '9B',
-      subject: 'Toán học',
-    },
-    {
-      scheduleId: 2,
-      date: '2024-03-20',
-      period: 'Tiết 3-4',
-      className: '9C',
-      subject: 'Toán học',
-    },
-    {
-      scheduleId: 3,
-      date: '2024-03-21',
-      period: 'Tiết 1-2',
-      className: '9A',
-      subject: 'Toán học',
-    },
-    {
-      scheduleId: 4,
-      date: '2024-03-211',
-      period: 'Tiết 5-6',
-      className: '9A',
-      subject: 'Toán học',
+
+  // Process teacher schedule when data changes
+  // Add this mapping function at the top of the component
+  const mapWeekdayToAPI = (weekday) => {
+    const weekdayMapping = {
+      'Chủ Nhật': 'Chủ Nhật',
+      'Thứ Hai': 'Thứ Hai',
+      'Thứ Ba': 'Thứ Ba',
+      'Thứ Tư': 'Thứ Tư',
+      'Thứ Năm': 'Thứ Năm',
+      'Thứ Sáu': 'Thứ Sáu',
+      'Thứ Bảy': 'Thứ Bảy'
+    };
+    return weekdayMapping[weekday];
+  };
+
+  // Update the useEffect that processes the schedule
+  // Add console logs to debug the data
+  // First, add this console log outside useEffect to track initial data
+  console.log('Initial render:', { teacherSchedule, leaveRequest });
+
+  // Then update the useEffect
+  useEffect(() => {
+    if (!teacherSchedule?.[0]?.details || !leaveRequest) {
+      return;
     }
-  ];
 
-  // Dữ liệu mẫu cho giáo viên có thể dạy thay
+    const scheduleDetails = teacherSchedule[0].details;
+    const startDate = dayjs(leaveRequest.leaveFromDate);
+    const endDate = dayjs(leaveRequest.leaveToDate);
+    const processedSchedules = [];
+
+    let currentDate = startDate;
+    while (currentDate.isSame(endDate) || currentDate.isBefore(endDate)) {
+      const weekday = getWeekdayName(currentDate);
+
+      // Get all schedules for the current weekday
+      const daySchedules = scheduleDetails.filter(schedule => {
+        return schedule.dayOfWeek === weekday;
+      });
+
+      // Add each schedule for this day
+      daySchedules.forEach(schedule => {
+        processedSchedules.push({
+          scheduleId: `${currentDate.format('YYYY-MM-DD')}-${schedule.timetableDetailId}`,
+          date: currentDate.format('YYYY-MM-DD'),
+          dayOfWeek: weekday,
+          period: schedule.periodName,
+          className: schedule.className,
+          subject: schedule.subjectName,
+          timetableDetailId: schedule.timetableDetailId
+        });
+      });
+
+      currentDate = currentDate.add(1, 'day');
+    }
+
+    setFilteredSchedules(processedSchedules);
+  }, [teacherSchedule, leaveRequest]);
+
   const mockTeachers = [
     { id: 'T001', name: 'Nguyễn Văn A' },
     { id: 'T002', name: 'Trần Thị B' },
@@ -51,9 +94,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const handleAssignSubstitute = async (values) => {
     try {
       setLoading(true);
-      // Giả lập delay API
       await new Promise(resolve => setTimeout(resolve, 1000));
-
       console.log('Dữ liệu phân công:', values);
       message.success('Phân công giáo viên dạy thay thành công');
       form.resetFields(['assignments']);
@@ -69,7 +110,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
       title: 'Ngày',
       dataIndex: 'date',
       key: 'date',
-      render: (text) => dayjs(text).format('DD/MM/YYYY')
+      render: (text, record) => `${dayjs(text).format('DD/MM/YYYY')} (${record.dayOfWeek})`
     },
     {
       title: 'Tiết học',
@@ -86,7 +127,6 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
       dataIndex: 'subject',
       key: 'subject'
     },
-
     {
       title: 'Giáo viên dạy thay',
       key: 'substituteTeacher',
@@ -98,7 +138,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         >
           <Select
             placeholder="Chọn giáo viên dạy thay"
-            style={{ width: '100%' }}
+            optionFilterProp="children"
           >
             {mockTeachers.map(teacher => (
               <Option key={teacher.id} value={teacher.id}>
@@ -110,21 +150,26 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
       )
     }
   ];
+  console.log("filteredSchedules", filteredSchedules)
 
   return (
     <div>
       <Card title="Thông tin lịch dạy cần thay thế" style={{ marginBottom: 16 }}>
-        <p><strong>Giáo viên nghỉ:</strong> {leaveRequest?.teacherId}</p>
-        <p><strong>Thời gian nghỉ:</strong> {dayjs(leaveRequest?.leaveFromDate).format('DD/MM/YYYY')} - {dayjs(leaveRequest?.leaveToDate).format('DD/MM/YYYY')}</p>
+        <p>
+          <strong>Thời gian nghỉ:</strong> {dayjs(leaveRequest?.leaveFromDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveFromDate)})
+          - {dayjs(leaveRequest?.leaveToDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveToDate)})
+        </p>
+
       </Card>
 
       <Card title="Phân công giáo viên dạy thay">
         <Form form={form} onFinish={handleAssignSubstitute}>
           <Table
-            dataSource={mockSchedules}
+            dataSource={filteredSchedules}
             columns={columns}
-            rowKey="scheduleId"
+            rowKey={record => record.scheduleId}
             pagination={false}
+            loading={scheduleLoading}
           />
           <Form.Item style={{ marginTop: 16, textAlign: 'right' }}>
             <Button type="primary" htmlType="submit" loading={loading}>
