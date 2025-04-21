@@ -217,19 +217,33 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    var actualKey = builder.Configuration["JWT:SecretKey"];
+    Console.WriteLine("JWT SecretKey being used: " + actualKey);
+
     options.SaveToken = true;
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
         ValidateAudience = true,
-        ValidateLifetime = true, // Bật lại kiểm tra thời gian hết hạn
+        ValidateLifetime = true,
         ValidateIssuerSigningKey = true,
         ValidIssuer = builder.Configuration["JWT:Issuer"],
         ValidAudience = builder.Configuration["JWT:Audience"],
         ClockSkew = TimeSpan.Zero,
-        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(actualKey))
+    };
+
+    // Log nếu xác thực token bị fail
+    options.Events = new JwtBearerEvents
+    {
+        OnAuthenticationFailed = context =>
+        {
+            Console.WriteLine("JWT FAILED: " + context.Exception.Message);
+            return Task.CompletedTask;
+        }
     };
 })
+
 .AddGoogle("Google", options =>
 {
     options.ClientId = builder.Configuration["Google:ClientId"];
