@@ -24,7 +24,7 @@ namespace Application.Features.Users.DTOs
             set
             {
                 if (value != null && value != "Hoạt động" && value != "Không hoạt động")
-                    throw new ArgumentException("Status phải là 'Hoạt động' hoặc 'Không hoạt động'.");
+                    throw new ArgumentException("Status phải là 'Hoạt Động' hoặc 'Không Hoạt Động'.");
                 _status = value;
             }
         }
