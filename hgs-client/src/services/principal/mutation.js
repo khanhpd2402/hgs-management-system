@@ -13,6 +13,7 @@ import {
   resetUserPassword,
   updateAcademicYear,
   updateClass,
+  updateGradeBatch,
   updateHomeroom,
   updateSubject,
   updateSubjectConfigue,
@@ -45,6 +46,33 @@ export function useAddGradeBatch() {
     },
   });
 }
+
+export const useUpdateGradeBatch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ gradeBatchId, payload }) => {
+      return updateGradeBatch(gradeBatchId, payload);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Cập nhật thất bại");
+      } else {
+        console.log(data);
+        queryClient.invalidateQueries({
+          queryKey: [
+            "grade-batchs",
+            { academicYearId: variables.payload.academicYearId },
+          ],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["grade-batch", { id: variables.payload.gradeBatchId }],
+        });
+        toast.success("Cập nhật thành công");
+      }
+    },
+  });
+};
 
 export function useChangeStatus() {
   const queryClient = useQueryClient();

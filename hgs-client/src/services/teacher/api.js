@@ -48,3 +48,7 @@ export const importTeachers = async (fileExcel) => {
   console.log(fileExcel);
   return await axiosInstance.post("teachers/import", fileExcel);
 };
+
+export const uploadExam = async (data) => {
+  return await axiosInstance.post("ExamProposals/exam-proposal", data);
+};

@@ -12,15 +12,17 @@ import { Button } from "@/components/ui/button";
 
 import { Spinner } from "@/components/Spinner";
 import TAModal from "./TAModal";
-import ExportExcel from "@/components/excel/ExportExcel";
-import ExcelImportModal from "@/components/excel/ExcelImportModal";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import {
   useClasses,
   useSemestersByAcademicYear,
 } from "@/services/common/queries";
 import { cn } from "@/lib/utils";
-import { useSubjectConfigue, useTA } from "@/services/principal/queries";
+import {
+  useHomeroomTeachers,
+  useSubjectConfigue,
+  useTA,
+} from "@/services/principal/queries";
 import MyPagination from "@/components/MyPagination";
 import PaginationControls from "@/components/PaginationControls";
 import { Settings, Trash2 } from "lucide-react";
@@ -32,12 +34,20 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
+import {
+  Select,
+  SelectTrigger,
+  SelectValue,
+  SelectContent,
+  SelectItem,
+} from "@/components/ui/select";
 import { useTeachers } from "@/services/teacher/queries";
 
 export default function TATable() {
   const [filter, setFilter] = useState({
     page: 1,
     pageSize: 5,
+    teacher: null,
   });
   const [selectedTeacherId, setSelectedTeacherId] = useState(null);
   const { currentYear } = useLayout();
@@ -50,6 +60,8 @@ export default function TATable() {
   const deleteTeachingAssignmentMutation = useDeleteTeachingAssignment();
   const teacherQuery = useTeachers();
   const teachers = teacherQuery.data?.teachers || [];
+  const teacherHomeRoomQuery = useHomeroomTeachers();
+  const teacherHomeRooms = teacherHomeRoomQuery.data || [];
   // console.log(semester);
   // console.log(subjectConfigQuery.data);
   // console.log(TAQuery.data);
@@ -105,8 +117,6 @@ export default function TATable() {
     };
   });
 
-  console.log(groupedData);
-
   // Tính toán hàng hiển thị
   if (isPending) {
     return (
@@ -124,14 +134,18 @@ export default function TATable() {
   //   );
   // }
 
+  const filteredGroupedData = filter.teacher
+    ? groupedData.filter((t) => t.teacherId === Number(filter.teacher))
+    : groupedData;
+
   //Phân trang
   const page = filter.page;
   const pageSize = filter.pageSize;
-  const totalItems = groupedData.length;
+  const totalItems = filteredGroupedData?.length;
   const totalPages = Math.ceil(totalItems / pageSize);
   const startIndex = totalItems === 0 ? 0 : (page - 1) * pageSize + 1;
   const endIndex = Math.min(page * pageSize, totalItems);
-  const paginatedTeachers = groupedData.slice(
+  const paginatedTeachers = filteredGroupedData?.slice(
     (page - 1) * pageSize,
     page * pageSize,
   );
@@ -160,8 +174,31 @@ export default function TATable() {
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <ExcelImportModal type="teachingAssingment" />
-          <ExportExcel type="teachingAssingment" fileName="PCDG.xlsx" />
+          <Select
+            value={filter.teacher ?? ""}
+            onValueChange={(value) =>
+              setFilter((prev) => ({
+                ...prev,
+                teacher: value === "all" ? null : value,
+                page: 1, // reset to first page when filter changes
+              }))
+            }
+          >
+            <SelectTrigger className="w-56">
+              <SelectValue placeholder="Lọc theo giáo viên" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              {teachers.map((teacher) => (
+                <SelectItem
+                  value={teacher.teacherId + ""}
+                  key={teacher.teacherId}
+                >
+                  {teacher.fullName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
           <Button
             onClick={() => setOpenModal(true)}
             className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
@@ -232,9 +269,14 @@ export default function TATable() {
               <TableBody>
                 {paginatedTeachers.map((teacher) => {
                   const subjectEntries = Object.values(teacher.subjects);
+                  const isHomeroom = teacherHomeRooms.some(
+                    (hr) =>
+                      hr.teacherId === teacher.teacherId &&
+                      hr.semesterId === semester?.semesterID,
+                  );
 
                   if (subjectEntries.length === 0) {
-                    // Render a row for teachers with no assignments, with all columns present
+                    const standardPeriods = isHomeroom ? 19 - 4 : 19;
                     return (
                       <TableRow key={teacher.teacherId + "_no_assignment"}>
                         <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
@@ -274,7 +316,7 @@ export default function TATable() {
                           0
                         </TableCell>
                         <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
-                          19
+                          {standardPeriods}
                         </TableCell>
                         <TableCell className="h-14 border border-gray-300 text-center whitespace-nowrap">
                           Thiếu
@@ -321,7 +363,7 @@ export default function TATable() {
                     }
                   });
 
-                  const standardPeriods = 19;
+                  const standardPeriods = isHomeroom ? 19 - 4 : 19;
                   let status = "";
                   if (totalAssignedPeriods > standardPeriods) {
                     status = "Thừa";
