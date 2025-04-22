@@ -5,7 +5,7 @@ import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } fr
 import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-
+import { jwtDecode } from 'jwt-decode';
 const { Option } = Select;
 const TeacherLessonPlan = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
@@ -18,18 +18,20 @@ const TeacherLessonPlan = () => {
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
 
-    const fetchLessonPlans = async (page, status) => {
+    const fetchLessonPlans = async (page) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const url = status === 'All'
-                ? `https://localhost:8386/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
-                : `https://localhost:8386/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
+            const decoded = jwtDecode(token);
+            const teacherId = decoded?.teacherId;
+
+            const url = `https://localhost:8386/api/LessonPlan/teacher/${teacherId}?pageNumber=${page}&pageSize=${pageSize}`;
 
             const response = await axios.get(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`
                 }
             });
+
             setLessonPlans(response.data.lessonPlans);
             setTotalPages(Math.ceil(response.data.totalCount / pageSize));
             setLoading(false);
@@ -38,6 +40,7 @@ const TeacherLessonPlan = () => {
             setLoading(false);
         }
     };
+
 
     useEffect(() => {
         fetchLessonPlans(currentPage, selectedStatus);
@@ -123,9 +126,7 @@ const TeacherLessonPlan = () => {
                                 <Descriptions.Item label="ID Kế hoạch" span={2}>
                                     {selectedRequest.planId}
                                 </Descriptions.Item>
-                                <Descriptions.Item label="Giáo viên" span={2}>
-                                    {selectedRequest.teacherName}
-                                </Descriptions.Item>
+
                                 <Descriptions.Item label="Môn học" span={2}>
                                     {selectedRequest.subjectName}
                                 </Descriptions.Item>
@@ -182,11 +183,6 @@ const TeacherLessonPlan = () => {
             key: 'planId',
         },
         {
-            title: 'Giáo viên',
-            dataIndex: 'teacherName',
-            key: 'teacherName',
-        },
-        {
             title: 'Môn học',
             dataIndex: 'subjectName',
             key: 'subjectName',
@@ -241,7 +237,7 @@ const TeacherLessonPlan = () => {
                         Xem chi tiết
                     </Button>
                     <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
-                        <Button>Cập nhật</Button>
+                        <Button>Thêm tài liệu</Button>
                     </Link>
                 </Space>
             ),
@@ -275,13 +271,7 @@ const TeacherLessonPlan = () => {
                     />
                 </div>
                 <div className="filter-container">
-                    <select
-                        value={selectedStatus}
-                        onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setCurrentPage(1);
-                        }}
-                    >
+                    <select>
                         <option value="All">Tất cả</option>
                         <option value="Đang chờ">Đang xử lý</option>
                         <option value="Đã duyệt">Đã duyệt</option>
