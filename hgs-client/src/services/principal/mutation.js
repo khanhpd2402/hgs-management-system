@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import {
   addGradeBatch,
   assignTeaching,
+  changeUserRole,
   changeUserStatus,
   configueSubject,
   createAcademicYear,
@@ -434,6 +435,25 @@ export function useUpdateTeacherSubject() {
           queryKey: ["teacher-subject", { teacherId: variables.teacherId }],
         });
         queryClient.invalidateQueries({ queryKey: ["teacherSubjects"] });
+      }
+    },
+  });
+}
+
+export function useAssignRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return changeUserRole(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Đổi vai trò thành công");
+        queryClient.invalidateQueries({ queryKey: ["users"] });
       }
     },
   });

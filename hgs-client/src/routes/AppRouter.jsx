@@ -119,6 +119,10 @@ const UploadExam = lazy(
   () => import("@/pages/Teacher/ExamProposal/UploadExam"),
 );
 
+const ExamManagement = lazy(
+  () => import("@/pages/Principal/ExamManagement/ExamManagement"),
+);
+
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -243,6 +247,16 @@ const adminRouter = [
           <RequestLessonPlan />
         </Suspense>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/exam",
+    element: (
+      // <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ExamManagement />
+      </Suspense>
+      // </ProtectedRoute>
     ),
   },
   {
@@ -453,7 +467,7 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên", "Hiệu phó"]}>
         <DefaultLayout />
       </ProtectedRoute>
     ),
