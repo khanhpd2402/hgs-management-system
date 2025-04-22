@@ -87,7 +87,6 @@ const DatePicker = ({ value, onSelect, locale = vi, disabled = true }) => {
     setMonth(parseInt(selectedMonth));
   };
 
-const DatePicker = ({ value, onSelect, locale = vi }) => {
   return (
     <Popover>
       <PopoverTrigger asChild>

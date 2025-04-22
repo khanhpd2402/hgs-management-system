@@ -20,6 +20,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { Card, CardContent } from "@/components/ui/card";
+
+function SkeletonRow() {
+  return (
+    <TableRow>
+      <TableCell>
+        <div className="h-4 w-8 animate-pulse rounded bg-gray-200" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-40 animate-pulse rounded bg-gray-200" />
+      </TableCell>
+      <TableCell>
+        <div className="h-4 w-56 animate-pulse rounded bg-gray-200" />
+      </TableCell>
+      <TableCell>
+        <div className="mx-auto h-8 w-8 animate-pulse rounded-full bg-gray-200" />
+      </TableCell>
+    </TableRow>
+  );
+}
 
 export default function SubjectConfigForTeacher() {
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
@@ -50,93 +70,134 @@ export default function SubjectConfigForTeacher() {
   const endIndex = Math.min(page * pageSize, filteredData.length);
 
   return (
-    <div className="mt-6">
-      <div className="flex items-center justify-between">
-        <h2 className="mb-6 text-2xl font-bold">
+    <div className="py-6">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+        <h2 className="text-2xl font-bold text-blue-700">
           Cấu hình môn học cho giáo viên
         </h2>
-        <Select
-          value={filter.teacher ?? ""}
-          onValueChange={(value) =>
-            setFilter((prev) => ({
-              ...prev,
-              teacher: value === "all" ? null : value,
-              page: 1, // reset to first page when filter changes
-            }))
-          }
-        >
-          <SelectTrigger className="w-56">
-            <SelectValue placeholder="Lọc theo giáo viên" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tất cả</SelectItem>
-            {teachers.map((teacher) => (
-              <SelectItem
-                value={teacher.teacherId + ""}
-                key={teacher.teacherId}
-              >
-                {teacher.fullName}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <div className="flex items-center gap-2">
+          <Select
+            value={filter.teacher ?? "all"}
+            onValueChange={(value) =>
+              setFilter((prev) => ({
+                ...prev,
+                teacher: value === "all" ? null : value,
+                page: 1,
+              }))
+            }
+          >
+            <SelectTrigger className="w-56 border-blue-400 focus:ring-2 focus:ring-blue-500">
+              <SelectValue placeholder="Lọc theo giáo viên" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả giáo viên</SelectItem>
+              {teachers.map((teacher) => (
+                <SelectItem
+                  value={teacher.teacherId + ""}
+                  key={teacher.teacherId}
+                >
+                  {teacher.fullName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
       </div>
 
       <div className="mt-2 text-sm text-gray-600">
         <span>
           Môn học có dấu
-          <span className="text-red-500"> *</span> là môn dạy chính
+          <span className="font-bold text-red-500"> *</span> là môn dạy chính
         </span>
       </div>
-      <div className="max-h-[400px] overflow-auto">
-        <Table className="mt-2 w-full rounded-lg bg-white shadow">
-          <TableHeader>
-            <TableRow>
-              <TableHead className="w-16">STT</TableHead>
-              <TableHead className="w-96">Giáo viên</TableHead>
-              <TableHead>Môn học có thể dạy</TableHead>
-              <TableHead className="w-32">Thao tác</TableHead>
-            </TableRow>
-          </TableHeader>
-          <TableBody>
-            {currentData.map((teacher, idx) => (
-              <TableRow key={teacher.teacherId}>
-                <TableCell>{idx + 1}</TableCell>
-                <TableCell>{teacher.fullName}</TableCell>
-                <TableCell>
-                  {teacher?.subjects
-                    ?.slice() // create a shallow copy to avoid mutating original data
-                    .sort(
-                      (a, b) =>
-                        (b.isMainSubject ? 1 : 0) - (a.isMainSubject ? 1 : 0),
-                    )
-                    .map((t, i, arr) => (
-                      <span key={t.subjectId || i}>
-                        {t.subjectName}
-                        {t.isMainSubject && (
-                          <span className="text-red-500">*</span>
-                        )}
-                        {i < arr.length - 1 && ", "}
-                      </span>
-                    ))}
-                </TableCell>
-                <TableCell>
-                  <Button
-                    variant="outline"
-                    size="icon"
-                    onClick={() => {
-                      setOpenUpdateModal(true);
-                      setSelectedTeacher(teacher.teacherId);
-                    }}
-                  >
-                    <Settings className="h-4 w-4" />
-                  </Button>
-                </TableCell>
-              </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </div>
+
+      <Card className="mt-4 mb-6 overflow-hidden border border-gray-200 shadow">
+        <CardContent className="p-0">
+          <div className="max-h-[500px] overflow-auto">
+            <Table className="w-full table-fixed border-collapse">
+              <TableHeader className="bg-slate-100">
+                <TableRow>
+                  <TableHead className="w-16 border border-gray-200 text-center">
+                    STT
+                  </TableHead>
+                  <TableHead className="w-96 border border-gray-200">
+                    Giáo viên
+                  </TableHead>
+                  <TableHead className="border border-gray-200">
+                    Môn học có thể dạy
+                  </TableHead>
+                  <TableHead className="w-32 border border-gray-200 text-center">
+                    Thao tác
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {teacherSubjectQuery.isLoading ? (
+                  Array.from({ length: filter.pageSize }).map((_, idx) => (
+                    <SkeletonRow key={idx} />
+                  ))
+                ) : currentData.length === 0 ? (
+                  <TableRow>
+                    <TableCell
+                      colSpan={4}
+                      className="py-8 text-center text-gray-400"
+                    >
+                      Không có dữ liệu
+                    </TableCell>
+                  </TableRow>
+                ) : (
+                  currentData.map((teacher, idx) => (
+                    <TableRow
+                      key={teacher.teacherId}
+                      className="border-b border-gray-200"
+                    >
+                      <TableCell className="border border-gray-200 text-center">
+                        {idx + 1 + (page - 1) * pageSize}
+                      </TableCell>
+                      <TableCell className="border border-gray-200">
+                        {teacher.fullName}
+                      </TableCell>
+                      <TableCell className="border border-gray-200">
+                        {teacher?.subjects
+                          ?.slice()
+                          .sort(
+                            (a, b) =>
+                              (b.isMainSubject ? 1 : 0) -
+                              (a.isMainSubject ? 1 : 0),
+                          )
+                          .map((t, i, arr) => (
+                            <span key={t.subjectId || i}>
+                              {t.subjectName}
+                              {t.isMainSubject && (
+                                <span className="font-bold text-red-500">
+                                  *
+                                </span>
+                              )}
+                              {i < arr.length - 1 && ", "}
+                            </span>
+                          ))}
+                      </TableCell>
+                      <TableCell className="border border-gray-200 text-center">
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          className="border-blue-400 hover:bg-blue-50"
+                          onClick={() => {
+                            setOpenUpdateModal(true);
+                            setSelectedTeacher(teacher.teacherId);
+                          }}
+                        >
+                          <Settings className="h-4 w-4 text-blue-600" />
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                )}
+              </TableBody>
+            </Table>
+          </div>
+        </CardContent>
+      </Card>
 
       <UpdateTeacherSubjectModal
         open={openUpdateModal}
@@ -146,11 +207,11 @@ export default function SubjectConfigForTeacher() {
         }}
         teacherId={selectedTeacher}
       />
-      <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
+      <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
           setFilter={setFilter}
-          totalItems={teachers?.length || 0}
+          totalItems={filteredData?.length || 0}
           startIndex={startIndex}
           endIndex={endIndex}
         />
@@ -164,5 +225,3 @@ export default function SubjectConfigForTeacher() {
     </div>
   );
 }
-
-// ... existing code ...

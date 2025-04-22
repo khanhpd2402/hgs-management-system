@@ -10,16 +10,16 @@ import { useGradeBatchs } from "@/services/principal/queries";
 import { formatDate, formatDateString } from "@/helpers/formatDate";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { Button } from "@/components/ui/button";
+import { PlusCircle } from "lucide-react";
 
 export default function GradeBatch() {
   const { currentYear } = useLayout();
   const [semester, setSemester] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [gradeBatchId, setGradeBatchId] = useState(null);
-
+  const [isUpdateModalOpen, setIsUpdateModalOpen] = useState(false);
   const gradeBatchs = useGradeBatchs(currentYear?.academicYearID);
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
-  console.log(gradeBatchs.data);
   const semesters = semesterQuery.data || [];
   const currentGradeBatchs = gradeBatchs?.data?.filter(
     (batch) => batch.semesterId === semester?.semesterID,
@@ -70,7 +70,13 @@ export default function GradeBatch() {
             </div>
           </div>
           <div>
-            <AddGradeBatch semester={semester} />
+            <Button
+              onClick={() => setIsModalOpen(true)}
+              className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
+            >
+              <PlusCircle size={18} />
+              <span>Thêm đợt nhập điểm</span>
+            </Button>
           </div>
         </div>
       </div>
@@ -120,28 +126,32 @@ export default function GradeBatch() {
                   className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
                   onClick={() => {
                     setGradeBatchId(batch.batchID);
-                    setIsModalOpen(true);
+                    setIsUpdateModalOpen(true);
                   }}
                 >
                   Xem chi tiết
                 </Button>
-
-                <GradeBatchDetail
-                  isModalOpen={isModalOpen}
-                  setIsModalOpen={(open) => {
-                    setIsModalOpen(open);
-                    if (!isModalOpen) setGradeBatchId(null);
-                  }}
-                  gradeBatchId={gradeBatchId}
-                  semester={semester}
-                  currentYear={currentYear}
-                />
               </div>
             </CardContent>
           </Card>
         ))}
       </div>
+      <AddGradeBatch
+        isModalOpen={isModalOpen}
+        setIsModalOpen={setIsModalOpen}
+        semester={semester}
+      />
 
+      <GradeBatchDetail
+        isModalOpen={isUpdateModalOpen}
+        setIsModalOpen={(open) => {
+          setIsUpdateModalOpen(open);
+          if (!isUpdateModalOpen) setGradeBatchId(null);
+        }}
+        gradeBatchId={gradeBatchId}
+        semester={semester}
+        currentYear={currentYear}
+      />
       {/* Detail Modal Component */}
     </div>
   );

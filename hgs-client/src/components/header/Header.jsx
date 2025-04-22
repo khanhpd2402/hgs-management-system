@@ -26,13 +26,20 @@ const Header = ({ setCurrentYear }) => {
 
   useEffect(() => {
     if (academicYears.data && academicYears.data.length > 0) {
-      const currentYear = academicYears.data[0];
-      setSelectedYear(currentYear);
-      setCurrentYear(currentYear);
-      sessionStorage.setItem(
-        "currentAcademicYear",
-        JSON.stringify(currentYear),
-      );
+      const storedYear = sessionStorage.getItem("currentAcademicYear");
+      if (storedYear) {
+        const parsedYear = JSON.parse(storedYear);
+        setSelectedYear(parsedYear);
+        setCurrentYear(parsedYear);
+      } else {
+        const currentYear = academicYears.data[0];
+        setSelectedYear(currentYear);
+        setCurrentYear(currentYear);
+        sessionStorage.setItem(
+          "currentAcademicYear",
+          JSON.stringify(currentYear),
+        );
+      }
     }
   }, [academicYears.data]);
 
