@@ -237,7 +237,7 @@ namespace HGSMAPI.Controllers
         }
     }
 
-    // DTO bổ sung nếu chưa có trong mã nguồn trước
+
     public class ChangeStatusDto
     {
         public string Status { get; set; }
