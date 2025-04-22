@@ -11,11 +11,8 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
-import {
-  useAddGradeBatch,
-  useUpdateGradeBatch,
-} from "@/services/principal/mutation";
-import { formatDate } from "@/helpers/formatDate";
+import { useUpdateGradeBatch } from "@/services/principal/mutation";
+import { formatDate, formatDateString } from "@/helpers/formatDate";
 import toast from "react-hot-toast";
 import { cleanString } from "@/helpers/removeWhiteSpace";
 import { useGradeBatch } from "@/services/principal/queries";
@@ -26,12 +23,19 @@ export default function GradeBatchDetail({
   gradeBatchId,
   semester,
 }) {
+  const toStartOfDay = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
   const currentSemester = semester;
   const semesterStartDate = currentSemester
-    ? new Date(currentSemester.startDate)
+    ? toStartOfDay(currentSemester.startDate)
     : null;
   const semesterEndDate = currentSemester
-    ? new Date(currentSemester.endDate)
+    ? toStartOfDay(currentSemester.endDate)
     : null;
 
   const gradeBatchQuery = useGradeBatch(gradeBatchId);
@@ -62,12 +66,14 @@ export default function GradeBatchDetail({
   const validateStartDate = (startDate, endDate) => {
     if (!semesterStartDate || !semesterEndDate) return "";
     if (!startDate) return "";
-    if (startDate <= semesterStartDate)
-      return "Ngày bắt đầu phải lớn hơn ngày bắt đầu học kỳ";
-    if (startDate >= semesterEndDate)
-      return "Ngày bắt đầu phải nhỏ hơn ngày kết thúc học kỳ";
+    if (startDate < semesterStartDate) {
+      return `Ngày bắt đầu phải từ ngày ${formatDateString(semester?.startDate)} trờ đi`;
+    }
+    if (startDate >= semesterEndDate) {
+      return `Ngày bắt đầu phải nhỏ hơn ngày ${formatDateString(semester?.endDate)}`;
+    }
     if (endDate && startDate >= endDate)
-      return "Ngày bắt đầu phải nhỏ hơn ngày kết thúc đợt";
+      return `Ngày bắt đầu phải nhỏ hơn ${formatDateString(formatDate(endDate))}`;
     return "";
   };
 
@@ -75,14 +81,13 @@ export default function GradeBatchDetail({
     if (!semesterStartDate || !semesterEndDate) return "";
     if (!endDate) return "";
     if (endDate <= semesterStartDate)
-      return "Ngày kết thúc phải lớn hơn ngày bắt đầu học kỳ";
+      return `Ngày kết thúc phải lớn hơn ngày ${formatDateString(semester?.startDate)}`;
     if (startDate && endDate <= startDate)
-      return "Ngày kết thúc phải lớn hơn ngày bắt đầu đợt";
+      return `Ngày kết thúc phải lớn hơn ngày ${formatDateString(formatDate(startDate))}`;
     if (endDate >= semesterEndDate)
-      return "Ngày kết thúc phải nhỏ hơn ngày kết thúc học kỳ";
+      return `Ngày kết thúc phải nhỏ hơn ngày  ${formatDateString(semester?.endDate)}`;
     return "";
   };
-
   const isFormValid = formData.name && formData.startDate && formData.endDate;
 
   const handleSubmit = () => {
@@ -107,7 +112,7 @@ export default function GradeBatchDetail({
       { gradeBatchId, payload },
       {
         onSuccess: () => {
-          // setIsModalOpen(false);
+          setIsModalOpen(false);
         },
       },
     );
@@ -119,8 +124,8 @@ export default function GradeBatchDetail({
     if (gradeBatchId) {
       setFormData({
         name: gradeBatch.batchName,
-        startDate: new Date(gradeBatch.startDate),
-        endDate: new Date(gradeBatch.endDate),
+        startDate: toStartOfDay(gradeBatch.startDate),
+        endDate: toStartOfDay(gradeBatch.endDate),
         isLocked: gradeBatch.status === "Không Hoạt Động",
       });
     }
@@ -132,7 +137,7 @@ export default function GradeBatchDetail({
         <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg border-0 shadow-lg sm:max-w-[600px]">
           <DialogHeader className="">
             <DialogTitle className="text-xl font-bold">
-              Thêm mới đợt nhập điểm
+              Cập nhật đợt nhập điểm
             </DialogTitle>
             <Button
               variant="ghost"
@@ -172,7 +177,7 @@ export default function GradeBatchDetail({
                   value={formData.startDate}
                   onSelect={(date) => {
                     const startDateError = validateStartDate(
-                      formData.startDate,
+                      date,
                       formData.endDate,
                     );
                     if (startDateError) {
@@ -197,7 +202,7 @@ export default function GradeBatchDetail({
                   value={formData.endDate}
                   onSelect={(date) => {
                     const endDateError = validateEndDate(
-                      formData.endDate,
+                      date,
                       formData.startDate,
                     );
                     if (endDateError) {
@@ -253,7 +258,7 @@ export default function GradeBatchDetail({
               className="bg-blue-600 text-white hover:bg-blue-700"
               disabled={!isFormValid}
             >
-              Thêm
+              Cập nhật
             </Button>
           </DialogFooter>
         </DialogContent>
