@@ -536,7 +536,6 @@ namespace Application.Features.StudentClass.Services
                 int studentCount = 0;
                 if (academicYearId.HasValue)
                 {
-                    await ValidateAcademicYearAsync(academicYearId.Value);
                     var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, academicYearId.Value);
                     studentCount = studentClasses.Count();
                 }
