@@ -75,8 +75,14 @@ const menuItems = [
         label: "Lịch giảng dạy",
         path: "/teacher/lesson-plan",
       },
-
-
+      {
+        label: "Tạo lịch giảng dạy",
+        path: "/teacher/lesson-plan/create",
+      },
+      {
+        label: "Nộp đề thi",
+        path: "/teacher/upload-exam",
+      },
     ],
   },
   {
@@ -135,8 +141,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${isOpen ? "w-64" : "w-16"
-        }`}
+      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${
+        isOpen ? "w-64" : "w-16"
+      }`}
     >
       {/* Button đóng/mở menu */}
       <div
@@ -154,8 +161,9 @@ export default function Sidebar({ isOpen, setIsOpen }) {
           <div key={item.label}>
             {/* Menu chính */}
             <button
-              className={`flex h-12 w-full cursor-pointer items-center justify-between rounded-md px-2 hover:bg-sky-600 ${isMenuActive(item) ? "bg-sky-500" : ""
-                }`}
+              className={`flex h-12 w-full cursor-pointer items-center justify-between rounded-md px-2 hover:bg-sky-600 ${
+                isMenuActive(item) ? "bg-sky-500" : ""
+              }`}
               onClick={() =>
                 item.children ? toggleMenu(item.label) : navigate(item.path)
               }
@@ -183,14 +191,16 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
             {/* Submenu */}
             <div
-              className={`${openMenus[item.label] && isOpen ? "block" : "hidden"
-                }`}
+              className={`${
+                openMenus[item.label] && isOpen ? "block" : "hidden"
+              }`}
             >
               {item.children?.map((child) => (
                 <button
                   key={child.label}
-                  className={`mt-1 flex h-12 w-full cursor-pointer items-center rounded-md text-left hover:bg-sky-500 ${isSubmenuActive(child.path) ? "bg-sky-500" : ""
-                    }`}
+                  className={`mt-1 flex h-12 w-full cursor-pointer items-center rounded-md text-left hover:bg-sky-500 ${
+                    isSubmenuActive(child.path) ? "bg-sky-500" : ""
+                  }`}
                   onClick={() => navigate(child.path)}
                 >
                   <div className="ml-2 w-8 shrink-0" />

@@ -31,6 +31,15 @@ import CustomTooltip from "@/components/common/CustomToolTip";
 import toast from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 import CustomPasswordInput from "@/components/common/CustomPasswordInput";
+import { useRoles } from "@/services/common/queries";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 const UserManagement = () => {
   const [filter, setFilter] = useState({
@@ -49,9 +58,18 @@ const UserManagement = () => {
     username: null,
     newPassword: "",
   });
+
+  const [roleDialog, setRoleDialog] = useState({
+    isOpen: false,
+    userId: null,
+    currentRole: null,
+    newRole: null,
+  });
+
   const resetPasswordMutation = useResetPassword();
   const statusMutation = useChangeStatus();
   const userQuery = useUsers();
+  const roleQuery = useRoles();
   const allUsers = userQuery.data || [];
   const { page, pageSize, search } = filter;
 
@@ -119,6 +137,10 @@ const UserManagement = () => {
 
   const handleResetPassword = () => {
     if (!passwordDialog.userId || !passwordDialog.newPassword) return;
+    if (/\s/.test(passwordDialog.newPassword)) {
+      toast.error("Mật khẩu không được chứa dấu cách.");
+      return;
+    }
 
     resetPasswordMutation.mutate({
       userId: passwordDialog.userId,
@@ -126,10 +148,35 @@ const UserManagement = () => {
     });
   };
 
+  const openRoleDialog = (userId, currentRole) => {
+    setRoleDialog({
+      isOpen: true,
+      userId,
+      currentRole,
+      newRole: null,
+    });
+  };
+
+  // Handler to close role dialog
+  const closeRoleDialog = () => {
+    setRoleDialog({
+      isOpen: false,
+      userId: null,
+      currentRole: null,
+      newRole: null,
+    });
+  };
+
+  const handleChangeRole = () => {
+    toast.success(`Đã đổi vai trò thành công: ${roleDialog.newRole}`);
+    closeRoleDialog();
+  };
+
   const filteredData =
     allUsers.filter((teacher) => {
       if (search) {
-        const searchLower = search.toLowerCase();
+        const searchLower = cleanString(search.toLowerCase());
+
         return (
           teacher.fullName?.toLowerCase().includes(searchLower) ||
           teacher.email?.toLowerCase().includes(searchLower) ||
@@ -165,6 +212,9 @@ const UserManagement = () => {
           />
           <Search className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
         </div>
+        <Button className="bg-blue-600 hover:bg-blue-700">
+          Thêm người dùng
+        </Button>
       </div>
 
       <Card className="mb-6 overflow-hidden border border-gray-200">
@@ -229,6 +279,9 @@ const UserManagement = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 cursor-pointer rounded-full bg-gray-100"
+                              onClick={() =>
+                                openRoleDialog(user.userId, user.roleId)
+                              }
                             >
                               <UserRound className="h-4 w-4 text-amber-500" />
                             </Button>
@@ -406,6 +459,63 @@ const UserManagement = () => {
               {resetPasswordMutation.isPending
                 ? "Đang xử lý..."
                 : "Đặt lại mật khẩu"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={roleDialog.isOpen} onOpenChange={closeRoleDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Đổi vai trò người dùng</DialogTitle>
+            <DialogDescription>
+              Chọn vai trò mới cho người dùng này.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="roleSelect">Vai trò</Label>
+            <Select
+              id="roleSelect"
+              value={roleDialog.newRole ? String(roleDialog.newRole) : ""}
+              onValueChange={(value) =>
+                setRoleDialog((prev) => ({ ...prev, newRole: +value }))
+              }
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Chọn vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleQuery.data
+                  ?.filter((role) => role.roleID !== roleDialog.currentRole)
+                  .map((role) => (
+                    <SelectItem value={String(role.roleID)} key={role.roleID}>
+                      {role.roleName}
+                    </SelectItem>
+                  ))}
+
+                {/* Add more roles as needed */}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={closeRoleDialog}
+              className="mt-2 sm:mt-0"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={handleChangeRole}
+              className="mt-2 sm:mt-0"
+              disabled={
+                !roleDialog.newRole ||
+                roleDialog.newRole === roleDialog.currentRole
+              }
+            >
+              Đổi vai trò
             </Button>
           </DialogFooter>
         </DialogContent>

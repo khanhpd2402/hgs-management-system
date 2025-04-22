@@ -80,6 +80,11 @@ const TeacherLeaveRequest = () => {
       render: (date) => dayjs(date).format('DD/MM/YYYY'),
     },
     {
+      title: 'Lý do',
+      dataIndex: 'reason',
+      key: 'reason',
+    },
+    {
       title: 'Trạng thái',
       dataIndex: 'status',
       key: 'status',

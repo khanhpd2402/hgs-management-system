@@ -25,16 +25,41 @@ import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 // import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
 // Add these lazy imports with the existing lazy imports
-const ListLeaveRequest = lazy(() => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"));
-const LeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"));
+const ListLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"),
+);
+const LeaveRequestDetail = lazy(
+  () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
+);
 const Contact = lazy(() => import("@/pages/contact/Contact"));
-const TeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"));
-const CreateTeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"));
-const LessonPlanList = lazy(() => import("@/pages/RequestLessonPlan/LessonPlanList"));
-const UploadLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/UploadLessonPlan"));
-const RequestLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/RequestLessonPlan"));
-const ReviewDetail = lazy(() => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"));
-const TeacherLeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"));
+const TeacherLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"),
+);
+const CreateTeacherLeaveRequest = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"
+    ),
+);
+const LessonPlanList = lazy(
+  () => import("@/pages/RequestLessonPlan/LessonPlanList"),
+);
+const UploadLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/UploadLessonPlan"),
+);
+const RequestLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/RequestLessonPlan"),
+);
+const ReviewDetail = lazy(
+  () => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"),
+);
+const TeacherLeaveRequestDetail = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"
+    ),
+);
+
 // import AcademicYearManagement from "@/pages/Principal/AcademicYearManagement/AcademicYearManagement";
 // import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
 // import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
@@ -88,6 +113,10 @@ const ClassManagement = lazy(
 const SubjectConfigForTeacher = lazy(
   () =>
     import("@/pages/Principal/SubjectConfigForTeacher/SubjectConfigForTeacher"),
+);
+
+const UploadExam = lazy(
+  () => import("@/pages/Teacher/ExamProposal/UploadExam"),
 );
 
 const AppRouter = () => {
@@ -171,7 +200,6 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <ScheduleManagement />
         </Suspense>
       </ProtectedRoute>
@@ -182,10 +210,8 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <ListLeaveRequest />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -194,10 +220,8 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <LeaveRequestDetail />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -206,10 +230,8 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <Contact />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -218,10 +240,8 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <RequestLessonPlan />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -230,13 +250,11 @@ const adminRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <ReviewDetail />
         </Suspense>
-
       </ProtectedRoute>
     ),
-  }
+  },
 ];
 
 const teacherRouter = [
@@ -328,14 +346,22 @@ const teacherRouter = [
     ),
   },
   {
+    path: "/teacher/upload-exam",
+    element: (
+      // <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <UploadExam />
+      </Suspense>
+      // </ProtectedRoute>
+    ),
+  },
+  {
     path: "/teacher/leave-request",
     element: (
       <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <TeacherLeaveRequest />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -344,10 +370,8 @@ const teacherRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <CreateTeacherLeaveRequest />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -356,10 +380,8 @@ const teacherRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <TeacherLeaveRequestDetail />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -368,10 +390,8 @@ const teacherRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <LessonPlanList />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },
@@ -380,10 +400,8 @@ const teacherRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <UploadLessonPlan />
         </Suspense>
-
       </ProtectedRoute>
     ),
   },

@@ -25,6 +25,7 @@ export function useGradeBatchs(academicYearId) {
       },
     ],
     queryFn: () => getGradeBatches(academicYearId),
+    enabled: !!academicYearId,
   });
 }
 

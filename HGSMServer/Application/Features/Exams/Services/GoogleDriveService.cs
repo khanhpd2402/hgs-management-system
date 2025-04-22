@@ -23,7 +23,7 @@ namespace HGSMAPI
                 ApplicationName = "HGSMServer"
             });
 
-            _rootFolderId = "1cJ9S4PXMpXe99lF57coEXodkNNPIqBU1"; // ID thư mục gốc
+            _rootFolderId = "1cJ9S4PXMpXe99lF57coEXodkNNPIqBU1"; 
         }
 
         private async Task<string> GetOrCreateFolderAsync(string folderName, string parentFolderId)
@@ -83,6 +83,42 @@ namespace HGSMAPI
             await _driveService.Permissions.Create(permission, fileId).ExecuteAsync();
 
             return $"https://drive.google.com/uc?id={fileId}";
+        }
+        public async Task DeleteFileAsync(string fileUrl)
+        {
+            if (string.IsNullOrEmpty(fileUrl))
+            {
+                throw new ArgumentNullException(nameof(fileUrl), "File URL cannot be null or empty.");
+            }
+
+            string fileId = ExtractFileIdFromUrl(fileUrl);
+
+            if (string.IsNullOrEmpty(fileId))
+            {
+                throw new ArgumentException("Invalid file URL format. Cannot extract file ID.", nameof(fileUrl));
+            }
+
+            try
+            {
+                await _driveService.Files.Delete(fileId).ExecuteAsync();
+            }
+            catch (Google.GoogleApiException ex) when (ex.HttpStatusCode == System.Net.HttpStatusCode.NotFound)
+            {
+                Console.WriteLine($"File with ID '{fileId}' not found. Skipping deletion.");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Error deleting file '{fileId}': {ex.Message}", ex);
+            }
+        }
+
+        private string ExtractFileIdFromUrl(string fileUrl)
+        {
+            // This is a basic implementation and might need adjustments based on your URL format.
+            // It assumes the URL is in the format "https://drive.google.com/uc?id=FILE_ID"
+            Uri uri = new Uri(fileUrl);
+            var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
+            return query["id"];
         }
     }
 }

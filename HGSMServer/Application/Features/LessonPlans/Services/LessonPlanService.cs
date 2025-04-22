@@ -64,7 +64,7 @@ namespace Application.Features.LessonPlans.Services
                 SubjectId = createDto.SubjectId,
                 SemesterId = createDto.SemesterId,
                 PlanContent = createDto.PlanContent ?? string.Empty,
-                Status = "Đang chờ",
+                Status = "Chờ duyệt",
                 Title = createDto.Title,
                 Startdate = createDto.StartDate,
                 EndDate = createDto.EndDate,
@@ -112,7 +112,7 @@ namespace Application.Features.LessonPlans.Services
             lessonPlan.Title = updateDto.Title;
             lessonPlan.AttachmentUrl = updateDto.AttachmentUrl;
             lessonPlan.SubmittedDate = DateTime.Now;
-            lessonPlan.Status = "Đang chờ";
+            lessonPlan.Status = "Chờ duyệt";
 
             await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
         }

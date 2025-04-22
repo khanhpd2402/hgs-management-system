@@ -255,6 +255,7 @@ const LessonPlanList = () => {
 
     return (
         <div className="lesson-plan-list">
+            <h2>Danh sách kế hoạch giảng dạy</h2>
 
             <h2>Danh sách kế hoạch giáo án</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

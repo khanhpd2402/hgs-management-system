@@ -74,6 +74,8 @@ export default function UpdateClassModal({
   const homeroomTeachers = useHomeroomTeachers();
   const updateClassMutation = useUpdateClass();
   const [classStatus, setClassStatus] = useState(false);
+  const [teacherHK1Status, setTeacherHK1Status] = useState(false);
+  const [teacherHK2Status, setTeacherHK2Status] = useState(false);
 
   const semester1 = semesterQuery?.data?.find(
     (semester) => semester.semesterName === "Học kỳ 1",
@@ -109,6 +111,7 @@ export default function UpdateClassModal({
         classId: classId,
         teacherId: Number(values.homeroomTeacherHK1),
         semesterId: semester1?.semesterID,
+        status: teacherHK1Status ? "Hoạt Động" : "Không Hoạt Động",
       });
     }
     if (values.homeroomTeacherHK2) {
@@ -116,6 +119,7 @@ export default function UpdateClassModal({
         classId: classId,
         teacherId: Number(values.homeroomTeacherHK2),
         semesterId: semester2?.semesterID,
+        status: teacherHK2Status ? "Hoạt Động" : "Không Hoạt Động",
       });
     }
     const data = {
@@ -148,6 +152,8 @@ export default function UpdateClassModal({
         (t) => (t.semesterName === "Học kỳ 2") & (t.classId === classId),
       );
 
+      console.log(homeroomHK2);
+
       reset({
         gradeLevelId: classData.gradeLevelId
           ? String(classData.gradeLevelId)
@@ -162,6 +168,8 @@ export default function UpdateClassModal({
       });
 
       setClassStatus(classData.status === "Hoạt Động");
+      setTeacherHK1Status(false);
+      setTeacherHK2Status(false);
     }
   }, [classQuery.data, homeroomTeachers.data, reset]);
 
