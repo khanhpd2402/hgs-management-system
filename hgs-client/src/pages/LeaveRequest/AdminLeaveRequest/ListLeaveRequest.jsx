@@ -96,6 +96,7 @@ const ListLeaveRequest = () => {
     }));
   };
 
+  // Update the handleSearchChange function
   const handleSearchChange = (event) => {
     const { value } = event.target;
 
@@ -103,13 +104,28 @@ const ListLeaveRequest = () => {
       clearTimeout(debounceTimeoutRef.current);
     }
 
+    // Update filters immediately with current value for smooth UI
+    setFilters(prev => ({
+      ...prev,
+      searchTerm: value
+    }));
+
+    // Debounce the actual filtering
     debounceTimeoutRef.current = setTimeout(() => {
-      setFilters(prev => ({
-        ...prev,
-        searchTerm: value
-      }));
-    }, 500);
+      filterData(leaveRequestsData);
+    }, 300); // Reduced debounce time from 500ms to 300ms
   };
+
+  // Update the search input component
+  <Form.Item label="Tìm kiếm">
+    <Input.Search
+      placeholder="Nhập tên GV hoặc lý do..."
+      allowClear
+      onChange={handleSearchChange}
+      value={filters.searchTerm} // Changed from defaultValue to value
+      style={{ width: 240 }}
+    />
+  </Form.Item>
 
   const handleSearchSubmit = (value) => {
     if (debounceTimeoutRef.current) {

@@ -366,7 +366,7 @@ const teacherRouter = [
   {
     path: "/teacher/lesson-plan",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
 
           <LessonPlanList />
@@ -378,7 +378,7 @@ const teacherRouter = [
   {
     path: "/teacher/lesson-plan/create",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
 
           <UploadLessonPlan />
@@ -435,7 +435,7 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}>
         <DefaultLayout />
       </ProtectedRoute>
     ),
