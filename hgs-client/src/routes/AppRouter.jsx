@@ -453,7 +453,7 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên", "Hiệu phó"]}>
         <DefaultLayout />
       </ProtectedRoute>
     ),

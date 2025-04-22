@@ -8,6 +8,9 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { cn } from "@/lib/utils";
+import { jwtDecode } from "jwt-decode";
+import { useExamsByTeacherId } from "@/services/teacher/queries";
+import { Button } from "@/components/ui/button";
 
 function UploadExam() {
   //phan trang
@@ -17,8 +20,14 @@ function UploadExam() {
     page: 1,
     pageSize: 5,
   });
+  const [open, setOpen] = useState(false);
+
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
   const semesters = semesterQuery.data || [];
+  const token = JSON.parse(localStorage.getItem("token"));
+  const teacherId = jwtDecode(token)?.teacherId;
+  const teacherExamQuery = useExamsByTeacherId(teacherId);
+
   const [exams, setExams] = useState([
     {
       id: 1,
@@ -94,7 +103,13 @@ function UploadExam() {
             ))}
           </div>
         </div>
-        <UploadExamModal semester={semester} />
+        <Button
+          variant="outline"
+          className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
+          onClick={() => setOpen(true)}
+        >
+          Tải lên đề thi
+        </Button>
       </div>
       <Card className="mt-2 border shadow-md">
         <CardContent className="p-0">
@@ -167,6 +182,7 @@ function UploadExam() {
           </div>
         </CardContent>
       </Card>
+      <UploadExamModal semester={semester} open={open} setOpen={setOpen} />
     </div>
   );
 }

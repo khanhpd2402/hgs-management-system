@@ -18,12 +18,13 @@ import {
 import { cleanString } from "@/helpers/removeWhiteSpace";
 import { useGradeLevels, useSubjects } from "@/services/common/queries";
 import { useUploadExam } from "@/services/teacher/mutation";
+import { jwtDecode } from "jwt-decode";
 import { Upload, XCircle, FileText, Loader } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import toast from "react-hot-toast";
 // ... existing code ...
 
-function UploadExamModal({ semester }) {
+function UploadExamModal({ semester, open, setOpen }) {
   const [grade, setGrade] = useState("");
   const [subject, setSubject] = useState("");
   const [title, setTitle] = useState("");
@@ -35,6 +36,8 @@ function UploadExamModal({ semester }) {
   const subjectQuery = useSubjects();
   const subjects = subjectQuery.data || [];
   const uploadExamMutation = useUploadExam();
+  const token = JSON.parse(localStorage.getItem("token"));
+  const user = jwtDecode(token);
 
   const handleFileChange = (event) => {
     const selectedFile = event.target.files[0];
@@ -59,6 +62,7 @@ function UploadExamModal({ semester }) {
       return;
     }
     const formData = new FormData();
+    formData.append("UserId", user.sub);
     formData.append("file", file);
     formData.append("Grade", grade);
     formData.append("SubjectId", subject);
@@ -73,17 +77,19 @@ function UploadExamModal({ semester }) {
       },
     });
   };
+  useEffect(() => {
+    if (!open) {
+      setGrade("");
+      setSubject("");
+      setTitle("");
+      setFile(null);
+      setDragging(false);
+    }
+  }, [open]);
 
   return (
-    <Dialog>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          className="bg-blue-600 text-white hover:bg-blue-700 hover:text-white"
-        >
-          Tải lên đề thi
-        </Button>
-      </DialogTrigger>
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild></DialogTrigger>
       <DialogContent className="max-w-lg">
         <DialogTitle className="mb-4 text-center">Tải lên đề thi</DialogTitle>
         <form onSubmit={handleSubmit} className="space-y-5">
