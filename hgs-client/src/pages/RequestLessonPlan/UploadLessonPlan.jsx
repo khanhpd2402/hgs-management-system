@@ -1,12 +1,10 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import axios from 'axios';
 import './UploadLessonPlan.scss';
 import { useSubjectByTeacher } from '../../services/subject/queries';
 import { useSemestersByAcademicYear } from '../../services/common/queries';
 import { useCreateLessonPlan } from '../../services/lessonPlan/mutations';
 
-const API_URL = 'https://localhost:8386/api';
 const PREVIEW_TYPES = {
     FOLDER: 'folder',
     PDF: 'pdf',
@@ -128,19 +126,7 @@ const UploadLessonPlan = () => {
         }
     };
 
-    const fetchSubjects = async () => {
-        try {
-            const res = await axios.get(`${API_URL}/Subjects`);
-            setSubjects(res.data);
-        } catch (err) {
-            console.error('Lỗi lấy danh sách môn học:', err);
-        }
-    };
 
-    // ============= useEffect ==================
-    useEffect(() => {
-        fetchSubjects();
-    }, []);
 
     return (
         <div className="upload-lesson-plan">
