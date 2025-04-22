@@ -392,8 +392,8 @@ namespace Application.Features.Students.Services
                 Email = primaryEmail,
                 PhoneNumber = primaryPhoneNumber,
                 RoleId = parentRole.RoleId,
-                Status = "Active"
-            };
+                Status = "Hoạt động"
+            };  
 
             // Kiểm tra trùng lặp PhoneNumber và Email
             if (!string.IsNullOrEmpty(user.PhoneNumber))
