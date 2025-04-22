@@ -26,7 +26,7 @@ import { jwtDecode } from "jwt-decode";
 
 const formSchema = z.object({
   username: z.string().min(1, "Tên đăng nhập là bắt buộc"),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
 });
 
 const Login = () => {

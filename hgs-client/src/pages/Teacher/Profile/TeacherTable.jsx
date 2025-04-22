@@ -33,7 +33,7 @@ import {
   DialogDescription,
   DialogFooter,
 } from "@/components/ui/dialog";
-import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+// import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 
 export default function TeacherTable() {
   const queryClient = useQueryClient();
@@ -89,6 +89,7 @@ export default function TeacherTable() {
 
   const { data, isPending, error, isError } = useTeachers();
   const teacherMutation = useDeleteTeacher();
+  console.log(data);
 
   //phan trang
   const { page, pageSize, department, contract, search } = filter;

@@ -77,16 +77,16 @@ export function useDeleteTeacher() {
   });
 }
 
-export function useUploadExam(data) {
+export function useUploadExam() {
   return useMutation({
     mutationFn: (data) => uploadExam(data),
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        console.log("đã có lỗi xảy ra");
+        toast.error("đã có lỗi xảy ra");
       } else {
         console.log(data);
-        console.log("Tải lên đề thi thành công");
+        toast.success("Tải lên đề thi thành công");
       }
     },
   });
