@@ -54,7 +54,7 @@ namespace Application.Features.Exams.Services
                 Grade = request.Grade,
                 Title = request.Title,
                 SemesterId = request.SemesterId,
-                CreatedBy = GetCurrentUserId(),
+                CreatedBy = GetCurrentTeacherId(),
                 CreatedDate = DateTime.Now,
                 Status = "Chờ duyệt",
             };
@@ -168,14 +168,13 @@ namespace Application.Features.Exams.Services
             return _mapper.Map<IEnumerable<ExamProposalDto>>(proposals);
         }
 
-        private int GetCurrentUserId()
+        private int GetCurrentTeacherId()
         {
             var claims = _httpContextAccessor.HttpContext?.User?.Claims?.ToList() ?? new List<Claim>();
-            var userIdClaim = claims.FirstOrDefault(c => c.Type == "sub")
-                ?? claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
-                ?? throw new UnauthorizedAccessException("User ID not found in token.");
+            var teacherIdClaim = claims.FirstOrDefault(c => c.Type == "teacherId")
+                ?? throw new UnauthorizedAccessException("Teacher ID not found in token.");
 
-            return int.Parse(userIdClaim.Value);
+            return int.Parse(teacherIdClaim.Value);
         }
     }
 }
