@@ -52,6 +52,7 @@ namespace Application.Features.Attendances.Services
                 else
                 {
                     var entity = _mapper.Map<Attendance>(dto);
+                    entity.CreatedAt = now;
                     entitiesToAdd.Add(entity);
                 }
             }

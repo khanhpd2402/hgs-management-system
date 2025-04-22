@@ -14,6 +14,5 @@ namespace Application.Features.Attendances.DTOs
         public string Session { get; set; } = default!;
         public string Status { get; set; } = default!;
         public string? Note { get; set; }
-        public bool CanEdit { get; set; } // Dùng cho UI: chỉ cho sửa trong cùng ngày
     }
 }
