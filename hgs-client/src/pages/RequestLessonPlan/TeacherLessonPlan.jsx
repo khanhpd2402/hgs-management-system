@@ -6,45 +6,35 @@ import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { jwtDecode } from 'jwt-decode';
-const { Option } = Select;
+import { useLessonPlanByTeacher } from '../../services/lessonPlan/queries';
+
 const TeacherLessonPlan = () => {
-    const [lessonPlans, setLessonPlans] = useState([]);
-    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 10;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
 
-    const fetchLessonPlans = async (page) => {
-        try {
-            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const decoded = jwtDecode(token);
-            const teacherId = decoded?.teacherId;
+    const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+    const decoded = jwtDecode(token);
+    const teacherId = decoded?.teacherId;
 
-            const url = `https://localhost:8386/api/LessonPlan/teacher/${teacherId}?pageNumber=${page}&pageSize=${pageSize}`;
+    const { data, isLoading } = useLessonPlanByTeacher(teacherId, currentPage, pageSize);
 
-            const response = await axios.get(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+    const filteredLessonPlans = data?.lessonPlans?.filter(plan => {
+        const searchStr = searchTerm.toLowerCase();
+        const matchesSearch = (
+            plan.planId.toString().includes(searchStr) ||
+            plan.teacherName?.toLowerCase().includes(searchStr) ||
+            plan.subjectName?.toLowerCase().includes(searchStr) ||
+            plan.planContent?.toLowerCase().includes(searchStr) ||
+            plan.reviewerName?.toLowerCase().includes(searchStr) ||
+            plan.feedback?.toLowerCase().includes(searchStr)
+        );
 
-            setLessonPlans(response.data.lessonPlans);
-            setTotalPages(Math.ceil(response.data.totalCount / pageSize));
-            setLoading(false);
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách:', error);
-            setLoading(false);
-        }
-    };
-
-
-    useEffect(() => {
-        fetchLessonPlans(currentPage, selectedStatus);
-    }, [currentPage, selectedStatus]);
+        return matchesSearch && (selectedStatus === 'All' || plan.status === selectedStatus);
+    }) || [];
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -82,18 +72,6 @@ const TeacherLessonPlan = () => {
                 return status;
         }
     };
-
-    const filteredLessonPlans = lessonPlans.filter(plan => {
-        const searchStr = searchTerm.toLowerCase();
-        return (
-            plan.planId.toString().includes(searchStr) ||
-            plan.teacherName?.toLowerCase().includes(searchStr) ||
-            plan.subjectName?.toLowerCase().includes(searchStr) ||
-            plan.planContent?.toLowerCase().includes(searchStr) ||
-            plan.reviewerName?.toLowerCase().includes(searchStr) ||
-            plan.feedback?.toLowerCase().includes(searchStr)
-        );
-    });
 
     const showDetailModal = (record) => {
         setSelectedRequest(record);
@@ -244,7 +222,7 @@ const TeacherLessonPlan = () => {
         },
     ];
 
-    if (loading) {
+    if (isLoading) {
         return <div className="loading">Đang tải dữ liệu...</div>;
     }
 
@@ -271,7 +249,10 @@ const TeacherLessonPlan = () => {
                     />
                 </div>
                 <div className="filter-container">
-                    <select>
+                    <select
+                        value={selectedStatus}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
+                    >
                         <option value="All">Tất cả</option>
                         <option value="Đang chờ">Đang xử lý</option>
                         <option value="Đã duyệt">Đã duyệt</option>
@@ -284,11 +265,11 @@ const TeacherLessonPlan = () => {
                 <Table
                     columns={columns}
                     dataSource={filteredLessonPlans}
-                    loading={loading}
+                    loading={isLoading}
                     rowKey="planId"
                     pagination={{
                         pageSize: pageSize,
-                        total: totalPages * pageSize,
+                        total: data?.totalCount || 0,
                         current: currentPage,
                         onChange: (page) => {
                             setCurrentPage(page);
