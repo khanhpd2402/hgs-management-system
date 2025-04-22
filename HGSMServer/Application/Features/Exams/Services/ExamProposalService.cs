@@ -56,10 +56,9 @@ namespace Application.Features.Exams.Services
                 SemesterId = request.SemesterId,
                 CreatedBy = GetCurrentUserId(),
                 CreatedDate = DateTime.Now,
-                Status = "Chờ duyệt", 
+                Status = "Chờ duyệt",
             };
 
-            // Upload file Word lên Google Drive
             proposal.FileUrl = await _googleDriveService.UploadWordFileAsync(
                 request.File,
                 request.SubjectId,
@@ -92,7 +91,7 @@ namespace Application.Features.Exams.Services
             if (proposal != null)
             {
                 proposal.Status = status;
-                proposal.Comment = comment; 
+                proposal.Comment = comment;
 
                 if (status == "Từ chối" && !string.IsNullOrEmpty(proposal.FileUrl))
                 {
@@ -114,7 +113,7 @@ namespace Application.Features.Exams.Services
             return _mapper.Map<IEnumerable<ExamProposalDto>>(proposals);
         }
 
-        public async Task<ExamProposalDto> UpdateExamProposalAsync(int proposalId, ExamProposalUpdateDto request) 
+        public async Task<ExamProposalDto> UpdateExamProposalAsync(int proposalId, ExamProposalUpdateDto request)
         {
             var proposal = await _examProposalRepository.GetExamProposalAsync(proposalId);
             if (proposal == null)
@@ -155,6 +154,18 @@ namespace Application.Features.Exams.Services
 
             await _examProposalRepository.UpdateExamProposalAsync(proposal);
             return _mapper.Map<ExamProposalDto>(proposal);
+        }
+
+        public async Task<IEnumerable<ExamProposalDto>> GetAllAsync()
+        {
+            var proposals = await _examProposalRepository.GetAllAsync();
+            return _mapper.Map<IEnumerable<ExamProposalDto>>(proposals);
+        }
+
+        public async Task<IEnumerable<ExamProposalDto>> GetAllByTeacherIdAsync(int teacherId)
+        {
+            var proposals = await _examProposalRepository.GetAllByTeacherIdAsync(teacherId);
+            return _mapper.Map<IEnumerable<ExamProposalDto>>(proposals);
         }
 
         private int GetCurrentUserId()
