@@ -585,6 +585,6 @@ HGSMServer\Domain\appsettings.json
 HGSMServer\HGSMAPI\appsettings.json
 
 **/service-account-credentials.json
-
+**/appsettings.json
 .trae
 
