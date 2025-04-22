@@ -135,7 +135,7 @@ namespace HGSM_Server.Tests.Features.LessonPlans.Services
                 PlanId = planId,
                 TeacherId = teacherId,
                 Status = "Đang chờ",
-                StartDate = DateTime.Now.AddDays(-1),
+                Startdate = DateTime.Now.AddDays(-1),
                 EndDate = DateTime.Now.AddDays(1)
             };
 

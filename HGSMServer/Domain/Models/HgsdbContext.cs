@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 
 namespace Domain.Models;
 
@@ -70,9 +71,13 @@ public partial class HgsdbContext : DbContext
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("server =TRUNGDH\\SQLEXPRESS; database = HGSDB;uid=sa;pwd=123; TrustServerCertificate=true; Trusted_Connection=true");
-
+    {
+        var builder = new ConfigurationBuilder()
+     .SetBasePath(Directory.GetCurrentDirectory())
+     .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
+        IConfigurationRoot configuration = builder.Build();
+        optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
+    }
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AcademicYear>(entity =>
@@ -295,9 +300,12 @@ public partial class HgsdbContext : DbContext
 
             entity.Property(e => e.PlanId).HasColumnName("PlanID");
             entity.Property(e => e.AttachmentUrl).HasMaxLength(500);
+            entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.ReviewedDate).HasColumnType("datetime");
             entity.Property(e => e.SemesterId).HasColumnName("SemesterID");
-            entity.Property(e => e.Startdate).HasColumnName("startdate");
+            entity.Property(e => e.Startdate)
+                .HasColumnType("datetime")
+                .HasColumnName("startdate");
             entity.Property(e => e.Status).HasMaxLength(20);
             entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
             entity.Property(e => e.SubmittedDate)
