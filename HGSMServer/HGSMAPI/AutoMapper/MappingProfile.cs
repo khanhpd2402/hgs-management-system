@@ -162,7 +162,6 @@ namespace HGSMAPI.AutoMapper
             CreateMap<Period, PeriodCreateAndUpdateDto>().ReverseMap();
 
             CreateMap<SubstituteTeachingCreateDto, SubstituteTeaching>();
-            CreateMap<SubstituteTeachingUpdateDto, SubstituteTeaching>();
             CreateMap<SubstituteTeaching, SubstituteTeachingDto>()
                 .ForMember(dest => dest.OriginalTeacherName, opt => opt.MapFrom(src => src.OriginalTeacher.FullName))
                 .ForMember(dest => dest.SubstituteTeacherName, opt => opt.MapFrom(src => src.SubstituteTeacher.FullName))
