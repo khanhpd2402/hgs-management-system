@@ -16,6 +16,7 @@ import {
   useAcademicYear,
   useSemestersByAcademicYear,
 } from "@/services/common/queries";
+import { useUpdateAcademicYear } from "@/services/principal/mutation";
 
 const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
   const [year, setYear] = useState(new Date().getFullYear());
@@ -33,18 +34,23 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
     (s) => s.semesterName === "Học kỳ 2",
   );
   const academicYear = academicYearQuery?.data;
+  const updateAcademicYearMutation = useUpdateAcademicYear(); // Assuming you have a mutation for updating academic year
 
   // Validation logic
   const isEndSemester1Valid =
     endSemester1 && startSemester1 && endSemester1 > startSemester1;
   const isStartSemester2Valid =
     startSemester2 && endSemester1 && startSemester2 > endSemester1;
+
+  const isStartSemester1Valid =
+    startSemester1 && startSemester1.getFullYear() >= year;
   const isEndSemester2Valid =
     endSemester2 &&
     startSemester2 &&
     endSemester1 &&
     endSemester2 > endSemester1 &&
-    endSemester2 > startSemester2;
+    endSemester2 > startSemester2 &&
+    endSemester2.getFullYear() <= year + 1;
 
   const isFormValid =
     year &&
@@ -54,11 +60,12 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
     endSemester2 &&
     isEndSemester1Valid &&
     isStartSemester2Valid &&
-    isEndSemester2Valid;
-
+    isEndSemester2Valid &&
+    isStartSemester1Valid;
   const handleSave = () => {
     if (isFormValid) {
       const data = {
+        academicYearId,
         yearName: `${year}-${year + 1}`,
         startDate: formatDate(startSemester1),
         endDate: formatDate(endSemester2),
@@ -67,8 +74,8 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
         semester2StartDate: formatDate(startSemester2),
         semester2EndDate: formatDate(endSemester2),
       };
-      console.log(data);
-      //   createAcademicYearMutation.mutate(data);
+      updateAcademicYearMutation.mutate({ academicYearId, data });
+      onCancel();
     }
   };
 
@@ -80,17 +87,13 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
       setStartSemester2(new Date(semester2.startDate));
       setEndSemester2(new Date(semester2.endDate));
     }
-  }, [academicYearQuery.data, semesterQuery.data]);
-
-  useEffect(() => {
-    if (!open) {
-      setYear(new Date().getFullYear());
-      setStartSemester1(null);
-      setEndSemester1(null);
-      setStartSemester2(null);
-      setEndSemester2(null);
-    }
-  }, [open]);
+  }, [
+    academicYearQuery.data,
+    semesterQuery.data,
+    academicYear,
+    semester1,
+    semester2,
+  ]);
 
   return (
     <Dialog open={open} onOpenChange={onCancel}>
@@ -132,6 +135,12 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
             <DatePicker
               value={startSemester1}
               onSelect={(date) => {
+                if (date && date.getFullYear() < year) {
+                  toast.error(
+                    "Ngày bắt đầu học kỳ 1 không được nhỏ hơn năm học hiện tại",
+                  );
+                  return;
+                }
                 if (endSemester1 && date && endSemester1 <= date) {
                   toast.error(
                     "Ngày bắt đầu học kỳ 1 phải nhỏ hơn ngày kết thúc học kỳ 1",
@@ -196,6 +205,12 @@ const UpdateAcedemicYearModal = ({ open, onCancel, academicYearId }) => {
             <DatePicker
               value={endSemester2}
               onSelect={(date) => {
+                if (date && date.getFullYear() > year + 1) {
+                  toast.error(
+                    "Ngày kết thúc học kỳ 2 không được vượt quá năm học tiếp theo",
+                  );
+                  return;
+                }
                 if (
                   (startSemester2 && date && date <= startSemester2) ||
                   (endSemester1 && date && date <= endSemester1)

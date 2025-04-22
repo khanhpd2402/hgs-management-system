@@ -1,5 +1,9 @@
 .export-button {
-    background-color: #00786F; // Màu nền theo sở thích của bạn
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    background-color: #00786F;
     color: white;
     border: none;
     padding: 10px 15px;

@@ -46,11 +46,6 @@ const AcademicYearManagement = () => {
       return bYear - aYear;
     });
 
-  // const paginatedData = combinedData?.slice(
-  //   (page - 1) * pageSize,
-  //   page * pageSize,
-  // );
-
   const { page, pageSize } = filter;
 
   const totalPages = Math.ceil(combinedData.length / pageSize);
@@ -69,7 +64,7 @@ const AcademicYearManagement = () => {
         <div className="flex items-center justify-end gap-x-3">
           <Button
             onClick={() => setOpenCreateModal(true)}
-            className="bg-blue-600"
+            className="bg-blue-600 hover:bg-blue-700"
           >
             Thêm mới năm học
           </Button>

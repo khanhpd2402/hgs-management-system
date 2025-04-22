@@ -1,11 +1,17 @@
 import { axiosInstance } from "../axios";
 
 export const addGradeBatch = async (data) => {
-  return (await axiosInstance.post(`GradeBatch`, data)).data;
+  return (await axiosInstance.post(`GradeBatch/create`, data)).data;
 };
 
-export const getGradeBatches = async () => {
-  return (await axiosInstance.get(`GradeBatch`)).data;
+export const updateGradeBatch = async (id, data) => {
+  return (await axiosInstance.put(`GradeBatch/${id}`, data)).data;
+};
+
+export const getGradeBatches = async (academicYearId) => {
+  return (
+    await axiosInstance.get(`GradeBatch/by-academicyear/${academicYearId}`)
+  ).data;
 };
 
 export const getGradeBatch = async (id) => {
@@ -127,6 +133,10 @@ export const createAcademicYear = async (data) => {
   return (await axiosInstance.post(`AcademicYear`, data)).data;
 };
 
+export const updateAcademicYear = async (id, data) => {
+  return (await axiosInstance.put(`AcademicYear/${id}`, data)).data;
+};
+
 export const getAllSemesters = async () => {
   return (await axiosInstance.get(`Semester/all`)).data;
 };
@@ -150,4 +160,15 @@ export const updateHomeroom = async (data) => {
 
 export const getClassById = async (id) => {
   return (await axiosInstance.get(`Classes/${id}`)).data;
+};
+
+//teacher Subjects
+export const getTeacherSubjectsByTeacherId = async (teacherId) => {
+  return (await axiosInstance.get(`TeacherSubject/by-teacher/${teacherId}`))
+    .data;
+};
+
+export const updateTeacherSubjectByTeacherId = async (id, data) => {
+  return (await axiosInstance.put(`TeacherSubject/by-teacher/${id}`, data))
+    .data;
 };

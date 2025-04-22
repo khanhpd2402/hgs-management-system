@@ -51,6 +51,7 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
     handleSubmit,
     formState: { errors },
     reset,
+    watch,
   } = useForm({
     resolver: zodResolver(classSchema),
     defaultValues: {
@@ -112,6 +113,7 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
       });
     }
     const data = {
+      academicYearId: currentYear?.academicYearID,
       className: values.className,
       gradeLevelId: values.gradeLevelId
         ? Number(values.gradeLevelId)
@@ -120,7 +122,12 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
       homerooms,
     };
     console.log(data);
-    createClassMutation.mutate(data);
+    createClassMutation.mutate(data, {
+      onSuccess: () => {
+        reset();
+        onOpenChange(false);
+      },
+    });
     // reset();
   };
 
@@ -129,6 +136,7 @@ export default function ClassModal({ open, onOpenChange, currentYear }) {
       reset();
     }
   }, [open, reset]);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
