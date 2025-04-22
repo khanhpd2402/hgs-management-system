@@ -19,6 +19,11 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.SaveChangesAsync();
             return entity;
         }
+        public async Task<SubstituteTeaching?> GetByTimetableDetailAndDateAsync(int timetableDetailId, DateOnly date)
+        {
+            return await _context.SubstituteTeachings
+                .FirstOrDefaultAsync(x => x.TimetableDetailId == timetableDetailId && x.Date == date);
+        }
 
         public async Task<SubstituteTeaching> GetByIdAsync(int substituteId)
         {

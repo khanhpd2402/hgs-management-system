@@ -17,19 +17,33 @@ namespace Application.Features.SubstituteTeachings.Services
             _mapper = mapper;
         }
 
-        public async Task<SubstituteTeachingDto> CreateAsync(SubstituteTeachingCreateDto dto)
+        public async Task<SubstituteTeachingDto> CreateOrUpdateAsync(SubstituteTeachingCreateDto dto)
         {
-
             if (dto.OriginalTeacherId == dto.SubstituteTeacherId)
                 throw new InvalidOperationException("Original teacher and substitute teacher cannot be the same.");
 
             if (dto.Date < DateOnly.FromDateTime(DateTime.Today))
                 throw new InvalidOperationException("Substitute teaching date cannot be in the past.");
 
-            var entity = _mapper.Map<SubstituteTeaching>(dto);
-            var createdEntity = await _repository.CreateAsync(entity);
-            return _mapper.Map<SubstituteTeachingDto>(createdEntity);
+            // Check xem tiết học đã có người dạy thay chưa
+            var existing = await _repository.GetByTimetableDetailAndDateAsync(dto.TimetableDetailId, dto.Date);
+            if (existing == null)
+            {
+                var entity = _mapper.Map<SubstituteTeaching>(dto);
+                entity.CreatedAt = DateTime.Now;
+                var created = await _repository.CreateAsync(entity);
+                return _mapper.Map<SubstituteTeachingDto>(created);
+            }
+            else
+            {
+                // Cho phép cập nhật người dạy thay + ghi chú
+                existing.SubstituteTeacherId = dto.SubstituteTeacherId;
+                existing.Note = dto.Note;
+                await _repository.UpdateAsync(existing);
+                return _mapper.Map<SubstituteTeachingDto>(existing);
+            }
         }
+
 
         public async Task<SubstituteTeachingDto> GetByIdAsync(int substituteId)
         {
@@ -46,22 +60,7 @@ namespace Application.Features.SubstituteTeachings.Services
             return _mapper.Map<IEnumerable<SubstituteTeachingDto>>(entities);
         }
 
-        public async Task<SubstituteTeachingDto> UpdateAsync(SubstituteTeachingUpdateDto dto)
-        {
-            var existingEntity = await _repository.GetByIdAsync(dto.SubstituteId);
-            if (existingEntity == null)
-                throw new KeyNotFoundException($"SubstituteTeaching with ID {dto.SubstituteId} not found.");
-
-            if (dto.OriginalTeacherId == dto.SubstituteTeacherId)
-                throw new InvalidOperationException("Original teacher and substitute teacher cannot be the same.");
-
-            if (dto.Date < DateOnly.FromDateTime(DateTime.Today))
-                throw new InvalidOperationException("Substitute teaching date cannot be in the past.");
-
-            _mapper.Map(dto, existingEntity);
-            await _repository.UpdateAsync(existingEntity);
-            return _mapper.Map<SubstituteTeachingDto>(existingEntity);
-        }
+       
 
         public async Task DeleteAsync(int substituteId)
         {
