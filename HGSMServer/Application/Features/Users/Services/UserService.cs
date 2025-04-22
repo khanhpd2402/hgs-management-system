@@ -47,9 +47,9 @@ namespace Application.Features.Users.Services
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     RoleId = u.RoleId,
-                    RoleName = role?.RoleName, // Lấy RoleName
+                    RoleName = role?.RoleName, 
                     Status = u.Status,
-                    PasswordHash = u.PasswordHash,
+                    //PasswordHash = u.PasswordHash,
                     FullName = u.Teacher?.FullName ?? u.Parent?.FullNameFather ?? u.Parent?.FullNameMother ?? u.Parent?.FullNameGuardian
                 });
             }
@@ -71,7 +71,7 @@ namespace Application.Features.Users.Services
                 RoleId = user.RoleId,
                 RoleName = role?.RoleName,
                 Status = user.Status,
-                PasswordHash = user.PasswordHash,
+                //PasswordHash = user.PasswordHash,
                 FullName = user.Teacher?.FullName ?? user.Parent?.FullNameFather ?? user.Parent?.FullNameMother ?? user.Parent?.FullNameGuardian
             };
         }
@@ -92,7 +92,7 @@ namespace Application.Features.Users.Services
                 RoleId = userWithDetails.RoleId,
                 RoleName = role?.RoleName,
                 Status = userWithDetails.Status,
-                PasswordHash = userWithDetails.PasswordHash,
+                //PasswordHash = userWithDetails.PasswordHash,
                 FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullNameFather ?? userWithDetails.Parent?.FullNameMother ?? userWithDetails.Parent?.FullNameGuardian
             };
         }
@@ -113,7 +113,7 @@ namespace Application.Features.Users.Services
                 RoleId = userWithDetails.RoleId,
                 RoleName = role?.RoleName,
                 Status = userWithDetails.Status,
-                PasswordHash = userWithDetails.PasswordHash,
+                //PasswordHash = userWithDetails.PasswordHash,
                 FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullNameFather ?? userWithDetails.Parent?.FullNameMother ?? userWithDetails.Parent?.FullNameGuardian
             };
         }
@@ -144,10 +144,10 @@ namespace Application.Features.Users.Services
                     throw new ArgumentException("SchoolJoinDate is required for non-Parent roles.");
             }
 
-            // Tạo User với Username tạm thời
+            
             var user = new User
             {
-                Username = "tempuser", // Username tạm thời
+                Username = "tempuser", 
                 PasswordHash = passwordHash,
                 Email = userDto.RoleId == 6
                     ? (userDto.Email ?? userDto.EmailFather ?? userDto.EmailMother ?? userDto.EmailGuardian)
@@ -156,7 +156,7 @@ namespace Application.Features.Users.Services
                     ? (userDto.PhoneNumber ?? userDto.PhoneNumberFather ?? userDto.PhoneNumberMother ?? userDto.PhoneNumberGuardian)
                     : userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
-                Status = "Active"
+                Status = "Hoạt động"
             };
 
             // Kiểm tra trùng lặp Email nếu có

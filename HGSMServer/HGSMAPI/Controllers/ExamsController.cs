@@ -49,11 +49,11 @@ namespace HGSMAPI.Controllers
 
         [HttpPut("exam-proposal/{id}/status")]
         [Authorize(Roles = "Hiệu trưởng,Trưởng bộ môn")]
-        public async Task<IActionResult> UpdateExamProposalStatus(int id, [FromBody] StatusUpdateDto dto) 
+        public async Task<IActionResult> UpdateExamProposalStatus(int id, [FromBody] StatusUpdateDto dto)
         {
             try
             {
-                await _examProposalService.UpdateExamProposalStatusAsync(id, dto.Status, dto.Comment); 
+                await _examProposalService.UpdateExamProposalStatusAsync(id, dto.Status, dto.Comment);
                 return NoContent();
             }
             catch (Exception ex)
@@ -85,6 +85,36 @@ namespace HGSMAPI.Controllers
             {
                 var updatedProposal = await _examProposalService.UpdateExamProposalAsync(id, request);
                 return Ok(updatedProposal);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("exam-proposals")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
+        public async Task<IActionResult> GetAllExamProposals()
+        {
+            try
+            {
+                var proposals = await _examProposalService.GetAllAsync();
+                return Ok(proposals);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
+        [HttpGet("exam-proposals/teacher/{teacherId}")]
+        [Authorize(Roles = "Giáo viên,Hiệu trưởng,Cán bộ văn thư")]
+        public async Task<IActionResult> GetExamProposalsByTeacherId(int teacherId)
+        {
+            try
+            {
+                var proposals = await _examProposalService.GetAllByTeacherIdAsync(teacherId);
+                return Ok(proposals);
             }
             catch (Exception ex)
             {
