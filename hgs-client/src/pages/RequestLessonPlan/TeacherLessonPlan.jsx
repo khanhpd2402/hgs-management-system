@@ -7,8 +7,7 @@ import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 
 const { Option } = Select;
-
-const LessonPlanList = () => {
+const TeacherLessonPlan = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
     const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
@@ -70,7 +69,7 @@ const LessonPlanList = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Processing':
+            case 'Đang chờ':
                 return 'Đang xử lý';
             case 'Đã duyệt':
                 return 'Đã duyệt';
@@ -134,7 +133,7 @@ const LessonPlanList = () => {
                                     {selectedRequest.planContent}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Trạng thái">
-                                    <Tag color={getStatusClass(selectedRequest.status)}>
+                                    <Tag className={`status-${selectedRequest.status.toLowerCase().replace(' ', '-')}`}>
                                         {getStatusText(selectedRequest.status)}
                                     </Tag>
                                 </Descriptions.Item>
@@ -202,7 +201,7 @@ const LessonPlanList = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status) => (
-                <span className={`status-badge ${getStatusClass(status)}`}>
+                <span className={`status-${status.toLowerCase()} ${getStatusClass(status)}`}>
                     {getStatusText(status)}
                 </span>
             ),
@@ -241,7 +240,7 @@ const LessonPlanList = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    <Link to={`/system/lesson-plan/${record.planId}`}>
+                    <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
                         <Button>Cập nhật</Button>
                     </Link>
                 </Space>
@@ -313,4 +312,4 @@ const LessonPlanList = () => {
     );
 };
 
-export default LessonPlanList;
+export default TeacherLessonPlan

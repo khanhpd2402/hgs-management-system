@@ -24,6 +24,10 @@ import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 // import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
 // import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
+// import TeacherLessonPlan from "@/pages/RequestLessonPlan/TeacherLessonPlan";
+const TeacherLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/TeacherLessonPlan"),
+);
 // Add these lazy imports with the existing lazy imports
 const ListLeaveRequest = lazy(() => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"));
 const LeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"));
@@ -226,7 +230,7 @@ const adminRouter = [
     ),
   },
   {
-    path: "/system/review-detail/:id",
+    path: "/system/review-detail/:planId",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
@@ -369,7 +373,7 @@ const teacherRouter = [
       <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
 
-          <LessonPlanList />
+          <TeacherLessonPlan />
         </Suspense>
 
       </ProtectedRoute>
@@ -378,7 +382,7 @@ const teacherRouter = [
   {
     path: "/teacher/lesson-plan/create",
     element: (
-      <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
 
           <UploadLessonPlan />

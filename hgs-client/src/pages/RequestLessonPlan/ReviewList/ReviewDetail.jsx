@@ -10,7 +10,8 @@ import {
     Space,
     message,
     Divider,
-    Typography
+    Typography,
+    Empty
 } from 'antd';
 import {
     RollbackOutlined,
@@ -35,7 +36,8 @@ const ReviewDetail = () => {
 
     useEffect(() => {
         fetchPlanDetail();
-    }, [planId]);
+    }, []);
+
 
     const fetchPlanDetail = async () => {
         try {
@@ -47,6 +49,7 @@ const ReviewDetail = () => {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
             );
+            console.log("planId", planId)
             console.log(response.data)
             setPlan(response.data);
         } catch (error) {
@@ -103,18 +106,41 @@ const ReviewDetail = () => {
                                 <Descriptions.Item label="ID kế hoạch">
                                     {plan.planId}
                                 </Descriptions.Item>
+                                <Descriptions.Item label="Tiêu đề">
+                                    {plan.title}
+                                </Descriptions.Item>
                                 <Descriptions.Item label="Giáo viên">
                                     {plan.teacherName}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Môn học">
                                     {plan.subjectName}
                                 </Descriptions.Item>
+                                <Descriptions.Item label="Trạng thái">
+                                    {plan.status}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Người phê duyệt">
+                                    {plan.reviewerName}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Ngày bắt đầu">
+                                    {dayjs(plan.startDate).format('DD/MM/YYYY')}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Ngày kết thúc">
+                                    {dayjs(plan.endDate).format('DD/MM/YYYY')}
+                                </Descriptions.Item>
                                 <Descriptions.Item label="Ngày nộp">
                                     {dayjs(plan.submittedDate).format('DD/MM/YYYY HH:mm')}
                                 </Descriptions.Item>
-                                <Descriptions.Item label="Nội dung" span={2}>
+                                <Descriptions.Item label="Ngày phê duyệt">
+                                    {plan.reviewedDate ? dayjs(plan.reviewedDate).format('DD/MM/YYYY HH:mm') : 'Chưa phê duyệt'}
+                                </Descriptions.Item>
+                                <Descriptions.Item label="Nội dung kế hoạch" span={2}>
                                     {plan.planContent}
                                 </Descriptions.Item>
+                                {plan.feedback && (
+                                    <Descriptions.Item label="Phản hồi trước đó" span={2}>
+                                        {plan.feedback}
+                                    </Descriptions.Item>
+                                )}
                             </Descriptions>
                         </div>
 

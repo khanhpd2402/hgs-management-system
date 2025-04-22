@@ -4,6 +4,7 @@ import './UploadLessonPlan.scss';
 import { useSubjectByTeacher } from '../../services/subject/queries';
 import { useSemestersByAcademicYear } from '../../services/common/queries';
 import { useCreateLessonPlan } from '../../services/lessonPlan/mutations';
+import toast from "react-hot-toast";
 
 const PREVIEW_TYPES = {
     FOLDER: 'folder',
@@ -18,15 +19,13 @@ const INITIAL_FORM = {
     semesterId: '',
     title: '',
     planContent: '',
-    attachmentUrl: '',
     startDate: '',
     endDate: ''
 };
 
 const UploadLessonPlan = () => {
     const [form, setForm] = useState(INITIAL_FORM);
-    const [previewUrl, setPreviewUrl] = useState(null);
-    const [previewType, setPreviewType] = useState(null);
+
 
     // Get teacherId from token
     const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
@@ -37,39 +36,7 @@ const UploadLessonPlan = () => {
     const { subjects, isLoading: subjectsLoading } = useSubjectByTeacher(teacherId);
 
 
-    // ============= Helper ==================
-    const extractGoogleId = (url) => url.match(/[-\w]{25,}/)?.[0];
 
-    const getPreviewUrl = useCallback((url) => {
-        if (!url) return null;
-
-        if (url.includes('drive.google.com')) {
-            const id = extractGoogleId(url);
-            if (!id) return null;
-
-            if (url.includes('/folders/')) {
-                setPreviewType(PREVIEW_TYPES.FOLDER);
-                return `https://drive.google.com/embeddedfolderview?id=${id}#list`;
-            }
-
-            setPreviewType(PREVIEW_TYPES.GOOGLE_FILE);
-            return `https://drive.google.com/file/d/${id}/preview`;
-        }
-
-        const ext = url.split('.').pop().toLowerCase();
-        switch (ext) {
-            case 'pdf':
-                setPreviewType(PREVIEW_TYPES.PDF);
-                return url;
-            case 'doc':
-            case 'docx':
-                setPreviewType(PREVIEW_TYPES.GOOGLE_DOCS);
-                return `https://docs.google.com/viewer?url=${encodeURIComponent(url)}&embedded=true`;
-            default:
-                setPreviewType(PREVIEW_TYPES.UNKNOWN);
-                return url;
-        }
-    }, []);
 
     // ============= Event Handlers ==================
     const handleChange = (e) => {
@@ -77,18 +44,6 @@ const UploadLessonPlan = () => {
         setForm((prev) => ({ ...prev, [name]: value }));
     };
 
-    const handlePreview = () => {
-        if (!form.attachmentUrl) {
-            createLessonPlanMutation.onError({ response: { data: 'Vui lòng nhập URL tài liệu!' } });
-            return;
-        }
-        const url = getPreviewUrl(form.attachmentUrl);
-        if (!url) {
-            createLessonPlanMutation.onError({ response: { data: 'URL không hợp lệ!' } });
-            return;
-        }
-        setPreviewUrl(url);
-    };
 
     const createLessonPlanMutation = useCreateLessonPlan();
 
@@ -108,21 +63,36 @@ const UploadLessonPlan = () => {
             return;
         }
 
+        // Validate dates
+        const startDateTime = new Date(form.startDate);
+        const endDateTime = new Date(form.endDate);
+
+        if (startDateTime >= endDateTime) {
+
+            toast.message("Ngày kết thúc phải sau ngày bắt đầu");
+            return;
+        }
+
         const payload = {
             teacherId: parseInt(teacherId),
             subjectId: parseInt(form.subjectId),
             semesterId: parseInt(form.semesterId),
-            title: form.title,
-            planContent: form.planContent,
-            startDate: new Date(form.startDate).toISOString(),
-            endDate: new Date(form.endDate).toISOString()
+            title: form.title.trim(),
+            planContent: form.planContent.trim(),
+            startDate: startDateTime.toISOString(),
+            endDate: endDateTime.toISOString()
         };
 
         try {
             await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
+            toast.message("Tạo kế hoạch giảng dạy thành công!");
+
         } catch (error) {
             console.error('Error creating lesson plan:', error);
+            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch giảng dạy';
+            toast.error(errorMessage);
+
         }
     };
 
@@ -130,7 +100,7 @@ const UploadLessonPlan = () => {
 
     return (
         <div className="upload-lesson-plan">
-            <h1>Tải lên kế hoạch giảng dạy</h1>
+            <h1>Tải lên kế hoạch giáo án</h1>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <div className="form-field">
@@ -183,7 +153,6 @@ const UploadLessonPlan = () => {
                 {[
                     { name: 'title', label: 'Tiêu đề', type: 'text' },
                     { name: 'planContent', label: 'Nội dung kế hoạch', type: 'textarea' },
-                    { name: 'attachmentUrl', label: 'Link tài liệu đính kèm', type: 'text' }
                 ].map(({ name, label, type }) => (
                     <div className="form-group" key={name}>
                         <div className="form-field">
@@ -201,21 +170,12 @@ const UploadLessonPlan = () => {
                     <button type="button" className="btn-back" onClick={() => window.history.back()}>Trở lại danh sách</button>
                     <div className="right-buttons">
                         <button type="submit">Tải lên</button>
-                        <button type="button" className="btn-preview" onClick={handlePreview}>Xem trước</button>
                     </div>
                 </div>
 
             </form>
 
-            {previewUrl && (
-                <div className="modal-overlay">
-                    <div className="modal-content">
-                        <h3>Xem trước tài liệu</h3>
-                        <button onClick={() => setPreviewUrl(null)} className="close-preview">Đóng</button>
-                        <iframe src={previewUrl} title={`${previewType} Preview`} />
-                    </div>
-                </div>
-            )}
+
         </div>
     );
 };
