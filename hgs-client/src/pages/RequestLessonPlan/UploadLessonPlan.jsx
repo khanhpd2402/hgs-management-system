@@ -4,6 +4,8 @@ import axios from 'axios';
 import './UploadLessonPlan.scss';
 import { useSubjectByTeacher } from '../../services/subject/queries';
 import { useSemestersByAcademicYear } from '../../services/common/queries';
+import { useCreateLessonPlan } from '../../services/lessonPlan/mutations';
+
 const API_URL = 'https://localhost:8386/api';
 const PREVIEW_TYPES = {
     FOLDER: 'folder',
@@ -78,62 +80,51 @@ const UploadLessonPlan = () => {
     };
 
     const handlePreview = () => {
-        if (!form.attachmentUrl) return alert('Vui lòng nhập URL tài liệu!');
+        if (!form.attachmentUrl) {
+            createLessonPlanMutation.onError({ response: { data: 'Vui lòng nhập URL tài liệu!' } });
+            return;
+        }
         const url = getPreviewUrl(form.attachmentUrl);
-        if (!url) return alert('URL không hợp lệ!');
+        if (!url) {
+            createLessonPlanMutation.onError({ response: { data: 'URL không hợp lệ!' } });
+            return;
+        }
         setPreviewUrl(url);
     };
+
+    const createLessonPlanMutation = useCreateLessonPlan();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-        if (!token) return alert('Vui lòng đăng nhập để tiếp tục!');
-
-        // Add date validation
-        const startDate = new Date(form.startDate);
-        const endDate = new Date(form.endDate);
-
-        if (endDate < startDate) {
-            return alert('Ngày kết thúc không thể trước ngày bắt đầu!');
+        if (!token) {
+            createLessonPlanMutation.onError({ response: { data: 'Vui lòng đăng nhập để tiếp tục!' } });
+            return;
         }
 
+        const decoded = jwtDecode(token);
+        const teacherId = decoded?.teacherId;
+
+        if (!teacherId) {
+            createLessonPlanMutation.onError({ response: { data: 'Không tìm thấy thông tin giáo viên' } });
+            return;
+        }
+
+        const payload = {
+            teacherId: parseInt(teacherId),
+            subjectId: parseInt(form.subjectId),
+            semesterId: parseInt(form.semesterId),
+            title: form.title,
+            planContent: form.planContent,
+            startDate: new Date(form.startDate).toISOString(),
+            endDate: new Date(form.endDate).toISOString()
+        };
+
         try {
-            const decoded = jwtDecode(token);
-            const teacherId = decoded?.teacherId;
-
-            if (!teacherId) {
-                throw new Error('Không tìm thấy thông tin giáo viên');
-            }
-
-            const payload = {
-                teacherId,
-                subjectId: parseInt(form.subjectId),
-                semesterId: parseInt(form.semesterId),
-                startDate: startDate.toISOString(),
-                endDate: endDate.toISOString(),
-                title: form.title,
-                planContent: form.planContent
-            };
-            console.log("payload", payload)
-
-            await axios({
-                method: 'post',
-                url: `${API_URL}/LessonPlan/create`,
-                headers: {
-                    Authorization: `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                data: payload
-            });
-
-
-            alert('Tải lên thành công!');
+            await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
         } catch (error) {
-            const msg = error.response?.status === 401
-                ? 'Phiên đăng nhập đã hết hạn!'
-                : `Tải lên thất bại: ${error.response?.data || 'Lỗi hệ thống'}`;
-            alert(msg);
+            console.error('Error creating lesson plan:', error);
         }
     };
 
@@ -221,9 +212,13 @@ const UploadLessonPlan = () => {
                 ))}
 
                 <div className="buttons-container">
-                    <button type="submit">Tải lên</button>
-                    <button type="button" className="btn-preview" onClick={handlePreview}>Xem trước</button>
+                    <button type="button" className="btn-back" onClick={() => window.history.back()}>Trở lại danh sách</button>
+                    <div className="right-buttons">
+                        <button type="submit">Tải lên</button>
+                        <button type="button" className="btn-preview" onClick={handlePreview}>Xem trước</button>
+                    </div>
                 </div>
+
             </form>
 
             {previewUrl && (

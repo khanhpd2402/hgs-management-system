@@ -10,6 +10,6 @@ export const useSubjectByTeacher = (teacherId) => {
 
   return {
     ...query,
-    subjects: query.data || [], // Dữ liệu trả về là array chứ không có field `subjects`
+    subjects: query.data || [],
   };
 };

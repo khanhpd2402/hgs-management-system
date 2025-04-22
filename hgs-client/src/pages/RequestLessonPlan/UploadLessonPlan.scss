@@ -177,3 +177,46 @@
     margin-top: 10px;
   }
 } 
+
+.upload-lesson-plan {
+    .buttons-container {
+        display: flex;
+        justify-content: space-between; /* Để các nút phân tách ra 2 bên */
+        align-items: center;
+        margin-top: 20px;
+
+        .btn-back {
+            background-color: #f1f1f1;
+            border: 1px solid #ddd;
+            padding: 10px 15px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+
+            &:hover {
+                background-color: #ddd;
+            }
+        }
+
+        .right-buttons {
+            display: flex;
+            gap: 10px;
+
+            button {
+                padding: 10px 20px;
+                font-size: 16px;
+                cursor: pointer;
+                transition: background-color 0.3s;
+            }
+
+            .btn-preview {
+                background-color: #727cf5;
+                color: white;
+
+                &:hover {
+                    background-color: #5e66d6;
+                }
+            }
+        }
+    }
+}
