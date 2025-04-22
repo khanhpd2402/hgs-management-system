@@ -49,7 +49,7 @@ namespace Application.Features.Users.Services
                     RoleId = u.RoleId,
                     RoleName = role?.RoleName, 
                     Status = u.Status,
-                    //PasswordHash = u.PasswordHash,
+                    PasswordHash = u.PasswordHash,
                     FullName = u.Teacher?.FullName ?? u.Parent?.FullNameFather ?? u.Parent?.FullNameMother ?? u.Parent?.FullNameGuardian
                 });
             }
@@ -71,7 +71,7 @@ namespace Application.Features.Users.Services
                 RoleId = user.RoleId,
                 RoleName = role?.RoleName,
                 Status = user.Status,
-                //PasswordHash = user.PasswordHash,
+                PasswordHash = user.PasswordHash,
                 FullName = user.Teacher?.FullName ?? user.Parent?.FullNameFather ?? user.Parent?.FullNameMother ?? user.Parent?.FullNameGuardian
             };
         }
@@ -92,7 +92,7 @@ namespace Application.Features.Users.Services
                 RoleId = userWithDetails.RoleId,
                 RoleName = role?.RoleName,
                 Status = userWithDetails.Status,
-                //PasswordHash = userWithDetails.PasswordHash,
+                PasswordHash = userWithDetails.PasswordHash,
                 FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullNameFather ?? userWithDetails.Parent?.FullNameMother ?? userWithDetails.Parent?.FullNameGuardian
             };
         }
@@ -113,7 +113,7 @@ namespace Application.Features.Users.Services
                 RoleId = userWithDetails.RoleId,
                 RoleName = role?.RoleName,
                 Status = userWithDetails.Status,
-                //PasswordHash = userWithDetails.PasswordHash,
+                PasswordHash = userWithDetails.PasswordHash,
                 FullName = userWithDetails.Teacher?.FullName ?? userWithDetails.Parent?.FullNameFather ?? userWithDetails.Parent?.FullNameMother ?? userWithDetails.Parent?.FullNameGuardian
             };
         }
