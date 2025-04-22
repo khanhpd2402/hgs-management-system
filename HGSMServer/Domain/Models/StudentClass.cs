@@ -15,6 +15,8 @@ public partial class StudentClass
 
     public virtual AcademicYear AcademicYear { get; set; } = null!;
 
+    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
+
     public virtual Class Class { get; set; } = null!;
 
     public virtual ICollection<Grade> Grades { get; set; } = new List<Grade>();

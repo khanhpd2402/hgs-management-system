@@ -31,7 +31,7 @@ public partial class LessonPlan
 
     public DateTime? EndDate { get; set; }
 
-    public DateTime? Startdate { get; set; }
+    public DateTime? StartDate { get; set; }
 
     public virtual Teacher? Reviewer { get; set; }
 

@@ -78,6 +78,7 @@ public partial class HgsdbContext : DbContext
         IConfigurationRoot configuration = builder.Build();
         optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
     }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AcademicYear>(entity =>
@@ -94,25 +95,22 @@ public partial class HgsdbContext : DbContext
 
         modelBuilder.Entity<Attendance>(entity =>
         {
-            entity.HasKey(e => e.AttendanceId).HasName("PK__Attendan__8B69263CB0702B48");
+            entity.HasKey(e => e.AttendanceId).HasName("PK__Attendan__8B69263CE367BAB1");
 
-            entity.HasIndex(e => new { e.StudentId, e.TimetableDetailId }, "UQ_Attendance").IsUnique();
+            entity.HasIndex(e => new { e.StudentClassId, e.Date, e.Session }, "UQ_StudentClass_Date_Session").IsUnique();
 
             entity.Property(e => e.AttendanceId).HasColumnName("AttendanceID");
             entity.Property(e => e.CreatedAt)
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime");
             entity.Property(e => e.Note).HasMaxLength(255);
-            entity.Property(e => e.Status).HasMaxLength(1);
-            entity.Property(e => e.StudentId).HasColumnName("StudentID");
+            entity.Property(e => e.Session).HasMaxLength(10);
+            entity.Property(e => e.Status).HasMaxLength(2);
+            entity.Property(e => e.StudentClassId).HasColumnName("StudentClassID");
 
-            entity.HasOne(d => d.Student).WithMany(p => p.Attendances)
-                .HasForeignKey(d => d.StudentId)
-                .HasConstraintName("FK_Attendances_Students");
-
-            entity.HasOne(d => d.TimetableDetail).WithMany(p => p.Attendances)
-                .HasForeignKey(d => d.TimetableDetailId)
-                .HasConstraintName("FK_Attendances_TimetableDetails");
+            entity.HasOne(d => d.StudentClass).WithMany(p => p.Attendances)
+                .HasForeignKey(d => d.StudentClassId)
+                .HasConstraintName("FK_Attendances_StudentClasses");
         });
 
         modelBuilder.Entity<Class>(entity =>
@@ -306,7 +304,7 @@ public partial class HgsdbContext : DbContext
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.ReviewedDate).HasColumnType("datetime");
             entity.Property(e => e.SemesterId).HasColumnName("SemesterID");
-            entity.Property(e => e.Startdate).HasColumnType("datetime");
+            entity.Property(e => e.StartDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(20);
             entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
             entity.Property(e => e.SubmittedDate)
