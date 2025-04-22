@@ -174,10 +174,10 @@ namespace HGSMAPI.Controllers
                 return BadRequest(new { message = "Status is required." });
             }
 
-            if (!new[] { "Active", "Deactive" }.Contains(changeStatusDto.Status))
+            if (!new[] { "Hoạt động", "Không hoạt động" }.Contains(changeStatusDto.Status))
             {
                 Console.WriteLine($"ChangeStatus: Invalid status value: {changeStatusDto.Status}.");
-                return BadRequest(new { message = "Status must be either 'Active' or 'Deactive'." });
+                return BadRequest(new { message = "Trạng thái phải là'Hoạt động' hoặc 'Không hoạt động'." });
             }
 
             try

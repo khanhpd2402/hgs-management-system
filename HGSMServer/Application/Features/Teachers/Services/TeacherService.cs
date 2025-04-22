@@ -112,7 +112,7 @@ public class TeacherService : ITeacherService
                 RoleId = teacherRole.RoleId,
                 Username = "tempuser",
                 PasswordHash = PasswordHasher.HashPassword("12345678"),
-                Status = "Active"
+                Status = "Hoạt động"
             };
 
             await _teacherRepository.AddAsync(teacher);
@@ -345,7 +345,7 @@ public class TeacherService : ITeacherService
                         RoleId = teacherRole.RoleId,
                         Username = username,
                         PasswordHash = PasswordHasher.HashPassword("12345678"),
-                        Status = "Active"
+                        Status = "Hoạt động"
                     };
 
                     teacher = new Teacher
