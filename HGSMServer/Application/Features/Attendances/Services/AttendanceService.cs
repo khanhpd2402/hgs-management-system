@@ -12,21 +12,35 @@ namespace Application.Features.Attendances.Services
     {
         private readonly IAttendanceRepository _repository;
         private readonly IMapper _mapper;
+        private readonly ITeachingAssignmentRepository _teachingAssignmentRepo;
 
-        public AttendanceService(IAttendanceRepository repository, IMapper mapper)
+        public AttendanceService(
+            IAttendanceRepository repository,
+            IMapper mapper,
+            ITeachingAssignmentRepository teachingAssignmentRepo)
         {
             _repository = repository;
             _mapper = mapper;
+            _teachingAssignmentRepo = teachingAssignmentRepo;
         }
 
-        public async Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int classId, DateOnly weekStart)
+
+        public async Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int teacherId, int classId, int semesterId, DateOnly weekStart)
         {
+            var isAssigned = await _teachingAssignmentRepo.IsTeacherAssignedAsync(teacherId, classId, semesterId);
+            if (!isAssigned)
+                throw new UnauthorizedAccessException("Bạn không được phân công dạy lớp này trong học kỳ này.");
+
             var attendances = await _repository.GetByWeekAsync(classId, weekStart);
             return _mapper.Map<List<AttendanceDto>>(attendances);
         }
 
-        public async Task UpsertAttendancesAsync(List<AttendanceDto> dtos)
+        public async Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos)
         {
+            var isAssigned = await _teachingAssignmentRepo.IsTeacherAssignedAsync(teacherId, classId, semesterId);
+            if (!isAssigned)
+                throw new UnauthorizedAccessException("Bạn không được phân công dạy lớp này trong học kỳ này.");
+
             var today = DateOnly.FromDateTime(DateTime.Today);
             var now = DateTime.Now;
             var entitiesToAdd = new List<Attendance>();

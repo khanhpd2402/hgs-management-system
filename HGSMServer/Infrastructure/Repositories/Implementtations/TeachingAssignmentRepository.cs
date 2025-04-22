@@ -27,6 +27,12 @@ namespace Infrastructure.Repositories.Implementtations
         .Include(t => t.Teacher) 
         .ToListAsync();
         }
-        
+        public async Task<bool> IsTeacherAssignedAsync(int teacherId, int classId, int semesterId)
+        {
+            return await _context.TeachingAssignments.AnyAsync(t =>
+                t.TeacherId == teacherId &&
+                t.ClassId == classId &&
+                t.SemesterId == semesterId);
+        }
     }
 }

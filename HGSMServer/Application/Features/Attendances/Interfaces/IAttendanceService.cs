@@ -10,7 +10,7 @@ namespace Application.Features.Attendances.Interfaces
 {
     public interface IAttendanceService
     {
-        Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int classId, DateOnly weekStart);
-        Task UpsertAttendancesAsync(List<AttendanceDto> dtos);
+        Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int teacherId, int classId, int semesterId, DateOnly weekStart);
+        Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos);
     }
 }
