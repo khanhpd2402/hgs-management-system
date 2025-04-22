@@ -42,10 +42,24 @@ namespace Infrastructure.Repositories.Implementations
                 .Where(ep => ep.Status == status)
                 .ToListAsync();
         }
+
         public async Task UpdateExamProposalAsync(ExamProposal proposal)
         {
             _context.Entry(proposal).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+        }
+
+        public async Task<IEnumerable<ExamProposal>> GetAllAsync()
+        {
+            return await _context.ExamProposals
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<ExamProposal>> GetAllByTeacherIdAsync(int teacherId)
+        {
+            return await _context.ExamProposals
+                .Where(ep => ep.CreatedBy == teacherId)
+                .ToListAsync();
         }
     }
 }
