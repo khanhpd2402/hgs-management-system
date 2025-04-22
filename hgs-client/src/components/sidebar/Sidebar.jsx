@@ -28,6 +28,7 @@ const menuItems = [
       { label: "Liên hệ", path: "/system/contact" },
       { label: "Quản lý năm học", path: "/system/academic-year" },
       { label: "Quản lý giáo án", path: "/system/lesson-plan" },
+      { label: "Quản lý đề thi", path: "/system/exam" },
 
       {
         label: "Cấu hình môn học",
@@ -38,11 +39,11 @@ const menuItems = [
     ],
   },
   {
-    label: "Cán bộ",
+    label: "Giáo viên",
     icon: Users,
     path: "/teacher",
     children: [
-      { label: "Hồ sơ cán bộ", path: "/teacher/profile" },
+      { label: "Hồ sơ giáo viên", path: "/teacher/profile" },
       {
         label: "Phân công giảng dạy",
         path: "/teacher/teaching-assignment",

@@ -62,7 +62,7 @@ function UploadExamModal({ semester, open, setOpen }) {
       return;
     }
     const formData = new FormData();
-    formData.append("UserId", user.sub);
+    formData.append("TeacherId", user.teacherId);
     formData.append("file", file);
     formData.append("Grade", grade);
     formData.append("SubjectId", subject);
