@@ -23,19 +23,19 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
         private readonly Mock<IMapper> _mapperMock;
         private readonly TeacherService _teacherService;
 
-        public TeacherServiceTests()
-        {
-            _teacherRepositoryMock = new Mock<ITeacherRepository>();
-            _subjectRepositoryMock = new Mock<ISubjectRepository>();
-            _roleRepositoryMock = new Mock<IRoleRepository>();
-            _mapperMock = new Mock<IMapper>();
+        //public TeacherServiceTests()
+        //{
+        //    _teacherRepositoryMock = new Mock<ITeacherRepository>();
+        //    _subjectRepositoryMock = new Mock<ISubjectRepository>();
+        //    _roleRepositoryMock = new Mock<IRoleRepository>();
+        //    _mapperMock = new Mock<IMapper>();
 
-            _teacherService = new TeacherService(
-                _teacherRepositoryMock.Object,
-                _mapperMock.Object,
-                _subjectRepositoryMock.Object,
-                _roleRepositoryMock.Object);
-        }
+        //    _teacherService = new TeacherService(
+        //        _teacherRepositoryMock.Object,
+        //        _mapperMock.Object,
+        //        _subjectRepositoryMock.Object,
+        //        _roleRepositoryMock.Object);
+        //}
 
         [Fact]
         public async Task GetAllTeachersAsync_ShouldReturnTeacherList_WhenTeachersExist()
@@ -149,6 +149,6 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
             _teacherRepositoryMock.Verify(repo => repo.DeleteUserAsync(1), Times.Once());
         }
 
-       
+
     }
 }
