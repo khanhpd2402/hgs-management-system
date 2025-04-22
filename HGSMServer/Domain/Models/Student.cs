@@ -33,8 +33,6 @@ public partial class Student
 
     public int? ParentId { get; set; }
 
-    public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();
-
     public virtual ICollection<Conduct> Conducts { get; set; } = new List<Conduct>();
 
     public virtual Parent? Parent { get; set; }

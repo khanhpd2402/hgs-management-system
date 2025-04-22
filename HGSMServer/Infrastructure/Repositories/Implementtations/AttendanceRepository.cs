@@ -10,46 +10,36 @@ namespace Infrastructure.Repositories.Implementtations
 {
     public class AttendanceRepository : IAttendanceRepository
     {
-        //private readonly HgsdbContext _context;
-        //public AttendanceRepository(HgsdbContext context) => _context = context;
+        private readonly HgsdbContext _context;
 
-        //public async Task<List<Attendance>> GetByWeekAsync(int classId, DateOnly weekStart)
-        //{
-        //    var weekDates = Enumerable.Range(0, 6).Select(i => weekStart.AddDays(i)).ToList();
+        public AttendanceRepository(HgsdbContext context)
+        {
+            _context = context;
+        }
 
-        //    return await _context.Attendances
-        //        .Where(a => weekDates.Contains(a.Date) &&
-        //                    _context.Students.Any(s => s.StudentId == a.StudentId && s.ClassID == classId))
-        //        .Include(a => a.Student)
-        //        .ToListAsync();
-        //}
+        public async Task<List<Attendance>> GetByWeekAsync(int studentClassId, DateOnly weekStart)
+        {
+            var weekDates = Enumerable.Range(0, 6).Select(i => weekStart.AddDays(i)).ToList();
+            return await _context.Attendances
+                .Where(a => a.StudentClassId == studentClassId && weekDates.Contains(a.Date))
+                .ToListAsync();
+        }
 
-        //public async Task AddRangeAsync(List<Attendance> attendances)
-        //{
-        //    await _context.Attendances.AddRangeAsync(attendances);
-        //    await _context.SaveChangesAsync();
-        //}
+        public async Task<Attendance?> GetAsync(int studentClassId, DateOnly date, string session)
+        {
+            return await _context.Attendances
+                .FirstOrDefaultAsync(a => a.StudentClassId == studentClassId && a.Date == date && a.Session == session);
+        }
 
-        //public async Task UpdateRangeAsync(List<Attendance> updates)
-        //{
-        //    foreach (var updated in updates)
-        //    {
-        //        var existing = await _context.Attendances.FindAsync(updated.AttendanceId);
-        //        if (existing == null || existing.Date.Date != DateTime.Today) continue;
+        public async Task AddRangeAsync(IEnumerable<Attendance> attendances)
+        {
+            await _context.Attendances.AddRangeAsync(attendances);
+        }
 
-        //        existing.Status = updated.Status;
-        //        existing.Note = updated.Note;
-        //    }
-
-        //    await _context.SaveChangesAsync();
-        //}
-
-        //public async Task<bool> ExistsForSessionAsync(int studentId, DateTime date, string session)
-        //{
-        //    return await _context.Attendances.AnyAsync(a =>
-        //        a.StudentId == studentId &&
-        //        a.Date == date &&
-        //        a.Session == session);
-        //}
+        public async Task UpdateRangeAsync(IEnumerable<Attendance> attendances)
+        {
+            _context.Attendances.UpdateRange(attendances);
+        }
     }
+
 }
