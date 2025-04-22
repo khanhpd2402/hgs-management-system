@@ -306,7 +306,7 @@ public partial class HgsdbContext : DbContext
             entity.Property(e => e.EndDate).HasColumnType("datetime");
             entity.Property(e => e.ReviewedDate).HasColumnType("datetime");
             entity.Property(e => e.SemesterId).HasColumnName("SemesterID");
-            entity.Property(e => e.StartDate).HasColumnType("datetime");
+            entity.Property(e => e.Startdate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(20);
             entity.Property(e => e.SubjectId).HasColumnName("SubjectID");
             entity.Property(e => e.SubmittedDate)

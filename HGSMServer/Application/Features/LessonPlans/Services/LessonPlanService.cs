@@ -66,7 +66,7 @@ namespace Application.Features.LessonPlans.Services
                 PlanContent = createDto.PlanContent ?? string.Empty,
                 Status = "Chờ duyệt",
                 Title = createDto.Title,
-                StartDate = createDto.StartDate,
+                Startdate = createDto.StartDate,
                 EndDate = createDto.EndDate,
                 AttachmentUrl = null,
                 Feedback = null,
@@ -98,9 +98,9 @@ namespace Application.Features.LessonPlans.Services
             }
 
             DateTime currentDate = DateTime.SpecifyKind(DateTime.Now.Date, DateTimeKind.Unspecified);
-            if (lessonPlan.StartDate.HasValue && currentDate < lessonPlan.StartDate.Value.Date)
+            if (lessonPlan.Startdate.HasValue && currentDate < lessonPlan.Startdate.Value.Date)
             {
-                throw new InvalidOperationException($"You can only start updating the lesson plan from {lessonPlan.StartDate.Value:dd/MM/yyyy}.");
+                throw new InvalidOperationException($"You can only start updating the lesson plan from {lessonPlan.Startdate.Value:dd/MM/yyyy}.");
             }
 
             if (lessonPlan.EndDate.HasValue && currentDate > lessonPlan.EndDate.Value.Date)

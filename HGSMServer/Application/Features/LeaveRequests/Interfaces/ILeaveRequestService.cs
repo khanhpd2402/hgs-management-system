@@ -1,9 +1,5 @@
 ﻿using Application.Features.LeaveRequests.DTOs;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using Application.Features.LeaveRequests.DTOs.Application.Features.LeaveRequests.DTOs;
 
 namespace Application.Features.LeaveRequests.Interfaces
 {
@@ -14,6 +10,8 @@ namespace Application.Features.LeaveRequests.Interfaces
         Task<LeaveRequestDetailDto> CreateAsync(CreateLeaveRequestDto dto);
         Task<bool> UpdateAsync(UpdateLeaveRequest dto);
         Task<bool> DeleteAsync(int id);
+        Task<List<AvailableSubstituteTeacherDto>> FindAvailableSubstituteTeachersAsync(FindSubstituteTeacherRequestDto request);
+        Task<List<AvailableSubstituteTeacherDto>> CheckAvailableTeachersAsync(FindSubstituteTeacherRequestDto request);
     }
 
 }
