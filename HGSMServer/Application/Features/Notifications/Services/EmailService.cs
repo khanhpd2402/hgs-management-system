@@ -3,6 +3,7 @@ using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using System.Text.RegularExpressions;
 
 namespace Common.Utils
 {
@@ -26,9 +27,33 @@ namespace Common.Utils
             _fromName = fromName;
         }
 
+        // Hàm kiểm tra định dạng email hợp lệ
+        private bool IsValidEmail(string email)
+        {
+            if (string.IsNullOrWhiteSpace(email))
+                return false;
+
+            try
+            {
+                // Sử dụng regex đơn giản để kiểm tra định dạng email
+                return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
         // Hàm gửi email bất đồng bộ cho một người nhận
         public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
+            // Kiểm tra email hợp lệ trước khi gửi
+            if (!IsValidEmail(toEmail))
+            {
+                Console.WriteLine($"Email không hợp lệ: {toEmail}. Bỏ qua việc gửi email.");
+                return;
+            }
+
             try
             {
                 using (var smtpClient = new SmtpClient(_smtpHost, _smtpPort))
@@ -50,7 +75,7 @@ namespace Common.Utils
             }
             catch (Exception ex)
             {
-                throw new Exception($"Không thể gửi email: {ex.Message}", ex);
+                Console.WriteLine($"Không thể gửi email đến {toEmail}: {ex.Message}");
             }
         }
 
@@ -58,7 +83,10 @@ namespace Common.Utils
         public async Task SendEmailToMultipleRecipientsAsync(List<string> toEmails, string subject, string body, bool isHtml = false)
         {
             if (toEmails == null || !toEmails.Any())
-                throw new ArgumentException("Danh sách email người nhận không được rỗng.");
+            {
+                Console.WriteLine("Danh sách email người nhận rỗng. Bỏ qua việc gửi email.");
+                return;
+            }
 
             try
             {
@@ -75,21 +103,33 @@ namespace Common.Utils
                         IsBodyHtml = isHtml
                     };
 
+                    // Kiểm tra và thêm email hợp lệ vào danh sách người nhận
                     foreach (var email in toEmails)
                     {
-                        if (!string.IsNullOrWhiteSpace(email))
+                        if (IsValidEmail(email))
+                        {
                             mailMessage.To.Add(email);
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Email không hợp lệ: {email}. Bỏ qua email này.");
+                        }
                     }
 
+                    // Nếu không có email hợp lệ nào, ghi log và bỏ qua
                     if (mailMessage.To.Count == 0)
-                        throw new Exception("Không có email người nhận hợp lệ.");
+                    {
+                        Console.WriteLine("Không có email người nhận hợp lệ nào để gửi. Bỏ qua việc gửi email.");
+                        return;
+                    }
 
                     await smtpClient.SendMailAsync(mailMessage);
+                    Console.WriteLine($"Đã gửi email thành công đến {mailMessage.To.Count} người nhận.");
                 }
             }
             catch (Exception ex)
             {
-                throw new Exception($"Không thể gửi email đến nhiều người nhận: {ex.Message}", ex);
+                Console.WriteLine($"Không thể gửi email đến nhiều người nhận: {ex.Message}");
             }
         }
 
