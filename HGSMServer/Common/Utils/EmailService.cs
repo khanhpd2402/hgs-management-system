@@ -14,7 +14,6 @@ namespace Common.Utils
         private readonly string _fromEmail;
         private readonly string _fromName;
 
-       
         public EmailService(string smtpHost, int smtpPort, string smtpUsername, string smtpPassword,
                           string fromEmail, string fromName = "Trường THCS Hải Giang")
         {
@@ -50,7 +49,6 @@ namespace Common.Utils
             }
             catch (Exception ex)
             {
-                
                 throw new Exception($"Không thể gửi email: {ex.Message}", ex);
             }
         }
@@ -65,9 +63,27 @@ namespace Common.Utils
                 <p>Lớp: <strong>{className}</strong></p>
                 {(string.IsNullOrEmpty(reason) ? "" : $"<p>Lý do: {reason}</p>")}
                 <p>Vui lòng liên hệ với giáo viên chủ nhiệm để biết thêm chi tiết.</p>
-                <p>Trân trọng,<br/>Hệ thống quản lý trường học</p>";
+                <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
 
             await SendEmailAsync(parentEmail, subject, body, isHtml: true);
+        }
+
+        // Hàm gửi email thông báo kế hoạch bài giảng đến giáo viên
+        public async Task SendLessonPlanNotificationAsync(string teacherEmail, string teacherName, string planTitle, string subjectName, int semesterId, DateTime? startDate, DateTime? endDate)
+        {
+            string subject = $"Thông báo: Bạn được giao kế hoạch bài giảng mới";
+            string body = $@"
+                <p>Kính gửi thầy/cô {teacherName},</p>
+                <p>Bạn đã được giao một kế hoạch bài giảng mới với các thông tin sau:</p>
+                <p><strong>Tiêu đề:</strong> {planTitle}</p>
+                <p><strong>Môn học:</strong> {subjectName}</p>
+                <p><strong>Học kỳ:</strong> {semesterId}</p>
+                <p><strong>Ngày bắt đầu:</strong> {(startDate.HasValue ? startDate.Value.ToString("dd/MM/yyyy") : "Chưa xác định")}</p>
+                <p><strong>Hạn hoàn thành:</strong> {(endDate.HasValue ? endDate.Value.ToString("dd/MM/yyyy") : "Chưa xác định")}</p>
+                <p>Vui lòng truy cập hệ thống để xem chi tiết và bắt đầu thực hiện.</p>
+                <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
+
+            await SendEmailAsync(teacherEmail, subject, body, isHtml: true);
         }
     }
 }

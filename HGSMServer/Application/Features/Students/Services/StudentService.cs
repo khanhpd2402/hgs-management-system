@@ -263,21 +263,21 @@ namespace Application.Features.Students.Services
             // Cập nhật thông tin phụ huynh
             parent.FullNameFather = createStudentDto.FullNameFather ?? parent.FullNameFather;
             parent.YearOfBirthFather = createStudentDto.YearOfBirthFather ?? parent.YearOfBirthFather;
-            parent.OccupationFather = createStudentDto.OccupationFather ?? parent.OccupationFather ?? "Unknown";
+            parent.OccupationFather = createStudentDto.OccupationFather ?? parent.OccupationFather;
             parent.PhoneNumberFather = createStudentDto.PhoneNumberFather ?? parent.PhoneNumberFather;
             parent.EmailFather = createStudentDto.EmailFather ?? parent.EmailFather;
             parent.IdcardNumberFather = createStudentDto.IdcardNumberFather ?? parent.IdcardNumberFather;
 
             parent.FullNameMother = createStudentDto.FullNameMother ?? parent.FullNameMother;
             parent.YearOfBirthMother = createStudentDto.YearOfBirthMother ?? parent.YearOfBirthMother;
-            parent.OccupationMother = createStudentDto.OccupationMother ?? parent.OccupationMother ?? "Unknown";
+            parent.OccupationMother = createStudentDto.OccupationMother ?? parent.OccupationMother;
             parent.PhoneNumberMother = createStudentDto.PhoneNumberMother ?? parent.PhoneNumberMother;
             parent.EmailMother = createStudentDto.EmailMother ?? parent.EmailMother;
             parent.IdcardNumberMother = createStudentDto.IdcardNumberMother ?? parent.IdcardNumberMother;
 
             parent.FullNameGuardian = createStudentDto.FullNameGuardian ?? parent.FullNameGuardian;
             parent.YearOfBirthGuardian = createStudentDto.YearOfBirthGuardian ?? parent.YearOfBirthGuardian;
-            parent.OccupationGuardian = createStudentDto.OccupationGuardian ?? parent.OccupationGuardian ?? "Unknown";
+            parent.OccupationGuardian = createStudentDto.OccupationGuardian ?? parent.OccupationGuardian;
             parent.PhoneNumberGuardian = createStudentDto.PhoneNumberGuardian ?? parent.PhoneNumberGuardian;
             parent.EmailGuardian = createStudentDto.EmailGuardian ?? parent.EmailGuardian;
             parent.IdcardNumberGuardian = createStudentDto.IdcardNumberGuardian ?? parent.IdcardNumberGuardian;
@@ -433,19 +433,19 @@ namespace Application.Features.Students.Services
                 UserId = user.UserId,
                 FullNameFather = parentInfoDto.FullNameFather,
                 YearOfBirthFather = parentInfoDto.YearOfBirthFather,
-                OccupationFather = parentInfoDto.OccupationFather ?? "Unknown",
+                OccupationFather = parentInfoDto.OccupationFather,
                 PhoneNumberFather = parentInfoDto.PhoneNumberFather,
                 EmailFather = parentInfoDto.EmailFather,
                 IdcardNumberFather = parentInfoDto.IdcardNumberFather,
                 FullNameMother = parentInfoDto.FullNameMother,
                 YearOfBirthMother = parentInfoDto.YearOfBirthMother,
-                OccupationMother = parentInfoDto.OccupationMother ?? "Unknown",
+                OccupationMother = parentInfoDto.OccupationMother,
                 PhoneNumberMother = parentInfoDto.PhoneNumberMother,
                 EmailMother = parentInfoDto.EmailMother,
                 IdcardNumberMother = parentInfoDto.IdcardNumberMother,
                 FullNameGuardian = parentInfoDto.FullNameGuardian,
                 YearOfBirthGuardian = parentInfoDto.YearOfBirthGuardian,
-                OccupationGuardian = parentInfoDto.OccupationGuardian ?? "Unknown",
+                OccupationGuardian = parentInfoDto.OccupationGuardian,
                 PhoneNumberGuardian = parentInfoDto.PhoneNumberGuardian,
                 EmailGuardian = parentInfoDto.EmailGuardian,
                 IdcardNumberGuardian = parentInfoDto.IdcardNumberGuardian
@@ -766,7 +766,7 @@ namespace Application.Features.Students.Services
                         if (updateStudentDto.YearOfBirthFather != null && updateStudentDto.YearOfBirthFather <= DateOnly.FromDateTime(DateTime.Now))
                             parent.YearOfBirthFather = updateStudentDto.YearOfBirthFather;
                         if (!string.IsNullOrEmpty(updateStudentDto.OccupationFather) && updateStudentDto.OccupationFather != "string")
-                            parent.OccupationFather = updateStudentDto.OccupationFather ?? "Unknown";
+                            parent.OccupationFather = updateStudentDto.OccupationFather;
                         if (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberFather) && updateStudentDto.PhoneNumberFather != "string")
                             parent.PhoneNumberFather = updateStudentDto.PhoneNumberFather;
                         if (!string.IsNullOrEmpty(updateStudentDto.EmailFather) && updateStudentDto.EmailFather != "string")
@@ -780,7 +780,7 @@ namespace Application.Features.Students.Services
                         if (updateStudentDto.YearOfBirthMother != null && updateStudentDto.YearOfBirthMother <= DateOnly.FromDateTime(DateTime.Now))
                             parent.YearOfBirthMother = updateStudentDto.YearOfBirthMother;
                         if (!string.IsNullOrEmpty(updateStudentDto.OccupationMother) && updateStudentDto.OccupationMother != "string")
-                            parent.OccupationMother = updateStudentDto.OccupationMother ?? "Unknown";
+                            parent.OccupationMother = updateStudentDto.OccupationMother;
                         if (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberMother) && updateStudentDto.PhoneNumberMother != "string")
                             parent.PhoneNumberMother = updateStudentDto.PhoneNumberMother;
                         if (!string.IsNullOrEmpty(updateStudentDto.EmailMother) && updateStudentDto.EmailMother != "string")
@@ -794,7 +794,7 @@ namespace Application.Features.Students.Services
                         if (updateStudentDto.YearOfBirthGuardian != null && updateStudentDto.YearOfBirthGuardian <= DateOnly.FromDateTime(DateTime.Now))
                             parent.YearOfBirthGuardian = updateStudentDto.YearOfBirthGuardian;
                         if (!string.IsNullOrEmpty(updateStudentDto.OccupationGuardian) && updateStudentDto.OccupationGuardian != "string")
-                            parent.OccupationGuardian = updateStudentDto.OccupationGuardian ?? "Unknown";
+                            parent.OccupationGuardian = updateStudentDto.OccupationGuardian;
                         if (!string.IsNullOrEmpty(updateStudentDto.PhoneNumberGuardian) && updateStudentDto.PhoneNumberGuardian != "string")
                             parent.PhoneNumberGuardian = updateStudentDto.PhoneNumberGuardian;
                         if (!string.IsNullOrEmpty(updateStudentDto.EmailGuardian) && updateStudentDto.EmailGuardian != "string")

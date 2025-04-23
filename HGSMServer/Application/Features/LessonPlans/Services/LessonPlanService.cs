@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Common.Utils;
 
 namespace Application.Features.LessonPlans.Services
 {
@@ -20,19 +21,25 @@ namespace Application.Features.LessonPlans.Services
         private readonly IUserRepository _userRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
+        private readonly EmailService _emailService;
+        private readonly ISubjectRepository _subjectRepository;
 
         public LessonPlanService(
             ILessonPlanRepository lessonPlanRepository,
             ITeacherRepository teacherRepository,
             IUserRepository userRepository,
             IHttpContextAccessor httpContextAccessor,
-            IMapper mapper)
+            IMapper mapper,
+            EmailService emailService,
+            ISubjectRepository subjectRepository)
         {
             _lessonPlanRepository = lessonPlanRepository ?? throw new ArgumentNullException(nameof(lessonPlanRepository));
             _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _subjectRepository = subjectRepository ?? throw new ArgumentNullException(nameof(subjectRepository));
         }
 
         public async Task<LessonPlanResponseDto> CreateLessonPlanAsync(LessonPlanCreateDto createDto)
@@ -41,7 +48,6 @@ namespace Application.Features.LessonPlans.Services
             var creatorTeacher = await _teacherRepository.GetByIdAsync(creatorTeacherId);
 
             bool isAuthorized = (creatorTeacher?.IsHeadOfDepartment ?? false);
-            
 
             if (!isAuthorized)
             {
@@ -56,7 +62,6 @@ namespace Application.Features.LessonPlans.Services
             {
                 throw new ArgumentException("DeadlineDate must be on or after StartDate.");
             }
-
 
             var lessonPlan = new LessonPlan
             {
@@ -76,6 +81,34 @@ namespace Application.Features.LessonPlans.Services
             };
 
             await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
+
+            // Gửi email thông báo cho giáo viên được assign
+            var assignedTeacher = await _teacherRepository.GetByIdAsync(createDto.TeacherId);
+            if (assignedTeacher != null)
+            {
+                var user = await _userRepository.GetByIdAsync(assignedTeacher.UserId);
+                var subject = await _subjectRepository.GetByIdAsync(createDto.SubjectId);
+                if (user != null && !string.IsNullOrEmpty(user.Email) && subject != null)
+                {
+                    try
+                    {
+                        await _emailService.SendLessonPlanNotificationAsync(
+                            teacherEmail: user.Email,
+                            teacherName: assignedTeacher.FullName,
+                            planTitle: createDto.Title,
+                            subjectName: subject.SubjectName,
+                            semesterId: createDto.SemesterId,
+                            startDate: createDto.StartDate,
+                            endDate: createDto.EndDate
+                        );
+                    }
+                    catch (Exception ex)
+                    {
+                        // Ghi log lỗi nhưng không làm gián đoạn flow
+                        Console.WriteLine($"Failed to send lesson plan notification email to {user.Email}: {ex.Message}");
+                    }
+                }
+            }
 
             var createdPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(lessonPlan.PlanId);
             return _mapper.Map<LessonPlanResponseDto>(createdPlan);
@@ -166,7 +199,6 @@ namespace Application.Features.LessonPlans.Services
             return (lessonPlanDtos, totalCount);
         }
 
-
         public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize)
         {
             if (string.IsNullOrEmpty(status))
@@ -192,6 +224,5 @@ namespace Application.Features.LessonPlans.Services
                 throw new UnauthorizedAccessException($"No teacher profile found for UserID {userId}.");
             return teacher.TeacherId;
         }
-
     }
 }
