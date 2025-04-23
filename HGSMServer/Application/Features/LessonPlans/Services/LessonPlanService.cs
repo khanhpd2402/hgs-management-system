@@ -10,7 +10,6 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
-using Microsoft.EntityFrameworkCore;
 using Common.Utils;
 
 namespace Application.Features.LessonPlans.Services
@@ -48,8 +47,6 @@ namespace Application.Features.LessonPlans.Services
 
         public async Task<LessonPlanResponseDto> CreateLessonPlanAsync(LessonPlanCreateDto createDto)
         {
-            var creatorTeacherId = GetCurrentTeacherId();
-            var creatorTeacher = await _teacherRepository.GetByIdAsync(creatorTeacherId);
             if (createDto == null) throw new ArgumentNullException(nameof(createDto));
             if (createDto.TeacherId <= 0) throw new ArgumentException("Target TeacherId is required.", nameof(createDto.TeacherId));
             if (createDto.SubjectId <= 0) throw new ArgumentException("SubjectId is required.", nameof(createDto.SubjectId));
@@ -59,6 +56,7 @@ namespace Application.Features.LessonPlans.Services
                 throw new ArgumentException("DeadlineDate must be on or after StartDate.");
             }
 
+            var creatorTeacherId = GetCurrentTeacherId();
             var lessonPlan = new LessonPlan
             {
                 TeacherId = createDto.TeacherId,
@@ -99,6 +97,7 @@ namespace Application.Features.LessonPlans.Services
                                 startDate: createDto.StartDate,
                                 endDate: createDto.EndDate
                             );
+                            Console.WriteLine($"Đã gửi email thông báo kế hoạch bài giảng đến {teacherEmail}.");
                         }
                         else
                         {
@@ -107,9 +106,17 @@ namespace Application.Features.LessonPlans.Services
                     }
                     catch (Exception ex)
                     {
-                        Console.WriteLine($"Failed to send lesson plan notification email to TeacherId {createDto.TeacherId}: {ex.Message}");
+                        Console.WriteLine($"Không thể gửi email thông báo kế hoạch bài giảng đến TeacherId {createDto.TeacherId}: {ex.Message}");
                     }
                 }
+                else
+                {
+                    Console.WriteLine($"Không tìm thấy môn học với SubjectId {createDto.SubjectId}.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {createDto.TeacherId}.");
             }
 
             var createdPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(lessonPlan.PlanId);
@@ -201,6 +208,7 @@ namespace Application.Features.LessonPlans.Services
                                     status: lessonPlan.Status,
                                     feedback: lessonPlan.Feedback
                                 );
+                                Console.WriteLine($"Đã gửi email cập nhật trạng thái kế hoạch bài giảng đến {teacherEmail}.");
                             }
                             else
                             {
@@ -209,9 +217,17 @@ namespace Application.Features.LessonPlans.Services
                         }
                         catch (Exception ex)
                         {
-                            Console.WriteLine($"Failed to send status update email to TeacherId {lessonPlan.TeacherId}: {ex.Message}");
+                            Console.WriteLine($"Không thể gửi email cập nhật trạng thái kế hoạch bài giảng đến TeacherId {lessonPlan.TeacherId}: {ex.Message}");
                         }
                     }
+                    else
+                    {
+                        Console.WriteLine($"Không tìm thấy môn học với SubjectId {lessonPlan.SubjectId}.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {lessonPlan.TeacherId}.");
                 }
             }
         }
