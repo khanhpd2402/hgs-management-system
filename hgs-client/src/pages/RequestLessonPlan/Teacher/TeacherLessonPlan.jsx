@@ -1,48 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './LessonPlanList.scss';
+import '../System/LessonPlanList.scss';
 import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } from 'antd';
 import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { jwtDecode } from 'jwt-decode';
+import { useLessonPlanByTeacher } from '../../../services/lessonPlan/queries';
 
-const { Option } = Select;
-
-const LessonPlanList = () => {
-    const [lessonPlans, setLessonPlans] = useState([]);
-    const [loading, setLoading] = useState(true);
+const TeacherLessonPlan = () => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 10;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
 
-    const fetchLessonPlans = async (page, status) => {
-        try {
-            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const url = status === 'All'
-                ? `https://localhost:8386/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
-                : `https://localhost:8386/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
+    const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+    const decoded = jwtDecode(token);
+    const teacherId = decoded?.teacherId;
 
-            const response = await axios.get(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            setLessonPlans(response.data.lessonPlans);
-            setTotalPages(Math.ceil(response.data.totalCount / pageSize));
-            setLoading(false);
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách:', error);
-            setLoading(false);
-        }
-    };
+    const { data, isLoading } = useLessonPlanByTeacher(teacherId, currentPage, pageSize);
 
-    useEffect(() => {
-        fetchLessonPlans(currentPage, selectedStatus);
-    }, [currentPage, selectedStatus]);
+    const filteredLessonPlans = data?.lessonPlans?.filter(plan => {
+        const searchStr = searchTerm.toLowerCase();
+        const matchesSearch = (
+            plan.planId.toString().includes(searchStr) ||
+            plan.teacherName?.toLowerCase().includes(searchStr) ||
+            plan.subjectName?.toLowerCase().includes(searchStr) ||
+            plan.planContent?.toLowerCase().includes(searchStr) ||
+            plan.reviewerName?.toLowerCase().includes(searchStr) ||
+            plan.feedback?.toLowerCase().includes(searchStr)
+        );
+
+        return matchesSearch && (selectedStatus === 'All' || plan.status === selectedStatus);
+    }) || [];
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -70,7 +62,7 @@ const LessonPlanList = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Processing':
+            case 'Đang chờ':
                 return 'Đang xử lý';
             case 'Đã duyệt':
                 return 'Đã duyệt';
@@ -80,18 +72,6 @@ const LessonPlanList = () => {
                 return status;
         }
     };
-
-    const filteredLessonPlans = lessonPlans.filter(plan => {
-        const searchStr = searchTerm.toLowerCase();
-        return (
-            plan.planId.toString().includes(searchStr) ||
-            plan.teacherName?.toLowerCase().includes(searchStr) ||
-            plan.subjectName?.toLowerCase().includes(searchStr) ||
-            plan.planContent?.toLowerCase().includes(searchStr) ||
-            plan.reviewerName?.toLowerCase().includes(searchStr) ||
-            plan.feedback?.toLowerCase().includes(searchStr)
-        );
-    });
 
     const showDetailModal = (record) => {
         setSelectedRequest(record);
@@ -124,9 +104,7 @@ const LessonPlanList = () => {
                                 <Descriptions.Item label="ID Kế hoạch" span={2}>
                                     {selectedRequest.planId}
                                 </Descriptions.Item>
-                                <Descriptions.Item label="Giáo viên" span={2}>
-                                    {selectedRequest.teacherName}
-                                </Descriptions.Item>
+
                                 <Descriptions.Item label="Môn học" span={2}>
                                     {selectedRequest.subjectName}
                                 </Descriptions.Item>
@@ -134,7 +112,7 @@ const LessonPlanList = () => {
                                     {selectedRequest.planContent}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Trạng thái">
-                                    <Tag color={getStatusClass(selectedRequest.status)}>
+                                    <Tag className={`status-${selectedRequest.status.toLowerCase().replace(' ', '-')}`}>
                                         {getStatusText(selectedRequest.status)}
                                     </Tag>
                                 </Descriptions.Item>
@@ -183,11 +161,6 @@ const LessonPlanList = () => {
             key: 'planId',
         },
         {
-            title: 'Giáo viên',
-            dataIndex: 'teacherName',
-            key: 'teacherName',
-        },
-        {
             title: 'Môn học',
             dataIndex: 'subjectName',
             key: 'subjectName',
@@ -202,7 +175,7 @@ const LessonPlanList = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status) => (
-                <span className={`status-badge ${getStatusClass(status)}`}>
+                <span className={`status-${status.toLowerCase()} ${getStatusClass(status)}`}>
                     {getStatusText(status)}
                 </span>
             ),
@@ -241,15 +214,15 @@ const LessonPlanList = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    <Link to={`/system/lesson-plan/${record.planId}`}>
-                        <Button>Cập nhật</Button>
+                    <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
+                        <Button>Thêm tài liệu</Button>
                     </Link>
                 </Space>
             ),
         },
     ];
 
-    if (loading) {
+    if (isLoading) {
         return <div className="loading">Đang tải dữ liệu...</div>;
     }
 
@@ -278,10 +251,7 @@ const LessonPlanList = () => {
                 <div className="filter-container">
                     <select
                         value={selectedStatus}
-                        onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setCurrentPage(1);
-                        }}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                         <option value="All">Tất cả</option>
                         <option value="Đang chờ">Đang xử lý</option>
@@ -295,11 +265,11 @@ const LessonPlanList = () => {
                 <Table
                     columns={columns}
                     dataSource={filteredLessonPlans}
-                    loading={loading}
+                    loading={isLoading}
                     rowKey="planId"
                     pagination={{
                         pageSize: pageSize,
-                        total: totalPages * pageSize,
+                        total: data?.totalCount || 0,
                         current: currentPage,
                         onChange: (page) => {
                             setCurrentPage(page);
@@ -313,4 +283,4 @@ const LessonPlanList = () => {
     );
 };
 
-export default LessonPlanList;
+export default TeacherLessonPlan

@@ -1,9 +1,9 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import './UploadLessonPlan.scss';
-import { useSubjectByTeacher } from '../../services/subject/queries';
-import { useSemestersByAcademicYear } from '../../services/common/queries';
-import { useCreateLessonPlan } from '../../services/lessonPlan/mutations';
+import { useSubjectByTeacher } from '../../../services/subject/queries';
+import { useSemestersByAcademicYear } from '../../../services/common/queries';
+import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
 import toast from "react-hot-toast";
 
 const PREVIEW_TYPES = {

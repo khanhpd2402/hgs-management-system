@@ -5,36 +5,44 @@ import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } fr
 import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { jwtDecode } from 'jwt-decode';
-import { useLessonPlanByTeacher } from '../../services/lessonPlan/queries';
 
-const TeacherLessonPlan = () => {
+const { Option } = Select;
+
+const LessonPlanList = () => {
+    const [lessonPlans, setLessonPlans] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [currentPage, setCurrentPage] = useState(1);
+    const [totalPages, setTotalPages] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 10;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
 
-    const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-    const decoded = jwtDecode(token);
-    const teacherId = decoded?.teacherId;
+    const fetchLessonPlans = async (page, status) => {
+        try {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            const url = status === 'All'
+                ? `https://localhost:8386/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
+                : `https://localhost:8386/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
 
-    const { data, isLoading } = useLessonPlanByTeacher(teacherId, currentPage, pageSize);
+            const response = await axios.get(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            setLessonPlans(response.data.lessonPlans);
+            setTotalPages(Math.ceil(response.data.totalCount / pageSize));
+            setLoading(false);
+        } catch (error) {
+            console.error('Lỗi khi tải danh sách:', error);
+            setLoading(false);
+        }
+    };
 
-    const filteredLessonPlans = data?.lessonPlans?.filter(plan => {
-        const searchStr = searchTerm.toLowerCase();
-        const matchesSearch = (
-            plan.planId.toString().includes(searchStr) ||
-            plan.teacherName?.toLowerCase().includes(searchStr) ||
-            plan.subjectName?.toLowerCase().includes(searchStr) ||
-            plan.planContent?.toLowerCase().includes(searchStr) ||
-            plan.reviewerName?.toLowerCase().includes(searchStr) ||
-            plan.feedback?.toLowerCase().includes(searchStr)
-        );
-
-        return matchesSearch && (selectedStatus === 'All' || plan.status === selectedStatus);
-    }) || [];
+    useEffect(() => {
+        fetchLessonPlans(currentPage, selectedStatus);
+    }, [currentPage, selectedStatus]);
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -62,7 +70,7 @@ const TeacherLessonPlan = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Đang chờ':
+            case 'Processing':
                 return 'Đang xử lý';
             case 'Đã duyệt':
                 return 'Đã duyệt';
@@ -72,6 +80,18 @@ const TeacherLessonPlan = () => {
                 return status;
         }
     };
+
+    const filteredLessonPlans = lessonPlans.filter(plan => {
+        const searchStr = searchTerm.toLowerCase();
+        return (
+            plan.planId.toString().includes(searchStr) ||
+            plan.teacherName?.toLowerCase().includes(searchStr) ||
+            plan.subjectName?.toLowerCase().includes(searchStr) ||
+            plan.planContent?.toLowerCase().includes(searchStr) ||
+            plan.reviewerName?.toLowerCase().includes(searchStr) ||
+            plan.feedback?.toLowerCase().includes(searchStr)
+        );
+    });
 
     const showDetailModal = (record) => {
         setSelectedRequest(record);
@@ -104,7 +124,9 @@ const TeacherLessonPlan = () => {
                                 <Descriptions.Item label="ID Kế hoạch" span={2}>
                                     {selectedRequest.planId}
                                 </Descriptions.Item>
-
+                                <Descriptions.Item label="Giáo viên" span={2}>
+                                    {selectedRequest.teacherName}
+                                </Descriptions.Item>
                                 <Descriptions.Item label="Môn học" span={2}>
                                     {selectedRequest.subjectName}
                                 </Descriptions.Item>
@@ -112,7 +134,7 @@ const TeacherLessonPlan = () => {
                                     {selectedRequest.planContent}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Trạng thái">
-                                    <Tag className={`status-${selectedRequest.status.toLowerCase().replace(' ', '-')}`}>
+                                    <Tag color={getStatusClass(selectedRequest.status)}>
                                         {getStatusText(selectedRequest.status)}
                                     </Tag>
                                 </Descriptions.Item>
@@ -137,7 +159,7 @@ const TeacherLessonPlan = () => {
                             <h2>File đính kèm</h2>
                             <div className="file-preview">
                                 <iframe
-                                    src={selectedRequest.attachmentUrl}
+                                    src={getGoogleDriveEmbedUrl(selectedRequest.attachmentUrl)}
                                     title="File đính kèm"
                                     width="100%"
                                     height="600px"
@@ -145,6 +167,10 @@ const TeacherLessonPlan = () => {
                                         border: '1px solid #d9d9d9',
                                         borderRadius: '4px'
                                     }}
+                                    frameBorder="0"
+                                    allowFullScreen
+                                    allow="autoplay"
+                                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                                 />
                             </div>
                         </div>
@@ -161,6 +187,11 @@ const TeacherLessonPlan = () => {
             key: 'planId',
         },
         {
+            title: 'Giáo viên',
+            dataIndex: 'teacherName',
+            key: 'teacherName',
+        },
+        {
             title: 'Môn học',
             dataIndex: 'subjectName',
             key: 'subjectName',
@@ -175,7 +206,7 @@ const TeacherLessonPlan = () => {
             dataIndex: 'status',
             key: 'status',
             render: (status) => (
-                <span className={`status-${status.toLowerCase()} ${getStatusClass(status)}`}>
+                <span className={`status-badge ${getStatusClass(status)}`}>
                     {getStatusText(status)}
                 </span>
             ),
@@ -214,17 +245,42 @@ const TeacherLessonPlan = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
-                        <Button>Thêm tài liệu</Button>
-                    </Link>
+
+                    <Button>
+                        Phê duyệt
+                    </Button>
+
+
                 </Space>
             ),
         },
     ];
 
-    if (isLoading) {
+    if (loading) {
         return <div className="loading">Đang tải dữ liệu...</div>;
     }
+
+    const getGoogleDriveEmbedUrl = (url) => {
+        if (!url) return '';
+
+        if (url.includes('drive.google.com')) {
+            // Handle folder URLs
+            if (url.includes('/folders/')) {
+                const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
+                if (folderId) {
+                    return `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+                }
+            }
+            // Handle file URLs
+            else if (url.includes('/file/d/')) {
+                const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
+                if (fileId) {
+                    return `https://drive.google.com/file/d/${fileId}/preview`;
+                }
+            }
+        }
+        return url;
+    };
 
     return (
         <div className="lesson-plan-list">
@@ -251,7 +307,10 @@ const TeacherLessonPlan = () => {
                 <div className="filter-container">
                     <select
                         value={selectedStatus}
-                        onChange={(e) => setSelectedStatus(e.target.value)}
+                        onChange={(e) => {
+                            setSelectedStatus(e.target.value);
+                            setCurrentPage(1);
+                        }}
                     >
                         <option value="All">Tất cả</option>
                         <option value="Đang chờ">Đang xử lý</option>
@@ -265,11 +324,11 @@ const TeacherLessonPlan = () => {
                 <Table
                     columns={columns}
                     dataSource={filteredLessonPlans}
-                    loading={isLoading}
+                    loading={loading}
                     rowKey="planId"
                     pagination={{
                         pageSize: pageSize,
-                        total: data?.totalCount || 0,
+                        total: totalPages * pageSize,
                         current: currentPage,
                         onChange: (page) => {
                             setCurrentPage(page);
@@ -283,4 +342,4 @@ const TeacherLessonPlan = () => {
     );
 };
 
-export default TeacherLessonPlan
+export default LessonPlanList;

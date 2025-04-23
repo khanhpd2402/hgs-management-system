@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import UploadLessonPlan from './UploadLessonPlan.jsx';
+import UploadLessonPlan from '../Teacher/UploadLessonPlan.jsx';
 import LessonPlanList from './LessonPlanList.jsx';
-import ReviewList from './ReviewList/ReviewList.jsx';
+import ReviewList from '../ReviewList/ReviewList.jsx';
 
 const RequestLessonPlan = () => {
     const [activeTab, setActiveTab] = useState('list'); // Mặc định hiển thị form upload
