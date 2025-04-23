@@ -224,9 +224,6 @@ namespace Application.Features.AcademicYears.Services
                 throw new ArgumentException("Ngày kết thúc của Học kỳ 1 phải trước ngày bắt đầu của Học kỳ 2.");
             }
 
-            // --- Xem xét lại các ràng buộc cứng ---
-            // Bỏ comment nếu các ràng buộc này VẪN bắt buộc sau khi cập nhật
-            /*
             if (semester1.StartDate != academicYear.StartDate)
             {
                 throw new ArgumentException("Ngày bắt đầu của Học kỳ 1 phải trùng với ngày bắt đầu của năm học.");
@@ -236,7 +233,7 @@ namespace Application.Features.AcademicYears.Services
             {
                 throw new ArgumentException("Ngày kết thúc của Học kỳ 2 phải trùng với ngày kết thúc của năm học.");
             }
-            */
+            
         }
     }
 }
