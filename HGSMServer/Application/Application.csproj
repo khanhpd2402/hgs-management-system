@@ -22,7 +22,6 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <Folder Include="Features\Notifications\Services\" />
 	  <Folder Include="Features\Parents\Interfaces\" />
 	  <Folder Include="Features\Parents\Services\" />
 	</ItemGroup>
