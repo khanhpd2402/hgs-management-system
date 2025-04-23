@@ -27,7 +27,6 @@ namespace Common.Utils
             _fromName = fromName;
         }
 
-        // Hàm kiểm tra định dạng email hợp lệ
         private bool IsValidEmail(string email)
         {
             if (string.IsNullOrWhiteSpace(email))
@@ -35,7 +34,6 @@ namespace Common.Utils
 
             try
             {
-                // Sử dụng regex đơn giản để kiểm tra định dạng email
                 return Regex.IsMatch(email, @"^[^@\s]+@[^@\s]+\.[^@\s]+$", RegexOptions.IgnoreCase);
             }
             catch
@@ -44,10 +42,8 @@ namespace Common.Utils
             }
         }
 
-        // Hàm gửi email bất đồng bộ cho một người nhận
         public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
-            // Kiểm tra email hợp lệ trước khi gửi
             if (!IsValidEmail(toEmail))
             {
                 Console.WriteLine($"Email không hợp lệ: {toEmail}. Bỏ qua việc gửi email.");
@@ -79,7 +75,6 @@ namespace Common.Utils
             }
         }
 
-        // Hàm gửi email bất đồng bộ cho nhiều người nhận
         public async Task SendEmailToMultipleRecipientsAsync(List<string> toEmails, string subject, string body, bool isHtml = false)
         {
             if (toEmails == null || !toEmails.Any())
@@ -103,7 +98,6 @@ namespace Common.Utils
                         IsBodyHtml = isHtml
                     };
 
-                    // Kiểm tra và thêm email hợp lệ vào danh sách người nhận
                     foreach (var email in toEmails)
                     {
                         if (IsValidEmail(email))
@@ -116,7 +110,6 @@ namespace Common.Utils
                         }
                     }
 
-                    // Nếu không có email hợp lệ nào, ghi log và bỏ qua
                     if (mailMessage.To.Count == 0)
                     {
                         Console.WriteLine("Không có email người nhận hợp lệ nào để gửi. Bỏ qua việc gửi email.");
@@ -132,8 +125,6 @@ namespace Common.Utils
                 Console.WriteLine($"Không thể gửi email đến nhiều người nhận: {ex.Message}");
             }
         }
-
-        // Hàm gửi email thông báo học sinh nghỉ học đến phụ huynh
         public async Task SendAbsenceNotificationAsync(string parentEmail, string studentName, string className, DateTime absenceDate, string reason = null)
         {
             string subject = $"Thông báo học sinh {studentName} nghỉ học";
@@ -142,7 +133,6 @@ namespace Common.Utils
             await SendEmailAsync(parentEmail, subject, body, isHtml: true);
         }
 
-        // Hàm tạo nội dung email thông báo học sinh nghỉ học
         private string GetAbsenceNotificationBody(string studentName, string className, DateTime absenceDate, string reason = null)
         {
             return $@"
@@ -154,7 +144,6 @@ namespace Common.Utils
                 <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
         }
 
-        // Hàm gửi email thông báo kế hoạch bài giảng đến giáo viên
         public async Task SendLessonPlanNotificationAsync(string teacherEmail, string teacherName, string planTitle, string subjectName, int semesterId, DateTime? startDate, DateTime? endDate)
         {
             string subject = $"Thông báo: Bạn được giao kế hoạch bài giảng mới";
@@ -163,7 +152,6 @@ namespace Common.Utils
             await SendEmailAsync(teacherEmail, subject, body, isHtml: true);
         }
 
-        // Hàm tạo nội dung email thông báo kế hoạch bài giảng
         private string GetLessonPlanNotificationBody(string teacherName, string planTitle, string subjectName, int semesterId, DateTime? startDate, DateTime? endDate)
         {
             return $@"
@@ -177,8 +165,6 @@ namespace Common.Utils
                 <p>Vui lòng truy cập hệ thống để xem chi tiết và bắt đầu thực hiện.</p>
                 <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
         }
-
-        // Hàm gửi email thông báo cập nhật trạng thái kế hoạch bài giảng
         public async Task SendLessonPlanStatusUpdateAsync(string teacherEmail, string teacherName, string planTitle, string subjectName, int semesterId, string status, string feedback = null)
         {
             string subject = $"Cập nhật trạng thái kế hoạch bài giảng: {planTitle}";
@@ -187,7 +173,6 @@ namespace Common.Utils
             await SendEmailAsync(teacherEmail, subject, body, isHtml: true);
         }
 
-        // Hàm tạo nội dung email thông báo cập nhật trạng thái kế hoạch bài giảng
         private string GetLessonPlanStatusUpdateBody(string teacherName, string planTitle, string subjectName, int semesterId, string status, string feedback = null)
         {
             return $@"
@@ -202,7 +187,6 @@ namespace Common.Utils
                 <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
         }
 
-        // Hàm gửi email thông báo cập nhật trạng thái đề thi
         public async Task SendExamProposalStatusUpdateAsync(string teacherEmail, string planTitle, string subjectName, int grade, int semesterId, string status, string feedback = null)
         {
             string subject = $"Cập nhật trạng thái đề thi: {planTitle}";
@@ -211,7 +195,6 @@ namespace Common.Utils
             await SendEmailAsync(teacherEmail, subject, body, isHtml: true);
         }
 
-        // Hàm tạo nội dung email thông báo cập nhật trạng thái đề thi
         private string GetExamProposalStatusUpdateBody(string planTitle, string subjectName, int grade, int semesterId, string status, string feedback = null)
         {
             return $@"
