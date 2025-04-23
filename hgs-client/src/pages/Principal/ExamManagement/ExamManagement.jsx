@@ -23,8 +23,14 @@ import { useExams } from "@/services/principal/queries";
 import { useTeachers } from "@/services/teacher/queries";
 import { useUpdateExamStatus } from "@/services/principal/mutation";
 import { cleanString } from "@/helpers/removeWhiteSpace";
-// Giả sử có hook này, bạn cần thay bằng hook thật từ services/principal/queries
-// import { useAllExamProposals, useUpdateExamStatus } from "@/services/principal/queries";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 export default function ExamManagement() {
   const { currentYear } = useLayout();
@@ -108,6 +114,7 @@ export default function ExamManagement() {
       status: newStatus,
       comment: cleanString(comment.trim()),
     };
+
     updateExamStatusMutation.mutate(
       {
         examId: selectedExam?.proposalId,
@@ -215,6 +222,7 @@ export default function ExamManagement() {
                   <th className="w-48 border px-4 py-2">Tiêu đề</th>
                   <th className="w-40 border px-4 py-2">File tài liệu</th>
                   <th className="w-25 border px-4 py-2">Trạng thái</th>
+                  <th className="w-25 border px-4 py-2">Nhận xét</th>
                 </tr>
               </thead>
               <tbody>
@@ -306,6 +314,9 @@ export default function ExamManagement() {
                           {exam.status}
                         </span>
                       </td>
+                      <td className="border px-4 py-2 text-center">
+                        {exam.comment}
+                      </td>
                     </tr>
                   ))
                 ) : (
@@ -336,12 +347,15 @@ export default function ExamManagement() {
       </div>
       {/* Modal xác nhận đổi trạng thái */}
       {openModal && selectedExam && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
-          <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
-            <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Đổi trạng thái
-            </h3>
-            <div className="mb-4">
+        <Dialog open={openModal && selectedExam} onOpenChange={setOpenModal}>
+          <DialogContent className="max-w-sm">
+            <DialogHeader>
+              <DialogTitle>Đổi trạng thái</DialogTitle>
+              <DialogDescription>
+                Chọn trạng thái mới và nhập nhận xét nếu cần.
+              </DialogDescription>
+            </DialogHeader>
+            <div className="mt-2 mb-4">
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Trạng thái mới
               </label>
@@ -360,7 +374,7 @@ export default function ExamManagement() {
                 </SelectContent>
               </Select>
             </div>
-            <div className="mt-4">
+            <div>
               <label className="mb-1 block text-sm font-medium text-gray-700">
                 Nhận xét
               </label>
@@ -372,19 +386,26 @@ export default function ExamManagement() {
                 placeholder="Nhập nhận xét..."
               />
             </div>
-            <div className="mt-6 flex justify-end gap-2">
-              <Button variant="outline" onClick={() => setOpenModal(false)}>
+            <DialogFooter className="mt-6 flex justify-end gap-2">
+              <Button
+                variant="outline"
+                onClick={() => setOpenModal(false)}
+                disabled={updateExamStatusMutation.isPending}
+              >
                 Hủy
               </Button>
               <Button
                 className="bg-blue-600 text-white hover:bg-blue-700"
                 onClick={handleConfirmChangeStatus}
+                disabled={updateExamStatusMutation.isPending}
               >
-                Xác nhận
+                {updateExamStatusMutation.isPending
+                  ? "Đang cập nhật..."
+                  : "Cập nhật"}
               </Button>
-            </div>
-          </div>
-        </div>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
       )}
     </div>
   );

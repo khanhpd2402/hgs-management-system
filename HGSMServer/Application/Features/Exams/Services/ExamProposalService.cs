@@ -125,6 +125,7 @@ namespace Application.Features.Exams.Services
                     {
                         try
                         {
+               
                             await _emailService.SendExamProposalStatusUpdateAsync(
                                 teacherEmail: teacher.User.Email,
                                 planTitle: proposal.Title,
