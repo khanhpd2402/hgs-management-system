@@ -13,19 +13,11 @@ const { Option } = Select;
 const LeaveRequestDetail = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const [leaveRequest, setLeaveRequest] = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [loadingTeachers, setLoadingTeachers] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [form] = Form.useForm();
   const { data: teachersData, isLoading: loadingTeachers } = useTeachers();
   const { data: leaveRequest, isLoading: loading, error } = useGetLeaveRequestById(id);
   const teachers = teachersData?.teachers || [];
-
-  useEffect(() => {
-    fetchLeaveRequestDetail();
-    fetchTeachers();
-  }, [id]);
 
   useEffect(() => {
     if (leaveRequest) {
@@ -70,14 +62,6 @@ const LeaveRequestDetail = () => {
 
   const handleUpdateStatus = async (values) => {
     try {
-      setLoading(true);
-      const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-       if (!token) {
-          message.error('Token không hợp lệ hoặc không tìm thấy.');
-          setLoading(false);
-          return;
-       }
-
       const updatedRequest = {
         requestId: parseInt(id),
         comment: values.comment,
@@ -93,10 +77,6 @@ const LeaveRequestDetail = () => {
       }
     } catch (error) {
       console.error('Lỗi khi cập nhật yêu cầu nghỉ phép:', error);
-       const errorMsg = error.response?.data?.message || error.message || 'Cập nhật trạng thái thất bại';
-      message.error(errorMsg);
-    } finally {
-      setLoading(false);
     }
   };
 

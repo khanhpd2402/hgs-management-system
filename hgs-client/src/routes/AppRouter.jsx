@@ -330,7 +330,7 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <TeacherLeaveRequest />
         </Suspense>
@@ -340,7 +340,7 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request/create",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <CreateTeacherLeaveRequest />
         </Suspense>
