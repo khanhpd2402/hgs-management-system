@@ -1,107 +1,142 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useMemo } from 'react';
 import { jwtDecode } from 'jwt-decode';
-import './UploadLessonPlan.scss';
-import { useSubjectByTeacher } from '../../../services/subject/queries';
-import { useSemestersByAcademicYear } from '../../..//services/common/queries';
-import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
-import toast from "react-hot-toast";
 import { useNavigate } from 'react-router-dom';
-
-const PREVIEW_TYPES = {
-    FOLDER: 'folder',
-    PDF: 'pdf',
-    GOOGLE_DOCS: 'google-docs',
-    GOOGLE_FILE: 'google-file',
-    UNKNOWN: 'unknown'
-};
+import toast from 'react-hot-toast';
+import './UploadLessonPlan.scss';
+import { useSubjects, useSemestersByAcademicYear } from '../../../services/common/queries';
+import { useTeachersBySubject } from '../../../services/teacher/queries';
+import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
 
 const INITIAL_FORM = {
     subjectId: '',
     semesterId: '',
+    teacherId: '',
     title: '',
     planContent: '',
     startDate: '',
-    endDate: ''
+    endDate: '',
 };
+
+const FORM_FIELDS = [
+    { name: 'title', label: 'Tiêu đề', type: 'text' },
+    { name: 'planContent', label: 'Nội dung kế hoạch', type: 'textarea', rows: 4 },
+];
 
 const UploadLessonPlan = () => {
     const [form, setForm] = useState(INITIAL_FORM);
-
+    const navigate = useNavigate();
 
     // Get teacherId from token
     const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-    const teacherId = token ? jwtDecode(token)?.teacherId : null;
+    const decodedTeacherId = useMemo(() => token && jwtDecode(token)?.teacherId, [token]);
 
-    // Pass academicYearId 1 explicitly
+    // Queries
     const { data: semesters, isLoading: semestersLoading } = useSemestersByAcademicYear(1);
-    const { subjects, isLoading: subjectsLoading } = useSubjectByTeacher(teacherId);
+    const { data: subjects, isLoading: subjectsLoading } = useSubjects();
 
+    // Direct API call for teachers by subject
+    const [teachersBySubject, setTeachersBySubject] = useState(null);
+    const [teachersLoading, setTeachersLoading] = useState(false);
 
-    const navigate = useNavigate();
+    const fetchTeachersBySubject = async (subjectId) => {
+        if (!subjectId) return;
 
-
-    // ============= Event Handlers ==================
-    const handleChange = (e) => {
-        const { name, value } = e.target;
-        setForm((prev) => ({ ...prev, [name]: value }));
+        setTeachersLoading(true);
+        try {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            const response = await fetch(`https://localhost:8386/api/TeacherSubject/${subjectId}`, {
+                headers: {
+                    'accept': '*/*',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            setTeachersBySubject([data]); // Wrap in array since the API returns a single object
+        } catch (error) {
+            console.error('Error fetching teachers:', error);
+            toast.error('Không thể tải danh sách giáo viên');
+        } finally {
+            setTeachersLoading(false);
+        }
     };
 
+    // Event Handlers
+    const handleChange = (e) => {
+        const { name, value } = e.target;
+        if (name === 'subjectId') {
+            const numericValue = parseInt(value);
+            setForm(prev => ({
+                ...prev,
+                [name]: numericValue,
+                teacherId: '' // Reset teacherId when subject changes
+            }));
+            fetchTeachersBySubject(numericValue);
+        } else {
+            setForm(prev => ({ ...prev, [name]: value }));
+        }
+    };
 
     const createLessonPlanMutation = useCreateLessonPlan();
 
+
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-        const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-        if (!token) {
-            createLessonPlanMutation.onError({ response: { data: 'Vui lòng đăng nhập để tiếp tục!' } });
-            return;
-        }
 
-        const decoded = jwtDecode(token);
-        const teacherId = decoded?.teacherId;
-
-        if (!teacherId) {
-            createLessonPlanMutation.onError({ response: { data: 'Không tìm thấy thông tin giáo viên' } });
+        if (!token || !decodedTeacherId) {
+            toast.error('Vui lòng đăng nhập để tiếp tục!');
             return;
         }
 
         // Validate dates
-        const startDateTime = new Date(form.startDate);
-        const endDateTime = new Date(form.endDate);
-
-        if (startDateTime >= endDateTime) {
-            toast.error("Ngày kết thúc phải sau ngày bắt đầu");
+        const startDate = new Date(form.startDate);
+        const endDate = new Date(form.endDate);
+        if (startDate >= endDate) {
+            toast.error('Ngày kết thúc phải sau ngày bắt đầu');
             return;
         }
 
         const payload = {
-            teacherId: parseInt(teacherId),
+            teacherId: parseInt(form.teacherId), // Use the selected teacherId from form
             subjectId: parseInt(form.subjectId),
             semesterId: parseInt(form.semesterId),
             title: form.title.trim(),
             planContent: form.planContent.trim(),
-            startDate: startDateTime.toISOString(),
-            endDate: endDateTime.toISOString()
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
         };
-        console.log("payload", payload)
+
 
         try {
             await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
-            const toastId = toast.success("Tạo kế hoạch giảng dạy thành công!");
-
-            // Wait for both the toast duration and a small delay before navigating
+            const toastId = toast.success('Tạo kế hoạch giảng dạy thành công!');
             setTimeout(() => {
                 toast.dismiss(toastId);
                 navigate('/teacher/lesson-plan');
             }, 2100);
         } catch (error) {
-            console.error('Error creating lesson plan:', error);
-            const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch giảng dạy';
-            toast.error(errorMessage);
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch giảng dạy');
         }
     };
 
+    // Reusable Select Component
+    const RenderSelect = ({ name, value, options, loading, placeholder, disabled }) => (
+        <select
+            name={name}
+            value={value}
+            onChange={handleChange}
+            required
+            disabled={loading || disabled}
+        >
+            <option value="">{placeholder}</option>
+            {options?.map((option) => (
+                <option key={option.id} value={option.id}>
+                    {option.name}
+                </option>
+            ))}
+        </select>
+    );
 
 
     return (
@@ -110,21 +145,42 @@ const UploadLessonPlan = () => {
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <div className="form-field">
-                        <label>Môn học:</label>
-                        <select
-                            name="subjectId"
-                            value={form.subjectId}
-                            onChange={handleChange}
-                            required
-                            disabled={subjectsLoading}
-                        >
-                            <option value="">Chọn môn học</option>
-                            {subjects.map(subject => (
-                                <option key={subject.subjectId} value={subject.subjectId}>
-                                    {subject.subjectName}
-                                </option>
-                            ))}
-                        </select>
+                        <div style={{ display: 'flex', gap: '1rem' }}>
+                            <div style={{ flex: 1 }}>
+                                <label>Môn học:</label>
+                                <select
+                                    name="subjectId"
+                                    value={form.subjectId}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={subjectsLoading}
+                                >
+                                    <option value="">Chọn môn học</option>
+                                    {subjects?.map(subject => (
+                                        <option key={subject.subjectID} value={subject.subjectID}>
+                                            {subject.subjectName}--{subject.subjectID}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div style={{ flex: 1 }}>
+                                <label>Giáo viên:</label>
+                                <select
+                                    name="teacherId"
+                                    value={form.teacherId}
+                                    onChange={handleChange}
+                                    required
+                                    disabled={!form.subjectId || teachersLoading}
+                                >
+                                    <option value="">Chọn giáo viên</option>
+                                    {teachersBySubject?.map(teacher => (
+                                        <option key={teacher.teacherId} value={teacher.teacherId}>
+                                            {teacher.teacherName}--{teacher.teacherId}
+                                        </option>
+                                    ))}
+                                </select>
+                            </div>
+                        </div>
                     </div>
                     <div className="form-field">
                         <label>Học kỳ:</label>
@@ -148,40 +204,62 @@ const UploadLessonPlan = () => {
                 <div className="form-group">
                     <div className="form-field">
                         <label>Ngày bắt đầu:</label>
-                        <input type="datetime-local" name="startDate" value={form.startDate} onChange={handleChange} required />
+                        <input
+                            type="datetime-local"
+                            name="startDate"
+                            value={form.startDate}
+                            onChange={handleChange}
+                            required
+                        />
                     </div>
                     <div className="form-field">
                         <label>Ngày kết thúc:</label>
-                        <input type="datetime-local" name="endDate" value={form.endDate} onChange={handleChange} required />
+                        <input
+                            type="datetime-local"
+                            name="endDate"
+                            value={form.endDate}
+                            onChange={handleChange}
+                            required
+                        />
                     </div>
                 </div>
 
-                {[
-                    { name: 'title', label: 'Tiêu đề', type: 'text' },
-                    { name: 'planContent', label: 'Nội dung kế hoạch', type: 'textarea' },
-                ].map(({ name, label, type }) => (
+                {FORM_FIELDS.map(({ name, label, type, rows }) => (
                     <div className="form-group" key={name}>
                         <div className="form-field">
                             <label>{label}:</label>
                             {type === 'textarea' ? (
-                                <textarea name={name} value={form[name]} onChange={handleChange} required rows="4" />
+                                <textarea
+                                    name={name}
+                                    value={form[name]}
+                                    onChange={handleChange}
+                                    required
+                                    rows={rows}
+                                />
                             ) : (
-                                <input type="text" name={name} value={form[name]} onChange={handleChange} required />
+                                <input
+                                    type="text"
+                                    name={name}
+                                    value={form[name]}
+                                    onChange={handleChange}
+                                    required
+                                />
                             )}
                         </div>
                     </div>
                 ))}
 
                 <div className="buttons-container">
-                    <button type="button" className="btn-back" onClick={() => window.history.back()}>Trở lại danh sách</button>
-                    <div className="right-buttons">
-                        <button type="submit">Tải lên</button>
-                    </div>
+                    <button
+                        type="button"
+                        className="btn-back"
+                        onClick={() => navigate('/teacher/lesson-plan')}
+                    >
+                        Trở lại danh sách
+                    </button>
+                    <button type="submit">Tải lên</button>
                 </div>
-
             </form>
-
-
         </div>
     );
 };

@@ -4,6 +4,7 @@ import axios from 'axios';
 import { Card, Button, Descriptions, Space, Upload, message, Modal, Form, Input } from 'antd';
 import { UploadOutlined, EditOutlined, EyeOutlined } from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import toast from 'react-hot-toast'; // Add this import
 
 const AddDocument = () => {
     const [lessonPlan, setLessonPlan] = useState(null);
@@ -54,12 +55,12 @@ const AddDocument = () => {
                     'Authorization': `Bearer ${token}`
                 }
             });
-            message.success('Cập nhật thành công');
+            toast.success('Cập nhật thành công!');
             setIsUpdateModalVisible(false);
             fetchLessonPlan();
         } catch (error) {
             console.error('Error updating lesson plan:', error);
-            message.error('Cập nhật thất bại');
+            toast.error('Cập nhật thất bại');
         }
     };
 
@@ -119,7 +120,7 @@ const AddDocument = () => {
                         <Descriptions.Item label="Link tài liệu đính kèm">
                             <Space>
                                 <a href={lessonPlan.attachmentUrl} target="_blank" rel="noopener noreferrer">
-                                    {lessonPlan.attachmentUrl}
+                                    Link drive tại tại đây
                                 </a>
                                 <Button
                                     type="primary"
@@ -150,10 +151,10 @@ const AddDocument = () => {
                                 }}
                                 onChange={(info) => {
                                     if (info.file.status === 'done') {
-                                        message.success(`${info.file.name} file uploaded successfully`);
+                                        toast.success('Tải lên tài liệu thành công!');
                                         fetchLessonPlan();
                                     } else if (info.file.status === 'error') {
-                                        message.error(`${info.file.name} file upload failed.`);
+                                        toast.error('Tải lên tài liệu thất bại');
                                     }
                                 }}
                             >

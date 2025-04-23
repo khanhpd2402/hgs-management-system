@@ -6,9 +6,9 @@ import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { jwtDecode } from 'jwt-decode';
-import { useLessonPlanByTeacher } from '../../../services/lessonPlan/queries';
+import { useLessonPlanByTeacher } from 'c:/Users/trung/Downloads/hgs-client/src/services/lessonPlan/queries';
 
-const TeacherLessonPlan = () => {
+const TeacherListPlan = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
@@ -78,6 +78,33 @@ const TeacherLessonPlan = () => {
         setIsModalVisible(true);
     };
 
+    const getGoogleDriveEmbedUrl = (url) => {
+        if (!url) return '';
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname === 'drive.google.com') {
+                // For folders
+                if (url.includes('/folders/')) {
+                    const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
+                    if (folderId) {
+                        return `https://drive.google.com/embeddedfolderview?id=${folderId}&amp;usp=sharing#list`;
+                    }
+                }
+                // For files
+                else if (url.includes('/file/d/')) {
+                    const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
+                    if (fileId) {
+                        return `https://drive.google.com/file/d/${fileId}/preview`;
+                    }
+                }
+            }
+            return url;
+        } catch (error) {
+            console.error('Invalid URL:', error);
+            return '';
+        }
+    };
+
     const DetailModal = () => (
         <Modal
             title="Chi tiết kế hoạch giáo án"
@@ -137,7 +164,7 @@ const TeacherLessonPlan = () => {
                             <h2>File đính kèm</h2>
                             <div className="file-preview">
                                 <iframe
-                                    src={selectedRequest.attachmentUrl}
+                                    src={getGoogleDriveEmbedUrl(selectedRequest.attachmentUrl)}
                                     title="File đính kèm"
                                     width="100%"
                                     height="600px"
@@ -145,7 +172,20 @@ const TeacherLessonPlan = () => {
                                         border: '1px solid #d9d9d9',
                                         borderRadius: '4px'
                                     }}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        message.error('Không thể tải tệp đính kèm. Vui lòng mở trong tab mới.');
+                                    }}
                                 />
+                                <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                    <a
+                                        href={selectedRequest.attachmentUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Button type="primary">Mở trong tab mới</Button>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -232,11 +272,7 @@ const TeacherLessonPlan = () => {
             <h2>Danh sách kế hoạch giáo án</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2></h2>
-                <Link to="/teacher/lesson-plan/create">
-                    <Button type="primary">
-                        Tạo kế hoạch mới
-                    </Button>
-                </Link>
+
             </div>
             <div className="filters-section">
                 <div className="search-container">
@@ -283,4 +319,4 @@ const TeacherLessonPlan = () => {
     );
 };
 
-export default TeacherLessonPlan
+export default TeacherListPlan

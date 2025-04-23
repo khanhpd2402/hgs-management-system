@@ -59,3 +59,8 @@ export const getExamsByTeacherId = async (teacherId) => {
     await axiosInstance.get(`ExamProposals/exam-proposals/teacher/${teacherId}`)
   ).data;
 };
+
+export async function getTeachersBySubject(idid) {
+  const response = await axios.get(`/api/TeacherSubject/${id}`);
+  return response.data;
+}

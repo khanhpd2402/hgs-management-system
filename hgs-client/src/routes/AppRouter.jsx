@@ -88,7 +88,9 @@ const UploadExam = lazy(
 const ExamManagement = lazy(
   () => import("@/pages/Principal/ExamManagement/ExamManagement"),
 );
-
+const TeacherListPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/Teacher/TeacherListPlan"),
+);
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -380,14 +382,25 @@ const teacherRouter = [
   {
     path: "system/lesson-plan/add-document/:planId",
     element: (
-      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên", "Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <AddDocument />
         </Suspense>
 
       </ProtectedRoute>
     ),
+  }, {
+    path: "/teacher/lesson-plan-by-teacher",
+    element: (
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TeacherListPlan />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+
   }
+
 ];
 
 const studentRouter = [
