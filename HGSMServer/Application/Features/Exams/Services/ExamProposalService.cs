@@ -114,33 +114,43 @@ namespace Application.Features.Exams.Services
 
             await _examProposalRepository.UpdateExamProposalAsync(proposal);
 
-            // Gửi email thông báo khi trạng thái thay đổi thành "Đã duyệt" hoặc "Từ chối"
             if (status == "Đã duyệt" || status == "Từ chối")
             {
                 var teacher = await _teacherRepository.GetByIdAsync(proposal.CreatedBy);
                 if (teacher != null)
                 {
                     var subject = await _subjectRepository.GetByIdAsync(proposal.SubjectId);
-                    if (subject != null)
+                    if (subject != null && !string.IsNullOrEmpty(teacher.User?.Email))
                     {
-                        try
+                        _ = Task.Run(async () =>
                         {
-               
-                            await _emailService.SendExamProposalStatusUpdateAsync(
-                                teacherEmail: teacher.User.Email,
-                                planTitle: proposal.Title,
-                                subjectName: subject.SubjectName,
-                                grade: proposal.Grade,
-                                semesterId: proposal.SemesterId,
-                                status: status,
-                                feedback: comment
-                            );
-                        }
-                        catch (Exception ex)
-                        {
-                            Console.WriteLine($"Không thể gửi email thông báo trạng thái đề thi đến {teacher.User.Email}: {ex.Message}");
-                        }
+                            try
+                            {
+                                await _emailService.SendExamProposalStatusUpdateAsync(
+                                    teacherEmail: teacher.User.Email,
+                                    planTitle: proposal.Title,
+                                    subjectName: subject.SubjectName,
+                                    grade: proposal.Grade,
+                                    semesterId: proposal.SemesterId,
+                                    status: status,
+                                    feedback: comment
+                                );
+                                Console.WriteLine($"Đã gửi email thông báo trạng thái đề thi đến {teacher.User.Email}.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Không thể gửi email thông báo trạng thái đề thi đến {teacher.User.Email}: {ex.Message}");
+                            }
+                        });
                     }
+                    else
+                    {
+                        Console.WriteLine($"Không thể gửi email: Môn học không tồn tại hoặc email giáo viên (TeacherId: {proposal.CreatedBy}) không hợp lệ.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {proposal.CreatedBy}. Bỏ qua gửi email.");
                 }
             }
         }
