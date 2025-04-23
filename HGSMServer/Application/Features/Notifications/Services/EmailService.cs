@@ -127,7 +127,7 @@ namespace Common.Utils
         }
         public async Task SendAbsenceNotificationAsync(string parentEmail, string studentName, string className, DateTime absenceDate, string reason = null)
         {
-            string subject = $"Thông báo học sinh {studentName} nghỉ học";
+            string subject = $"Thông báo tình trạng điểm danh học sinh {studentName}c";
             string body = GetAbsenceNotificationBody(studentName, className, absenceDate, reason);
 
             await SendEmailAsync(parentEmail, subject, body, isHtml: true);
@@ -137,7 +137,7 @@ namespace Common.Utils
         {
             return $@"
                 <p>Kính gửi phụ huynh học sinh {studentName},</p>
-                <p>Chúng tôi xin thông báo rằng con bạn đã nghỉ học vào ngày <strong>{absenceDate:dd/MM/yyyy}</strong>.</p>
+                <p>Chúng tôi xin thông báo rằng anh/chị đã nghỉ học vào ngày <strong>{absenceDate:dd/MM/yyyy}</strong>.</p>
                 <p>Lớp: <strong>{className}</strong></p>
                 {(string.IsNullOrEmpty(reason) ? "" : $"<p>Lý do: {reason}</p>")}
                 <p>Vui lòng liên hệ với giáo viên chủ nhiệm để biết thêm chi tiết.</p>
