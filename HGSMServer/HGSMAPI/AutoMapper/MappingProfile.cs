@@ -161,6 +161,8 @@ namespace HGSMAPI.AutoMapper
             CreateMap<GradeLevel, GradeLevelDto>();
             CreateMap<GradeLevel, GradeLevelCreateAndUpdateDto>().ReverseMap();
 
+            CreateMap<Attendance, AttendanceDto>().ReverseMap();
+
             CreateMap<Period, PeriodDto>();
             CreateMap<Period, PeriodCreateAndUpdateDto>().ReverseMap();
 
