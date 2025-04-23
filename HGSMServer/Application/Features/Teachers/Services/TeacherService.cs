@@ -15,14 +15,22 @@ using System.Threading.Tasks;
 public class TeacherService : ITeacherService
 {
     private readonly ITeacherRepository _teacherRepository;
+    private readonly IUserRepository _userRepository; 
     private readonly ISubjectRepository _subjectRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
     private readonly HgsdbContext _context;
 
-    public TeacherService(ITeacherRepository teacherRepository, IMapper mapper, ISubjectRepository subjectRepository, IRoleRepository roleRepository, HgsdbContext context)
+    public TeacherService(
+        ITeacherRepository teacherRepository,
+        IUserRepository userRepository,
+        IMapper mapper,
+        ISubjectRepository subjectRepository,
+        IRoleRepository roleRepository,
+        HgsdbContext context)
     {
         _teacherRepository = teacherRepository;
+        _userRepository = userRepository;
         _mapper = mapper;
         _subjectRepository = subjectRepository;
         _roleRepository = roleRepository;
@@ -72,6 +80,27 @@ public class TeacherService : ITeacherService
         }).ToList() ?? new List<SubjectTeacherDto>();
 
         return teacherDto;
+    }
+    public async Task<string?> GetEmailByTeacherIdAsync(int teacherId)
+    {
+        var teacher = await _teacherRepository.GetByIdAsync(teacherId);
+        if (teacher == null)
+        {
+            throw new KeyNotFoundException($"Không tìm thấy giáo viên với ID {teacherId}.");
+        }
+
+        if (!teacher.UserId.HasValue)
+        {
+            throw new Exception($"Giáo viên với ID {teacherId} không có UserId liên kết.");
+        }
+
+        var user = await _userRepository.GetByIdAsync(teacher.UserId.Value);
+        if (user == null)
+        {
+            throw new KeyNotFoundException($"Không tìm thấy user với UserId {teacher.UserId} liên kết với giáo viên.");
+        }
+
+        return user.Email;
     }
 
     public async Task AddTeacherAsync(TeacherListDto teacherDto)

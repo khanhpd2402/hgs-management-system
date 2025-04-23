@@ -14,6 +14,7 @@ namespace Application.Features.Teachers.Interfaces
         Task<bool> DeleteTeacherAsync(int id);
         Task<(bool Success, List<string> Errors)> ImportTeachersFromExcelAsync(IFormFile file);
         Task<string> GenerateUniqueUsernameAsync(string fullName);
+        Task<string?> GetEmailByTeacherIdAsync(int teacherId);
     }
 
 }
