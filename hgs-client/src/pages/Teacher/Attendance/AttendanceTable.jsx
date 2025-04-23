@@ -100,21 +100,27 @@ export default function AttendanceTable() {
     if (viewMode === "week") {
       const currentTimeGMT7 = new Date(date);
 
+      // Lấy thứ hiện tại (0: Chủ nhật, 1: Thứ 2, ..., 6: Thứ 7)
       const todayIndex =
-        currentTimeGMT7.getDay() === 0 ? 5 : currentTimeGMT7.getDay() - 1;
+        currentTimeGMT7.getDay() === 0 ? 6 : currentTimeGMT7.getDay() - 1;
       const monday = getMonday(date);
 
-      // Chỉ lấy từ thứ 2 đến hôm nay, loại Chủ nhật
+      // Duyệt từ thứ 2 đến thứ 7 (hoặc đến ngày hiện tại trong tuần)
       const payload = studentsData.flatMap((student) =>
         [...Array(todayIndex + 1)].map((_, i) => {
           const day = new Date(monday);
           day.setDate(monday.getDate() + i);
+          // Lấy trạng thái điểm danh của từng ngày trong tuần cho học sinh này
+          const attendanceOfDay = student.attendanceByDay?.[i] || {
+            status: "C",
+            note: "",
+          };
           return {
             studentClassId: student.studentClassId,
             date: formatDate(day),
             session: session,
-            status: "C",
-            note: "",
+            status: attendanceOfDay.status || "C",
+            note: attendanceOfDay.note || "",
             studentId: student.studentId,
           };
         }),
@@ -127,19 +133,24 @@ export default function AttendanceTable() {
         data: payload,
       };
       console.log(data);
-      // takeAttendanceMutation.mutate(data);
+      takeAttendanceMutation.mutate(data);
     } else {
       const monday = getMonday(date);
-      console.log(monday);
+      const today = formatDate(date);
 
-      const payload = studentsData.map((student) => ({
-        studentClassId: student.studentClassId,
-        date: formatDate(date),
-        session: session,
-        status: student.status || "C",
-        note: student.note || "",
-        studentId: student.studentId,
-      }));
+      const payload = studentsData.map((student) => {
+        const todayAttendance = student.attendanceByDay?.find(
+          (att) => att.date === today,
+        ) || { status: "C", note: "" };
+        return {
+          studentClassId: student.studentClassId,
+          date: today,
+          session: session,
+          status: todayAttendance.status || "C",
+          note: todayAttendance.note || "",
+          studentId: student.studentId,
+        };
+      });
       const data = {
         weekStart: formatDate(monday),
         teacherId: +teacherId,
@@ -148,7 +159,7 @@ export default function AttendanceTable() {
         data: payload,
       };
       console.log(data);
-      // takeAttendanceMutation.mutate(data);
+      takeAttendanceMutation.mutate(data);
     }
   };
 
@@ -206,35 +217,37 @@ export default function AttendanceTable() {
   const debounceTimeout = useRef({});
 
   // Debounce cho lý do
-  const handleNoteChangeDebounced = useCallback((studentId, value) => {
-    if (debounceTimeout.current[studentId]) {
-      clearTimeout(debounceTimeout.current[studentId]);
-    }
-    debounceTimeout.current[studentId] = setTimeout(() => {
-      setStudentsData((prev) =>
-        prev.map((s) =>
-          s.studentId === studentId ? { ...s, note: value } : s,
-        ),
-      );
-    }, 300);
-  }, []);
+  // const handleNoteChangeDebounced = useCallback((studentId, value) => {
+  //   if (debounceTimeout.current[studentId]) {
+  //     clearTimeout(debounceTimeout.current[studentId]);
+  //   }
+  //   debounceTimeout.current[studentId] = setTimeout(() => {
+  //     setStudentsData((prev) =>
+  //       prev.map((s) =>
+  //         s.studentId === studentId ? { ...s, note: value } : s,
+  //       ),
+  //     );
+  //   }, 300);
+  // }, []);
 
-  const handleStatusChange = (studentId, value) => {
-    setStudentsData((prev) =>
-      prev.map((s) =>
-        s.studentId === studentId ? { ...s, status: value } : s,
-      ),
-    );
-  };
+  // const handleStatusChange = (studentId, value) => {
+  //   setStudentsData((prev) =>
+  //     prev.map((s) =>
+  //       s.studentId === studentId ? { ...s, status: value } : s,
+  //     ),
+  //   );
+  // };
 
-  const handleWeekStatusChange = (studentId, dayIndex, value) => {
+  const handleWeekStatusInputChange = (studentId, dayIndex, value) => {
     setStudentsData((prev) =>
       prev.map((student) =>
         student.studentId === studentId
           ? {
               ...student,
               attendanceByDay: student.attendanceByDay.map((att, idx) =>
-                idx === dayIndex ? { ...att, status: value } : att,
+                idx === dayIndex
+                  ? { ...att, status: value.toUpperCase() }
+                  : att,
               ),
             }
           : student,
@@ -263,8 +276,11 @@ export default function AttendanceTable() {
                 selected={date}
                 onSelect={setDate}
                 locale={vi}
-                disabled={(date) =>
-                  date > new Date() || date < new Date("1900-01-01")
+                disabled={
+                  (date) =>
+                    date > new Date() ||
+                    date < new Date("1900-01-01") ||
+                    date.getDay() === 0 // Không cho chọn Chủ nhật
                 }
                 initialFocus
               />
@@ -366,50 +382,82 @@ export default function AttendanceTable() {
                 </TableHeader>
                 <TableBody>
                   {studentsData.length > 0 &&
-                    studentsData.map((student, index) => (
-                      <TableRow
-                        key={student.studentId}
-                        className="hover:bg-gray-50"
-                      >
-                        <TableCell className="h-16 border border-gray-200 text-center">
-                          {index + 1}
-                        </TableCell>
-                        <TableCell className="h-16 border border-gray-200 font-medium">
-                          {student.fullName}
-                        </TableCell>
-                        <TableCell className="h-16 border border-gray-200 text-center">
-                          <select
-                            value={student.attendance}
-                            onChange={(e) =>
-                              handleStatusChange(
-                                student.studentId,
-                                e.target.value,
-                              )
-                            }
-                            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          >
-                            <option value="C">Có mặt</option>
-                            <option value="P">Nghỉ có phép</option>
-                            <option value="K">Nghỉ không phép</option>
-                            <option value="X">Lí do khác</option>
-                          </select>
-                        </TableCell>
-                        <TableCell className="h-16 border border-gray-200">
-                          <Input
-                            type="text"
-                            onChange={(e) =>
-                              handleNoteChangeDebounced(
-                                student.studentId,
-                                e.target.value,
-                              )
-                            }
-                            maxLength={50}
-                            disabled={student.status !== "X"}
-                            className="disabled:bg-gray-100"
-                          />
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                    studentsData.map((student, index) => {
+                      const today = formatDate(date);
+                      const todayAttendance = student.attendanceByDay?.find(
+                        (att) => att.date === today,
+                      ) || { status: "C", note: "" };
+
+                      return (
+                        <TableRow
+                          key={student.studentId}
+                          className="hover:bg-gray-50"
+                        >
+                          <TableCell className="h-16 border border-gray-200 text-center">
+                            {index + 1}
+                          </TableCell>
+                          <TableCell className="h-16 border border-gray-200 font-medium">
+                            {student.fullName}
+                          </TableCell>
+                          <TableCell className="h-16 border border-gray-200 text-center">
+                            <select
+                              value={todayAttendance.status}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setStudentsData((prev) =>
+                                  prev.map((s) =>
+                                    s.studentId === student.studentId
+                                      ? {
+                                          ...s,
+                                          attendanceByDay:
+                                            s.attendanceByDay.map((att) =>
+                                              att.date === today
+                                                ? { ...att, status: val }
+                                                : att,
+                                            ),
+                                        }
+                                      : s,
+                                  ),
+                                );
+                              }}
+                              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            >
+                              <option value="C">Có mặt</option>
+                              <option value="P">Nghỉ có phép</option>
+                              <option value="K">Nghỉ không phép</option>
+                              <option value="X">Lí do khác</option>
+                            </select>
+                          </TableCell>
+                          <TableCell className="h-16 border border-gray-200">
+                            <Input
+                              type="text"
+                              value={todayAttendance.note}
+                              maxLength={50}
+                              disabled={todayAttendance.status !== "X"}
+                              className="disabled:bg-gray-100"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setStudentsData((prev) =>
+                                  prev.map((s) =>
+                                    s.studentId === student.studentId
+                                      ? {
+                                          ...s,
+                                          attendanceByDay:
+                                            s.attendanceByDay.map((att) =>
+                                              att.date === today
+                                                ? { ...att, note: val }
+                                                : att,
+                                            ),
+                                        }
+                                      : s,
+                                  ),
+                                );
+                              }}
+                            />
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })}
                 </TableBody>
               </Table>
             )}
@@ -438,25 +486,66 @@ export default function AttendanceTable() {
                           {index + 1}
                         </TableCell>
                         <TableCell>{student.fullName}</TableCell>
-                        {[...Array(6)].map((_, i) => (
-                          <TableCell
-                            key={i}
-                            className="border border-gray-300 text-center"
-                          >
-                            <Input
-                              type="text"
-                              value={
-                                student.attendanceByDay?.[i]?.status || "C"
-                              }
-                              maxLength={1}
-                              className="mx-auto w-[50px] text-center"
-                            />
-                          </TableCell>
-                        ))}
+                        {[...Array(6)].map((_, i) => {
+                          // Lấy ngày thứ i trong tuần
+                          const monday = getMonday(date);
+                          const day = new Date(monday);
+                          day.setDate(monday.getDate() + i);
+                          const today = new Date();
+                          // So sánh ngày hiện tại với ngày trong tuần
+                          const isFuture = day > today;
+                          const value = isFuture
+                            ? "K"
+                            : (student.attendanceByDay?.[i]?.status ?? "");
+                          return (
+                            <TableCell
+                              key={i}
+                              className="border border-gray-300 text-center"
+                            >
+                              <Input
+                                type="text"
+                                value={value}
+                                maxLength={1}
+                                className="mx-auto w-[50px] text-center"
+                                disabled={isFuture}
+                                onInput={(e) => {
+                                  const allowed = ["K", "X", "P", "C"];
+                                  let val = e.target.value.toUpperCase();
+                                  if (!allowed.includes(val) && val !== "") {
+                                    val = "";
+                                  }
+                                  e.target.value = val;
+                                  if (!isFuture) {
+                                    handleWeekStatusInputChange(
+                                      student.studentId,
+                                      i,
+                                      val,
+                                    );
+                                  }
+                                }}
+                                onChange={(e) =>
+                                  !isFuture &&
+                                  handleWeekStatusInputChange(
+                                    student.studentId,
+                                    i,
+                                    e.target.value,
+                                  )
+                                }
+                              />
+                            </TableCell>
+                          );
+                        })}
                         <TableCell className="border border-gray-300 text-center">
                           {student.attendanceByDay
                             ?.slice(0, 6)
-                            .filter((d) => d.status !== "C").length || 0}
+                            .filter((d, i) => {
+                              // Chỉ tính ngày đã đến
+                              const monday = getMonday(date);
+                              const day = new Date(monday);
+                              day.setDate(monday.getDate() + i);
+                              const today = new Date();
+                              return day <= today && d.status !== "C";
+                            }).length || 0}
                         </TableCell>
                       </TableRow>
                     ))}

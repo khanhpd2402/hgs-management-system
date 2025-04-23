@@ -110,9 +110,9 @@ export function useTakeAttendance() {
         queryClient.invalidateQueries([
           "student-attendances",
           {
-            teacherId: variables.get("teacherId"),
-            classId: variables.get("classId"),
-            semesterId: variables.get("semesterId"),
+            teacherId: variables.teacherId,
+            classId: variables.classId,
+            semesterId: variables.semesterId,
           },
         ]);
       }

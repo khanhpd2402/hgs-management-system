@@ -150,6 +150,7 @@ builder.Services.AddScoped<IStudentClassRepository, StudentClassRepository>();
 builder.Services.AddScoped<IGradeLevelSubjectRepository, GradeLevelSubjectRepository>();
 builder.Services.AddScoped<IGradeLevelSubjectService, GradeLevelSubjectService>();
 builder.Services.AddScoped<IGradeUnitOfWork, GradeUnitOfWork>();
+builder.Services.AddScoped<IAttendanceUnitOfWork, AttendanceUnitOfWork>();
 
 // Teacher Management
 builder.Services.AddScoped<ITeacherService, TeacherService>();
