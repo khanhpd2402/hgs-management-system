@@ -44,7 +44,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPut("{planId}/update")]
-        [Authorize(Roles = "Giáo viên")] 
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")] 
         public async Task<IActionResult> UpdateMyLessonPlan(int planId, [FromBody] LessonPlanUpdateDto updateDto)
         {
             if (planId <= 0)
