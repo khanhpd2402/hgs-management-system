@@ -133,7 +133,7 @@ namespace HGSMAPI.Controllers
         /// </summary>
         /// <returns>Danh sách dữ liệu để lọc</returns>
         [HttpGet("filter-data")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn,Giáo viên")]
         public async Task<IActionResult> GetFilterData([FromQuery] int? classId = null, [FromQuery] int? semesterId = null)
         {
             try

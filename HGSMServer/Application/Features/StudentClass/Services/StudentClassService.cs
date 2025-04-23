@@ -392,10 +392,7 @@ namespace Application.Features.StudentClass.Services
 
         public async Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null)
         {
-            if (!await HasPermissionAsync())
-            {
-                throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
-            }
+         
 
             List<StudentFilterDto> students;
 

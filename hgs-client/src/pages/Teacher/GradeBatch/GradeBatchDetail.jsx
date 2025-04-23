@@ -103,7 +103,7 @@ export default function GradeBatchDetail({
       academicYearId: semester.academicYearID,
       startDate: formatDate(formData.startDate),
       endDate: formatDate(formData.endDate),
-      status: formData.isLocked ? "Không Hoạt Động" : "Hoạt Động",
+      status: formData.isLocked ? "Không hoạt động" : "Hoạt động",
     };
 
     console.log("Form data submitted:", payload);
@@ -126,7 +126,7 @@ export default function GradeBatchDetail({
         name: gradeBatch.batchName,
         startDate: toStartOfDay(gradeBatch.startDate),
         endDate: toStartOfDay(gradeBatch.endDate),
-        isLocked: gradeBatch.status === "Không Hoạt Động",
+        isLocked: gradeBatch.status === "Không hoạt động",
       });
     }
   }, [gradeBatch]);

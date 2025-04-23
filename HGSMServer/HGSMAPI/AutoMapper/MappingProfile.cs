@@ -22,12 +22,14 @@ using Application.Features.TeacherSubjects.DTOs;
 using Application.Features.Conducts.DTOs;
 using Application.Features.Attendances.DTOs;
 
+
 namespace HGSMAPI.AutoMapper
 {
     public class MappingProfile : Profile
     {
         public MappingProfile()
         {
+            CreateMap<Attendance, AttendanceDto>().ReverseMap();
             // Ánh xạ cho TeacherDetailDto sang Teacher
             CreateMap<TeacherDetailDto, Teacher>()
                 .ForMember(dest => dest.User, opt => opt.Ignore());
