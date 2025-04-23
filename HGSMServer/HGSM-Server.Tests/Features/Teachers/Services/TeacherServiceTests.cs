@@ -23,6 +23,7 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
     public class TeacherServiceTests
     {
         private readonly Mock<ITeacherRepository> _teacherRepositoryMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock; // Add IUserRepository
         private readonly Mock<ISubjectRepository> _subjectRepositoryMock;
         private readonly Mock<IRoleRepository> _roleRepositoryMock;
         private readonly Mock<IMapper> _mapperMock;
@@ -33,6 +34,7 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
         public TeacherServiceTests()
         {
             _teacherRepositoryMock = new Mock<ITeacherRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>();
             _subjectRepositoryMock = new Mock<ISubjectRepository>();
             _roleRepositoryMock = new Mock<IRoleRepository>();
             _mapperMock = new Mock<IMapper>();
@@ -45,11 +47,11 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
             databaseFacadeMock.Setup(d => d.BeginTransaction())
                               .Returns(_dbTransactionMock.Object);
 
-
             _dbContextMock.Setup(c => c.Database).Returns(databaseFacadeMock.Object);
 
             _teacherService = new TeacherService(
                 _teacherRepositoryMock.Object,
+                _userRepositoryMock.Object,
                 _mapperMock.Object,
                 _subjectRepositoryMock.Object,
                 _roleRepositoryMock.Object,
