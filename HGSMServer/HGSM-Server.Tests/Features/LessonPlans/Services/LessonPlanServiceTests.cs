@@ -1,362 +1,294 @@
 
-﻿//using Application.Features.LessonPlans.DTOs;
-//using Application.Features.LessonPlans.Services;
-//using AutoMapper;
-//using Domain.Models;
-//using FluentAssertions;
-//using Infrastructure.Repositories.Interfaces;
-//using Microsoft.AspNetCore.Http;
-//using Moq;
-//using System;
-//using System.Collections.Generic;
-//using System.Security.Claims;
-//using System.Threading.Tasks;
-//using Xunit;
+﻿using Application.Features.LessonPlans.DTOs;
+using Application.Features.LessonPlans.Interfaces;
+using Application.Features.Teachers.Interfaces;
+using Domain.Models;
+using Infrastructure.Repositories.Interfaces;
+using Microsoft.AspNetCore.Http;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Security.Claims;
+using System.Threading.Tasks;
+using AutoMapper;
+using Common.Utils;
 
-//namespace HGSM_Server.Tests.Features.LessonPlans.Services
-//{
-//    public class LessonPlanServiceTests
-//    {
-//        private readonly Mock<ILessonPlanRepository> _lessonPlanRepositoryMock;
-//        private readonly Mock<ITeacherRepository> _teacherRepositoryMock;
-//        private readonly Mock<IUserRepository> _userRepositoryMock;
-//        private readonly Mock<IHttpContextAccessor> _httpContextAccessorMock;
-//        private readonly Mock<IMapper> _mapperMock;
-//        private readonly LessonPlanService _lessonPlanService;
+namespace Application.Features.LessonPlans.Services
+{
+    public class LessonPlanService : ILessonPlanService
+    {
+        private readonly ILessonPlanRepository _lessonPlanRepository;
+        private readonly ITeacherRepository _teacherRepository;
+        private readonly IUserRepository _userRepository;
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IMapper _mapper;
+        private readonly EmailService _emailService;
+        private readonly ISubjectRepository _subjectRepository;
+        private readonly ITeacherService _teacherService;
 
-//        public LessonPlanServiceTests()
-//        {
-//            _lessonPlanRepositoryMock = new Mock<ILessonPlanRepository>();
-//            _teacherRepositoryMock = new Mock<ITeacherRepository>();
-//            _userRepositoryMock = new Mock<IUserRepository>();
-//            _httpContextAccessorMock = new Mock<IHttpContextAccessor>();
-//            _mapperMock = new Mock<IMapper>();
+        public LessonPlanService(
+            ILessonPlanRepository lessonPlanRepository,
+            ITeacherRepository teacherRepository,
+            IUserRepository userRepository,
+            IHttpContextAccessor httpContextAccessor,
+            IMapper mapper,
+            EmailService emailService,
+            ISubjectRepository subjectRepository,
+            ITeacherService teacherService)
+        {
+            _lessonPlanRepository = lessonPlanRepository ?? throw new ArgumentNullException(nameof(lessonPlanRepository));
+            _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
+            _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
+            _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
+            _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _subjectRepository = subjectRepository ?? throw new ArgumentNullException(nameof(subjectRepository));
+            _teacherService = teacherService ?? throw new ArgumentNullException(nameof(teacherService));
+        }
 
-//            _lessonPlanService = new LessonPlanService(
-//                _lessonPlanRepositoryMock.Object,
-//                _teacherRepositoryMock.Object,
-//                _userRepositoryMock.Object,
-//                _httpContextAccessorMock.Object,
-//                _mapperMock.Object);
-//        }
+        public async Task<LessonPlanResponseDto> CreateLessonPlanAsync(LessonPlanCreateDto createDto)
+        {
+            if (createDto == null) throw new ArgumentNullException(nameof(createDto));
+            if (createDto.TeacherId <= 0) throw new ArgumentException("Target TeacherId is required.", nameof(createDto.TeacherId));
+            if (createDto.SubjectId <= 0) throw new ArgumentException("SubjectId is required.", nameof(createDto.SubjectId));
+            if (createDto.SemesterId <= 0) throw new ArgumentException("SemesterId is required.", nameof(createDto.SemesterId));
+            if (createDto.StartDate.HasValue && createDto.EndDate.HasValue && createDto.EndDate < createDto.StartDate)
+            {
+                throw new ArgumentException("DeadlineDate must be on or after StartDate.");
+            }
 
-//        private void SetupHttpContext(int userId)
-//        {
-//            var claims = new List<Claim>
-//            {
-//                new Claim("sub", userId.ToString())
-//            };
-//            var identity = new ClaimsIdentity(claims, "TestAuthType");
-//            var principal = new ClaimsPrincipal(identity);
-//            var context = new Mock<HttpContext>();
-//            context.Setup(c => c.User).Returns(principal);
-//            _httpContextAccessorMock.Setup(a => a.HttpContext).Returns(context.Object);
-//        }
+            var creatorTeacherId = GetCurrentTeacherId();
+            var lessonPlan = new LessonPlan
+            {
+                TeacherId = createDto.TeacherId,
+                SubjectId = createDto.SubjectId,
+                SemesterId = createDto.SemesterId,
+                PlanContent = createDto.PlanContent ?? string.Empty,
+                Status = "Chờ duyệt",
+                Title = createDto.Title,
+                StartDate = createDto.StartDate,
+                EndDate = createDto.EndDate,
+                AttachmentUrl = null,
+                Feedback = null,
+                SubmittedDate = null,
+                ReviewedDate = null,
+                ReviewerId = null
+            };
 
-//        private void SetupUserAndTeacher(int userId, int teacherId, bool isHeadOfDepartment)
-//        {
-//            var user = new User { UserId = userId };
-//            var teacher = new Teacher { TeacherId = teacherId, IsHeadOfDepartment = isHeadOfDepartment };
+            await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
 
-//            _userRepositoryMock.Setup(repo => repo.GetByIdAsync(userId)).ReturnsAsync(user);
-//            _teacherRepositoryMock.Setup(repo => repo.GetByUserIdAsync(userId)).ReturnsAsync(teacher);
-//            _teacherRepositoryMock.Setup(repo => repo.GetByIdAsync(teacherId)).ReturnsAsync(teacher);
-//        }
+            // Gửi email thông báo cho giáo viên được assign ở background
+            var assignedTeacher = await _teacherRepository.GetByIdAsync(createDto.TeacherId);
+            if (assignedTeacher != null)
+            {
+                var subject = await _subjectRepository.GetByIdAsync(createDto.SubjectId);
+                if (subject != null)
+                {
+                    var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(createDto.TeacherId);
+                    if (!string.IsNullOrEmpty(teacherEmail))
+                    {
+                        // Chạy gửi email trong background để không chặn response
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await _emailService.SendLessonPlanNotificationAsync(
+                                    teacherEmail: teacherEmail,
+                                    teacherName: assignedTeacher.FullName,
+                                    planTitle: createDto.Title,
+                                    subjectName: subject.SubjectName,
+                                    semesterId: createDto.SemesterId,
+                                    startDate: createDto.StartDate,
+                                    endDate: createDto.EndDate
+                                );
+                                Console.WriteLine($"Đã gửi email thông báo kế hoạch bài giảng đến {teacherEmail}.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Không thể gửi email thông báo kế hoạch bài giảng đến TeacherId {createDto.TeacherId}: {ex.Message}");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {createDto.TeacherId}.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Không tìm thấy môn học với SubjectId {createDto.SubjectId}.");
+                }
+            }
+            else
+            {
+                Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {createDto.TeacherId}.");
+            }
 
-//        [Fact]
-//        public async Task CreateLessonPlanAsync_ShouldCreatePlan_WhenUserIsHeadOfDepartment()
-//        {
-//            // Arrange
-//            int userId = 1;
-//            int teacherId = 1;
-//            var createDto = new LessonPlanCreateDto
-//            {
-//                TeacherId = 2,
-//                SubjectId = 1,
-//                SemesterId = 1,
-//                Title = "Test Plan",
-//                PlanContent = "Content",
-//                StartDate = DateTime.Now,
-//                EndDate = DateTime.Now.AddDays(1)
-//            };
-//            var lessonPlan = new LessonPlan { PlanId = 1, TeacherId = 2, Status = "Đang chờ" };
-//            var lessonPlanResponseDto = new LessonPlanResponseDto { PlanId = 1, TeacherId = 2, Status = "Đang chờ" };
+            var createdPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(lessonPlan.PlanId);
+            return _mapper.Map<LessonPlanResponseDto>(createdPlan);
+        }
 
-//            SetupHttpContext(userId);
-//            SetupUserAndTeacher(userId, teacherId, true);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.AddLessonPlanAsync(It.IsAny<LessonPlan>())).Returns(Task.CompletedTask);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdIncludingDetailsAsync(1)).ReturnsAsync(lessonPlan);
-//            _mapperMock.Setup(m => m.Map<LessonPlanResponseDto>(lessonPlan)).Returns(lessonPlanResponseDto);
+        public async Task UpdateMyLessonPlanAsync(int planId, LessonPlanUpdateDto updateDto)
+        {
+            var teacherId = GetCurrentTeacherId();
+            var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdAsync(planId);
 
-//            // Act
-//            var result = await _lessonPlanService.CreateLessonPlanAsync(createDto);
+            if (lessonPlan == null)
+                throw new KeyNotFoundException("Lesson plan not found.");
 
-//            // Assert
-//            result.Should().NotBeNull();
-//            result.PlanId.Should().Be(1);
-//            result.Status.Should().Be("Đang chờ");
-//            _lessonPlanRepositoryMock.Verify(repo => repo.AddLessonPlanAsync(It.IsAny<LessonPlan>()), Times.Once());
-//        }
+            if (lessonPlan.TeacherId != teacherId)
+                throw new UnauthorizedAccessException("You are not authorized to update this lesson plan.");
 
-//        [Fact]
-//        public async Task CreateLessonPlanAsync_ShouldThrowException_WhenUserIsNotHeadOfDepartment()
-//        {
-//            // Arrange
-//            int userId = 1;
-//            int teacherId = 1;
-//            var createDto = new LessonPlanCreateDto
-//            {
-//                TeacherId = 2,
-//                SubjectId = 1,
-//                SemesterId = 1
-//            };
+            if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Đã nộp")
+            {
+                throw new InvalidOperationException($"Cannot update lesson plan with status '{lessonPlan.Status}'.");
+            }
 
-//            SetupHttpContext(userId);
-//            SetupUserAndTeacher(userId, teacherId, false);
+            DateTime currentDate = DateTime.SpecifyKind(DateTime.Now.Date, DateTimeKind.Unspecified);
+            if (lessonPlan.StartDate.HasValue && currentDate < lessonPlan.StartDate.Value.Date)
+            {
+                throw new InvalidOperationException($"You can only start updating the lesson plan from {lessonPlan.StartDate.Value:dd/MM/yyyy}.");
+            }
 
-//            // Act & Assert
-//            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _lessonPlanService.CreateLessonPlanAsync(createDto));
-//        }
+            if (lessonPlan.EndDate.HasValue && currentDate > lessonPlan.EndDate.Value.Date)
+            {
+                Console.WriteLine($"Warning: Updating lesson plan (ID: {planId}) after the deadline.");
+            }
 
-//        [Fact]
-//        public async Task UpdateMyLessonPlanAsync_ShouldUpdatePlan_WhenAuthorizedAndValid()
-//        {
-//            // Arrange
-//            int userId = 1;
-//            int teacherId = 1;
-//            int planId = 1;
-//            var updateDto = new LessonPlanUpdateDto
-//            {
-//                PlanContent = "Updated Content",
-//                Title = "Updated Title",
-//                AttachmentUrl = "http://example.com"
-//            };
-//            var lessonPlan = new LessonPlan
-//            {
-//                PlanId = planId,
-//                TeacherId = teacherId,
-//                Status = "Đang chờ",
-//                StartDate = DateTime.Now.AddDays(-1),
-//                EndDate = DateTime.Now.AddDays(1)
-//            };
+            lessonPlan.PlanContent = updateDto.PlanContent;
+            lessonPlan.Title = updateDto.Title;
+            lessonPlan.AttachmentUrl = updateDto.AttachmentUrl;
+            lessonPlan.SubmittedDate = DateTime.Now;
+            lessonPlan.Status = "Chờ duyệt";
 
-//            SetupHttpContext(userId);
-//            SetupUserAndTeacher(userId, teacherId, false);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdAsync(planId)).ReturnsAsync(lessonPlan);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.UpdateLessonPlanAsync(lessonPlan)).Returns(Task.CompletedTask);
+            await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
+        }
 
-//            // Act
-//            await _lessonPlanService.UpdateMyLessonPlanAsync(planId, updateDto);
+        public async Task ReviewLessonPlanAsync(LessonPlanReviewDto reviewDto)
+        {
+            if (reviewDto == null || reviewDto.PlanId <= 0 || string.IsNullOrEmpty(reviewDto.Status))
+                throw new ArgumentException("PlanId and status are required.");
 
-//            // Assert
-//            lessonPlan.PlanContent.Should().Be("Updated Content");
-//            lessonPlan.Title.Should().Be("Updated Title");
-//            lessonPlan.AttachmentUrl.Should().Be("http://example.com");
-//            lessonPlan.Status.Should().Be("Đang chờ");
-//            lessonPlan.SubmittedDate.Should().BeCloseTo(DateTime.Now, TimeSpan.FromSeconds(1));
-//            _lessonPlanRepositoryMock.Verify(repo => repo.UpdateLessonPlanAsync(lessonPlan), Times.Once());
-//        }
+            if (reviewDto.Status != "Đã duyệt" && reviewDto.Status != "Từ chối")
+                throw new ArgumentException("Status must be 'Đã duyệt' or 'Từ chối'.");
 
-//        [Fact]
-//        public async Task UpdateMyLessonPlanAsync_ShouldThrowException_WhenNotAuthorized()
-//        {
-//            // Arrange
-//            int userId = 1;
-//            int teacherId = 1;
-//            int planId = 1;
-//            var updateDto = new LessonPlanUpdateDto();
-//            var lessonPlan = new LessonPlan { PlanId = planId, TeacherId = 2 }; // Different teacher
+            var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdAsync(reviewDto.PlanId);
+            if (lessonPlan == null)
+                throw new KeyNotFoundException("Lesson plan not found.");
 
-//            SetupHttpContext(userId);
-//            SetupUserAndTeacher(userId, teacherId, false);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdAsync(planId)).ReturnsAsync(lessonPlan);
+            var reviewerId = GetCurrentTeacherId();
+            var reviewer = await _teacherRepository.GetByIdAsync(reviewerId);
+            if (reviewer == null || !(reviewer.IsHeadOfDepartment ?? false))
+            {
+                throw new UnauthorizedAccessException("Only Head of Department can review lesson plans.");
+            }
 
-//            // Act & Assert
-//            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _lessonPlanService.UpdateMyLessonPlanAsync(planId, updateDto));
-//        }
+            lessonPlan.Status = reviewDto.Status;
+            lessonPlan.Feedback = reviewDto.Feedback;
+            lessonPlan.ReviewedDate = DateTime.Now;
+            lessonPlan.ReviewerId = reviewerId;
 
-//        [Fact]
-//        public async Task ReviewLessonPlanAsync_ShouldReviewPlan_WhenUserIsHeadOfDepartment()
-//        {
-//            // Arrange
-//            int userId = 1;
-//            int teacherId = 1;
-//            int planId = 1;
-//            var reviewDto = new LessonPlanReviewDto
-//            {
-//                PlanId = planId,
-//                Status = "Đã duyệt",
-//                Feedback = "Good job"
-//            };
-//            var lessonPlan = new LessonPlan { PlanId = planId, Status = "Đang chờ" };
+            await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
 
-//            SetupHttpContext(userId);
-//            SetupUserAndTeacher(userId, teacherId, true);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdAsync(planId)).ReturnsAsync(lessonPlan);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.UpdateLessonPlanAsync(lessonPlan)).Returns(Task.CompletedTask);
+            // Gửi email thông báo ở background khi trạng thái thay đổi thành "Đã duyệt" hoặc "Từ chối"
+            if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Từ chối")
+            {
+                var assignedTeacher = await _teacherRepository.GetByIdAsync(lessonPlan.TeacherId);
+                if (assignedTeacher != null)
+                {
+                    var subject = await _subjectRepository.GetByIdAsync(lessonPlan.SubjectId);
+                    if (subject != null)
+                    {
+                        var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(lessonPlan.TeacherId);
+                        if (!string.IsNullOrEmpty(teacherEmail))
+                        {
+                            // Chạy gửi email trong background để không chặn response
+                            _ = Task.Run(async () =>
+                            {
+                                try
+                                {
+                                    await _emailService.SendLessonPlanStatusUpdateAsync(
+                                        teacherEmail: teacherEmail,
+                                        teacherName: assignedTeacher.FullName,
+                                        planTitle: lessonPlan.Title,
+                                        subjectName: subject.SubjectName,
+                                        semesterId: lessonPlan.SemesterId,
+                                        status: lessonPlan.Status,
+                                        feedback: lessonPlan.Feedback
+                                    );
+                                    Console.WriteLine($"Đã gửi email cập nhật trạng thái kế hoạch bài giảng đến {teacherEmail}.");
+                                }
+                                catch (Exception ex)
+                                {
+                                    Console.WriteLine($"Không thể gửi email cập nhật trạng thái kế hoạch bài giảng đến TeacherId {lessonPlan.TeacherId}: {ex.Message}");
+                                }
+                            });
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {lessonPlan.TeacherId}.");
+                        }
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Không tìm thấy môn học với SubjectId {lessonPlan.SubjectId}.");
+                    }
+                }
+                else
+                {
+                    Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {lessonPlan.TeacherId}.");
+                }
+            }
+        }
 
-//            // Act
-//            await _lessonPlanService.ReviewLessonPlanAsync(reviewDto);
+        public async Task<LessonPlanResponseDto> GetLessonPlanByIdAsync(int planId)
+        {
+            var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(planId);
+            if (lessonPlan == null)
+                throw new KeyNotFoundException("Lesson plan not found.");
+            return _mapper.Map<LessonPlanResponseDto>(lessonPlan);
+        }
 
-//            // Assert
-//            lessonPlan.Status.Should().Be("Đã duyệt");
-//            lessonPlan.Feedback.Should().Be("Good job");
-//            lessonPlan.ReviewerId.Should().Be(teacherId);
-//            lessonPlan.ReviewedDate.Should().BeCloseTo(DateTime.Now, TimeSpan.FromSeconds(1));
-//            _lessonPlanRepositoryMock.Verify(repo => repo.UpdateLessonPlanAsync(lessonPlan), Times.Once());
-//        }
+        public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetAllLessonPlansAsync(int pageNumber, int pageSize)
+        {
+            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetAllLessonPlansIncludingDetailsAsync(pageNumber, pageSize);
+            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+            return (lessonPlanDtos, totalCount);
+        }
 
-//        [Fact]
-//        public async Task ReviewLessonPlanAsync_ShouldThrowException_WhenUserIsNotHeadOfDepartment()
-//        {
-//            // Arrange
-//            int userId = 1;
-//            int teacherId = 1;
-//            int planId = 1;
-//            var reviewDto = new LessonPlanReviewDto
-//            {
-//                PlanId = planId,
-//                Status = "Đã duyệt"
-//            };
-//            var lessonPlan = new LessonPlan { PlanId = planId };
+        public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByTeacherAsync(int teacherId, int pageNumber, int pageSize)
+        {
+            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByTeacherIncludingDetailsAsync(teacherId, pageNumber, pageSize);
+            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+            return (lessonPlanDtos, totalCount);
+        }
 
-//            SetupHttpContext(userId);
-//            SetupUserAndTeacher(userId, teacherId, false);
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdAsync(planId)).ReturnsAsync(lessonPlan);
+        public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize)
+        {
+            if (string.IsNullOrEmpty(status))
+                throw new ArgumentException("Status is required.");
 
-//            // Act & Assert
-//            await Assert.ThrowsAsync<UnauthorizedAccessException>(() => _lessonPlanService.ReviewLessonPlanAsync(reviewDto));
-//        }
+            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByStatusIncludingDetailsAsync(status, pageNumber, pageSize);
+            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+            return (lessonPlanDtos, totalCount);
+        }
 
-//        [Fact]
-//        public async Task GetLessonPlanByIdAsync_ShouldReturnPlan_WhenPlanExists()
-//        {
-//            // Arrange
-//            int planId = 1;
-//            var lessonPlan = new LessonPlan { PlanId = planId, Title = "Plan 1" };
-//            var lessonPlanDto = new LessonPlanResponseDto { PlanId = planId, Title = "Plan 1" };
+        private int GetCurrentTeacherId()
+        {
+            var claims = _httpContextAccessor.HttpContext?.User?.Claims?.ToList() ?? new List<Claim>();
+            var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
+               ?? claims.FirstOrDefault(c => c.Type == "sub")
+               ?? throw new UnauthorizedAccessException("User ID not found in token.");
 
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdIncludingDetailsAsync(planId)).ReturnsAsync(lessonPlan);
-//            _mapperMock.Setup(m => m.Map<LessonPlanResponseDto>(lessonPlan)).Returns(lessonPlanDto);
+            if (!int.TryParse(userIdClaim.Value, out var userId))
+                throw new UnauthorizedAccessException("Invalid User ID format in token.");
 
-//            // Act
-//            var result = await _lessonPlanService.GetLessonPlanByIdAsync(planId);
+            var teacher = Task.Run(() => _teacherRepository.GetByUserIdAsync(userId)).GetAwaiter().GetResult();
+            if (teacher == null)
+                throw new UnauthorizedAccessException($"No teacher profile found for UserID {userId}.");
+            return teacher.TeacherId;
+        }
+    }
+}
 
-//            // Assert
-//            result.Should().NotBeNull();
-//            result.PlanId.Should().Be(planId);
-//            result.Title.Should().Be("Plan 1");
-//        }
 
-//        [Fact]
-//        public async Task GetLessonPlanByIdAsync_ShouldThrowException_WhenPlanDoesNotExist()
-//        {
-//            // Arrange
-//            int planId = 1;
-
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlanByIdIncludingDetailsAsync(planId)).ReturnsAsync((LessonPlan)null);
-
-//            // Act & Assert
-//            await Assert.ThrowsAsync<KeyNotFoundException>(() => _lessonPlanService.GetLessonPlanByIdAsync(planId));
-//        }
-
-//        [Fact]
-//        public async Task GetAllLessonPlansAsync_ShouldReturnPagedPlans_WhenPlansExist()
-//        {
-//            // Arrange
-//            int pageNumber = 1;
-//            int pageSize = 10;
-//            var lessonPlans = new List<LessonPlan>
-//            {
-//                new LessonPlan { PlanId = 1, Title = "Plan 1" }
-//            };
-//            var lessonPlanDtos = new List<LessonPlanResponseDto>
-//            {
-//                new LessonPlanResponseDto { PlanId = 1, Title = "Plan 1" }
-//            };
-//            int totalCount = 1;
-
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetAllLessonPlansIncludingDetailsAsync(pageNumber, pageSize))
-//                .ReturnsAsync((lessonPlans, totalCount));
-//            _mapperMock.Setup(m => m.Map<List<LessonPlanResponseDto>>(lessonPlans)).Returns(lessonPlanDtos);
-
-//            // Act
-//            var (result, resultTotalCount) = await _lessonPlanService.GetAllLessonPlansAsync(pageNumber, pageSize);
-
-//            // Assert
-//            result.Should().HaveCount(1);
-//            resultTotalCount.Should().Be(totalCount);
-//            result.First().PlanId.Should().Be(1);
-//        }
-
-//        [Fact]
-//        public async Task GetLessonPlansByTeacherAsync_ShouldReturnPagedPlans_WhenPlansExist()
-//        {
-//            // Arrange
-//            int teacherId = 1;
-//            int pageNumber = 1;
-//            int pageSize = 10;
-//            var lessonPlans = new List<LessonPlan>
-//            {
-//                new LessonPlan { PlanId = 1, TeacherId = teacherId }
-//            };
-//            var lessonPlanDtos = new List<LessonPlanResponseDto>
-//            {
-//                new LessonPlanResponseDto { PlanId = 1, TeacherId = teacherId }
-//            };
-//            int totalCount = 1;
-
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlansByTeacherIncludingDetailsAsync(teacherId, pageNumber, pageSize))
-//                .ReturnsAsync((lessonPlans, totalCount));
-//            _mapperMock.Setup(m => m.Map<List<LessonPlanResponseDto>>(lessonPlans)).Returns(lessonPlanDtos);
-
-//            // Act
-//            var (result, resultTotalCount) = await _lessonPlanService.GetLessonPlansByTeacherAsync(teacherId, pageNumber, pageSize);
-
-//            // Assert
-//            result.Should().HaveCount(1);
-//            resultTotalCount.Should().Be(totalCount);
-//            result.First().TeacherId.Should().Be(teacherId);
-//        }
-
-//        [Fact]
-//        public async Task GetLessonPlansByStatusAsync_ShouldReturnPagedPlans_WhenStatusIsValid()
-//        {
-//            // Arrange
-//            string status = "Đã duyệt";
-//            int pageNumber = 1;
-//            int pageSize = 10;
-//            var lessonPlans = new List<LessonPlan>
-//            {
-//                new LessonPlan { PlanId = 1, Status = "Đã duyệt" }
-//            };
-//            var lessonPlanDtos = new List<LessonPlanResponseDto>
-//            {
-//                new LessonPlanResponseDto { PlanId = 1, Status = "Đã duyệt" }
-//            };
-//            int totalCount = 1;
-
-//            _lessonPlanRepositoryMock.Setup(repo => repo.GetLessonPlansByStatusIncludingDetailsAsync(status, pageNumber, pageSize))
-//                .ReturnsAsync((lessonPlans, totalCount));
-//            _mapperMock.Setup(m => m.Map<List<LessonPlanResponseDto>>(lessonPlans)).Returns(lessonPlanDtos);
-
-//            // Act
-//            var (result, resultTotalCount) = await _lessonPlanService.GetLessonPlansByStatusAsync(status, pageNumber, pageSize);
-
-//            // Assert
-//            result.Should().HaveCount(1);
-//            resultTotalCount.Should().Be(totalCount);
-//            result.First().Status.Should().Be("Đã duyệt");
-//        }
-
-//        [Fact]
-//        public async Task GetLessonPlansByStatusAsync_ShouldThrowException_WhenStatusIsEmpty()
-//        {
-//            // Arrange
-//            string status = "";
-
-//            // Act & Assert
-//            await Assert.ThrowsAsync<ArgumentException>(() => _lessonPlanService.GetLessonPlansByStatusAsync(status, 1, 10));
-//        }
-//    }
-//}
