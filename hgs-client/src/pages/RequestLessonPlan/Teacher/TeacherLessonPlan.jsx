@@ -6,7 +6,7 @@ import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
 import { jwtDecode } from 'jwt-decode';
-import { useLessonPlanByTeacher } from '../../../services/lessonPlan/queries';
+import { useLessonPlanByTeacher } from 'c:/Users/trung/Downloads/hgs-client/src/services/lessonPlan/queries';
 
 const TeacherLessonPlan = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -49,7 +49,7 @@ const TeacherLessonPlan = () => {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Đang chờ':
+            case 'Chờ duyệt':
                 return 'status-processing';
             case 'Đã duyệt':
                 return 'status-approved';
@@ -62,7 +62,7 @@ const TeacherLessonPlan = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Đang chờ':
+            case 'Chờ duyệt':
                 return 'Đang xử lý';
             case 'Đã duyệt':
                 return 'Đã duyệt';
@@ -228,7 +228,6 @@ const TeacherLessonPlan = () => {
 
     return (
         <div className="lesson-plan-list">
-            <h2>Danh sách kế hoạch giảng dạy</h2>
 
             <h2>Danh sách kế hoạch giáo án</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>

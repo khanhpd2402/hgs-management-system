@@ -2,9 +2,10 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { jwtDecode } from 'jwt-decode';
 import './UploadLessonPlan.scss';
 import { useSubjectByTeacher } from '../../../services/subject/queries';
-import { useSemestersByAcademicYear } from '../../../services/common/queries';
+import { useSemestersByAcademicYear } from '../../..//services/common/queries';
 import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
 import toast from "react-hot-toast";
+import { useNavigate } from 'react-router-dom';
 
 const PREVIEW_TYPES = {
     FOLDER: 'folder',
@@ -36,6 +37,7 @@ const UploadLessonPlan = () => {
     const { subjects, isLoading: subjectsLoading } = useSubjectByTeacher(teacherId);
 
 
+    const navigate = useNavigate();
 
 
     // ============= Event Handlers ==================
@@ -68,8 +70,7 @@ const UploadLessonPlan = () => {
         const endDateTime = new Date(form.endDate);
 
         if (startDateTime >= endDateTime) {
-
-            toast.message("Ngày kết thúc phải sau ngày bắt đầu");
+            toast.error("Ngày kết thúc phải sau ngày bắt đầu");
             return;
         }
 
@@ -82,17 +83,22 @@ const UploadLessonPlan = () => {
             startDate: startDateTime.toISOString(),
             endDate: endDateTime.toISOString()
         };
+        console.log("payload", payload)
 
         try {
             await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
-            toast.message("Tạo kế hoạch giảng dạy thành công!");
+            const toastId = toast.success("Tạo kế hoạch giảng dạy thành công!");
 
+            // Wait for both the toast duration and a small delay before navigating
+            setTimeout(() => {
+                toast.dismiss(toastId);
+                navigate('/teacher/lesson-plan');
+            }, 2100);
         } catch (error) {
             console.error('Error creating lesson plan:', error);
             const errorMessage = error.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch giảng dạy';
             toast.error(errorMessage);
-
         }
     };
 

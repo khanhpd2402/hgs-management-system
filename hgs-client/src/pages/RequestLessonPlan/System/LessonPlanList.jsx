@@ -61,7 +61,7 @@ const LessonPlanList = () => {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Đang chờ':
+            case 'Chờ duyệt':
                 return 'status-processing';
             case 'Đã duyệt':
                 return 'status-approved';
@@ -74,7 +74,7 @@ const LessonPlanList = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Đang chờ':
+            case 'Chờ duyệt':
                 return 'Đang xử lý';
             case 'Đã duyệt':
                 return 'Đã duyệt';
@@ -84,7 +84,6 @@ const LessonPlanList = () => {
                 return status;
         }
     };
-
     const filteredLessonPlans = lessonPlans.filter(plan => {
         const searchStr = searchTerm.toLowerCase();
         return (
@@ -138,7 +137,7 @@ const LessonPlanList = () => {
                                     {selectedRequest.planContent}
                                 </Descriptions.Item>
                                 <Descriptions.Item label="Trạng thái">
-                                    <Tag color={getStatusClass(selectedRequest.status)}>
+                                    <Tag className={`status-${selectedRequest.status.toLowerCase().replace(' ', '-')}`}>
                                         {getStatusText(selectedRequest.status)}
                                     </Tag>
                                 </Descriptions.Item>
@@ -200,17 +199,13 @@ const LessonPlanList = () => {
             dataIndex: 'subjectName',
             key: 'subjectName',
         },
-        {
-            title: 'Nội dung',
-            dataIndex: 'planContent',
-            key: 'planContent',
-        },
+
         {
             title: 'Trạng thái',
             dataIndex: 'status',
             key: 'status',
             render: (status) => (
-                <span className={`status-badge ${getStatusClass(status)}`}>
+                <span className={`status-${status.toLowerCase()} ${getStatusClass(status)}`}>
                     {getStatusText(status)}
                 </span>
             ),
@@ -396,7 +391,7 @@ const LessonPlanList = () => {
                         }}
                     >
                         <option value="All">Tất cả</option>
-                        <option value="Đang chờ">Đang xử lý</option>
+                        <option value="Chờ duyệt">Đang xử lý</option>
                         <option value="Đã duyệt">Đã duyệt</option>
                         <option value="Từ chối">Từ chối</option>
                     </select>
