@@ -1,5 +1,5 @@
-
-﻿using Application.Features.LessonPlans.DTOs;
+﻿
+using Application.Features.LessonPlans.DTOs;
 using Application.Features.LessonPlans.Interfaces;
 using Application.Features.Teachers.Interfaces;
 using Domain.Models;
@@ -290,5 +290,4 @@ namespace Application.Features.LessonPlans.Services
         }
     }
 }
-
 
