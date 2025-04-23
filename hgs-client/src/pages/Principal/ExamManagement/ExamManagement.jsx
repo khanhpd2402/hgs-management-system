@@ -21,6 +21,8 @@ import MyPagination from "@/components/MyPagination";
 import toast from "react-hot-toast";
 import { useExams } from "@/services/principal/queries";
 import { useTeachers } from "@/services/teacher/queries";
+import { useUpdateExamStatus } from "@/services/principal/mutation";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 // Giả sử có hook này, bạn cần thay bằng hook thật từ services/principal/queries
 // import { useAllExamProposals, useUpdateExamStatus } from "@/services/principal/queries";
 
@@ -34,9 +36,11 @@ export default function ExamManagement() {
   const [statusFilter, setStatusFilter] = useState("all");
   const [gradeFilter, setGradeFilter] = useState("all");
   const [subjectFilter, setSubjectFilter] = useState("all");
+  const [teacherFilter, setTeacherFilter] = useState("all");
   const [selectedExam, setSelectedExam] = useState(null);
   const [openModal, setOpenModal] = useState(false);
   const [newStatus, setNewStatus] = useState("");
+  const [comment, setComment] = useState("");
 
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
   const semesters = semesterQuery.data || [];
@@ -48,6 +52,7 @@ export default function ExamManagement() {
   const subjects = subjectQuery.data || [];
   const gradeLevelQuery = useGradeLevels();
   const gradeLevels = gradeLevelQuery.data || [];
+  const updateExamStatusMutation = useUpdateExamStatus();
   const isLoading = examQuery.isLoading || gradeLevelQuery.isLoading;
 
   const getStatusBackgroundColor = (status) => {
@@ -63,13 +68,13 @@ export default function ExamManagement() {
     }
   };
 
-  console.log(allExams);
-
   const filteredExams = allExams.filter((exam) => {
     let match = true;
     if (statusFilter !== "all" && exam.status !== statusFilter) match = false;
     if (gradeFilter !== "all" && exam.grade !== gradeFilter) match = false;
     if (subjectFilter !== "all" && exam.subjectId !== subjectFilter)
+      match = false;
+    if (teacherFilter !== "all" && exam.createdBy !== teacherFilter)
       match = false;
     if (semester && exam.semesterId !== semester.semesterID) match = false;
     return match;
@@ -93,25 +98,30 @@ export default function ExamManagement() {
 
   // const updateExamStatus = useUpdateExamStatus(); // TODO: mutation đổi trạng thái
 
-  const handleChangeStatus = (exam, status) => {
-    setSelectedExam(exam);
-    setNewStatus(status);
-    setOpenModal(true);
-  };
-
   const handleConfirmChangeStatus = () => {
     // TODO: Gọi mutation đổi trạng thái, ví dụ:
-    // updateExamStatus.mutate({ id: selectedExam.proposalId, status: newStatus }, {
-    //   onSuccess: () => {
-    //     toast.success("Cập nhật trạng thái thành công!");
-    //     setOpenModal(false);
-    //   },
-    //   onError: () => {
-    //     toast.error("Có lỗi xảy ra!");
-    //   }
-    // });
-    setOpenModal(false);
-    toast.success("Đã cập nhật trạng thái (demo)");
+    if (comment.length > 200) {
+      toast.error("Nhận xét không được quá 200 ký tự");
+      return;
+    }
+    const data = {
+      status: newStatus,
+      comment: cleanString(comment.trim()),
+    };
+    updateExamStatusMutation.mutate(
+      {
+        examId: selectedExam?.proposalId,
+        data,
+      },
+      {
+        onSuccess: () => {
+          setOpenModal(false);
+          setSelectedExam(null);
+          setNewStatus("");
+          setComment("");
+        },
+      },
+    );
   };
 
   return (
@@ -172,6 +182,19 @@ export default function ExamManagement() {
                 {subjects.map((subject) => (
                   <SelectItem value={subject.subjectID} key={subject.subjectID}>
                     {subject.subjectName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Select value={teacherFilter} onValueChange={setTeacherFilter}>
+              <SelectTrigger className="w-40">
+                <SelectValue placeholder="Lọc giáo viên" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Tất cả giáo viên</SelectItem>
+                {teachers.map((teacher) => (
+                  <SelectItem value={teacher.teacherId} key={teacher.teacherId}>
+                    {teacher.fullName}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -269,9 +292,16 @@ export default function ExamManagement() {
                           </span>
                         )}
                       </td>
-                      <td className="border px-4 py-2 text-center">
+                      <td
+                        className="group cursor-pointer border px-4 py-2 text-center"
+                        onClick={() => {
+                          setSelectedExam(exam);
+                          setOpenModal(true);
+                        }}
+                      >
                         <span
-                          className={`inline-block rounded-full px-2 py-1 text-xs font-semibold ${getStatusBackgroundColor(exam.status)}`}
+                          className={`inline-flex items-center gap-1 rounded-full px-2 py-1 text-xs font-semibold transition ${getStatusBackgroundColor(exam.status)} group-hover:bg-blue-100 group-hover:text-blue-700 group-hover:underline group-hover:shadow`}
+                          title="Bấm để đổi trạng thái"
                         >
                           {exam.status}
                         </span>
@@ -280,7 +310,7 @@ export default function ExamManagement() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={7} className="p-4 text-left">
+                    <td colSpan={7} className="px-4 py-3 text-left">
                       Không có dữ liệu
                     </td>
                   </tr>
@@ -305,16 +335,43 @@ export default function ExamManagement() {
         />
       </div>
       {/* Modal xác nhận đổi trạng thái */}
-      {openModal && (
+      {openModal && selectedExam && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30">
           <div className="w-full max-w-sm rounded-lg bg-white p-6 shadow-lg">
             <h3 className="mb-4 text-lg font-semibold text-gray-800">
-              Xác nhận đổi trạng thái
+              Đổi trạng thái
             </h3>
-            <p>
-              Bạn có chắc muốn đổi trạng thái đề thi thành{" "}
-              <span className="font-bold">{newStatus}</span>?
-            </p>
+            <div className="mb-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Trạng thái mới
+              </label>
+              <Select value={newStatus} onValueChange={setNewStatus}>
+                <SelectTrigger className="w-full">
+                  <SelectValue placeholder="Chọn trạng thái mới" />
+                </SelectTrigger>
+                <SelectContent>
+                  {["Đã duyệt", "Chờ duyệt", "Từ chối"]
+                    .filter((status) => status !== selectedExam?.status)
+                    .map((status) => (
+                      <SelectItem value={status} key={status}>
+                        {status}
+                      </SelectItem>
+                    ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="mt-4">
+              <label className="mb-1 block text-sm font-medium text-gray-700">
+                Nhận xét
+              </label>
+              <textarea
+                className="w-full rounded-md border border-gray-300 px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                rows={3}
+                value={comment}
+                onChange={(e) => setComment(e.target.value)}
+                placeholder="Nhập nhận xét..."
+              />
+            </div>
             <div className="mt-6 flex justify-end gap-2">
               <Button variant="outline" onClick={() => setOpenModal(false)}>
                 Hủy
