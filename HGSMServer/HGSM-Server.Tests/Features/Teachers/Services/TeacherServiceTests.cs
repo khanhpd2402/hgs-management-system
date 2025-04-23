@@ -18,26 +18,28 @@
 //using System.Threading.Tasks;
 //using Xunit;
 
-//namespace HGSM_Server.Tests.Features.Teachers.Services
-//{
-//    public class TeacherServiceTests
-//    {
-//        private readonly Mock<ITeacherRepository> _teacherRepositoryMock;
-//        private readonly Mock<ISubjectRepository> _subjectRepositoryMock;
-//        private readonly Mock<IRoleRepository> _roleRepositoryMock;
-//        private readonly Mock<IMapper> _mapperMock;
-//        private readonly Mock<HgsdbContext> _dbContextMock;
-//        private readonly Mock<IDbContextTransaction> _dbTransactionMock;
-//        private readonly TeacherService _teacherService;
+namespace HGSM_Server.Tests.Features.Teachers.Services
+{
+    public class TeacherServiceTests
+    {
+        private readonly Mock<ITeacherRepository> _teacherRepositoryMock;
+        private readonly Mock<IUserRepository> _userRepositoryMock; // Add IUserRepository
+        private readonly Mock<ISubjectRepository> _subjectRepositoryMock;
+        private readonly Mock<IRoleRepository> _roleRepositoryMock;
+        private readonly Mock<IMapper> _mapperMock;
+        private readonly Mock<HgsdbContext> _dbContextMock;
+        private readonly Mock<IDbContextTransaction> _dbTransactionMock;
+        private readonly TeacherService _teacherService;
 
-//        public TeacherServiceTests()
-//        {
-//            _teacherRepositoryMock = new Mock<ITeacherRepository>();
-//            _subjectRepositoryMock = new Mock<ISubjectRepository>();
-//            _roleRepositoryMock = new Mock<IRoleRepository>();
-//            _mapperMock = new Mock<IMapper>();
-//            _dbContextMock = new Mock<HgsdbContext>(new DbContextOptions<HgsdbContext>());
-//            _dbTransactionMock = new Mock<IDbContextTransaction>();
+        public TeacherServiceTests()
+        {
+            _teacherRepositoryMock = new Mock<ITeacherRepository>();
+            _userRepositoryMock = new Mock<IUserRepository>(); 
+            _subjectRepositoryMock = new Mock<ISubjectRepository>();
+            _roleRepositoryMock = new Mock<IRoleRepository>();
+            _mapperMock = new Mock<IMapper>();
+            _dbContextMock = new Mock<HgsdbContext>(new DbContextOptions<HgsdbContext>());
+            _dbTransactionMock = new Mock<IDbContextTransaction>();
 
 //            var databaseFacadeMock = new Mock<DatabaseFacade>(_dbContextMock.Object);
 //            databaseFacadeMock.Setup(d => d.BeginTransactionAsync(It.IsAny<CancellationToken>()))
@@ -45,16 +47,16 @@
 //            databaseFacadeMock.Setup(d => d.BeginTransaction())
 //                              .Returns(_dbTransactionMock.Object);
 
+            _dbContextMock.Setup(c => c.Database).Returns(databaseFacadeMock.Object);
 
-//            _dbContextMock.Setup(c => c.Database).Returns(databaseFacadeMock.Object);
-
-//            _teacherService = new TeacherService(
-//                _teacherRepositoryMock.Object,
-//                _mapperMock.Object,
-//                _subjectRepositoryMock.Object,
-//                _roleRepositoryMock.Object,
-//                _dbContextMock.Object);
-//        }
+            _teacherService = new TeacherService(
+                _teacherRepositoryMock.Object,
+                _userRepositoryMock.Object, 
+                _mapperMock.Object,
+                _subjectRepositoryMock.Object,
+                _roleRepositoryMock.Object,
+                _dbContextMock.Object);
+        }
 
 //        [Fact]
 //        public async Task GetAllTeachersAsync_ShouldReturnTeacherList_WhenTeachersExist()
