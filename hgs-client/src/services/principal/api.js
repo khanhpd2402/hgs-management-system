@@ -176,3 +176,8 @@ export const updateTeacherSubjectByTeacherId = async (id, data) => {
 export const changeUserRole = async (data) => {
   return (await axiosInstance.post(`auth/assign-role`, data)).data;
 };
+
+//exam
+export const getAllExams = async () => {
+  return (await axiosInstance.get(`ExamProposals/exam-proposals`)).data;
+};

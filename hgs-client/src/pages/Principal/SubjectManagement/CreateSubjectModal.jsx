@@ -33,6 +33,7 @@ const subjectSchema = z.object({
   gradesData: z.array(
     z.object({
       gradeLevelId: z.number(),
+      gradeName: z.string().optional(),
       periodsPerWeekHKI: z.number().nullable(),
       periodsPerWeekHKII: z.number().nullable(),
       continuousAssessmentsHKI: z.number().nullable(),
@@ -56,20 +57,7 @@ export const CreateSubjectModal = ({ open, setOpen }) => {
     reset,
   } = useForm({
     resolver: zodResolver(subjectSchema),
-    defaultValues: {
-      subjectName: "",
-      subjectCategory: "",
-      typeOfGrade: "",
-      // gradesData: gradeLevelsQuery?.data?.map((gradeLevel) => ({
-      //   gradeLevelId: gradeLevel.gradeLevelId,
-      //   periodsPerWeekHKI: 4,
-      //   periodsPerWeekHKII: 4,
-      //   continuousAssessmentsHKI: 4,
-      //   continuousAssessmentsHKII: 4,
-      //   midtermAssessments: 1,
-      //   finalAssessments: 1,
-      // })),
-    },
+    defaultValues: {},
   });
 
   const createSubjectMutation = useCreateSubject();
@@ -94,6 +82,7 @@ export const CreateSubjectModal = ({ open, setOpen }) => {
         typeOfGrade: "",
         gradesData: gradeLevelsQuery.data.map((gradeLevel) => ({
           gradeLevelId: gradeLevel.gradeLevelId,
+          gradeName: gradeLevel.gradeName,
           periodsPerWeekHKI: 4,
           periodsPerWeekHKII: 4,
           continuousAssessmentsHKI: 4,
@@ -166,6 +155,8 @@ export const CreateSubjectModal = ({ open, setOpen }) => {
       },
     });
   };
+
+  console.log(gradesData);
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
@@ -249,7 +240,7 @@ export const CreateSubjectModal = ({ open, setOpen }) => {
                         }`}
                       >
                         <label className="flex cursor-pointer items-center justify-center gap-2 select-none">
-                          Khối {grade.gradeLevelId}
+                          {grade.gradeName}
                           <input
                             type="checkbox"
                             checked={enabledGrades[grade.gradeLevelId]}
