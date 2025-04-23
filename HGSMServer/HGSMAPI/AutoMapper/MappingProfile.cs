@@ -20,6 +20,8 @@ using Common.Constants;
 using Application.Features.SubstituteTeachings.DTOs;
 using Application.Features.TeacherSubjects.DTOs;
 using Application.Features.Conducts.DTOs;
+using Application.Features.Attendances.DTOs;
+
 
 namespace HGSMAPI.AutoMapper
 {
@@ -27,6 +29,7 @@ namespace HGSMAPI.AutoMapper
     {
         public MappingProfile()
         {
+            CreateMap<Attendance, AttendanceDto>().ReverseMap();
             // Ánh xạ cho TeacherDetailDto sang Teacher
             CreateMap<TeacherDetailDto, Teacher>()
                 .ForMember(dest => dest.User, opt => opt.Ignore());

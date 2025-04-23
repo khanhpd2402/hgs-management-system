@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import {
@@ -30,8 +30,19 @@ import {
 } from "@/services/common/queries";
 import { cn } from "@/lib/utils";
 import { jwtDecode } from "jwt-decode";
-import { useStudentByClass } from "@/services/teacher/queries";
-import { formatDate } from "@/helpers/formatDate";
+import {
+  useStudentAttendances,
+  useStudentByClass,
+} from "@/services/teacher/queries";
+import { formatDate, formatDateString } from "@/helpers/formatDate";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { vi } from "date-fns/locale";
+import { useTakeAttendance } from "@/services/teacher/mutation";
 
 export default function AttendanceTable() {
   const { currentYear } = useLayout();
@@ -50,49 +61,95 @@ export default function AttendanceTable() {
   const teachingAssignments = teachingAssignmentQuery.data || [];
   const classQuery = useClasses();
   const classes = classQuery.data || [];
-  const homeroomTeacherQuery = useHomeroomTeachers();
-  const homeroomTeachers = homeroomTeacherQuery.data || [];
+  // const homeroomTeacherQuery = useHomeroomTeachers();
+  // const homeroomTeachers = homeroomTeacherQuery.data || [];
   const studentQuery = useStudentByClass({
     classId: classroom,
     semesterId: semester?.semesterID,
   });
   const students = studentQuery.data?.students || [];
+
+  const takeAttendanceMutation = useTakeAttendance();
+
   // console.log(students);
   // console.log(teachingAssignments);
 
   const [date, setDate] = useState(new Date());
   const [studentsData, setStudentsData] = useState([]);
-  const [session, setSession] = useState("");
+  const [session, setSession] = useState("Sáng");
   const [viewMode, setViewMode] = useState("day");
-
-  console.log(classQuery.error);
-
-  const daysInMonth = new Date(
-    date.getFullYear(),
-    date.getMonth() + 1,
-    0,
-  ).getDate();
 
   const getMonday = (d) => {
     const date = new Date(d);
     const day = date.getDay();
-    console.log(day);
     // Nếu là Chủ nhật (0) thì lùi về thứ 2 tuần hiện tại, còn lại lùi về thứ 2
     const diff = date.getDate() - day + (day === 0 ? -6 : 1);
     return new Date(date.setDate(diff));
   };
+  //attendance info
+  const weekStart = formatDate(getMonday(date));
+  const studentAttendanceQuery = useStudentAttendances({
+    teacherId: teacherId,
+    classId: classroom,
+    semesterId: semester?.semesterID,
+    weekStart,
+  });
+  const studentAttendances = studentAttendanceQuery.data || [];
 
   const handleSubmit = () => {
-    const monday = getMonday(date);
-    const payload = studentsData.map((student) => ({
-      classId: classroom,
-      date: formatDate(monday),
-      session: session,
-      status: student.status || "C",
-      note: student.note || "",
-      studentId: student.studentId,
-    }));
-    console.log(payload);
+    if (viewMode === "week") {
+      const currentTimeGMT7 = new Date(date);
+
+      const todayIndex =
+        currentTimeGMT7.getDay() === 0 ? 5 : currentTimeGMT7.getDay() - 1;
+      const monday = getMonday(date);
+
+      // Chỉ lấy từ thứ 2 đến hôm nay, loại Chủ nhật
+      const payload = studentsData.flatMap((student) =>
+        [...Array(todayIndex + 1)].map((_, i) => {
+          const day = new Date(monday);
+          day.setDate(monday.getDate() + i);
+          return {
+            studentClassId: student.studentClassId,
+            date: formatDate(day),
+            session: session,
+            status: "C",
+            note: "",
+            studentId: student.studentId,
+          };
+        }),
+      );
+      const data = {
+        weekStart: formatDate(monday),
+        teacherId: +teacherId,
+        semesterId: semester?.semesterID,
+        classId: classroom,
+        data: payload,
+      };
+      console.log(data);
+      // takeAttendanceMutation.mutate(data);
+    } else {
+      const monday = getMonday(date);
+      console.log(monday);
+
+      const payload = studentsData.map((student) => ({
+        studentClassId: student.studentClassId,
+        date: formatDate(date),
+        session: session,
+        status: student.status || "C",
+        note: student.note || "",
+        studentId: student.studentId,
+      }));
+      const data = {
+        weekStart: formatDate(monday),
+        teacherId: +teacherId,
+        semesterId: semester?.semesterID,
+        classId: classroom,
+        data: payload,
+      };
+      console.log(data);
+      // takeAttendanceMutation.mutate(data);
+    }
   };
 
   useEffect(() => {
@@ -107,17 +164,60 @@ export default function AttendanceTable() {
 
   useEffect(() => {
     if (students.length > 0) {
+      // Lấy ngày thứ 2 của tuần hiện tại
+      const monday = getMonday(date);
+      // Tạo mảng ngày trong tuần (7 ngày)
+      const weekDates = [...Array(7)].map((_, i) => {
+        const d = new Date(monday);
+        d.setDate(monday.getDate() + i);
+        return formatDate(d);
+      });
+
       setStudentsData(
-        students.map((student) => ({
-          ...student,
-          status: student.status || "C",
-          note: student.note || "",
-        })),
+        students.map((student) => {
+          // Tạo mảng trạng thái cho từng ngày trong tuần
+          const attendanceByDay = weekDates.map((day, idx) => {
+            // Tìm attendance phù hợp trong studentAttendances
+            const att = studentAttendances.find(
+              (a) =>
+                a.studentClassId === student.studentClassId &&
+                a.date === day &&
+                a.session === session,
+            );
+            return {
+              status: att ? att.status : "C",
+              note: att ? att.note : "",
+              attendanceId: att ? att.attendanceId : null,
+              date: day,
+            };
+          });
+          return {
+            ...student,
+            attendanceByDay, // mảng 7 phần tử cho từng ngày
+          };
+        }),
       );
     } else {
       setStudentsData([]);
     }
-  }, [students]);
+  }, [students, studentAttendances, date, session]);
+
+  console.log(studentsData);
+  const debounceTimeout = useRef({});
+
+  // Debounce cho lý do
+  const handleNoteChangeDebounced = useCallback((studentId, value) => {
+    if (debounceTimeout.current[studentId]) {
+      clearTimeout(debounceTimeout.current[studentId]);
+    }
+    debounceTimeout.current[studentId] = setTimeout(() => {
+      setStudentsData((prev) =>
+        prev.map((s) =>
+          s.studentId === studentId ? { ...s, note: value } : s,
+        ),
+      );
+    }, 300);
+  }, []);
 
   const handleStatusChange = (studentId, value) => {
     setStudentsData((prev) =>
@@ -127,10 +227,18 @@ export default function AttendanceTable() {
     );
   };
 
-  // Hàm xử lý thay đổi lý do
-  const handleNoteChange = (studentId, value) => {
+  const handleWeekStatusChange = (studentId, dayIndex, value) => {
     setStudentsData((prev) =>
-      prev.map((s) => (s.studentId === studentId ? { ...s, note: value } : s)),
+      prev.map((student) =>
+        student.studentId === studentId
+          ? {
+              ...student,
+              attendanceByDay: student.attendanceByDay.map((att, idx) =>
+                idx === dayIndex ? { ...att, status: value } : att,
+              ),
+            }
+          : student,
+      ),
     );
   };
 
@@ -138,6 +246,32 @@ export default function AttendanceTable() {
     <Card className="mt-6 p-4">
       <div className="flex items-center">
         <div>
+          {" "}
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="outline">
+                {date ? (
+                  formatDateString(formatDate(date))
+                ) : (
+                  <span className="text-gray-400">Chọn ngày</span>
+                )}
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent>
+              <Calendar
+                mode="single"
+                selected={date}
+                onSelect={setDate}
+                locale={vi}
+                disabled={(date) =>
+                  date > new Date() || date < new Date("1900-01-01")
+                }
+                initialFocus
+              />
+            </PopoverContent>
+          </Popover>
+        </div>
+        <div className="ml-4">
           <Select value={classroom} onValueChange={setClassroom}>
             <SelectTrigger className="w-[180px]">
               <SelectValue placeholder="Chọn lớp" />
@@ -148,13 +282,14 @@ export default function AttendanceTable() {
                   const inTeaching = teachingAssignments.some(
                     (ta) => ta.classId === c.classId,
                   );
-                  const inHomeroom = homeroomTeachers.some(
-                    (ht) =>
-                      ht.classId === c.classId &&
-                      ht.teacherId == teacherId &&
-                      semester?.semesterID === ht.semesterId,
-                  );
-                  return inTeaching || inHomeroom;
+                  // const inHomeroom = homeroomTeachers.some(
+                  //   (ht) =>
+                  //     ht.classId === c.classId &&
+                  //     ht.teacherId == teacherId &&
+                  //     semester?.semesterID === ht.semesterId,
+                  // );
+                  // return inTeaching || inHomeroom;
+                  return inTeaching;
                 })
                 .map((c) => (
                   <SelectItem key={c.classId} value={c.classId}>
@@ -230,46 +365,51 @@ export default function AttendanceTable() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students.map((student, index) => (
-                    <TableRow
-                      key={student.studentId}
-                      className="hover:bg-gray-50"
-                    >
-                      <TableCell className="h-16 border border-gray-200 text-center">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-200 font-medium">
-                        {student.fullName}
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-200 text-center">
-                        <select
-                          value={student.attendance}
-                          onChange={(e) =>
-                            handleStatusChange(
-                              student.studentId,
-                              e.target.value,
-                            )
-                          }
-                          className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                        >
-                          <option value="C">Có mặt</option>
-                          <option value="P">Nghỉ có phép</option>
-                          <option value="KP">Nghỉ không phép</option>
-                          <option value="K">Lí do khác</option>
-                        </select>
-                      </TableCell>
-                      <TableCell className="h-16 border border-gray-200">
-                        <Input
-                          type="text"
-                          onChange={(e) =>
-                            handleNoteChange(student.studentId, e.target.value)
-                          }
-                          disabled={student.status !== "K"}
-                          className="disabled:bg-gray-100"
-                        />
-                      </TableCell>
-                    </TableRow>
-                  ))}
+                  {studentsData.length > 0 &&
+                    studentsData.map((student, index) => (
+                      <TableRow
+                        key={student.studentId}
+                        className="hover:bg-gray-50"
+                      >
+                        <TableCell className="h-16 border border-gray-200 text-center">
+                          {index + 1}
+                        </TableCell>
+                        <TableCell className="h-16 border border-gray-200 font-medium">
+                          {student.fullName}
+                        </TableCell>
+                        <TableCell className="h-16 border border-gray-200 text-center">
+                          <select
+                            value={student.attendance}
+                            onChange={(e) =>
+                              handleStatusChange(
+                                student.studentId,
+                                e.target.value,
+                              )
+                            }
+                            className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                          >
+                            <option value="C">Có mặt</option>
+                            <option value="P">Nghỉ có phép</option>
+                            <option value="K">Nghỉ không phép</option>
+                            <option value="X">Lí do khác</option>
+                          </select>
+                        </TableCell>
+                        <TableCell className="h-16 border border-gray-200">
+                          <Input
+                            type="text"
+                            onChange={(e) =>
+                              handleNoteChangeDebounced(
+                                student.studentId,
+                                e.target.value,
+                              )
+                            }
+                            maxLength={50}
+                            disabled={student.status !== "X"}
+                            className="disabled:bg-gray-100"
+                          />
+                        </TableCell>
+                      </TableRow>
+                    ))}
                 </TableBody>
               </Table>
             )}
@@ -285,94 +425,41 @@ export default function AttendanceTable() {
                         className="text-center"
                       >{`Thứ ${i + 2}`}</TableHead>
                     ))}
-                    <TableHead className="text-center">Chủ nhật</TableHead>
                     <TableHead className="text-center">
                       Tổng ngày nghỉ
                     </TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {students.map((student, index) => (
-                    <TableRow key={student.studentId}>
-                      <TableCell>{index + 1}</TableCell>
-                      <TableCell>{student.fullName}</TableCell>
-                      {[...Array(7)].map((_, i) => (
-                        <TableCell
-                          key={i}
-                          className="border border-gray-300 text-center"
-                        >
-                          <Input
-                            type="text"
-                            value={student.attendance[i]}
-                            maxLength={2} // Giới hạn ký tự nhập vào
-                            className="w-[50px] text-center"
-                          />
+                  {studentsData.length > 0 &&
+                    studentsData.map((student, index) => (
+                      <TableRow key={student.studentId}>
+                        <TableCell className="text-center">
+                          {index + 1}
                         </TableCell>
-                      ))}
-                      <TableCell className="border border-gray-300 text-center">
-                        {
-                          student.attendance.filter(
-                            (status) => status === "P" || status === "KP",
-                          ).length
-                        }
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            )}
-            {viewMode === "month" && (
-              <Table className="w-full border-collapse border-gray-300">
-                <TableHeader className="bg-gray-100">
-                  <TableRow>
-                    <TableHead className="border border-gray-300">
-                      STT
-                    </TableHead>
-                    <TableHead className="min-w-[200px] border border-gray-300">
-                      Họ và tên
-                    </TableHead>
-                    {[...Array(daysInMonth)].map((_, i) => (
-                      <TableHead
-                        key={i}
-                        className="min-w-[25px] border border-gray-300 text-center"
-                      >{`${i + 1}`}</TableHead>
+                        <TableCell>{student.fullName}</TableCell>
+                        {[...Array(6)].map((_, i) => (
+                          <TableCell
+                            key={i}
+                            className="border border-gray-300 text-center"
+                          >
+                            <Input
+                              type="text"
+                              value={
+                                student.attendanceByDay?.[i]?.status || "C"
+                              }
+                              maxLength={1}
+                              className="mx-auto w-[50px] text-center"
+                            />
+                          </TableCell>
+                        ))}
+                        <TableCell className="border border-gray-300 text-center">
+                          {student.attendanceByDay
+                            ?.slice(0, 6)
+                            .filter((d) => d.status !== "C").length || 0}
+                        </TableCell>
+                      </TableRow>
                     ))}
-                    <TableHead className="border border-gray-300">
-                      Tổng ngày nghỉ
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
-                <TableBody>
-                  {students.map((student, index) => (
-                    <TableRow key={student.id}>
-                      <TableCell className="border border-gray-300 text-center">
-                        {index + 1}
-                      </TableCell>
-                      <TableCell className="border border-gray-300">
-                        {student.name}
-                      </TableCell>
-                      {[...Array(daysInMonth)].map((_, i) => (
-                        <TableCell
-                          key={i}
-                          className="border border-gray-300 text-center"
-                        >
-                          <Input
-                            type="text"
-                            value={student.attendance[i]}
-                            maxLength={2} // Giới hạn ký tự nhập vào
-                            className="w-[50px] text-center"
-                          />
-                        </TableCell>
-                      ))}
-                      <TableCell className="border border-gray-300 text-center">
-                        {
-                          student.attendance.filter(
-                            (status) => status === "P" || status === "KP",
-                          ).length
-                        }
-                      </TableCell>
-                    </TableRow>
-                  ))}
                 </TableBody>
               </Table>
             )}

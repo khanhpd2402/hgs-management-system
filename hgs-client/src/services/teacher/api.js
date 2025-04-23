@@ -67,3 +67,28 @@ export const getStudentByClass = async (classId, semesterId) => {
     )
   ).data;
 };
+
+export const takeAttendance = async ({
+  teacherId,
+  classId,
+  semesterId,
+  data,
+}) => {
+  return await axiosInstance.post(
+    `Attendance/upsert?teacherId=${teacherId}&classId=${classId}&semesterId=${semesterId}`,
+    data,
+  );
+};
+
+export const getStudentAttendances = async ({
+  teacherId,
+  classId,
+  semesterId,
+  weekStart,
+}) => {
+  return (
+    await axiosInstance.get(
+      `Attendance/weekly?teacherId=${teacherId}&classId=${classId}&semesterId=${semesterId}&weekStart=${weekStart}`,
+    )
+  ).data;
+};
