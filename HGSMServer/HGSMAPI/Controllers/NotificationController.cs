@@ -1,6 +1,7 @@
-﻿using Application.Features.Notifications.DTOs;
-using Application.Features.Teachers.Interfaces; // Thêm để sử dụng ITeacherService
-using Common.Utils.Notifications.Services;
+﻿using Application.Features.Notification.DTOs;
+using Application.Features.Notification.DTOs;
+using Application.Features.Teachers.Interfaces;
+using Common.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System;
@@ -14,7 +15,7 @@ namespace HGSMAPI.Controllers
     public class NotificationController : ControllerBase
     {
         private readonly EmailService _emailService;
-        private readonly ITeacherService _teacherService; 
+        private readonly ITeacherService _teacherService;
 
         public NotificationController(EmailService emailService, ITeacherService teacherService)
         {

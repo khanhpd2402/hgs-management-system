@@ -64,7 +64,6 @@ using Application.Features.SubstituteTeachings.Interfaces;
 using Application.Features.SubstituteTeachings.Services;
 using Application.Features.Conducts.Interfaces;
 using Application.Features.Conducts.Services;
-using Common.Utils.Notifications.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
