@@ -185,7 +185,6 @@ const ReviewDetail = () => {
 
                         <Divider />
 
-                        // Update the attachment preview section in the return statement
                         <div className="attachment-preview-section">
                             <Title level={3}>
                                 <FileTextOutlined /> File đính kèm

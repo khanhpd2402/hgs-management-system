@@ -253,4 +253,29 @@ $danger-color: #dc3545;
         font-weight: 500;
     }
 }
-  
+.status-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-weight: 500;
+    display: inline-block;
+    text-align: center;
+    min-width: 80px;
+
+    &.status-processing {
+        background-color: #e6f7ff;
+        color: #1890ff;
+        border: 1px solid #91d5ff;
+    }
+
+    &.status-approved {
+        background-color: #f6ffed;
+        color: #52c41a;
+        border: 1px solid #b7eb8f;
+    }
+
+    &.status-rejected {
+        background-color: #fff1f0;
+        color: #f5222d;
+        border: 1px solid #ffa39e;
+    }
+}
