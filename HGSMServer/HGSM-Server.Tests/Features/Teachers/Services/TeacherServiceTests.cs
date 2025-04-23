@@ -34,7 +34,7 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
         public TeacherServiceTests()
         {
             _teacherRepositoryMock = new Mock<ITeacherRepository>();
-            _userRepositoryMock = new Mock<IUserRepository>(); 
+            _userRepositoryMock = new Mock<IUserRepository>();
             _subjectRepositoryMock = new Mock<ISubjectRepository>();
             _roleRepositoryMock = new Mock<IRoleRepository>();
             _mapperMock = new Mock<IMapper>();
@@ -51,7 +51,7 @@ namespace HGSM_Server.Tests.Features.Teachers.Services
 
             _teacherService = new TeacherService(
                 _teacherRepositoryMock.Object,
-                _userRepositoryMock.Object, 
+                _userRepositoryMock.Object,
                 _mapperMock.Object,
                 _subjectRepositoryMock.Object,
                 _roleRepositoryMock.Object,
