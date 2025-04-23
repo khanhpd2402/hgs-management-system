@@ -411,6 +411,7 @@ namespace Application.Features.StudentClass.Services
                 students = studentClasses
                     .Select(sc => new StudentFilterDto
                     {
+                        StudentClassId = sc.Id,
                         StudentId = sc.Student.StudentId,
                         FullName = sc.Student.FullName,
                         Status = sc.Student.Status

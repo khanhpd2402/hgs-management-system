@@ -11,6 +11,7 @@ namespace Infrastructure.Repositories.Interfaces
     public interface IStudentClassRepository
     {
         Task<IEnumerable<StudentClass>> GetByClassIdAndAcademicYearAsync(int classId, int academicYearId);
+        Task<StudentClass?> GetWithClassAndStudentAsync(int studentClassId);
         Task<StudentClass?> GetByIdAsync(int id);
         Task<IEnumerable<StudentClass>> GetAllAsync();
         Task<StudentClass> AddAsync(StudentClass entity);

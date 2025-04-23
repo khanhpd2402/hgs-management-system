@@ -33,12 +33,14 @@ namespace Infrastructure.Repositories.Implementtations
 
         public async Task AddRangeAsync(IEnumerable<Attendance> attendances)
         {
-            await _context.Attendances.AddRangeAsync(attendances);
+            _context.Attendances.AddRangeAsync(attendances);
+            await _context.SaveChangesAsync();
         }
 
         public async Task UpdateRangeAsync(IEnumerable<Attendance> attendances)
         {
             _context.Attendances.UpdateRange(attendances);
+            await _context.SaveChangesAsync();
         }
     }
 
