@@ -1,5 +1,6 @@
 ﻿using Application.Features.Attendances.DTOs;
 using Application.Features.Attendances.Interfaces;
+using AutoMapper;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -9,20 +10,90 @@ namespace Application.Features.Attendances.Services
 {
     public class AttendanceService : IAttendanceService
     {
-        private readonly IAttendanceRepository _attendanceRepository;
-        private readonly IHttpContextAccessor _httpContextAccessor;
-        private readonly HgsdbContext _context;
+        private readonly IAttendanceRepository _repository;
+        private readonly IMapper _mapper;
+        private readonly ITeachingAssignmentRepository _teachingAssignmentRepo;
 
         public AttendanceService(
-            IAttendanceRepository attendanceRepository,
-            IHttpContextAccessor httpContextAccessor,
-            HgsdbContext context)
+            IAttendanceRepository repository,
+            IMapper mapper,
+            ITeachingAssignmentRepository teachingAssignmentRepo)
         {
-            _attendanceRepository = attendanceRepository;
-            _httpContextAccessor = httpContextAccessor;
-            _context = context;
+            _repository = repository;
+            _mapper = mapper;
+            _teachingAssignmentRepo = teachingAssignmentRepo;
         }
 
-       
+
+        public async Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int teacherId, int classId, int semesterId, DateOnly weekStart)
+        {
+            var isAssigned = await _teachingAssignmentRepo.IsTeacherAssignedAsync(teacherId, classId, semesterId);
+            if (!isAssigned)
+                throw new UnauthorizedAccessException("Bạn không được phân công dạy lớp này trong học kỳ này.");
+
+            var attendances = await _repository.GetByWeekAsync(classId, weekStart);
+            return _mapper.Map<List<AttendanceDto>>(attendances);
+        }
+
+        public async Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos)
+        {
+            var isAssigned = await _teachingAssignmentRepo.IsTeacherAssignedAsync(teacherId, classId, semesterId);
+            if (!isAssigned)
+                throw new UnauthorizedAccessException("Bạn không được phân công dạy lớp này trong học kỳ này.");
+
+            var today = DateOnly.FromDateTime(DateTime.Today);
+            var now = DateTime.Now;
+            var entitiesToAdd = new List<Attendance>();
+            var entitiesToUpdate = new List<Attendance>();
+
+            foreach (var dto in dtos)
+            {
+                var attendanceDate = dto.Date;
+
+                if (attendanceDate > today)
+                    throw new InvalidOperationException("Không thể điểm danh trước ngày hiện tại.");
+
+                if (attendanceDate == today)
+                    ValidateSessionTime(dto.Session, now);
+
+                var existing = await _repository.GetAsync(dto.StudentClassId, dto.Date, dto.Session);
+                if (existing != null)
+                {
+                    existing.Status = dto.Status;
+                    existing.Note = dto.Note;
+                    entitiesToUpdate.Add(existing);
+                }
+                else
+                {
+                    var entity = _mapper.Map<Attendance>(dto);
+                    entity.CreatedAt = now;
+                    entitiesToAdd.Add(entity);
+                }
+            }
+
+            if (entitiesToAdd.Any())
+                await _repository.AddRangeAsync(entitiesToAdd);
+
+            if (entitiesToUpdate.Any())
+                await _repository.UpdateRangeAsync(entitiesToUpdate);
+        }
+
+        private void ValidateSessionTime(string session, DateTime now)
+        {
+            switch (session)
+            {
+                case "Sáng":
+                    if (now.Hour < 7)
+                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
+                    break;
+                case "Chiều":
+                    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
+                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
+                    break;
+                default:
+                    throw new InvalidOperationException("Buổi học không hợp lệ.");
+            }
+        }
     }
+
 }

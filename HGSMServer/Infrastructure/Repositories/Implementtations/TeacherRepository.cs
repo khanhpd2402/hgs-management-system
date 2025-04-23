@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Common.Constants;
+using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -17,9 +18,11 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public IQueryable<Teacher> GetAll()
+        public async Task<List<Teacher>> GetAllAsync()
         {
-            return _context.Teachers.Include(t => t.User).AsQueryable();
+            return await _context.Teachers
+                .Where(t => t.EmploymentStatus == AppConstants.Status.ACTIVE) 
+                .ToListAsync();
         }
 
         public async Task<Teacher?> GetByIdAsync(int id)
@@ -27,7 +30,14 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Teachers.Include(t => t.User)
                                           .FirstOrDefaultAsync(t => t.TeacherId == id);
         }
-
+        public async Task<List<Teacher>> GetTeachersBySubjectIdAsync(int subjectId)
+        {
+            // Lấy danh sách giáo viên có thể dạy môn học dựa trên bảng TeacherSubjects
+            return await _context.Teachers
+                .Where(t => _context.TeacherSubjects
+                    .Any(ts => ts.TeacherId == t.TeacherId && ts.SubjectId == subjectId))
+                .ToListAsync();
+        }
         public async Task AddAsync(Teacher teacher)
         {
             await _context.Teachers.AddAsync(teacher);

@@ -1,5 +1,8 @@
 ﻿using Application.Features.LeaveRequests.DTOs;
+using Application.Features.LeaveRequests.DTOs.Application.Features.LeaveRequests.DTOs;
 using Application.Features.LeaveRequests.Interfaces;
+using Application.Features.LeaveRequests.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -52,6 +55,20 @@ namespace HGSMAPI.Controllers
         {
             var deleted = await _service.DeleteAsync(id);
             return deleted ? NoContent() : NotFound();
+        }
+        [HttpPost("find-substitute-teachers")]
+        //[Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> FindSubstituteTeachers([FromBody] FindSubstituteTeacherRequestDto request)
+        {
+            var availableTeachers = await _service.FindAvailableSubstituteTeachersAsync(request);
+            return Ok(availableTeachers);
+        }
+        [HttpPost("check-available-teachers")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<IActionResult> CheckAvailableTeachers([FromBody] FindSubstituteTeacherRequestDto request)
+        {
+            var availableTeachers = await _service.CheckAvailableTeachersAsync(request);
+            return Ok(availableTeachers);
         }
     }
 }

@@ -19,7 +19,11 @@ public partial class ExamProposal
 
     public DateTime? CreatedDate { get; set; }
 
+    public string? Comment { get; set; }
+
     public string? FileUrl { get; set; }
+
+    public string Status { get; set; } = null!;
 
     public virtual Teacher CreatedByNavigation { get; set; } = null!;
 

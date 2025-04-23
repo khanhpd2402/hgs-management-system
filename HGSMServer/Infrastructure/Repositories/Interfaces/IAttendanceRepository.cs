@@ -7,9 +7,9 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface IAttendanceRepository
     {
-        //Task<List<Attendance>> GetByWeekAsync(int classId, DateTime weekStart);
-        //Task AddRangeAsync(List<Attendance> attendances);
-        //Task UpdateRangeAsync(List<Attendance> updates);
-        //Task<bool> ExistsForSessionAsync(int studentId, DateTime date, string session);
+        Task<List<Attendance>> GetByWeekAsync(int studentClassId, DateOnly weekStart);
+        Task<Attendance?> GetAsync(int studentClassId, DateOnly date, string session);
+        Task AddRangeAsync(IEnumerable<Attendance> attendances);
+        Task UpdateRangeAsync(IEnumerable<Attendance> attendances);
     }
 }

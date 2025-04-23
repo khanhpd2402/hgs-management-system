@@ -8,7 +8,7 @@ namespace Application.Features.Exams.DTOs
         public int Grade { get; set; }
         public string Title { get; set; }
         public int SemesterId { get; set; }
-        public string SubjectName { get; set; } 
+        //public string SubjectName { get; set; } 
         public IFormFile File { get; set; } 
     }
 }

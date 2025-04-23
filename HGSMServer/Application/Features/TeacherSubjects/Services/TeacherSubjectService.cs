@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.EntityFrameworkCore; // Cần thêm namespace này
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.TeacherSubjects.Services
 {
@@ -62,6 +62,22 @@ namespace Application.Features.TeacherSubjects.Services
             return _mapper.Map<List<TeacherSubjectDto>>(filteredTeacherSubjects);
         }
 
+        public async Task<List<TeacherSubjectDto>> GetBySubjectIdAsync(int subjectId)
+        {
+            var subject = await _subjectRepository.GetByIdAsync(subjectId);
+            if (subject == null)
+            {
+                throw new ArgumentException($"Subject with Id {subjectId} does not exist.");
+            }
+
+            var teacherSubjects = await _repository.GetAllAsync();
+            var filteredTeacherSubjects = teacherSubjects
+                .Where(ts => ts.SubjectId == subjectId)
+                .ToList();
+
+            return _mapper.Map<List<TeacherSubjectDto>>(filteredTeacherSubjects);
+        }
+
         public async Task CreateAsync(CreateTeacherSubjectDto dto)
         {
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
@@ -86,7 +102,7 @@ namespace Application.Features.TeacherSubjects.Services
             await _repository.AddAsync(teacherSubject);
         }
 
-        public async Task UpdateAsync(UpdateTeacherSubjectDto dto) 
+        public async Task UpdateAsync(UpdateTeacherSubjectDto dto)
         {
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
             if (teacher == null)
@@ -94,7 +110,7 @@ namespace Application.Features.TeacherSubjects.Services
                 throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
             }
 
-            var existingTeacherSubjects = await _repository.GetAllAsync(); 
+            var existingTeacherSubjects = await _repository.GetAllAsync();
 
             foreach (var subjectInfo in dto.Subjects)
             {

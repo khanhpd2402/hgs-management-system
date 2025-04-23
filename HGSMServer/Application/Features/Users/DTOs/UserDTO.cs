@@ -15,6 +15,7 @@ namespace Application.Features.Users.DTOs
         public string? PhoneNumber { get; set; }
 
         public int RoleId { get; set; }
+        public string? RoleName { get; set; }
 
         private string? _status;
         public string? Status
@@ -22,8 +23,8 @@ namespace Application.Features.Users.DTOs
             get => _status;
             set
             {
-                if (value != null && value != "Active" && value != "Deactive")
-                    throw new ArgumentException("Status must be either 'Active' or 'Deactive'.");
+                if (value != null && value != "Hoạt động" && value != "Không hoạt động")
+                    throw new ArgumentException("Status phải là 'Hoạt Động' hoặc 'Không Hoạt Động'.");
                 _status = value;
             }
         }

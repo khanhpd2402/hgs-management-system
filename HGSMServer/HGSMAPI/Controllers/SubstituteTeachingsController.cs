@@ -15,29 +15,6 @@ namespace HGSMAPI.Controllers
             _service = service;
         }
 
-        // POST: api/SubstituteTeachings
-        [HttpPost]
-        public async Task<IActionResult> Create([FromBody] SubstituteTeachingCreateDto dto)
-        {
-            try
-            {
-                var result = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { substituteId = result.SubstituteId }, result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error creating substitute teaching: {ex.Message}");
-            }
-        }
-
         // GET: api/SubstituteTeachings/5
         [HttpGet("{substituteId}")]
         public async Task<IActionResult> GetById(int substituteId)
@@ -72,30 +49,11 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        // PUT: api/SubstituteTeachings/5
-        [HttpPut("{substituteId}")]
-        public async Task<IActionResult> Update(int substituteId, [FromBody] SubstituteTeachingUpdateDto dto)
+        [HttpPost]
+        public async Task<IActionResult> CreateOrUpdate([FromBody] SubstituteTeachingCreateDto dto)
         {
-            if (substituteId != dto.SubstituteId)
-                return BadRequest("SubstituteId mismatch.");
-
-            try
-            {
-                var result = await _service.UpdateAsync(dto);
-                return Ok(result);
-            }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Error updating substitute teaching: {ex.Message}");
-            }
+            var result = await _service.CreateOrUpdateAsync(dto);
+            return Ok(result);
         }
 
         // DELETE: api/SubstituteTeachings/5

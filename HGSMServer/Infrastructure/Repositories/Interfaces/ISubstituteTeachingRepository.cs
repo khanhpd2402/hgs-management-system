@@ -10,6 +10,7 @@ namespace Infrastructure.Repositories.Interfaces
     public interface ISubstituteTeachingRepository
     {
         Task<SubstituteTeaching> CreateAsync(SubstituteTeaching entity);
+        Task<SubstituteTeaching?> GetByTimetableDetailAndDateAsync(int timetableDetailId, DateOnly date);
         Task<SubstituteTeaching> GetByIdAsync(int substituteId);
         Task<IEnumerable<SubstituteTeaching>> GetAllAsync(int? timetableDetailId = null, int? OriginalTeacherId = null, int? SubstituteTeacherId = null, DateOnly? date = null);
         Task UpdateAsync(SubstituteTeaching entity);

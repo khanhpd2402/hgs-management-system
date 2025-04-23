@@ -12,7 +12,7 @@ namespace HGSMAPI.Configurations
         {
             var secretKey = configuration["JWT:SecretKey"];
             var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));
-            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha512Signature);
+            var credentials = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
             string role = u.Role.RoleName;
             var claims = new Claim[] {
                         new(ClaimTypes.Role, role),
@@ -39,11 +39,13 @@ namespace HGSMAPI.Configurations
                 {
                     ValidateIssuerSigningKey = true,
                     IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])),
-                    ValidateIssuer = false, // Set this to true and provide the valid issuer if you want to validate the issuer
-                    ValidateAudience = false, // Set this to true and provide the valid audience if you want to validate the audience
+                    ValidateIssuer = true, // Set this to true and provide the valid issuer if you want to validate the issuer
+                    ValidateAudience = true, // Set this to true and provide the valid audience if you want to validate the audience
                 };
 
                 // Validate the token
+                Console.WriteLine($"[DEBUG] Validating token with key: {configuration["JWT:SecretKey"]}");
+
                 ClaimsPrincipal claimsPrincipal = tokenHandler.ValidateToken(accessToken, validationParameters, out var validatedToken);
                 return claimsPrincipal;
             }

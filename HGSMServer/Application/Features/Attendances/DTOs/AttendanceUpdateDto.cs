@@ -6,8 +6,10 @@ using System.Threading.Tasks;
 
 namespace Application.Features.Attendances.DTOs
 {
-    public class AttendanceUpdateDto : AttendanceCreateDto
+    public class AttendanceUpdateDto
     {
         public int AttendanceId { get; set; }
+        public string Status { get; set; } = default!;
+        public string? Note { get; set; }
     }
 }

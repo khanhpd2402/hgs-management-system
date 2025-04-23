@@ -7,8 +7,9 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITeacherRepository
     {
-        IQueryable<Teacher> GetAll();
+        Task<List<Teacher>> GetAllAsync();
         Task<Teacher?> GetByIdAsync(int id);
+        Task<List<Teacher>> GetTeachersBySubjectIdAsync(int subjectId);
         Task AddAsync(Teacher teacher);
         Task UpdateAsync(Teacher teacher);
         Task DeleteAsync(int id);
