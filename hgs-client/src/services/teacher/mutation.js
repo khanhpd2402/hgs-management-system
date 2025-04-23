@@ -77,16 +77,19 @@ export function useDeleteTeacher() {
   });
 }
 
-export function useUploadExam(data) {
+export function useUploadExam() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data) => uploadExam(data),
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
-        console.log("đã có lỗi xảy ra");
+        toast.error("đã có lỗi xảy ra");
       } else {
         console.log(data);
-        console.log("Tải lên đề thi thành công");
+        toast.success("Tải lên đề thi thành công");
+        const teacherId = variables.get("TeacherId");
+        queryClient.invalidateQueries(["exams-by-teacher-id", { teacherId }]);
       }
     },
   });

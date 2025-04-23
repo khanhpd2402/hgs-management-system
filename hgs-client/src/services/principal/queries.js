@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import {
+  getAllExams,
   getAllSemesters,
   getClassById,
   getClassesWithStudentCount,
@@ -55,7 +56,7 @@ export function useSubjectDetail(id) {
 
 export function useSubjectConfigue() {
   return useQuery({
-    queryKey: ["subjectConfig"],
+    queryKey: ["subjectConfigs"],
     queryFn: getSubjectConfigues,
   });
 }
@@ -141,5 +142,15 @@ export function useTeacherSubject(teacherId) {
       return getTeacherSubjectsByTeacherId(teacherId);
     },
     enabled: !!teacherId,
+  });
+}
+
+//exam
+export function useExams() {
+  return useQuery({
+    queryKey: ["exams"],
+    queryFn: () => {
+      return getAllExams();
+    },
   });
 }

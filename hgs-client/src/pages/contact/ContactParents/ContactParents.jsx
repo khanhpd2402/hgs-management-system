@@ -25,12 +25,12 @@ const ContactParents = () => {
 
   const isMatchingSearch = (text, searchTerm) => {
     if (!text || !searchTerm) return false;
-    
+
     const normalizedText = normalizeString(text);
     const normalizedSearch = normalizeString(searchTerm);
-    
+
     const searchWords = normalizedSearch.split(/\s+/).filter(word => word.length > 0);
-    
+
     return searchWords.every(word => {
       if (normalizedText.includes(word)) return true;
       return false;
@@ -89,11 +89,11 @@ const ContactParents = () => {
 
   useEffect(() => {
     let result = [...students];
-    
+
     if (selectedClass) {
       result = result.filter(student => student.className === selectedClass);
     }
-    
+
     if (searchText) {
       const normalizedSearch = normalizeString(searchText);
       result = result.filter(student => {
@@ -107,7 +107,7 @@ const ContactParents = () => {
         return nameMatch || fatherPhoneMatch || motherPhoneMatch || fatherNameMatch || motherNameMatch || studentIdMatch;
       });
     }
-    
+
     setFilteredStudents(result);
     setCurrentPage(1);
   }, [selectedClass, searchText, students]);
@@ -174,7 +174,7 @@ const ContactParents = () => {
     }
 
     if (endPage < totalPages) {
-       if (endPage < totalPages - 1) {
+      if (endPage < totalPages - 1) {
         pageNumbers.push(<span key="end-ellipsis" className="px-3 py-1">...</span>);
       }
       pageNumbers.push(
@@ -215,7 +215,7 @@ const ContactParents = () => {
             <label className="block text-sm font-medium mb-1">Lớp</label>
             <select
               className="w-full border rounded p-2 text-sm"
-            value={selectedClass}
+              value={selectedClass}
               onChange={(e) => setSelectedClass(e.target.value)}
               disabled={!selectedYear || uniqueClasses.length === 0}
             >
@@ -234,8 +234,8 @@ const ContactParents = () => {
               className="w-full border rounded p-2 text-sm"
               value={searchText}
               onChange={(e) => setSearchText(e.target.value)}
-            disabled={!selectedYear}
-          />
+              disabled={!selectedYear}
+            />
           </div>
         </div>
       </div>
