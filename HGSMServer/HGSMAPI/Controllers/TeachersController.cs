@@ -33,6 +33,29 @@ public class TeachersController : ControllerBase
         return Ok(teacher);
     }
 
+    [HttpGet("{id}/email")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    public async Task<IActionResult> GetEmailByTeacherId(int id)
+    {
+        try
+        {
+            var email = await _teacherService.GetEmailByTeacherIdAsync(id);
+            if (string.IsNullOrEmpty(email))
+            {
+                return NotFound(new { Message = $"Không tìm thấy email cho giáo viên với ID {id}." });
+            }
+            return Ok(new { Email = email });
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { Message = ex.Message });
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(new { Message = $"Lỗi khi lấy email: {ex.Message}" });
+        }
+    }
+
     [HttpPost]
     [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<ActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
@@ -50,13 +73,12 @@ public class TeachersController : ControllerBase
         var updatedTeacher = await _teacherService.GetTeacherByIdAsync(id);
         if (updatedTeacher == null)
         {
-            return NotFound(); 
+            return NotFound();
         }
 
-        return Ok(updatedTeacher); 
+        return Ok(updatedTeacher);
     }
 
-    
     [HttpDelete("{id}")]
     [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> DeleteTeacher(int id)
@@ -70,9 +92,8 @@ public class TeachersController : ControllerBase
         return Ok(new { Message = $"Giáo viên với ID {id} và tài khoản User liên quan đã được xóa thành công." });
     }
 
-
     [HttpPost("import")]
-    //[Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
     {
         var (success, errors) = await _teacherService.ImportTeachersFromExcelAsync(file);

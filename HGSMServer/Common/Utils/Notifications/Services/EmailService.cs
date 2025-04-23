@@ -2,8 +2,9 @@
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 
-namespace Common.Utils
+namespace Common.Utils.Notifications.Services
 {
     public class EmailService
     {
@@ -25,7 +26,7 @@ namespace Common.Utils
             _fromName = fromName;
         }
 
-        // Hàm gửi email bất đồng bộ
+        // Hàm gửi email bất đồng bộ cho một người nhận
         public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
             try
@@ -50,6 +51,46 @@ namespace Common.Utils
             catch (Exception ex)
             {
                 throw new Exception($"Không thể gửi email: {ex.Message}", ex);
+            }
+        }
+
+        // Hàm gửi email bất đồng bộ cho nhiều người nhận
+        public async Task SendEmailToMultipleRecipientsAsync(List<string> toEmails, string subject, string body, bool isHtml = false)
+        {
+            if (toEmails == null || !toEmails.Any())
+                throw new ArgumentException("Danh sách email người nhận không được rỗng.");
+
+            try
+            {
+                using (var smtpClient = new SmtpClient(_smtpHost, _smtpPort))
+                {
+                    smtpClient.EnableSsl = true;
+                    smtpClient.Credentials = new NetworkCredential(_smtpUsername, _smtpPassword);
+
+                    var mailMessage = new MailMessage
+                    {
+                        From = new MailAddress(_fromEmail, _fromName),
+                        Subject = subject,
+                        Body = body,
+                        IsBodyHtml = isHtml
+                    };
+
+                    // Thêm tất cả email vào danh sách người nhận
+                    foreach (var email in toEmails)
+                    {
+                        if (!string.IsNullOrWhiteSpace(email))
+                            mailMessage.To.Add(email);
+                    }
+
+                    if (mailMessage.To.Count == 0)
+                        throw new Exception("Không có email người nhận hợp lệ.");
+
+                    await smtpClient.SendMailAsync(mailMessage);
+                }
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Không thể gửi email đến nhiều người nhận: {ex.Message}", ex);
             }
         }
 

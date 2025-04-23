@@ -1,5 +1,6 @@
 ﻿using Application.Features.LessonPlans.DTOs;
 using Application.Features.LessonPlans.Interfaces;
+using Application.Features.Teachers.Interfaces; // Thêm để sử dụng ITeacherService
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -10,7 +11,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
-using Common.Utils;
+using Common.Utils.Notifications.Services;
 
 namespace Application.Features.LessonPlans.Services
 {
@@ -23,6 +24,7 @@ namespace Application.Features.LessonPlans.Services
         private readonly IMapper _mapper;
         private readonly EmailService _emailService;
         private readonly ISubjectRepository _subjectRepository;
+        private readonly ITeacherService _teacherService; 
 
         public LessonPlanService(
             ILessonPlanRepository lessonPlanRepository,
@@ -31,7 +33,8 @@ namespace Application.Features.LessonPlans.Services
             IHttpContextAccessor httpContextAccessor,
             IMapper mapper,
             EmailService emailService,
-            ISubjectRepository subjectRepository)
+            ISubjectRepository subjectRepository,
+            ITeacherService teacherService) 
         {
             _lessonPlanRepository = lessonPlanRepository ?? throw new ArgumentNullException(nameof(lessonPlanRepository));
             _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
@@ -40,6 +43,7 @@ namespace Application.Features.LessonPlans.Services
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
             _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
             _subjectRepository = subjectRepository ?? throw new ArgumentNullException(nameof(subjectRepository));
+            _teacherService = teacherService ?? throw new ArgumentNullException(nameof(teacherService));
         }
 
         public async Task<LessonPlanResponseDto> CreateLessonPlanAsync(LessonPlanCreateDto createDto)
@@ -81,31 +85,36 @@ namespace Application.Features.LessonPlans.Services
             };
 
             await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
-
-            // Gửi email thông báo cho giáo viên được assign
+            //send mail
             var assignedTeacher = await _teacherRepository.GetByIdAsync(createDto.TeacherId);
             if (assignedTeacher != null)
             {
-                var user = await _userRepository.GetByIdAsync(assignedTeacher.UserId);
                 var subject = await _subjectRepository.GetByIdAsync(createDto.SubjectId);
-                if (user != null && !string.IsNullOrEmpty(user.Email) && subject != null)
+                if (subject != null)
                 {
                     try
                     {
-                        await _emailService.SendLessonPlanNotificationAsync(
-                            teacherEmail: user.Email,
-                            teacherName: assignedTeacher.FullName,
-                            planTitle: createDto.Title,
-                            subjectName: subject.SubjectName,
-                            semesterId: createDto.SemesterId,
-                            startDate: createDto.StartDate,
-                            endDate: createDto.EndDate
-                        );
+                        var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(createDto.TeacherId);
+                        if (!string.IsNullOrEmpty(teacherEmail))
+                        {
+                            await _emailService.SendLessonPlanNotificationAsync(
+                                teacherEmail: teacherEmail,
+                                teacherName: assignedTeacher.FullName,
+                                planTitle: createDto.Title,
+                                subjectName: subject.SubjectName,
+                                semesterId: createDto.SemesterId,
+                                startDate: createDto.StartDate,
+                                endDate: createDto.EndDate
+                            );
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {createDto.TeacherId}.");
+                        }
                     }
                     catch (Exception ex)
                     {
-                        // Ghi log lỗi nhưng không làm gián đoạn flow
-                        Console.WriteLine($"Failed to send lesson plan notification email to {user.Email}: {ex.Message}");
+                        Console.WriteLine($"Failed to send lesson plan notification email to TeacherId {createDto.TeacherId}: {ex.Message}");
                     }
                 }
             }
