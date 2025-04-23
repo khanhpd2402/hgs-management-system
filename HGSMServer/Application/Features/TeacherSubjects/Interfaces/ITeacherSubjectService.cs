@@ -9,6 +9,7 @@ namespace Application.Features.TeacherSubjects.Interfaces
         Task<List<TeacherSubjectDto>> GetAllAsync();
         Task<TeacherSubjectDto> GetByIdAsync(int id);
         Task<List<TeacherSubjectDto>> GetByTeacherIdAsync(int teacherId);
+        Task<List<TeacherSubjectDto>> GetBySubjectIdAsync(int subjectId);
         Task CreateAsync(CreateTeacherSubjectDto dto);
         Task UpdateAsync(UpdateTeacherSubjectDto dto);
         Task DeleteAsync(int id);

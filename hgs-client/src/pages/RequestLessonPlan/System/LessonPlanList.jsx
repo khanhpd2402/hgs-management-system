@@ -5,6 +5,8 @@ import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } fr
 import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { Input } from 'antd';
+import toast from 'react-hot-toast';
 
 const { Option } = Select;
 
@@ -18,7 +20,9 @@ const LessonPlanList = () => {
     const pageSize = 10;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
-
+    const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+    const [reviewForm] = Form.useForm();
+    const [selectedPlan, setSelectedPlan] = useState(null);
     const fetchLessonPlans = async (page, status) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
@@ -57,11 +61,11 @@ const LessonPlanList = () => {
 
     const getStatusClass = (status) => {
         switch (status) {
-            case 'Processing':
+            case 'Đang chờ':
                 return 'status-processing';
-            case 'Approved':
+            case 'Đã duyệt':
                 return 'status-approved';
-            case 'Rejected':
+            case 'Từ chối':
                 return 'status-rejected';
             default:
                 return '';
@@ -70,11 +74,11 @@ const LessonPlanList = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Processing':
+            case 'Đang chờ':
                 return 'Đang xử lý';
-            case 'Approved':
+            case 'Đã duyệt':
                 return 'Đã duyệt';
-            case 'Rejected':
+            case 'Từ chối':
                 return 'Từ chối';
             default:
                 return status;
@@ -159,7 +163,7 @@ const LessonPlanList = () => {
                             <h2>File đính kèm</h2>
                             <div className="file-preview">
                                 <iframe
-                                    src={selectedRequest.attachmentUrl}
+                                    src={getGoogleDriveEmbedUrl(selectedRequest.attachmentUrl)}
                                     title="File đính kèm"
                                     width="100%"
                                     height="600px"
@@ -167,6 +171,10 @@ const LessonPlanList = () => {
                                         border: '1px solid #d9d9d9',
                                         borderRadius: '4px'
                                     }}
+                                    frameBorder="0"
+                                    allowFullScreen
+                                    allow="autoplay"
+                                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                                 />
                             </div>
                         </div>
@@ -241,9 +249,18 @@ const LessonPlanList = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    <Link to={`/system/lesson-plan/${record.planId}`}>
-                        <Button>Cập nhật</Button>
-                    </Link>
+
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            setSelectedPlan(record);
+                            setIsReviewModalVisible(true);
+                        }}
+                    >
+                        Phê duyệt
+                    </Button>
+
+
                 </Space>
             ),
         },
@@ -253,9 +270,103 @@ const LessonPlanList = () => {
         return <div className="loading">Đang tải dữ liệu...</div>;
     }
 
+    const getGoogleDriveEmbedUrl = (url) => {
+        if (!url) return '';
+
+        if (url.includes('drive.google.com')) {
+            // Handle folder URLs
+            if (url.includes('/folders/')) {
+                const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
+                if (folderId) {
+                    return `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
+                }
+            }
+            // Handle file URLs
+            else if (url.includes('/file/d/')) {
+                const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
+                if (fileId) {
+                    return `https://drive.google.com/file/d/${fileId}/preview`;
+                }
+            }
+        }
+        return url;
+    };
+
+
+    const ReviewModal = () => (
+        <Modal
+            title="Phê duyệt kế hoạch giáo án"
+            open={isReviewModalVisible}
+            onCancel={() => {
+                setIsReviewModalVisible(false);
+                reviewForm.resetFields();
+            }}
+            footer={null}
+        >
+            <Form
+                form={reviewForm}
+                onFinish={handleReview}
+                layout="vertical"
+            >
+                <Form.Item
+                    name="status"
+                    label="Trạng thái"
+                    rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+                >
+                    <Select>
+                        <Option value="Đã duyệt">Phê duyệt</Option>
+                        <Option value="Từ chối">Từ chối</Option>
+                    </Select>
+                </Form.Item>
+
+                <Form.Item
+                    name="feedback"
+                    label="Phản hồi"
+                    rules={[{ required: true, message: 'Vui lòng nhập phản hồi' }]}
+                >
+                    <Input.TextArea rows={4} />
+                </Form.Item>
+
+                <Form.Item>
+                    <Space>
+                        <Button type="primary" htmlType="submit">
+                            Xác nhận
+                        </Button>
+                        <Button onClick={() => {
+                            setIsReviewModalVisible(false);
+                            reviewForm.resetFields();
+                        }}>
+                            Hủy
+                        </Button>
+                    </Space>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
+
+    const handleReview = async (values) => {
+        try {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            await axios.post('https://localhost:8386/api/LessonPlan/review', {
+                planId: selectedPlan.planId,
+                status: values.status,
+                feedback: values.feedback
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            toast.success('Cập nhật trạng thái thành công');
+            setIsReviewModalVisible(false);
+            reviewForm.resetFields();
+            fetchLessonPlans(currentPage, selectedStatus);
+        } catch (error) {
+            const errorMessage = error.response?.data?.error || 'Đã xảy ra lỗi khi cập nhật';
+            toast.error(errorMessage);
+        }
+    };
     return (
         <div className="lesson-plan-list">
-            <h2>Danh sách kế hoạch giảng dạy</h2>
 
             <h2>Danh sách kế hoạch giáo án</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -285,9 +396,9 @@ const LessonPlanList = () => {
                         }}
                     >
                         <option value="All">Tất cả</option>
-                        <option value="Processing">Đang xử lý</option>
-                        <option value="Approved">Đã duyệt</option>
-                        <option value="Rejected">Từ chối</option>
+                        <option value="Đang chờ">Đang xử lý</option>
+                        <option value="Đã duyệt">Đã duyệt</option>
+                        <option value="Từ chối">Từ chối</option>
                     </select>
                 </div>
             </div>
@@ -310,6 +421,7 @@ const LessonPlanList = () => {
             </div>
 
             <DetailModal />
+            <ReviewModal />
         </div>
     );
 };

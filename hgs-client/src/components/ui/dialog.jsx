@@ -39,6 +39,7 @@ function DialogContent({ className, children, ...props }) {
       <DialogOverlay />
       <DialogPrimitive.Content
         data-slot="dialog-content"
+        onPointerDownOutside={(e) => e.preventDefault()}
         className={cn(
           "bg-background fixed top-1/2 left-1/2 z-50 w-full max-w-[calc(100%-2rem)] -translate-x-1/2 -translate-y-1/2 rounded-lg border p-6 shadow-lg duration-200 sm:max-w-lg",
           "scale-95 opacity-0 transition-all data-[state=open]:scale-100 data-[state=open]:opacity-100",
@@ -48,7 +49,7 @@ function DialogContent({ className, children, ...props }) {
         {...props}
       >
         {children}
-        <DialogPrimitive.Close className="absolute top-4 right-4 opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2">
+        <DialogPrimitive.Close className="absolute top-4 right-4 cursor-pointer opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2">
           <XIcon />
           <span className="sr-only">Close</span>
         </DialogPrimitive.Close>

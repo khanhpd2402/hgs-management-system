@@ -12,14 +12,14 @@ const Contact = () => {
   return (
     <div className="w-full">
       <div className="flex gap-4 p-2 pl-4">
-        <button 
+        <button
           className="text-sm px-3 py-1 border rounded hover:bg-gray-100"
           onClick={() => handleClick('teacher')}
         >
           Liên hệ với Giáo viên
         </button>
-        
-        <button 
+
+        <button
           className="text-sm px-3 py-1 border rounded hover:bg-gray-100"
           onClick={() => handleClick('parents')}
         >
