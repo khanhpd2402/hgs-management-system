@@ -5,7 +5,7 @@ import PropTypes from "prop-types";
 import { axiosInstance } from "@/services/axios";
 import { useState } from "react";
 
-const ExportExcel = ({ type = "", fileName = "data.xlsx" }) => {
+const ExportExcel = ({ type = "", fileName = "data.xlsx", data }) => {
   const [loading, setLoading] = useState(false);
 
   const getData = async () => {

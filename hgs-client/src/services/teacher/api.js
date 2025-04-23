@@ -48,3 +48,14 @@ export const importTeachers = async (fileExcel) => {
   console.log(fileExcel);
   return await axiosInstance.post("teachers/import", fileExcel);
 };
+
+//exam
+export const uploadExam = async (data) => {
+  return await axiosInstance.post("ExamProposals/exam-proposal", data);
+};
+
+export const getExamsByTeacherId = async (teacherId) => {
+  return (
+    await axiosInstance.get(`ExamProposals/exam-proposals/teacher/${teacherId}`)
+  ).data;
+};

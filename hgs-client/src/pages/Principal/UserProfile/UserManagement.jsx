@@ -16,6 +16,7 @@ import PaginationControls from "@/components/PaginationControls";
 import { Key, Search, Lock, UserRound } from "lucide-react";
 import { useUsers } from "@/services/principal/queries";
 import {
+  useAssignRole,
   useChangeStatus,
   useResetPassword,
 } from "@/services/principal/mutation";
@@ -31,6 +32,15 @@ import CustomTooltip from "@/components/common/CustomToolTip";
 import toast from "react-hot-toast";
 import { Label } from "@/components/ui/label";
 import CustomPasswordInput from "@/components/common/CustomPasswordInput";
+import { useRoles } from "@/services/common/queries";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 const UserManagement = () => {
   const [filter, setFilter] = useState({
@@ -49,10 +59,24 @@ const UserManagement = () => {
     username: null,
     newPassword: "",
   });
+  const [roleFilter, setRoleFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("all");
+
+  const [roleDialog, setRoleDialog] = useState({
+    isOpen: false,
+    userId: null,
+    currentRole: null,
+    userName: null,
+    newRole: null,
+  });
+
   const resetPasswordMutation = useResetPassword();
   const statusMutation = useChangeStatus();
   const userQuery = useUsers();
+  const roleQuery = useRoles();
+  const roles = roleQuery.data || [];
   const allUsers = userQuery.data || [];
+  const assignRoleMutation = useAssignRole();
   const { page, pageSize, search } = filter;
 
   // Handle status change confirmation
@@ -60,7 +84,9 @@ const UserManagement = () => {
     if (!statusDialog.userId) return;
 
     const newStatus =
-      statusDialog.currentStatus === "Active" ? "Deactive" : "Active";
+      statusDialog.currentStatus === "Hoạt động"
+        ? "Không hoạt động"
+        : "Hoạt động";
 
     statusMutation.mutate(
       {
@@ -70,7 +96,7 @@ const UserManagement = () => {
       {
         onSuccess: () => {
           toast.success(
-            `Đã ${newStatus === "Active" ? "mở khóa" : "khóa"} tài khoản thành công`,
+            `Đã ${newStatus === "Hoạt động" ? "mở khóa" : "khóa"} tài khoản thành công`,
           );
           closeStatusDialog();
         },
@@ -119,6 +145,10 @@ const UserManagement = () => {
 
   const handleResetPassword = () => {
     if (!passwordDialog.userId || !passwordDialog.newPassword) return;
+    if (/\s/.test(passwordDialog.newPassword)) {
+      toast.error("Mật khẩu không được chứa dấu cách.");
+      return;
+    }
 
     resetPasswordMutation.mutate({
       userId: passwordDialog.userId,
@@ -126,17 +156,50 @@ const UserManagement = () => {
     });
   };
 
+  const openRoleDialog = (userId, currentRole, userName) => {
+    setRoleDialog({
+      isOpen: true,
+      userId,
+      currentRole,
+      userName,
+      newRole: null,
+    });
+  };
+
+  // Handler to close role dialog
+  const closeRoleDialog = () => {
+    setRoleDialog({
+      isOpen: false,
+      userId: null,
+      currentRole: null,
+      newRole: null,
+    });
+  };
+
+  const handleChangeRole = () => {
+    const data = {
+      userId: roleDialog.userId,
+      roleId: roleDialog.newRole,
+    };
+    assignRoleMutation.mutate(data, {
+      onSuccess: () => {
+        closeRoleDialog();
+      },
+    });
+  };
+
   const filteredData =
     allUsers.filter((teacher) => {
+      if (teacher.roleName === "Hiệu trưởng") return false;
+      if (roleFilter !== "all" && teacher.roleId !== roleFilter) return false;
       if (search) {
-        const searchLower = search.toLowerCase();
+        const searchLower = cleanString(search.toLowerCase());
         return (
           teacher.fullName?.toLowerCase().includes(searchLower) ||
           teacher.email?.toLowerCase().includes(searchLower) ||
           teacher.phoneNumber?.toLowerCase().includes(searchLower)
         );
       }
-
       return true;
     }) || [];
 
@@ -154,16 +217,41 @@ const UserManagement = () => {
       <h1 className="mb-6 text-2xl font-bold">Quản lý người dùng</h1>
 
       <div className="mb-6 flex items-center justify-between">
-        <div className="relative w-64">
-          <Input
-            placeholder="Tìm kiếm người dùng..."
-            value={filter.search}
-            onChange={(e) =>
-              setFilter({ ...filter, search: e.target.value, page: 1 })
-            }
-            className="pl-10"
-          />
-          <Search className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+        <div className="flex gap-4">
+          <div className="relative w-64">
+            <Input
+              placeholder="Tìm kiếm người dùng..."
+              value={filter.search}
+              onChange={(e) =>
+                setFilter({ ...filter, search: e.target.value, page: 1 })
+              }
+              className="pl-10"
+            />
+            <Search className="absolute top-2.5 left-3 h-4 w-4 text-gray-400" />
+          </div>
+          <Select value={roleFilter} onValueChange={setRoleFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Lọc vai trò" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              {roles.map((role) => (
+                <SelectItem value={role.roleID} key={role.roleID}>
+                  {role.roleName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Lọc trạng thái" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tất cả</SelectItem>
+              <SelectItem value="Hoạt động">Hoạt động</SelectItem>
+              <SelectItem value="Không hoạt động">Không hoạt động</SelectItem>
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
@@ -229,6 +317,13 @@ const UserManagement = () => {
                               variant="ghost"
                               size="icon"
                               className="h-8 w-8 cursor-pointer rounded-full bg-gray-100"
+                              onClick={() =>
+                                openRoleDialog(
+                                  user.userId,
+                                  user.roleName,
+                                  user.username,
+                                )
+                              }
                             >
                               <UserRound className="h-4 w-4 text-amber-500" />
                             </Button>
@@ -274,20 +369,18 @@ const UserManagement = () => {
                         {user.email}
                       </TableCell>
                       <TableCell className="border border-gray-200">
-                        {user.phone}
+                        {user.phoneNumber}
                       </TableCell>
                       <TableCell className="border border-gray-200 text-center">
                         <Badge
                           className={
-                            user.status === "Active"
+                            user.status === "Hoạt động"
                               ? "bg-emerald-500 hover:bg-emerald-600"
                               : "bg-red-500 hover:bg-red-600"
                           }
                           variant="default"
                         >
-                          {user.status === "Active"
-                            ? "Hoạt động"
-                            : "Không hoạt động"}
+                          {user.status}
                         </Badge>
                       </TableCell>
                     </TableRow>
@@ -406,6 +499,68 @@ const UserManagement = () => {
               {resetPasswordMutation.isPending
                 ? "Đang xử lý..."
                 : "Đặt lại mật khẩu"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={roleDialog.isOpen} onOpenChange={closeRoleDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Đổi vai trò người dùng</DialogTitle>
+            <DialogDescription>
+              <p>Chọn vai trò mới cho người dùng {roleDialog.userName}</p>
+              <p>Vai trò hiện tại: {roleDialog.currentRole}</p>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="py-4">
+            <Label htmlFor="roleSelect">Vai trò</Label>
+            <Select
+              id="roleSelect"
+              value={roleDialog.newRole ? String(roleDialog.newRole) : ""}
+              onValueChange={(value) =>
+                setRoleDialog((prev) => ({ ...prev, newRole: +value }))
+              }
+            >
+              <SelectTrigger className="mt-2">
+                <SelectValue placeholder="Chọn vai trò" />
+              </SelectTrigger>
+              <SelectContent>
+                {roleQuery.data
+                  ?.filter(
+                    (role) =>
+                      role.roleName !== roleDialog.currentRole &&
+                      role.roleName !== "Hiệu trưởng",
+                  )
+                  .map((role) => (
+                    <SelectItem value={String(role.roleID)} key={role.roleID}>
+                      {role.roleName}
+                    </SelectItem>
+                  ))}
+
+                {/* Add more roles as needed */}
+              </SelectContent>
+            </Select>
+          </div>
+          <DialogFooter className="sm:justify-end">
+            <Button
+              type="button"
+              variant="secondary"
+              onClick={closeRoleDialog}
+              className="mt-2 sm:mt-0"
+            >
+              Hủy
+            </Button>
+            <Button
+              type="button"
+              onClick={handleChangeRole}
+              className="mt-2 sm:mt-0"
+              disabled={
+                !roleDialog.newRole ||
+                roleDialog.newRole === roleDialog.currentRole
+              }
+            >
+              Đổi vai trò
             </Button>
           </DialogFooter>
         </DialogContent>

@@ -2,6 +2,7 @@ import { useMutation } from "@tanstack/react-query";
 import {
   addGradeBatch,
   assignTeaching,
+  changeUserRole,
   changeUserStatus,
   configueSubject,
   createAcademicYear,
@@ -13,6 +14,7 @@ import {
   resetUserPassword,
   updateAcademicYear,
   updateClass,
+  updateGradeBatch,
   updateHomeroom,
   updateSubject,
   updateSubjectConfigue,
@@ -45,6 +47,33 @@ export function useAddGradeBatch() {
     },
   });
 }
+
+export const useUpdateGradeBatch = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ gradeBatchId, payload }) => {
+      return updateGradeBatch(gradeBatchId, payload);
+    },
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("Cập nhật thất bại");
+      } else {
+        console.log(data);
+        queryClient.invalidateQueries({
+          queryKey: [
+            "grade-batchs",
+            { academicYearId: variables.payload.academicYearId },
+          ],
+        });
+        queryClient.invalidateQueries({
+          queryKey: ["grade-batch", { id: variables.payload.gradeBatchId }],
+        });
+        toast.success("Cập nhật thành công");
+      }
+    },
+  });
+};
 
 export function useChangeStatus() {
   const queryClient = useQueryClient();
@@ -406,6 +435,25 @@ export function useUpdateTeacherSubject() {
           queryKey: ["teacher-subject", { teacherId: variables.teacherId }],
         });
         queryClient.invalidateQueries({ queryKey: ["teacherSubjects"] });
+      }
+    },
+  });
+}
+
+export function useAssignRole() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return changeUserRole(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Đổi vai trò thành công");
+        queryClient.invalidateQueries({ queryKey: ["users"] });
       }
     },
   });

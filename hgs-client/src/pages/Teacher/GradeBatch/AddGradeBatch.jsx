@@ -13,28 +13,38 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { useAddGradeBatch } from "@/services/principal/mutation";
-import { formatDate } from "@/helpers/formatDate";
-import { PlusCircle } from "lucide-react";
+import { formatDate, formatDateString } from "@/helpers/formatDate";
+
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import toast from "react-hot-toast";
 import { cleanString } from "@/helpers/removeWhiteSpace";
 
-export default function AddGradeBatch({ semester }) {
+export default function AddGradeBatch({
+  isModalOpen,
+  setIsModalOpen,
+  semester,
+}) {
   const { currentYear } = useLayout();
-  const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
-  const semesters = semesterQuery.data || [];
-  const currentSemester = semesters?.find((s) => s.semesterID === semester);
+
+  const toStartOfDay = (date) => {
+    if (!date) return null;
+    const d = new Date(date);
+    d.setHours(0, 0, 0, 0);
+    return d;
+  };
+
+  const currentSemester = semester;
   const semesterStartDate = currentSemester
-    ? new Date(currentSemester.startDate)
+    ? toStartOfDay(currentSemester.startDate)
     : null;
   const semesterEndDate = currentSemester
-    ? new Date(currentSemester.endDate)
+    ? toStartOfDay(currentSemester.endDate)
     : null;
 
   const gradeBatchMutation = useAddGradeBatch();
-  const [isModalOpen, setIsModalOpen] = useState(false);
   const [formData, setFormData] = useState({
     name: "",
     startDate: null,
@@ -59,12 +69,15 @@ export default function AddGradeBatch({ semester }) {
   const validateStartDate = (startDate, endDate) => {
     if (!semesterStartDate || !semesterEndDate) return "";
     if (!startDate) return "";
-    if (startDate <= semesterStartDate)
-      return "Ngày bắt đầu phải lớn hơn ngày bắt đầu học kỳ";
-    if (startDate >= semesterEndDate)
-      return "Ngày bắt đầu phải nhỏ hơn ngày kết thúc học kỳ";
+    if (startDate < semesterStartDate) {
+      console.log(semesterStartDate > startDate);
+      return `Ngày bắt đầu phải từ ngày ${formatDateString(semester?.startDate)} trờ đi`;
+    }
+    if (startDate >= semesterEndDate) {
+      return `Ngày bắt đầu phải nhỏ hơn ngày ${formatDateString(semester?.endDate)}`;
+    }
     if (endDate && startDate >= endDate)
-      return "Ngày bắt đầu phải nhỏ hơn ngày kết thúc đợt";
+      return `Ngày bắt đầu phải nhỏ hơn ${formatDateString(formatDate(endDate))}`;
     return "";
   };
 
@@ -72,11 +85,11 @@ export default function AddGradeBatch({ semester }) {
     if (!semesterStartDate || !semesterEndDate) return "";
     if (!endDate) return "";
     if (endDate <= semesterStartDate)
-      return "Ngày kết thúc phải lớn hơn ngày bắt đầu học kỳ";
+      return `Ngày kết thúc phải lớn hơn ngày ${formatDateString(semester?.startDate)}`;
     if (startDate && endDate <= startDate)
-      return "Ngày kết thúc phải lớn hơn ngày bắt đầu đợt";
+      return `Ngày kết thúc phải lớn hơn ngày ${formatDateString(formatDate(startDate))}`;
     if (endDate >= semesterEndDate)
-      return "Ngày kết thúc phải nhỏ hơn ngày kết thúc học kỳ";
+      return `Ngày kết thúc phải nhỏ hơn ngày  ${formatDateString(semester?.endDate)}`;
     return "";
   };
 
@@ -92,7 +105,7 @@ export default function AddGradeBatch({ semester }) {
     const payload = {
       academicYearId: currentYear?.academicYearID,
       batchName: cleanString(formData.name.trim()),
-      semesterId: semester,
+      semesterId: semester.semesterID,
       startDate: formatDate(formData.startDate),
       endDate: formatDate(formData.endDate),
       status: formData.isLocked ? "Không Hoạt Động" : "Hoạt Động",
@@ -121,25 +134,12 @@ export default function AddGradeBatch({ semester }) {
 
   return (
     <div className="">
-      <Button
-        onClick={openModal}
-        className="flex items-center gap-2 rounded-md bg-blue-600 text-white shadow-md transition-all hover:bg-blue-700 hover:shadow-lg"
-      >
-        <PlusCircle size={18} />
-        <span>Thêm đợt nhập điểm</span>
-      </Button>
-
       <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
-        <DialogContent className="max-h-[90vh] overflow-y-auto rounded-lg border-0 shadow-lg sm:max-w-[600px]">
+        <DialogContent className="max-w-lg">
           <DialogHeader className="">
-            <DialogTitle className="text-xl font-bold">
+            <DialogTitle className="text-2xl font-bold">
               Thêm mới đợt nhập điểm
             </DialogTitle>
-            <Button
-              variant="ghost"
-              className="ring-offset-background absolute top-4 right-4 rounded-sm opacity-70 transition-opacity hover:opacity-100"
-              onClick={() => setIsModalOpen(false)}
-            ></Button>
           </DialogHeader>
 
           <div className="grid gap-5 px-4 py-6">
@@ -173,7 +173,7 @@ export default function AddGradeBatch({ semester }) {
                   value={formData.startDate}
                   onSelect={(date) => {
                     const startDateError = validateStartDate(
-                      formData.startDate,
+                      date,
                       formData.endDate,
                     );
                     if (startDateError) {
@@ -198,7 +198,7 @@ export default function AddGradeBatch({ semester }) {
                   value={formData.endDate}
                   onSelect={(date) => {
                     const endDateError = validateEndDate(
-                      formData.endDate,
+                      date,
                       formData.startDate,
                     );
                     if (endDateError) {
@@ -242,13 +242,16 @@ export default function AddGradeBatch({ semester }) {
           </div>
 
           <DialogFooter className="flex justify-end gap-2 rounded-b-lg bg-gray-50">
-            <Button
-              variant="outline"
-              onClick={() => setIsModalOpen(false)}
-              className="border-gray-300 text-gray-700 hover:bg-gray-100"
-            >
-              Hủy bỏ
-            </Button>
+            <DialogClose asChild>
+              <Button
+                variant="outline"
+                onClick={() => setIsModalOpen(false)}
+                className="border-gray-300 text-gray-700 hover:bg-gray-100"
+              >
+                Hủy bỏ
+              </Button>
+            </DialogClose>
+
             <Button
               onClick={handleSubmit}
               className="bg-blue-600 text-white hover:bg-blue-700"

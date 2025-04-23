@@ -1,5 +1,10 @@
 import { keepPreviousData, useQuery } from "@tanstack/react-query";
-import { getTeachers, getHeadTeacherAssignments, getTeacher } from "./api";
+import {
+  getTeachers,
+  getHeadTeacherAssignments,
+  getTeacher,
+  getExamsByTeacherId,
+} from "./api";
 
 export function useTeachers() {
   return useQuery({
@@ -45,5 +50,15 @@ export function useHTA({ page = 1, pageSize = 5, grade = "" }) {
       return getHeadTeacherAssignments(page, pageSize, grade);
     },
     placeholderData: keepPreviousData,
+  });
+}
+
+export function useExamsByTeacherId(teacherId) {
+  return useQuery({
+    queryKey: ["exams-by-teacher-id", { teacherId }],
+    queryFn: () => {
+      return getExamsByTeacherId(teacherId);
+    },
+    enabled: !!teacherId,
   });
 }

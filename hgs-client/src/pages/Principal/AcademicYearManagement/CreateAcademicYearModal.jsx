@@ -22,6 +22,7 @@ const CreateAcademicYearModal = ({ open, onCancel }) => {
 
   const createAcademicYearMutation = useCreateAcademicYear();
 
+  // Validation logic
   const isEndSemester1Valid =
     endSemester1 && startSemester1 && endSemester1 > startSemester1;
   const isStartSemester2Valid =

@@ -155,6 +155,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
       dataIndex: 'subject',
       key: 'subject'
     },
+
     {
       title: 'Giáo viên dạy thay',
       key: 'substituteTeacher',

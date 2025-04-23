@@ -4,6 +4,10 @@ export const addGradeBatch = async (data) => {
   return (await axiosInstance.post(`GradeBatch/create`, data)).data;
 };
 
+export const updateGradeBatch = async (id, data) => {
+  return (await axiosInstance.put(`GradeBatch/${id}`, data)).data;
+};
+
 export const getGradeBatches = async (academicYearId) => {
   return (
     await axiosInstance.get(`GradeBatch/by-academicyear/${academicYearId}`)
@@ -167,4 +171,8 @@ export const getTeacherSubjectsByTeacherId = async (teacherId) => {
 export const updateTeacherSubjectByTeacherId = async (id, data) => {
   return (await axiosInstance.put(`TeacherSubject/by-teacher/${id}`, data))
     .data;
+};
+
+export const changeUserRole = async (data) => {
+  return (await axiosInstance.post(`auth/assign-role`, data)).data;
 };

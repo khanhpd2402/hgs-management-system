@@ -289,6 +289,28 @@ button {
     padding: 4px;
 }
 
+    
+}
+
+.schedule-table td {
+    transition: background-color 0.2s;
+    
+    &[draggable="true"]:hover {
+        background-color: #f5f5f5;
+    }
+    
+    &.drag-over {
+        background-color: #e0e0e0;
+    }
+}
+
+.empty-cell {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    padding: 4px;
+}
+
 .cell-select {
     width: 100%;
     padding: 2px;
