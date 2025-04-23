@@ -181,3 +181,9 @@ export const changeUserRole = async (data) => {
 export const getAllExams = async () => {
   return (await axiosInstance.get(`ExamProposals/exam-proposals`)).data;
 };
+
+export const updateExamStatus = async (id, data) => {
+  return (
+    await axiosInstance.put(`ExamProposals/exam-proposal/${id}/status`, data)
+  ).data;
+};

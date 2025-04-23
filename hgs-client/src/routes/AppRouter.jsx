@@ -16,7 +16,9 @@ import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
-const AddDocument = lazy(() => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"));
+const AddDocument = lazy(
+  () => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"),
+);
 const TeacherLessonPlan = lazy(
   () => import("@/pages/RequestLessonPlan/Teacher/TeacherLessonPlan"),
 );
@@ -28,13 +30,33 @@ const LeaveRequestDetail = lazy(
   () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
 );
 const Contact = lazy(() => import("@/pages/contact/Contact"));
-const TeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"));
-const CreateTeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"));
-const LessonPlanList = lazy(() => import("@/pages/RequestLessonPlan/System/LessonPlanList"));
-const UploadLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/Teacher/UploadLessonPlan"));
-const RequestLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/System/RequestLessonPlan"));
-const ReviewDetail = lazy(() => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"));
-const TeacherLeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"));
+const TeacherLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"),
+);
+const CreateTeacherLeaveRequest = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"
+    ),
+);
+const LessonPlanList = lazy(
+  () => import("@/pages/RequestLessonPlan/System/LessonPlanList"),
+);
+const UploadLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/Teacher/UploadLessonPlan"),
+);
+const RequestLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/System/RequestLessonPlan"),
+);
+const ReviewDetail = lazy(
+  () => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"),
+);
+const TeacherLeaveRequestDetail = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"
+    ),
+);
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -143,6 +165,16 @@ const adminRouter = [
           <SubjectManagement />
         </Suspense>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/exam",
+    element: (
+      // <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ExamManagement />
+      </Suspense>
+      // </ProtectedRoute>
     ),
   },
   {
@@ -360,9 +392,7 @@ const teacherRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <TeacherLessonPlan />
-
         </Suspense>
       </ProtectedRoute>
     ),
@@ -384,10 +414,9 @@ const teacherRouter = [
         <Suspense fallback={<div>Loading...</div>}>
           <AddDocument />
         </Suspense>
-
       </ProtectedRoute>
     ),
-  }
+  },
 ];
 
 const studentRouter = [
@@ -436,8 +465,9 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}>
-
+      <ProtectedRoute
+        requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}
+      >
         <DefaultLayout />
       </ProtectedRoute>
     ),
