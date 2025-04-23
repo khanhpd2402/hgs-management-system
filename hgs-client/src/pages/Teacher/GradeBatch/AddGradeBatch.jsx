@@ -108,7 +108,7 @@ export default function AddGradeBatch({
       semesterId: semester.semesterID,
       startDate: formatDate(formData.startDate),
       endDate: formatDate(formData.endDate),
-      status: formData.isLocked ? "Không Hoạt Động" : "Hoạt Động",
+      status: formData.isLocked ? "Không hoạt động" : "Hoạt động",
     };
 
     console.log("Form data submitted:", payload);

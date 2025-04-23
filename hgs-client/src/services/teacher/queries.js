@@ -4,6 +4,7 @@ import {
   getHeadTeacherAssignments,
   getTeacher,
   getExamsByTeacherId,
+  getStudentByClass,
 } from "./api";
 
 export function useTeachers() {
@@ -60,5 +61,13 @@ export function useExamsByTeacherId(teacherId) {
       return getExamsByTeacherId(teacherId);
     },
     enabled: !!teacherId,
+  });
+}
+
+export function useStudentByClass({ classId, semesterId }) {
+  return useQuery({
+    queryKey: ["student-by-class", { classId, semesterId }],
+    queryFn: () => getStudentByClass(classId, semesterId),
+    enabled: !!classId && !!semesterId,
   });
 }
