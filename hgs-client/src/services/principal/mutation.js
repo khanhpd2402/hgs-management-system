@@ -210,10 +210,28 @@ export function useUpdateSubject() {
             toast.error("Cấu hình môn học thất bại");
           }
         }
-        queryClient.invalidateQueries({ queryKey: ["subjects"] });
-        queryClient.invalidateQueries({
-          queryKey: ["subjectConfig", { id: variables.subjectId }],
-        });
+        if (
+          configData.length > 0 &&
+          configData.every((item) => item.status === "delete")
+        ) {
+          queryClient.invalidateQueries({ queryKey: ["subjects"] });
+          queryClient.invalidateQueries({ queryKey: ["subjectConfigs"] });
+          queryClient.invalidateQueries({
+            queryKey: ["subject", { id: variables.subjectId }],
+          });
+          queryClient.removeQueries({
+            queryKey: ["subjectConfig", { id: variables.subjectId }],
+          });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["subjects"] });
+          queryClient.invalidateQueries({ queryKey: ["subjectConfigs"] });
+          queryClient.invalidateQueries({
+            queryKey: ["subject", { id: variables.subjectId }],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["subjectConfig", { id: variables.subjectId }],
+          });
+        }
         toast.success("Cập nhật môn học thành công");
       }
     },

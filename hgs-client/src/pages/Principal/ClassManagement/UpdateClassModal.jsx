@@ -167,7 +167,7 @@ export default function UpdateClassModal({
           : "",
       });
 
-      setClassStatus(classData.status === "Hoạt Động");
+      setClassStatus(classData.status === "Hoạt động");
       setTeacherHK1Status(false);
       setTeacherHK2Status(false);
     }
