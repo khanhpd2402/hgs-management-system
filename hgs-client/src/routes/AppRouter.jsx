@@ -15,15 +15,13 @@ import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
-// Remove these direct imports
-// import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
-// import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
-// import Contact from "@/pages/contact/Contact";
-// import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
-// import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
-// import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
-// import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
+const AddDocument = lazy(
+  () => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"),
+);
+const TeacherLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/Teacher/TeacherLessonPlan"),
+);
 // Add these lazy imports with the existing lazy imports
 const ListLeaveRequest = lazy(
   () => import("@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest"),
@@ -42,13 +40,13 @@ const CreateTeacherLeaveRequest = lazy(
     ),
 );
 const LessonPlanList = lazy(
-  () => import("@/pages/RequestLessonPlan/LessonPlanList"),
+  () => import("@/pages/RequestLessonPlan/System/LessonPlanList"),
 );
 const UploadLessonPlan = lazy(
-  () => import("@/pages/RequestLessonPlan/UploadLessonPlan"),
+  () => import("@/pages/RequestLessonPlan/Teacher/UploadLessonPlan"),
 );
 const RequestLessonPlan = lazy(
-  () => import("@/pages/RequestLessonPlan/RequestLessonPlan"),
+  () => import("@/pages/RequestLessonPlan/System/RequestLessonPlan"),
 );
 const ReviewDetail = lazy(
   () => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"),
@@ -59,16 +57,6 @@ const TeacherLeaveRequestDetail = lazy(
       "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"
     ),
 );
-
-// import AcademicYearManagement from "@/pages/Principal/AcademicYearManagement/AcademicYearManagement";
-// import ListLeaveRequest from "@/pages/LeaveRequest/AdminLeaveRequest/ListLeaveRequest";
-// import TeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest";
-// import LeaveRequestDetail from "@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail";
-// import CreateTeacherLeaveRequest from "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest";
-// import SubstituteTeacherAssignment from "@/pages/LeaveRequest/AdminLeaveRequest/SubstituteTeacherAssignment";
-// import Contact from "@/pages/contact/Contact";
-// import LessonPlanList from "@/pages/RequestLessonPlan/LessonPlanList";
-// import UploadLessonPlan from "@/pages/RequestLessonPlan/UploadLessonPlan";
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -117,6 +105,10 @@ const SubjectConfigForTeacher = lazy(
 
 const UploadExam = lazy(
   () => import("@/pages/Teacher/ExamProposal/UploadExam"),
+);
+
+const ExamManagement = lazy(
+  () => import("@/pages/Principal/ExamManagement/ExamManagement"),
 );
 
 const AppRouter = () => {
@@ -173,6 +165,16 @@ const adminRouter = [
           <SubjectManagement />
         </Suspense>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/exam",
+    element: (
+      // <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ExamManagement />
+      </Suspense>
+      // </ProtectedRoute>
     ),
   },
   {
@@ -246,7 +248,7 @@ const adminRouter = [
     ),
   },
   {
-    path: "/system/review-detail/:id",
+    path: "/system/review-detail/:planId",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
@@ -388,9 +390,9 @@ const teacherRouter = [
   {
     path: "/teacher/lesson-plan",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
-          <LessonPlanList />
+          <TeacherLessonPlan />
         </Suspense>
       </ProtectedRoute>
     ),
@@ -398,9 +400,19 @@ const teacherRouter = [
   {
     path: "/teacher/lesson-plan/create",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <UploadLessonPlan />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "system/lesson-plan/add-document/:planId",
+    element: (
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <AddDocument />
         </Suspense>
       </ProtectedRoute>
     ),
@@ -453,7 +465,9 @@ const studentRouter = [
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên"]}>
+      <ProtectedRoute
+        requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}
+      >
         <DefaultLayout />
       </ProtectedRoute>
     ),

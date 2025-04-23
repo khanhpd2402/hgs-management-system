@@ -26,12 +26,17 @@ import { jwtDecode } from "jwt-decode";
 
 const formSchema = z.object({
   username: z.string().min(1, "Tên đăng nhập là bắt buộc"),
-  password: z.string().min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
+  password: z.string().min(8, "Mật khẩu phải có ít nhất 8 ký tự"),
 });
 
 const Login = () => {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+
+  useEffect(() => {
+    const img = new window.Image();
+    img.src = "school.jpg";
+  }, []);
 
   // Check if user is already logged in
   useEffect(() => {
@@ -45,11 +50,8 @@ const Login = () => {
 
   const redirectBasedOnRole = (role) => {
     switch (role) {
-      case "Principal":
+      case "Hiệu trưởng":
         navigate("/home");
-        break;
-      case "Teacher":
-        navigate("/teacher/profile");
         break;
       default:
         navigate("/home");
@@ -76,6 +78,7 @@ const Login = () => {
       },
     });
   };
+
   return (
     <div className="login-container">
       <div className="login-content">

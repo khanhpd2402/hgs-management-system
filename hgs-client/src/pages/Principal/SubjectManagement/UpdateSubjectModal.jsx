@@ -120,12 +120,15 @@ export const UpdateSubjectModal = ({
       };
 
       reset(formData);
-
       // Update enabled grades
       const newEnabledGrades = {};
+      const subjectConfigDetail = subjectConfigDetailQuery.error
+        ? []
+        : subjectConfigDetailQuery.data;
+      console.log(subjectConfigDetailQuery.data);
       gradeLevelsQuery.data.forEach((gradeLevel) => {
         const hasData =
-          subjectConfigDetailQuery?.data?.some(
+          subjectConfigDetailQuery.data?.some(
             (item) => item.gradeLevelId === gradeLevel.gradeLevelId,
           ) ?? false;
         newEnabledGrades[gradeLevel.gradeLevelId] = hasData;
