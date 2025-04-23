@@ -1,5 +1,6 @@
 ﻿using Application.Features.LessonPlans.DTOs;
 using Application.Features.LessonPlans.Interfaces;
+using Application.Features.Teachers.Interfaces;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
@@ -10,6 +11,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using Common.Utils;
 
 namespace Application.Features.LessonPlans.Services
 {
@@ -20,34 +22,34 @@ namespace Application.Features.LessonPlans.Services
         private readonly IUserRepository _userRepository;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly IMapper _mapper;
+        private readonly EmailService _emailService;
+        private readonly ISubjectRepository _subjectRepository;
+        private readonly ITeacherService _teacherService;
 
         public LessonPlanService(
             ILessonPlanRepository lessonPlanRepository,
             ITeacherRepository teacherRepository,
             IUserRepository userRepository,
             IHttpContextAccessor httpContextAccessor,
-            IMapper mapper)
+            IMapper mapper,
+            EmailService emailService,
+            ISubjectRepository subjectRepository,
+            ITeacherService teacherService)
         {
             _lessonPlanRepository = lessonPlanRepository ?? throw new ArgumentNullException(nameof(lessonPlanRepository));
             _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _httpContextAccessor = httpContextAccessor ?? throw new ArgumentNullException(nameof(httpContextAccessor));
             _mapper = mapper ?? throw new ArgumentNullException(nameof(mapper));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _subjectRepository = subjectRepository ?? throw new ArgumentNullException(nameof(subjectRepository));
+            _teacherService = teacherService ?? throw new ArgumentNullException(nameof(teacherService));
         }
 
         public async Task<LessonPlanResponseDto> CreateLessonPlanAsync(LessonPlanCreateDto createDto)
         {
             var creatorTeacherId = GetCurrentTeacherId();
             var creatorTeacher = await _teacherRepository.GetByIdAsync(creatorTeacherId);
-
-            bool isAuthorized = (creatorTeacher?.IsHeadOfDepartment ?? false);
-            
-
-            if (!isAuthorized)
-            {
-                throw new UnauthorizedAccessException("You do not have permission to create lesson plans.");
-            }
-
             if (createDto == null) throw new ArgumentNullException(nameof(createDto));
             if (createDto.TeacherId <= 0) throw new ArgumentException("Target TeacherId is required.", nameof(createDto.TeacherId));
             if (createDto.SubjectId <= 0) throw new ArgumentException("SubjectId is required.", nameof(createDto.SubjectId));
@@ -56,7 +58,6 @@ namespace Application.Features.LessonPlans.Services
             {
                 throw new ArgumentException("DeadlineDate must be on or after StartDate.");
             }
-
 
             var lessonPlan = new LessonPlan
             {
@@ -76,6 +77,40 @@ namespace Application.Features.LessonPlans.Services
             };
 
             await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
+
+            // Gửi email thông báo cho giáo viên được assign
+            var assignedTeacher = await _teacherRepository.GetByIdAsync(createDto.TeacherId);
+            if (assignedTeacher != null)
+            {
+                var subject = await _subjectRepository.GetByIdAsync(createDto.SubjectId);
+                if (subject != null)
+                {
+                    try
+                    {
+                        var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(createDto.TeacherId);
+                        if (!string.IsNullOrEmpty(teacherEmail))
+                        {
+                            await _emailService.SendLessonPlanNotificationAsync(
+                                teacherEmail: teacherEmail,
+                                teacherName: assignedTeacher.FullName,
+                                planTitle: createDto.Title,
+                                subjectName: subject.SubjectName,
+                                semesterId: createDto.SemesterId,
+                                startDate: createDto.StartDate,
+                                endDate: createDto.EndDate
+                            );
+                        }
+                        else
+                        {
+                            Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {createDto.TeacherId}.");
+                        }
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine($"Failed to send lesson plan notification email to TeacherId {createDto.TeacherId}: {ex.Message}");
+                    }
+                }
+            }
 
             var createdPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(lessonPlan.PlanId);
             return _mapper.Map<LessonPlanResponseDto>(createdPlan);
@@ -142,6 +177,43 @@ namespace Application.Features.LessonPlans.Services
             lessonPlan.ReviewerId = reviewerId;
 
             await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
+
+            // Gửi email thông báo khi trạng thái thay đổi thành "Đã duyệt" hoặc "Từ chối"
+            if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Từ chối")
+            {
+                var assignedTeacher = await _teacherRepository.GetByIdAsync(lessonPlan.TeacherId);
+                if (assignedTeacher != null)
+                {
+                    var subject = await _subjectRepository.GetByIdAsync(lessonPlan.SubjectId);
+                    if (subject != null)
+                    {
+                        try
+                        {
+                            var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(lessonPlan.TeacherId);
+                            if (!string.IsNullOrEmpty(teacherEmail))
+                            {
+                                await _emailService.SendLessonPlanStatusUpdateAsync(
+                                    teacherEmail: teacherEmail,
+                                    teacherName: assignedTeacher.FullName,
+                                    planTitle: lessonPlan.Title,
+                                    subjectName: subject.SubjectName,
+                                    semesterId: lessonPlan.SemesterId,
+                                    status: lessonPlan.Status,
+                                    feedback: lessonPlan.Feedback
+                                );
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {lessonPlan.TeacherId}.");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine($"Failed to send status update email to TeacherId {lessonPlan.TeacherId}: {ex.Message}");
+                        }
+                    }
+                }
+            }
         }
 
         public async Task<LessonPlanResponseDto> GetLessonPlanByIdAsync(int planId)
@@ -165,7 +237,6 @@ namespace Application.Features.LessonPlans.Services
             var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
             return (lessonPlanDtos, totalCount);
         }
-
 
         public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize)
         {
@@ -192,6 +263,5 @@ namespace Application.Features.LessonPlans.Services
                 throw new UnauthorizedAccessException($"No teacher profile found for UserID {userId}.");
             return teacher.TeacherId;
         }
-
     }
 }
