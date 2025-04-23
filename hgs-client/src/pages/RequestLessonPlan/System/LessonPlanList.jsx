@@ -5,6 +5,8 @@ import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } fr
 import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
+import { Input } from 'antd';
+import toast from 'react-hot-toast';
 
 const { Option } = Select;
 
@@ -18,7 +20,9 @@ const LessonPlanList = () => {
     const pageSize = 10;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
-
+    const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
+    const [reviewForm] = Form.useForm();
+    const [selectedPlan, setSelectedPlan] = useState(null);
     const fetchLessonPlans = async (page, status) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
@@ -70,7 +74,7 @@ const LessonPlanList = () => {
 
     const getStatusText = (status) => {
         switch (status) {
-            case 'Processing':
+            case 'Đang chờ':
                 return 'Đang xử lý';
             case 'Đã duyệt':
                 return 'Đã duyệt';
@@ -246,7 +250,13 @@ const LessonPlanList = () => {
                         Xem chi tiết
                     </Button>
 
-                    <Button>
+                    <Button
+                        type="primary"
+                        onClick={() => {
+                            setSelectedPlan(record);
+                            setIsReviewModalVisible(true);
+                        }}
+                    >
                         Phê duyệt
                     </Button>
 
@@ -282,6 +292,79 @@ const LessonPlanList = () => {
         return url;
     };
 
+
+    const ReviewModal = () => (
+        <Modal
+            title="Phê duyệt kế hoạch giáo án"
+            open={isReviewModalVisible}
+            onCancel={() => {
+                setIsReviewModalVisible(false);
+                reviewForm.resetFields();
+            }}
+            footer={null}
+        >
+            <Form
+                form={reviewForm}
+                onFinish={handleReview}
+                layout="vertical"
+            >
+                <Form.Item
+                    name="status"
+                    label="Trạng thái"
+                    rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
+                >
+                    <Select>
+                        <Option value="Đã duyệt">Phê duyệt</Option>
+                        <Option value="Từ chối">Từ chối</Option>
+                    </Select>
+                </Form.Item>
+
+                <Form.Item
+                    name="feedback"
+                    label="Phản hồi"
+                    rules={[{ required: true, message: 'Vui lòng nhập phản hồi' }]}
+                >
+                    <Input.TextArea rows={4} />
+                </Form.Item>
+
+                <Form.Item>
+                    <Space>
+                        <Button type="primary" htmlType="submit">
+                            Xác nhận
+                        </Button>
+                        <Button onClick={() => {
+                            setIsReviewModalVisible(false);
+                            reviewForm.resetFields();
+                        }}>
+                            Hủy
+                        </Button>
+                    </Space>
+                </Form.Item>
+            </Form>
+        </Modal>
+    );
+
+    const handleReview = async (values) => {
+        try {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            await axios.post('https://localhost:8386/api/LessonPlan/review', {
+                planId: selectedPlan.planId,
+                status: values.status,
+                feedback: values.feedback
+            }, {
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            toast.success('Cập nhật trạng thái thành công');
+            setIsReviewModalVisible(false);
+            reviewForm.resetFields();
+            fetchLessonPlans(currentPage, selectedStatus);
+        } catch (error) {
+            const errorMessage = error.response?.data?.error || 'Đã xảy ra lỗi khi cập nhật';
+            toast.error(errorMessage);
+        }
+    };
     return (
         <div className="lesson-plan-list">
 
@@ -338,6 +421,7 @@ const LessonPlanList = () => {
             </div>
 
             <DetailModal />
+            <ReviewModal />
         </div>
     );
 };

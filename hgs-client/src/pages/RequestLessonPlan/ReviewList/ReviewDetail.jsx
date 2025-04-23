@@ -21,11 +21,13 @@ import {
 import axios from 'axios';
 import dayjs from 'dayjs';
 import './ReviewDetail.scss';
+import toast from "react-hot-toast";
 
 const { TextArea } = Input;
 const { Option } = Select;
 const { Title } = Typography;
 
+// Add this function at the top of the component, before the return statement
 const ReviewDetail = () => {
     const { planId } = useParams();
     const navigate = useNavigate();
@@ -33,6 +35,29 @@ const ReviewDetail = () => {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+
+    const getGoogleDriveEmbedUrl = (url) => {
+        if (!url) return '';
+        try {
+            if (url.includes('drive.google.com')) {
+                if (url.includes('/folders/')) {
+                    const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
+                    if (folderId) {
+                        return `https://drive.google.com/embeddedfolderview?id=${folderId}`;
+                    }
+                } else if (url.includes('/file/d/')) {
+                    const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
+                    if (fileId) {
+                        return `https://drive.google.com/file/d/${fileId}/preview`;
+                    }
+                }
+            }
+            return url;
+        } catch (error) {
+            console.error('Error parsing Google Drive URL:', error);
+            return '';
+        }
+    };
 
     useEffect(() => {
         fetchPlanDetail();
@@ -60,26 +85,40 @@ const ReviewDetail = () => {
         }
     };
 
+
+
     const handleSubmit = async (values) => {
         try {
             setSubmitting(true);
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            await axios.post(
+
+            const response = await axios.post(
                 'https://localhost:8386/api/LessonPlan/review',
                 {
                     planId: parseInt(planId),
-                    status: values.status,
+                    status: values.status === 'Approved' ? 'Đã duyệt' : 'Từ chối',
                     feedback: values.feedback
                 },
                 {
-                    headers: { 'Authorization': `Bearer ${token}` }
+                    headers: {
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json'
+                    }
                 }
             );
-            message.success('Phê duyệt kế hoạch thành công!');
-            navigate('/review-list');
+
+            if (response.status === 200) {
+                toast.success('Phê duyệt kế hoạch thành công!', {
+                    duration: 2000
+                });
+                // Add timeout to ensure navigation happens after toast
+                setTimeout(() => {
+                    navigate('/system/lesson-plan');
+                }, 2100); // Slightly longer than toast duration
+            }
         } catch (error) {
             console.error('Lỗi khi phê duyệt:', error);
-            message.error('Có lỗi xảy ra khi phê duyệt');
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi phê duyệt');
         } finally {
             setSubmitting(false);
         }
@@ -146,6 +185,7 @@ const ReviewDetail = () => {
 
                         <Divider />
 
+                        // Update the attachment preview section in the return statement
                         <div className="attachment-preview-section">
                             <Title level={3}>
                                 <FileTextOutlined /> File đính kèm
@@ -154,9 +194,15 @@ const ReviewDetail = () => {
                                 {plan.attachmentUrl ? (
                                     <div className="preview-wrapper">
                                         <iframe
-                                            src={plan.attachmentUrl}
+                                            src={getGoogleDriveEmbedUrl(plan.attachmentUrl)}
                                             title="File Preview"
                                             className="file-preview"
+                                            width="100%"
+                                            height="600px"
+                                            frameBorder="0"
+                                            allowFullScreen
+                                            allow="autoplay"
+                                            sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
                                         />
                                         <Button
                                             type="primary"
