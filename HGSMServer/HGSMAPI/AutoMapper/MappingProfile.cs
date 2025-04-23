@@ -20,6 +20,7 @@ using Common.Constants;
 using Application.Features.SubstituteTeachings.DTOs;
 using Application.Features.TeacherSubjects.DTOs;
 using Application.Features.Conducts.DTOs;
+using Application.Features.Attendances.DTOs;
 
 namespace HGSMAPI.AutoMapper
 {
@@ -157,6 +158,8 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<GradeLevel, GradeLevelDto>();
             CreateMap<GradeLevel, GradeLevelCreateAndUpdateDto>().ReverseMap();
+
+            CreateMap<Attendance, AttendanceDto>().ReverseMap();
 
             CreateMap<Period, PeriodDto>();
             CreateMap<Period, PeriodCreateAndUpdateDto>().ReverseMap();
