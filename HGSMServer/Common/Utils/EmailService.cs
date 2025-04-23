@@ -14,7 +14,7 @@ namespace Common.Utils
         private readonly string _fromEmail;
         private readonly string _fromName;
 
-       
+
         public EmailService(string smtpHost, int smtpPort, string smtpUsername, string smtpPassword,
                           string fromEmail, string fromName = "Trường THCS Hải Giang")
         {
@@ -50,7 +50,7 @@ namespace Common.Utils
             }
             catch (Exception ex)
             {
-                
+
                 throw new Exception($"Không thể gửi email: {ex.Message}", ex);
             }
         }
@@ -68,6 +68,47 @@ namespace Common.Utils
                 <p>Trân trọng,<br/>Hệ thống quản lý trường học</p>";
 
             await SendEmailAsync(parentEmail, subject, body, isHtml: true);
+        }
+        public async Task SendSubstituteAssignmentNotificationAsync(
+    string teacherEmail,
+    string substituteName,
+    string absentTeacherName,
+    DateTime date,
+    string className,
+    string subjectName,
+    string timeSlot,
+    string roomName)
+        {
+            string subject = $"Phân công dạy thay ngày {date:dd/MM/yyyy}";
+            string body = $@"
+        <p>Kính gửi thầy/cô {substituteName},</p>
+        <p>Thầy/cô được phân công dạy thay cho <strong>{absentTeacherName}</strong> vào ngày <strong>{date:dd/MM/yyyy}</strong>.</p>
+        <ul>
+            <li><strong>Lớp:</strong> {className}</li>
+            <li><strong>Môn học:</strong> {subjectName}</li>
+            <li><strong>Tiết học:</strong> {timeSlot}</li>
+        </ul>
+        <p>Vui lòng kiểm tra lịch giảng dạy để chuẩn bị bài giảng chu đáo.</p>
+        <p>Trân trọng,<br/>Hệ thống quản lý trường học</p>";
+
+            await SendEmailAsync(teacherEmail, subject, body, isHtml: true);
+        }
+        public async Task SendLeaveRequestResultAsync(
+    string teacherEmail,
+    string teacherName,
+    DateTime leaveFromDate,
+    DateTime leaveToDate,
+    string status,
+    string? reason = null)
+        {
+            string subject = $"Kết quả đơn xin nghỉ từ {leaveFromDate:dd/MM/yyyy} đến {leaveToDate:dd/MM/yyyy}";
+            string body = $@"
+        <p>Kính gửi thầy/cô {teacherName},</p>
+        <p>Đơn xin nghỉ từ <strong>{leaveFromDate:dd/MM/yyyy}</strong> đến <strong>{leaveToDate:dd/MM/yyyy}</strong> của thầy/cô đã được <strong>{status}</strong>.</p>
+        {(string.IsNullOrEmpty(reason) ? "" : $"<p>Lý do từ chối: {reason}</p>")}
+        <p>Trân trọng,<br/>Hệ thống quản lý trường học</p>";
+
+            await SendEmailAsync(teacherEmail, subject, body, isHtml: true);
         }
     }
 }
