@@ -73,7 +73,7 @@ const menuItems = [
         path: "/teacher/leave-request",
       },
       {
-        label: "Lịch giảng dạy",
+        label: "Quản lý giáo án",
         path: "/teacher/lesson-plan",
       },
       {

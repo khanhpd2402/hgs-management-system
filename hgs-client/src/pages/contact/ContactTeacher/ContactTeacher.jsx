@@ -9,7 +9,7 @@ const ContactTeacher = () => {
     department: '',
     gender: ''
   });
-  
+
   // Lấy danh sách unique các tổ bộ môn
   const departments = [...new Set(teachers.map(t => t.department))].filter(Boolean);
 
@@ -18,15 +18,15 @@ const ContactTeacher = () => {
       try {
         // Lấy token từ localStorage (hoặc nơi bạn lưu trữ)
         const token = localStorage.getItem('token');
-    
+
         if (!token) {
           console.error("Không tìm thấy token trong localStorage.");
-          setTeachers([]); 
-          return; 
+          setTeachers([]);
+          return;
         }
-    
+
         const cleanedToken = token.replace(/^"|"$/g, '');
-        console.log("Cleaned Token:", cleanedToken); 
+        console.log("Cleaned Token:", cleanedToken);
         if (!token) {
           console.error('Không tìm thấy token xác thực.');
           // Có thể xử lý chuyển hướng người dùng về trang đăng nhập ở đây
@@ -74,7 +74,7 @@ const ContactTeacher = () => {
         <div className="flex gap-4">
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">Tổ bộ môn</label>
-            <select 
+            <select
               className="w-full border rounded p-2 text-sm"
               value={filters.department}
               onChange={(e) => handleFilterChange('department', e.target.value)}
@@ -87,7 +87,7 @@ const ContactTeacher = () => {
           </div>
           <div className="flex-1">
             <label className="block text-sm font-medium mb-1">Giới tính</label>
-            <select 
+            <select
               className="w-full border rounded p-2 text-sm"
               value={filters.gender}
               onChange={(e) => handleFilterChange('gender', e.target.value)}
