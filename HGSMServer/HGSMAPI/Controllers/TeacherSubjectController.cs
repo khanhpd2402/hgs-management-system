@@ -62,6 +62,21 @@ namespace HGSMAPI.Controllers
             }
         }
 
+        [HttpGet("by-subject/{subjectId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        public async Task<IActionResult> GetBySubjectId(int subjectId)
+        {
+            try
+            {
+                var result = await _service.GetBySubjectIdAsync(subjectId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(ex.Message);
+            }
+        }
+
         [HttpPost]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> Create([FromBody] CreateTeacherSubjectDto dto)
@@ -77,14 +92,14 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPut("by-teacher/{teacherId}")] 
+        [HttpPut("by-teacher/{teacherId}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
         public async Task<IActionResult> UpdateByTeacherId(int teacherId, [FromBody] UpdateTeacherSubjectDto dto)
         {
             try
             {
-                if (teacherId != dto.TeacherId) return BadRequest("Teacher ID mismatch."); 
-                await _service.UpdateAsync(dto); 
+                if (teacherId != dto.TeacherId) return BadRequest("Teacher ID mismatch.");
+                await _service.UpdateAsync(dto);
                 return Ok(new { message = "Teacher's subjects updated successfully!" });
             }
             catch (Exception ex)
@@ -92,7 +107,6 @@ namespace HGSMAPI.Controllers
                 return BadRequest(ex.Message);
             }
         }
-
 
         [HttpDelete("{id}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
