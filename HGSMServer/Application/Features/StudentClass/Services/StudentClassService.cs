@@ -159,78 +159,154 @@ namespace Application.Features.StudentClass.Services
                 throw new UnauthorizedAccessException("You do not have permission to update class assignments.");
             }
 
-            var currentAcademicYear = await GetCurrentAcademicYearAsync();
+            // Kiểm tra danh sách DTO không rỗng và không chứa trùng lặp
+            if (!dtos.Any())
+            {
+                throw new ArgumentException("The list of class assignments cannot be empty.");
+            }
+            var distinctStudentIds = dtos.Select(d => d.StudentId).Distinct().Count();
+            if (distinctStudentIds < dtos.Count)
+            {
+                throw new ArgumentException("Duplicate student IDs found in the class assignment list.");
+            }
 
+            var currentAcademicYear = await GetCurrentAcademicYearAsync();
             var updatedAssignments = new List<Domain.Models.StudentClass>();
             var assignmentsToDelete = new List<int>();
-
-            foreach (var dto in dtos)
-            {
-                if (dto.AcademicYearId != currentAcademicYear.AcademicYearId)
-                {
-                    throw new InvalidOperationException($"Can only update class assignments for the current academic year (ID: {currentAcademicYear.AcademicYearId}).");
-                }
-
-                if (await IsPreviousAcademicYearAsync(dto.AcademicYearId))
-                {
-                    throw new InvalidOperationException($"Cannot update class assignments for a previous academic year (ID: {dto.AcademicYearId}).");
-                }
-
-                var existingAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, dto.AcademicYearId);
-                if (existingAssignment == null)
-                {
-                    throw new KeyNotFoundException($"Class assignment for student {dto.StudentId} in academic year {dto.AcademicYearId} does not exist.");
-                }
-
-                var student = await _studentRepository.GetByIdAsync(dto.StudentId);
-                if (student == null)
-                {
-                    throw new ArgumentException($"Student with Id {dto.StudentId} does not exist.");
-                }
-
-                if (student.Status == "Tốt nghiệp")
-                {
-                    throw new InvalidOperationException($"Student {student.FullName} has already graduated and cannot be assigned to a class.");
-                }
-
-                var classEntity = await _classRepository.GetByIdAsync(dto.ClassId);
-                if (classEntity == null)
-                {
-                    throw new ArgumentException($"Class with Id {dto.ClassId} does not exist.");
-                }
-
-                await ValidateAcademicYearAsync(dto.AcademicYearId);
-
-                if (existingAssignment.StudentId == dto.StudentId &&
-                    existingAssignment.ClassId == dto.ClassId &&
-                    existingAssignment.AcademicYearId == dto.AcademicYearId)
-                {
-                    continue;
-                }
-
-                var otherAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, dto.AcademicYearId);
-                if (otherAssignment != null && otherAssignment.Id != existingAssignment.Id)
-                {
-                    assignmentsToDelete.Add(existingAssignment.Id);
-                    otherAssignment.ClassId = dto.ClassId;
-                    otherAssignment.AcademicYearId = dto.AcademicYearId;
-                    updatedAssignments.Add(otherAssignment);
-                }
-                else
-                {
-                    existingAssignment.StudentId = dto.StudentId;
-                    existingAssignment.ClassId = dto.ClassId;
-                    existingAssignment.AcademicYearId = dto.AcademicYearId;
-                    updatedAssignments.Add(existingAssignment);
-                }
-            }
 
             using var transaction = await _studentClassRepository.BeginTransactionAsync();
             try
             {
+                foreach (var dto in dtos)
+                {
+                    // Kiểm tra chỉ cập nhật trong năm học hiện tại hoặc năm học tiếp theo
+                    if (dto.AcademicYearId != currentAcademicYear.AcademicYearId && !await IsNextAcademicYearAsync(currentAcademicYear.AcademicYearId, dto.AcademicYearId))
+                    {
+                        throw new InvalidOperationException($"Can only update class assignments for the current academic year (ID: {currentAcademicYear.AcademicYearId}) or the next academic year.");
+                    }
+
+                    // Kiểm tra không cập nhật cho năm học trước
+                    if (await IsPreviousAcademicYearAsync(dto.AcademicYearId))
+                    {
+                        throw new InvalidOperationException($"Cannot update class assignments for a previous academic year (ID: {dto.AcademicYearId}).");
+                    }
+
+                    // Kiểm tra học sinh tồn tại
+                    var student = await _studentRepository.GetByIdAsync(dto.StudentId);
+                    if (student == null)
+                    {
+                        throw new ArgumentException($"Student with Id {dto.StudentId} does not exist.");
+                    }
+
+                    // Kiểm tra học sinh chưa tốt nghiệp
+                    if (student.Status == "Tốt nghiệp")
+                    {
+                        throw new InvalidOperationException($"Student {student.FullName} has already graduated and cannot be assigned to a class.");
+                    }
+
+                    // Kiểm tra lớp học tồn tại và đang hoạt động
+                    var classEntity = await _classRepository.GetByIdAsync(dto.ClassId);
+                    if (classEntity == null)
+                    {
+                        throw new ArgumentException($"Class with Id {dto.ClassId} does not exist.");
+                    }
+                    if (classEntity.Status != "Active")
+                    {
+                        throw new InvalidOperationException($"Class {classEntity.ClassName} is not active.");
+                    }
+
+                    // Kiểm tra năm học hợp lệ
+                    await ValidateAcademicYearAsync(dto.AcademicYearId, mustBeActive: dto.AcademicYearId == currentAcademicYear.AcademicYearId);
+
+                    // Kiểm tra cấp lớp phù hợp
+                    var studentHistory = await _studentClassRepository.GetByStudentIdAsync(dto.StudentId);
+                    var lastGradeLevel = studentHistory.OrderByDescending(sc => sc.AcademicYear.EndDate)
+                                                       .FirstOrDefault()?.Class.GradeLevelId ?? 0;
+
+                    bool isNextYear = await IsNextAcademicYearAsync(currentAcademicYear.AcademicYearId, dto.AcademicYearId);
+                    if (!isNextYear)
+                    {
+                        // Trong cùng năm học, chỉ được chuyển sang lớp có cùng GradeLevelId
+                        if (lastGradeLevel > 0 && classEntity.GradeLevelId != lastGradeLevel)
+                        {
+                            throw new InvalidOperationException($"In the current academic year, student can only be assigned to a class with GradeLevelId {lastGradeLevel}.");
+                        }
+                    }
+                    else
+                    {
+                        // Nếu chuyển sang năm học tiếp theo, chỉ được tăng 1 cấp hoặc giữ nguyên (nếu chưa có lịch sử)
+                        if (lastGradeLevel > 0 && classEntity.GradeLevelId != lastGradeLevel + 1)
+                        {
+                            throw new InvalidOperationException($"In the next academic year, student must be assigned to a class with GradeLevelId {lastGradeLevel + 1}.");
+                        }
+                        // Kiểm tra năm học hiện tại đã kết thúc
+                        if (currentAcademicYear.EndDate > DateOnly.FromDateTime(DateTime.Now))
+                        {
+                            throw new InvalidOperationException("Cannot transfer students to the next academic year until the current academic year has ended.");
+                        }
+                    }
+
+                    // Kiểm tra phân công hiện tại
+                    var existingAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, dto.AcademicYearId);
+                    if (existingAssignment == null)
+                    {
+                        // Nếu không có phân công hiện tại, tạo mới
+                        var newAssignment = new Domain.Models.StudentClass
+                        {
+                            StudentId = dto.StudentId,
+                            ClassId = dto.ClassId,
+                            AcademicYearId = dto.AcademicYearId
+                        };
+                        updatedAssignments.Add(newAssignment);
+                    }
+                    else
+                    {
+                        // Nếu không có thay đổi, bỏ qua
+                        if (existingAssignment.StudentId == dto.StudentId &&
+                            existingAssignment.ClassId == dto.ClassId &&
+                            existingAssignment.AcademicYearId == dto.AcademicYearId)
+                        {
+                            continue;
+                        }
+
+                        // Chỉ xóa bản ghi cũ nếu chuyển lớp trong cùng năm học và cùng GradeLevelId
+                        if (!isNextYear)
+                        {
+                            var otherAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, dto.AcademicYearId);
+                            if (otherAssignment != null && otherAssignment.Id != existingAssignment.Id)
+                            {
+                                assignmentsToDelete.Add(existingAssignment.Id);
+                                otherAssignment.ClassId = dto.ClassId;
+                                updatedAssignments.Add(otherAssignment);
+                            }
+                            else
+                            {
+                                existingAssignment.ClassId = dto.ClassId;
+                                updatedAssignments.Add(existingAssignment);
+                            }
+                        }
+                        else
+                        {
+                            // Sang năm học tiếp theo, không xóa bản ghi cũ, chỉ cập nhật hoặc tạo mới
+                            existingAssignment.ClassId = dto.ClassId;
+                            updatedAssignments.Add(existingAssignment);
+                        }
+                    }
+                }
+
                 if (updatedAssignments.Any())
                 {
-                    await _studentClassRepository.UpdateRangeAsync(updatedAssignments);
+                    foreach (var assignment in updatedAssignments)
+                    {
+                        if (assignment.Id == 0)
+                        {
+                            await _studentClassRepository.AddAsync(assignment);
+                        }
+                        else
+                        {
+                            await _studentClassRepository.UpdateAsync(assignment);
+                        }
+                    }
                 }
 
                 if (assignmentsToDelete.Any())
@@ -238,6 +314,7 @@ namespace Application.Features.StudentClass.Services
                     await _studentClassRepository.DeleteRangeAsync(assignmentsToDelete);
                 }
 
+                await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
             catch
@@ -334,6 +411,11 @@ namespace Application.Features.StudentClass.Services
                 throw new ArgumentException($"Target Class with Id {dto.TargetClassId} does not exist.");
             }
 
+            if (targetClass.Status != "Active")
+            {
+                throw new InvalidOperationException($"Target class {targetClass.ClassName} is not active.");
+            }
+
             await ValidateAcademicYearAsync(dto.TargetAcademicYearId, mustBeActive: false);
 
             bool isCurrentYear = dto.TargetAcademicYearId == currentAcademicYear.AcademicYearId;
@@ -352,6 +434,12 @@ namespace Application.Features.StudentClass.Services
                 {
                     throw new InvalidOperationException($"In the next academic year, students must be transferred to a class with GradeLevelId {currentClass.GradeLevelId + 1} (current GradeLevelId: {currentClass.GradeLevelId}).");
                 }
+                // Kiểm tra năm học hiện tại đã kết thúc
+                var currentAcademicYearData = await _academicYearRepository.GetByIdAsync(dto.AcademicYearId);
+                if (currentAcademicYearData.EndDate > DateOnly.FromDateTime(DateTime.Now))
+                {
+                    throw new InvalidOperationException("Cannot transfer students to the next academic year until the current academic year has ended.");
+                }
             }
             else
             {
@@ -361,33 +449,57 @@ namespace Application.Features.StudentClass.Services
             var studentsInClass = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(dto.ClassId, dto.AcademicYearId);
             if (!studentsInClass.Any())
             {
-                throw new InvalidOperationException($"No students found in class {currentClass.ClassName} for academic year {dto.AcademicYearId}.");
+                throw new InvalidOperationException($"Không tìm thấy học sinh trong lớp {currentClass.ClassName} cho năm học {dto.AcademicYearId}.");
             }
 
             var newAssignments = new List<Domain.Models.StudentClass>();
-            foreach (var studentClass in studentsInClass)
+            var skippedStudents = new List<string>();
+
+            using var transaction = await _studentClassRepository.BeginTransactionAsync();
+            try
             {
-                var student = await _studentRepository.GetByIdAsync(studentClass.StudentId);
-                if (student.Status == "Tốt nghiệp")
+                foreach (var studentClass in studentsInClass)
                 {
-                    throw new InvalidOperationException($"Student {student.FullName} has already graduated and cannot be transferred.");
+                    var student = await _studentRepository.GetByIdAsync(studentClass.StudentId);
+                    if (student.Status == "Tốt nghiệp")
+                    {
+                        skippedStudents.Add($"Student {student.FullName} has already graduated and was skipped.");
+                        continue;
+                    }
+
+                    // Kiểm tra xem học sinh đã có phân công trong năm học đích chưa
+                    var existingAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(studentClass.StudentId, dto.TargetAcademicYearId);
+                    if (existingAssignment != null)
+                    {
+                        skippedStudents.Add($"Student {student.FullName} is already assigned to class {existingAssignment.Class.ClassName} in academic year {dto.TargetAcademicYearId} and was skipped.");
+                        continue;
+                    }
+
+                    newAssignments.Add(new Domain.Models.StudentClass
+                    {
+                        StudentId = studentClass.StudentId,
+                        ClassId = dto.TargetClassId,
+                        AcademicYearId = dto.TargetAcademicYearId
+                    });
                 }
 
-                var existingAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(studentClass.StudentId, dto.TargetAcademicYearId);
-                if (existingAssignment != null)
+                if (newAssignments.Any())
                 {
-                    throw new InvalidOperationException($"Student {student.FullName} is already assigned to class {existingAssignment.Class.ClassName} in academic year {dto.TargetAcademicYearId}.");
+                    await _studentClassRepository.AddRangeAsync(newAssignments);
+                }
+                else
+                {
+                    throw new InvalidOperationException("Không có học sinh nào lên lớp. Tất cả học sinh đã tốt nghiệp hoặc được phân lớp.");
                 }
 
-                newAssignments.Add(new Domain.Models.StudentClass
-                {
-                    StudentId = studentClass.StudentId,
-                    ClassId = dto.TargetClassId,
-                    AcademicYearId = dto.TargetAcademicYearId
-                });
+                await _context.SaveChangesAsync();
+                await transaction.CommitAsync();
             }
-
-            await _studentClassRepository.AddRangeAsync(newAssignments);
+            catch
+            {
+                await transaction.RollbackAsync();
+                throw;
+            }
         }
 
         public async Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null)

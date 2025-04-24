@@ -131,6 +131,14 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Database.BeginTransactionAsync();
         }
+        public async Task<List<StudentClass>> GetByStudentIdAsync(int studentId)
+        {
+            return await _context.StudentClasses
+                .Include(sc => sc.Class)
+                .Include(sc => sc.AcademicYear)
+                .Where(sc => sc.StudentId == studentId)
+                .ToListAsync();
+        }
 
     }
     }
