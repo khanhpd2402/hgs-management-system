@@ -48,10 +48,7 @@ const menuItems = [
         label: "Phân công giảng dạy",
         path: "/teacher/teaching-assignment",
       },
-      {
-        label: "Phân công chủ nhiệm",
-        path: "/teacher/head-teacher-assignment",
-      },
+
       {
         label: "Điểm danh",
         path: "/teacher/take-attendance",
