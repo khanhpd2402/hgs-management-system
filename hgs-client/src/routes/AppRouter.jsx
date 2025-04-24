@@ -111,6 +111,10 @@ const ExamManagement = lazy(
   () => import("@/pages/Principal/ExamManagement/ExamManagement"),
 );
 
+const TransferData = lazy(
+  () => import("@/pages/Principal/TransferData/TransferData"),
+);
+
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -193,6 +197,16 @@ const adminRouter = [
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <SubjectConfigForTeacher />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/transfer-data",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TransferData />
         </Suspense>
       </ProtectedRoute>
     ),

@@ -29,6 +29,7 @@ const menuItems = [
       { label: "Quản lý năm học", path: "/system/academic-year" },
       { label: "Quản lý giáo án", path: "/system/lesson-plan" },
       { label: "Quản lý đề thi", path: "/system/exam" },
+      { label: "Kết chuyển dữ liệu", path: "/system/transfer-data" },
 
       {
         label: "Cấu hình môn học",
