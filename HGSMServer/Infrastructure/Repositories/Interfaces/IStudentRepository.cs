@@ -20,5 +20,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task AddRangeAsync(IEnumerable<Student> students);
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<AcademicYear> GetCurrentAcademicYearAsync(DateOnly currentDate);
+        Task<IEnumerable<int>> GetStudentIdsByParentUserIdAsync(int userId);
     }
 }
