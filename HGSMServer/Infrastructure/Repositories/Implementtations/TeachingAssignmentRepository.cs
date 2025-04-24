@@ -34,5 +34,11 @@ namespace Infrastructure.Repositories.Implementtations
                 t.ClassId == classId &&
                 t.SemesterId == semesterId);
         }
+        public async Task<TeachingAssignment> GetByIdAsync(int assignmentId)
+        {
+            return await _context.TeachingAssignments
+                .Include(ta => ta.Subject)
+                .FirstOrDefaultAsync(ta => ta.AssignmentId == assignmentId);
+        }
     }
 }
