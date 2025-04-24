@@ -91,6 +91,10 @@ const ExamManagement = lazy(
 const TeacherListPlan = lazy(
   () => import("@/pages/RequestLessonPlan/Teacher/TeacherListPlan"),
 );
+
+const ListMarkTeacher = lazy(
+  () => import("@/pages/Student/MarkReport/ListMarkTeacher"),
+);
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -292,11 +296,9 @@ const teacherRouter = [
   {
     path: "/teacher/mark-report",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-          <MarkReportTable />
+          <ListMarkTeacher />
         </Suspense>
-      </ProtectedRoute>
     ),
   },
   {
@@ -310,7 +312,7 @@ const teacherRouter = [
   {
     path: "/teacher/schedule",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <ScheduleTeacher />
         </Suspense>
