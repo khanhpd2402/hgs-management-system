@@ -79,7 +79,7 @@ const ReviewDetail = () => {
             setPlan(response.data);
         } catch (error) {
             console.error('Lỗi khi tải chi tiết:', error);
-            message.error('Không thể tải thông tin kế hoạch');
+            message.error('Không thể tải Thông tin chi tiết ');
         } finally {
             setLoading(false);
         }

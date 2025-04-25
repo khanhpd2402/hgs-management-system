@@ -5,7 +5,6 @@ import Login from "@/pages/Login/Login";
 
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import GradeBatch from "@/pages/Teacher/GradeBatch/GradeBatch";
-import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
 import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { lazy, Suspense } from "react";
@@ -110,7 +109,12 @@ const UploadExam = lazy(
 const ExamManagement = lazy(
   () => import("@/pages/Principal/ExamManagement/ExamManagement"),
 );
-
+const TeacherListPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/Teacher/TeacherListPlan"),
+);
+const ListMarkTeacher = lazy(
+  () => import("@/pages/Student/MarkReport/ListMarkTeacher"),
+);
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -322,9 +326,9 @@ const teacherRouter = [
   {
     path: "/teacher/mark-report",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
-          <MarkReportTable />
+          <ListMarkTeacher />
         </Suspense>
       </ProtectedRoute>
     ),
@@ -417,6 +421,18 @@ const teacherRouter = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/teacher/lesson-plan-by-teacher",
+    element: (
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <TeacherListPlan />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+
+  }
+
 ];
 
 const studentRouter = [

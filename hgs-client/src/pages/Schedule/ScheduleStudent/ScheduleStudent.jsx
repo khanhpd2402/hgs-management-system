@@ -25,7 +25,7 @@ const ScheduleStudent = () => {
 
     const getSchedule = (day, periodId) => {
         if (!scheduleData?.[0]?.details) return null;
-        
+
         const schedule = scheduleData[0].details.find(
             (item) =>
                 item.dayOfWeek === day &&
@@ -45,11 +45,11 @@ const ScheduleStudent = () => {
 
     const getPeriodName = (periodId) => {
         if (!scheduleData?.[0]?.details) return `Tiết ${periodId}`;
-        
+
         const period = scheduleData[0].details.find(
             (item) => item.periodId === periodId
         );
-        
+
         return period?.periodName || `Tiết ${periodId}`;
     };
 
@@ -71,8 +71,8 @@ const ScheduleStudent = () => {
                 <div className="filter-row">
                     <div className="filter-item">
                         <label>Học kỳ</label>
-                        <select 
-                            value={semesterId} 
+                        <select
+                            value={semesterId}
                             onChange={(e) => setSemesterId(Number(e.target.value))}
                             className="semester-select"
                         >
@@ -120,7 +120,7 @@ const ScheduleStudent = () => {
                                 )}
                                 <td className="period-cell">{getPeriodName(period)}</td>
                                 {daysOfWeek.map((day, dayIndex) => (
-                                    <td 
+                                    <td
                                         key={`${day}-${period}-${dayIndex}`}
                                         className={`schedule-cell ${dayIndex % 2 === 0 ? 'even-column' : 'odd-column'}`}
                                     >

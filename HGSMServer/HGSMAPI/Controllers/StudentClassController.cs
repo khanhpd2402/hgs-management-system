@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using System.Collections.Generic;
 using Application.Features.StudentClass.DTOs;
 using Application.Features.StudentClass.Interfaces;
+using System.Linq;
 
 namespace HGSMAPI.Controllers
 {
@@ -51,25 +52,42 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Cập nhật phân lớp hiện tại
-        /// </summary>
-        /// <param name="id">ID của phân lớp</param>
-        /// <param name="dto">Thông tin phân lớp mới</param>
-        /// <returns>Thông báo thành công hoặc lỗi</returns>
+        
         [HttpPut]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> UpdateStudentClasses([FromBody] List<StudentClassAssignmentDto> dtos)
         {
-            if (!ModelState.IsValid || dtos == null || !dtos.Any())
+            if (dtos == null || !dtos.Any())
             {
-                return BadRequest(new { Message = "Invalid or empty request data." });
+                return BadRequest(new { Message = "The list of class assignments cannot be empty." });
+            }
+
+            foreach (var dto in dtos)
+            {
+                if (dto.StudentId <= 0 || dto.ClassId <= 0 || dto.AcademicYearId <= 0)
+                {
+                    return BadRequest(new { Message = $"Invalid data in assignment: StudentId, ClassId, and AcademicYearId must be positive. (StudentId: {dto.StudentId}, ClassId: {dto.ClassId}, AcademicYearId: {dto.AcademicYearId})" });
+                }
+            }
+
+            var duplicateStudentIds = dtos.GroupBy(d => d.StudentId)
+                                         .Where(g => g.Count() > 1)
+                                         .Select(g => g.Key)
+                                         .ToList();
+            if (duplicateStudentIds.Any())
+            {
+                return BadRequest(new { Message = $"Duplicate StudentIds found in the request: {string.Join(", ", duplicateStudentIds)}" });
             }
 
             try
             {
                 await _studentClassService.UpdateStudentClassesAsync(dtos);
-                return Ok(new { Message = "Student class assignments updated successfully." });
+                return Ok(new
+                {
+                    Message = "Student class assignments updated successfully.",
+                    UpdatedCount = dtos.Count,
+                    Assignments = dtos.Select(d => new { d.StudentId, d.ClassId, d.AcademicYearId })
+                });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -85,7 +103,7 @@ namespace HGSMAPI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                return Conflict(new { Message = ex.Message, Detail = ex.InnerException?.Message });
             }
             catch (Exception ex)
             {
@@ -93,11 +111,6 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Xóa phân lớp
-        /// </summary>
-        /// <param name="id">ID của phân lớp</param>
-        /// <returns>Thông báo thành công hoặc lỗi</returns>
         [HttpDelete("{id}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> DeleteStudentClass(int id)
@@ -121,19 +134,8 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        /// <summary>
-        /// Tìm kiếm phân lớp theo bộ lọc
-        /// </summary>
-        /// <param name="filter">Bộ lọc tìm kiếm</param>
-        /// <returns>Danh sách phân lớp phù hợp</returns>
-
-
-        /// <summary>
-        /// Lấy dữ liệu lọc (danh sách học sinh, lớp, năm học)
-        /// </summary>
-        /// <returns>Danh sách dữ liệu để lọc</returns>
         [HttpGet("filter-data")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn,Giáo viên")]
         public async Task<IActionResult> GetFilterData([FromQuery] int? classId = null, [FromQuery] int? semesterId = null)
         {
             try
@@ -145,11 +147,16 @@ namespace HGSMAPI.Controllers
             {
                 return Unauthorized(new { Message = ex.Message });
             }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { Message = ex.Message });
+            }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "An error occurred while retrieving filter data.", Detail = ex.Message });
             }
         }
+
         [HttpPost("bulk-transfer")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> BulkTransferClass([FromBody] BulkClassTransferDto dto)
@@ -162,7 +169,14 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _studentClassService.BulkTransferClassAsync(dto);
-                return Ok(new { Message = "Class transferred successfully." });
+                return Ok(new
+                {
+                    Message = "Class transferred successfully.",
+                    SourceClassId = dto.ClassId,
+                    TargetClassId = dto.TargetClassId,
+                    AcademicYearId = dto.AcademicYearId,
+                    TargetAcademicYearId = dto.TargetAcademicYearId
+                });
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -174,13 +188,14 @@ namespace HGSMAPI.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                return Conflict(new { Message = ex.Message, Detail = ex.InnerException?.Message });
             }
             catch (Exception ex)
             {
                 return StatusCode(500, new { Message = "An error occurred while transferring the class.", Detail = ex.Message });
             }
         }
+
         [HttpPost("process-graduation/{academicYearId}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> ProcessGraduation(int academicYearId)
@@ -207,11 +222,7 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, new { Message = "An error occurred.", Detail = ex.Message });
             }
         }
-        /// <summary>
-        /// Lấy thông tin tất cả các lớp cùng số lượng học sinh
-        /// </summary>
-        /// <param name="academicYearId">ID của năm học (tùy chọn)</param>
-        /// <returns>Danh sách các lớp với thông tin và số học sinh</returns>
+
         [HttpGet("classes-with-student-count")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> GetClassesWithStudentCount([FromQuery] int? academicYearId = null)

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Pencil, PlusCircle, Search, Trash2 } from "lucide-react";
+import { Pencil, PlusCircle, Search } from "lucide-react";
 import { CreateSubjectModal } from "./CreateSubjectModal";
 import { useSubjects } from "@/services/common/queries";
 import { UpdateSubjectModal } from "./UpdateSubjectModal";
@@ -100,13 +100,6 @@ export default function SubjectManagement() {
                         }}
                       >
                         <Pencil className="h-4 w-4" />
-                      </Button>
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        className="cursor-pointer"
-                      >
-                        <Trash2 className="h-4 w-4" />
                       </Button>
                     </div>
                   </TableCell>

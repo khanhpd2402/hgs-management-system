@@ -8,21 +8,26 @@ using System.Security.Claims;
 using System.Text;
 using System.Threading.Tasks;
 using System.Collections.Generic;
+using Domain.Models;
+using Microsoft.EntityFrameworkCore;
 
 public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly IRoleRepository _roleRepository;
     private readonly ITeacherRepository _teacherRepository; 
+    private readonly HgsdbContext _context;
 
     public TokenService(
         IConfiguration configuration,
         IRoleRepository roleRepository,
-        ITeacherRepository teacherRepository)
+        ITeacherRepository teacherRepository,
+        HgsdbContext context)
     {
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
         _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
+        _context = context ?? throw new ArgumentNullException( nameof(context));
     }
 
     public async Task<(string tokenString, Dictionary<string, string> tokenPayload)> GenerateTokenAsync(UserDTO user)
@@ -41,13 +46,24 @@ public class TokenService : ITokenService
             new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString())
         };
 
-        // Kiểm tra vai trò và lấy TeacherID nếu không phải Phụ huynh
         if (userRole != "Phụ huynh")
         {
             var teacher = await _teacherRepository.GetByUserIdAsync(user.UserId);
             if (teacher != null)
             {
                 claims.Add(new Claim("teacherId", teacher.TeacherId.ToString()));
+            }
+        }
+        else
+        {
+            var studentIds = await _context.Students
+                .Where(s => s.Parent != null && s.Parent.UserId == user.UserId)
+                .Select(s => s.StudentId)
+                .ToListAsync();
+
+            if (studentIds.Any())
+            {
+                claims.Add(new Claim("studentIds", string.Join(",", studentIds)));
             }
         }
 

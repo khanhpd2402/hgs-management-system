@@ -17,11 +17,12 @@ namespace Infrastructure.Repositories.Implementtations
             _context = context;
         }
 
-        public async Task<List<Attendance>> GetByWeekAsync(int studentClassId, DateOnly weekStart)
+        public async Task<List<Attendance>> GetByWeekAsync(int classId, DateOnly weekStart)
         {
             var weekDates = Enumerable.Range(0, 6).Select(i => weekStart.AddDays(i)).ToList();
+
             return await _context.Attendances
-                .Where(a => a.StudentClassId == studentClassId && weekDates.Contains(a.Date))
+                .Where(a => a.StudentClass.ClassId == classId && weekDates.Contains(a.Date))
                 .ToListAsync();
         }
 
@@ -30,8 +31,7 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Attendances
                 .FirstOrDefaultAsync(a => a.StudentClassId == studentClassId && a.Date == date && a.Session == session);
         }
-
-        public async Task AddRangeAsync(IEnumerable<Attendance> attendances)
+public async Task AddRangeAsync(IEnumerable<Attendance> attendances)
         {
             _context.Attendances.AddRangeAsync(attendances);
             await _context.SaveChangesAsync();

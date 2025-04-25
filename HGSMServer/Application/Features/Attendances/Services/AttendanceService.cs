@@ -122,16 +122,16 @@ namespace Application.Features.Attendances.Services
         {
             switch (session)
             {
-                case "Sáng":
-                    if (now.Hour < 7)
-                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
-                    break;
-                case "Chiều":
-                    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
-                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
-                    break;
-                default:
-                    throw new InvalidOperationException("Buổi học không hợp lệ.");
+                //case "Sáng":
+                //    if (now.Hour < 7)
+                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
+                //    break;
+                //case "Chiều":
+                //    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
+                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
+                //    break;
+                //default:
+                //    throw new InvalidOperationException("Buổi học không hợp lệ.");
             }
         }
     }

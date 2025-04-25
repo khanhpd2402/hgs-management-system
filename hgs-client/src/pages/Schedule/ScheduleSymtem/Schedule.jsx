@@ -40,7 +40,6 @@ const Schedule = () => {
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedSession, setSelectedSession] = useState('');
     const [showTeacherName, setShowTeacherName] = useState(true);
-    const [originalScheduleData, setOriginalScheduleData] = useState(scheduleData);
 
     const [tempTeacher, setTempTeacher] = useState('');
     const [tempGrade, setTempGrade] = useState('');
@@ -64,127 +63,6 @@ const Schedule = () => {
     // Add filtered state
     const [filteredSchedule, setFilteredSchedule] = useState(null);
 
-    // Thêm state để theo dõi vị trí kéo thả
-    const [isDraggingOverTrash, setIsDraggingOverTrash] = useState(false);
-
-
-
-    const allClasses = useMemo(() => {
-        return grades.flatMap((grade) =>
-            Object.keys(scheduleData[grade] || {}).map((className) => ({ grade, className }))
-        );
-    }, [grades]);
-
-    const filteredClasses = useMemo(() => {
-        return allClasses.filter(({ grade, className }) =>
-            (!selectedGrade || grade === selectedGrade) &&
-            (!selectedClass || className === selectedClass)
-        );
-    }, [allClasses, selectedGrade, selectedClass]);
-
-    const filteredScheduleData = useMemo(() => {
-        let filteredData = originalScheduleData;
-
-        if (selectedGrade) {
-            filteredData = Object.fromEntries(
-                Object.entries(filteredData).filter(([grade]) => grade === selectedGrade)
-            );
-        }
-
-        if (selectedClass) {
-            filteredData = Object.fromEntries(
-                Object.entries(filteredData).map(([grade, classes]) => [
-                    grade,
-                    Object.fromEntries(
-                        Object.entries(classes).filter(([className]) => className === selectedClass)
-                    ),
-                ])
-            );
-        }
-
-        if (selectedTeacher) {
-            filteredData = Object.fromEntries(
-                Object.entries(filteredData).map(([grade, classes]) => [
-                    grade,
-                    Object.fromEntries(
-                        Object.entries(classes).map(([className, days]) => [
-                            className,
-                            Object.fromEntries(
-                                Object.entries(days).map(([day, sessions]) => [
-                                    day,
-                                    Object.fromEntries(
-                                        Object.entries(sessions).map(([session, periods]) => [
-                                            session,
-                                            periods.filter((period) => period.teacher_id === selectedTeacher),
-                                        ])
-                                    ),
-                                ])
-                            ),
-                        ])
-                    ),
-                ])
-            );
-        }
-
-        if (selectedSubject) {
-            filteredData = Object.fromEntries(
-                Object.entries(filteredData).map(([grade, classes]) => [
-                    grade,
-                    Object.fromEntries(
-                        Object.entries(classes).map(([className, days]) => [
-                            className,
-                            Object.fromEntries(
-                                Object.entries(days).map(([day, sessions]) => [
-                                    day,
-                                    Object.fromEntries(
-                                        Object.entries(sessions).map(([session, periods]) => [
-                                            session,
-                                            periods.filter((period) => period.subject_Id === selectedSubject),
-                                        ])
-                                    ),
-                                ])
-                            ),
-                        ])
-                    ),
-                ])
-            );
-        }
-
-        if (selectedSession) {
-            filteredData = Object.fromEntries(
-                Object.entries(filteredData).map(([grade, classes]) => [
-                    grade,
-                    Object.fromEntries(
-                        Object.entries(classes).map(([className, days]) => [
-                            className,
-                            Object.fromEntries(
-                                Object.entries(days).map(([day, sessions]) => [
-                                    day,
-                                    Object.fromEntries(
-                                        Object.entries(sessions).map(([session, periods]) => [
-                                            session,
-                                            session === selectedSession
-                                                ? periods.length > 0
-                                                    ? periods
-                                                    : [{ subject_Id: "", teacher_id: "" }]
-                                                : [],
-
-                                        ])
-                                    ),
-                                ])
-                            ),
-                        ])
-                    ),
-                ])
-            );
-        }
-
-
-
-        return filteredData;
-    }, [selectedGrade, selectedClass, selectedTeacher, selectedSubject, selectedSession, originalScheduleData]);
-
-
     const handleSearch = () => {
         if (!scheduleData?.[0]?.details) return;
 
@@ -193,13 +71,6 @@ const Schedule = () => {
         setSelectedClass(tempClass);
         setSelectedSubject(tempSubject);
         setSelectedSession(tempSession);
-    };
-    const handleReset = () => {
-        setTempTeacher("");
-        setTempGrade("");
-        setTempClass("");
-        setTempSubject("");
-        setTempSession("");
 
         let filtered = scheduleData[0].details;
 
@@ -209,22 +80,13 @@ const Schedule = () => {
                 const teacherIdFromItem = parseInt(item.teacherId);
                 return teacherIdFromItem === teacherIdFromFilter;
             });
-    };
-
-    // Hàm xử lý khi kéo qua một ô khác
-    const handleDragOver = (e, day, session, periodIndex, grade, className) => {
-        e.preventDefault();
-        if (draggedItem && draggedItem.grade === grade && draggedItem.className === className) {
-            setDraggedOverItem({ day, session, periodIndex });
         }
-    };
 
         if (tempGrade) {
             filtered = filtered.filter(item => {
                 const classGrade = item.className.charAt(0);
                 return classGrade === tempGrade;
             });
-        }
         }
 
         if (tempClass) {
@@ -256,12 +118,6 @@ const Schedule = () => {
             selectedSession: tempSession
         } : null);
     };
-        } else {
-            newScheduleData[grade][className][day][session][periodIndex] = {
-                ...newScheduleData[grade][className][day][session][periodIndex],
-                subject_Id: subjectId
-            };
-        }
 
     // Update handleReset function
     const handleReset = () => {
@@ -279,9 +135,6 @@ const Schedule = () => {
 
         setFilteredSchedule(null);
     };
-        } else {
-            newScheduleData[grade][className][day][session][periodIndex].teacher_id = teacherId;
-        }
 
     // Update getSchedule function
     const getSchedule = (day, periodId, className) => {
@@ -306,29 +159,7 @@ const Schedule = () => {
         return null;
     };
 
-    // Chỉnh sửa hàm handleModalConfirm
-    const handleModalConfirm = () => {
-        if (!selectedModalSubject) {
-            alert("Vui lòng chọn môn học!");
-            return;
-        }
-        if (!selectedModalTeacher) {
-            alert("Vui lòng chọn giáo viên!");
-            return;
-        }
 
-        const { day, session, periodIndex, grade, className } = selectedPeriodInfo;
-
-        // Kiểm tra trùng lặp trước khi thêm tiết học mới
-        const duplicateCheck = checkDuplicateInRowForModal(
-            originalScheduleData,
-            grade,
-            className,
-            day,
-            session,
-            periodIndex,
-            selectedModalTeacher
-        );
 
     // Then update the hook usage (around line 155)
     const { data: scheduleData, isLoading: scheduleLoading } = useTimetableForPrincipal(3);
@@ -494,14 +325,7 @@ const Schedule = () => {
                             <button onClick={handleReset} className="reset-button">Reset</button>
                         </div>
                     </div>
-
-
-
                 </div>
-
-
-
-
 
                 <div className="filter-row-table" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -520,7 +344,6 @@ const Schedule = () => {
                             schedule={filteredSchedule || scheduleData?.[0]}
                             showTeacherName={showTeacherName}
                         />
-                    <ImportSchedule />
 
                         {/* Nút Lưu */}
                         <button className="btn-save">
@@ -541,7 +364,6 @@ const Schedule = () => {
                 <br></br>
                 <br></br>
 
-            <div className="table-container">
                 <table className="schedule-table">
                     <thead>
                         <tr>
@@ -588,23 +410,6 @@ const Schedule = () => {
                         })}
                     </tbody>
                 </table>
-            </div>
-
-            <ScheduleModal
-                isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
-                onConfirm={handleModalConfirm}
-            />
-
-            {/* Thêm thùng rác cố định ở góc màn hình */}
-            <div
-                className={`floating-trash ${isDraggingOverTrash ? 'trash-active' : ''} ${draggedItem ? 'trash-visible' : ''}`}
-                onDragOver={handleTrashDragOver}
-                onDragLeave={handleTrashDragLeave}
-                onDrop={handleTrashDrop}
-                style={{ marginBottom: '30px' }}
-            >
-                <Trash2 size={24} />
             </div>
         </div >
     );
