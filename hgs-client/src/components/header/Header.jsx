@@ -32,7 +32,14 @@ const Header = ({ setCurrentYear }) => {
         setSelectedYear(parsedYear);
         setCurrentYear(parsedYear);
       } else {
-        const currentYear = academicYears.data[0];
+        const now = new Date();
+        // Tìm năm học phù hợp với thời gian hiện tại
+        const currentYear =
+          academicYears.data.find(
+            (year) =>
+              new Date(year.startDate) <= now && now <= new Date(year.endDate),
+          ) || academicYears.data[0];
+        console.log(currentYear);
         setSelectedYear(currentYear);
         setCurrentYear(currentYear);
         sessionStorage.setItem(
@@ -43,6 +50,7 @@ const Header = ({ setCurrentYear }) => {
     }
   }, [academicYears.data]);
 
+  // console.log(academicYears.data);
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/login");

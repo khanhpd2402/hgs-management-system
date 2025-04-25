@@ -40,10 +40,10 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userRole = localStorage.getItem("userRole");
+    const token = JSON.parse(localStorage.getItem("token"));
+    const userRole = token ? jwtDecode(token).role : null;
 
-    if (token && userRole) {
+    if (userRole) {
       redirectBasedOnRole(userRole);
     }
   }, [navigate]);
