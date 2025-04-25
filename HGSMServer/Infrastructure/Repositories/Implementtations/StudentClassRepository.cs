@@ -146,6 +146,15 @@ namespace Infrastructure.Repositories.Implementtations
                 .Where(sc => sc.StudentId == studentId)
                 .ToListAsync();
         }
+        public async Task<IEnumerable<StudentClass>> GetByAcademicYearIdAsync(int academicYearId)
+        {
+            return await _context.StudentClasses
+                .Include(sc => sc.Student) // Include Student
+                .Include(sc => sc.Class)   // Include Class
+                .Include(sc => sc.AcademicYear) // Include AcademicYear
+                .Where(sc => sc.AcademicYearId == academicYearId)
+                .ToListAsync();
+        }
 
     }
     }
