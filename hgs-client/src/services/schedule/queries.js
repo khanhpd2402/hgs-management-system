@@ -4,7 +4,7 @@ import {
   getScheduleByStudent,
   getTimetableForPrincipal,
   createSubstituteTeaching,
-  getAssignedTeachers,
+  getAssignedTeacher,
 } from "./api";
 
 export function useScheduleTeacher(teacherId) {
