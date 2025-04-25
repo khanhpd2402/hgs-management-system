@@ -3,8 +3,10 @@ import { Card, Table, Form, Select, Button, message, Input, Checkbox } from 'ant
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
+import { useAssignedTeacher, useCreateSubstituteTeaching } from '../../../services/schedule/queries';
 import toast from "react-hot-toast";
 
+const baseUrl = process.env.VITE_BASE_URL;
 const { Option } = Select;
 
 const getWeekdayName = (date) => {
@@ -25,7 +27,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     try {
       const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
       const response = await fetch(
-        `https://localhost:8386/api/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+        `${baseUrl}/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
         {
           headers: {
             'accept': '*/*',
@@ -53,6 +55,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     }
   };
 
+  const { mutateAsync: createSubstitute } = useCreateSubstituteTeaching();
 
   // Thêm useEffect để kiểm tra giáo viên dạy thay cho mỗi lịch học
   useEffect(() => {
@@ -80,7 +83,6 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const handleSaveAssignment = async (record, teacherId, note) => {
     try {
       const payload = createPayload(record, teacherId, note);
-      const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
 
       // Validate payload
       const missingFields = Object.entries(payload).filter(([key, value]) => !value && key !== 'note');
@@ -99,21 +101,10 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         return;
       }
 
-      const response = await fetch('https://localhost:8386/api/SubstituteTeachings', {
-        method: 'POST',
-        headers: {
-          'accept': '*/*',
-          'Authorization': `Bearer ${token}`,
-          'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
-        },
-        body: JSON.stringify(payload),
-      });
+      await createSubstitute(payload);
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Server response:', errorText);
-        throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-      }
+
+
 
       // Fetch lại dữ liệu sau khi lưu thành công
       await checkAssignedTeacher(
@@ -121,6 +112,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         leaveRequest.teacherId,
         record.date
       );
+      console.log("checkAssignedTeacher", checkAssignedTeacher)
 
       toast.success('Phân công giáo viên dạy thay thành công!')
       message.success('Phân công giáo viên dạy thay thành công!');

@@ -3,6 +3,7 @@ import { Card, Table, Form, Select, Button, message, Input, Checkbox } from 'ant
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
+import { useAssignedTeacher, useCreateSubstituteTeaching } from '../../../services/schedule/queries';
 import toast from "react-hot-toast";
 
 const { Option } = Select;
@@ -53,6 +54,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         }
     };
 
+    const { mutateAsync: createSubstitute } = useCreateSubstituteTeaching();
 
     // Thêm useEffect để kiểm tra giáo viên dạy thay cho mỗi lịch học
     useEffect(() => {
@@ -80,7 +82,6 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     const handleSaveAssignment = async (record, teacherId, note) => {
         try {
             const payload = createPayload(record, teacherId, note);
-            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
 
             // Validate payload
             const missingFields = Object.entries(payload).filter(([key, value]) => !value && key !== 'note');
@@ -99,21 +100,18 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                 return;
             }
 
-            const response = await fetch('https://localhost:8386/api/SubstituteTeachings', {
-                method: 'POST',
-                headers: {
-                    'accept': '*/*',
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
-                },
-                body: JSON.stringify(payload),
-            });
+            await createSubstitute(payload);
 
-            if (!response.ok) {
-                const errorText = await response.text();
-                console.error('Server response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
-            }
+
+
+
+            // Fetch lại dữ liệu sau khi lưu thành công
+            await checkAssignedTeacher(
+                record.timetableDetailId,
+                leaveRequest.teacherId,
+                record.date
+            );
+            console.log("checkAssignedTeacher", checkAssignedTeacher)
 
             toast.success('Phân công giáo viên dạy thay thành công!')
             message.success('Phân công giáo viên dạy thay thành công!');
@@ -179,6 +177,17 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                 })
             );
 
+            // Fetch lại tất cả dữ liệu sau khi lưu hàng loạt thành công
+            await Promise.all(
+                filteredSchedules.map(schedule =>
+                    checkAssignedTeacher(
+                        schedule.timetableDetailId,
+                        leaveRequest.teacherId,
+                        schedule.date
+                    )
+                )
+            );
+
             toast.success('Lưu thành công')
             message.success('Đã lưu tất cả phân công thành công!');
             form.resetFields(['assignments', 'notes']);
@@ -195,12 +204,70 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
             title: 'Đã phân công',
             key: 'assigned',
             width: 100,
-            render: (_, record) => (
-                <Checkbox
-                    checked={assignedTeachers[record.timetableDetailId]?.isAssigned || false}
-                    disabled={true}
-                />
-            ),
+            align: 'center',
+            render: (_, record) => {
+                const isAssigned = assignedTeachers[record.timetableDetailId]?.isAssigned || false;
+                return (
+                    <div
+                        style={{
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            padding: '10px', // Tăng padding để checkbox nổi bật
+                            backgroundColor: isAssigned ? '#e6f4ff' : '#ffffff', // Nền xanh nhạt khi checked, trắng khi không checked
+                            borderRadius: '6px', // Bo góc container
+                            boxShadow: isAssigned ? '0 0 4px rgba(0, 80, 179, 0.2)' : 'none', // Bóng nhẹ khi checked
+                        }}
+                    >
+                        <Checkbox
+                            checked={isAssigned}
+                            disabled={true}
+                            style={{
+                                transform: 'scale(1.5)', // Phóng to checkbox để rõ hơn
+                                fontSize: '18px', // Tăng kích thước để phù hợp
+                                // Style cho toàn bộ checkbox
+                                ...(isAssigned
+                                    ? {
+                                        // Khi checked
+                                        border: 'none', // Loại bỏ viền mặc định
+                                        '--ant-checkbox-bg': '#0050b3', // Xanh dương đậm khi checked
+                                        '--ant-checkbox-border': '#0050b3',
+                                        '--ant-checkbox-shadow': '0 0 8px rgba(0, 80, 179, 0.5)', // Bóng nổi bật
+                                        // Nhắm vào .ant-checkbox-inner khi checked
+                                        '& .ant-checkbox-checked .ant-checkbox-inner': {
+                                            backgroundColor: 'var(--ant-checkbox-bg)', // Màu nền xanh dương
+                                            border: '2px solid var(--ant-checkbox-border)', // Viền đậm
+                                            boxShadow: 'var(--ant-checkbox-shadow)', // Bóng
+                                            borderRadius: '4px', // Bo góc nhẹ
+                                        },
+                                        '& .ant-checkbox-inner': {
+                                            border: '2px solid var(--ant-checkbox-border)', // Viền đậm khi checked
+                                        },
+                                        '& .ant-checkbox-disabled .ant-checkbox-inner': {
+                                            opacity: 1, // Đảm bảo không mờ khi disabled
+                                        },
+                                    }
+                                    : {
+                                        // Khi không checked
+                                        border: 'none',
+                                        '--ant-checkbox-bg': '#ffffff', // Nền trắng
+                                        '--ant-checkbox-border': '#bfbfbf', // Viền xám nhạt
+                                        '--ant-checkbox-shadow': 'none',
+                                        // Nhắm vào .ant-checkbox-inner khi không checked
+                                        '& .ant-checkbox-inner': {
+                                            backgroundColor: 'var(--ant-checkbox-bg)', // Nền trắng
+                                            border: '1px solid var(--ant-checkbox-border)', // Viền mỏng
+                                            borderRadius: '4px',
+                                        },
+                                        '& .ant-checkbox-disabled .ant-checkbox-inner': {
+                                            opacity: 0.7, // Mờ nhẹ khi disabled và không checked
+                                        },
+                                    }),
+                            }}
+                        />
+                    </div>
+                );
+            },
         },
         {
             title: 'Ngày',

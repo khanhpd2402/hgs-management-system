@@ -18,3 +18,8 @@ export const getTimetableForPrincipal = async (timetableId) => {
   );
   return response.data;
 };
+
+export const createSubstituteTeaching = async (payload) => {
+  const response = await axiosInstance.post("SubstituteTeachings", payload);
+  return response.data;
+};

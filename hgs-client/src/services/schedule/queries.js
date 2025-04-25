@@ -1,8 +1,9 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   getScheduleByTeacherId,
   getScheduleByStudent,
   getTimetableForPrincipal,
+  createSubstituteTeaching,
 } from "./api";
 
 export function useScheduleTeacher(teacherId) {
@@ -24,5 +25,16 @@ export function useTimetableForPrincipal(timetableId) {
     queryKey: ["schedule", "principal", timetableId],
     queryFn: () => getTimetableForPrincipal(timetableId),
     enabled: !!timetableId,
+  });
+}
+
+export function useCreateSubstituteTeaching() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: createSubstituteTeaching,
+    onSuccess: () => {
+      queryClient.invalidateQueries("assignedTeacher");
+    },
   });
 }
