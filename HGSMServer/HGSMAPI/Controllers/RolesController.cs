@@ -1,4 +1,7 @@
 ﻿using Application.Features.Role.Interfaces;
+using Application.Features.Users.DTOs;
+using Application.Features.Users.Interfaces;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,10 +12,12 @@ namespace HGSMAPI.Controllers
     public class RolesController : ControllerBase
     {
         private readonly IRoleService _roleService;
+        private readonly IUserService _userService;
 
-        public RolesController(IRoleService roleService)
+        public RolesController(IRoleService roleService, IUserService userService)
         {
             _roleService = roleService;
+            _userService = userService;
         }
 
         [HttpGet]
@@ -31,6 +36,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> AddRole([FromBody] string roleName)
         {
             var newRole = await _roleService.AddRoleAsync(roleName);
@@ -40,8 +46,33 @@ namespace HGSMAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] string roleName)
         {
+            var originalRole = await _roleService.GetRoleByIdAsync(id);
+            if (originalRole == null)
+                return NotFound();
+
             var updatedRole = await _roleService.UpdateRoleAsync(id, roleName);
-            if (updatedRole == null) return NotFound();
+            if (updatedRole == null)
+                return NotFound();
+
+            // Nếu vai trò liên quan đến "Trưởng bộ môn", cập nhật IsHeadOfDepartment cho người dùng
+            if (originalRole.RoleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase) ||
+                roleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase))
+            {
+                var usersWithRole = await _userService.GetAllUsersAsync();
+                foreach (var user in usersWithRole.Where(u => u.RoleId == id))
+                {
+                    var updateUserDto = new UpdateUserDTO
+                    {
+                        UserId = user.UserId,
+                        Username = user.Username,
+                        Email = user.Email,
+                        PhoneNumber = user.PhoneNumber,
+                        RoleId = id
+                    };
+                    await _userService.UpdateUserAsync(updateUserDto); // Gọi UpdateUserAsync để cập nhật IsHeadOfDepartment
+                }
+            }
+
             return Ok(updatedRole);
         }
 
