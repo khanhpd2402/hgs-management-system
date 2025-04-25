@@ -310,7 +310,7 @@ const teacherRouter = [
     // errorElement: <ErrorRouteComponent />,
   },
   {
-    path: "/teacher/teaching-assignment",
+    path: "/system/teaching-assignment",
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <TATable />
@@ -325,14 +325,7 @@ const teacherRouter = [
       </Suspense>
     ),
   },
-  {
-    path: "/teacher/head-teacher-assignment",
-    element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <HTATable />
-      </Suspense>
-    ),
-  },
+
   {
     path: "/teacher/mark-report",
     element: (
@@ -344,7 +337,7 @@ const teacherRouter = [
     ),
   },
   {
-    path: "/teacher/grade-batch",
+    path: "/system/grade-batch",
     element: (
       <Suspense fallback={<div>Loading...</div>}>
         <GradeBatch />

@@ -213,7 +213,6 @@ export default function AttendanceTable() {
     }
   }, [students, studentAttendances, date, session]);
 
-  console.log(studentsData);
   const debounceTimeout = useRef({});
 
   // Debounce cho lý do
