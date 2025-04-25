@@ -65,10 +65,13 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.SaveChangesAsync();
             return true;
         }
-        public async Task<Conduct> GetByStudentAndSemesterAsync(int studentId, int semesterId)
+
+        
+        public async Task<Conduct?> GetByStudentAndSemesterAsync(int studentId, int semesterId)
         {
             return await _context.Conducts
-                .FirstOrDefaultAsync(c => c.StudentId == studentId && c.SemesterId == semesterId);
+                                 .Where(c => c.StudentId == studentId && c.SemesterId == semesterId)
+                                 .FirstOrDefaultAsync();
         }
     }
 }

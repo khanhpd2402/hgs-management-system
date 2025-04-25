@@ -15,7 +15,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<IEnumerable<StudentClass>> GetAllAsync();
         Task<StudentClass> AddAsync(StudentClass entity);
         Task<StudentClass> UpdateAsync(StudentClass entity);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id); 
         Task<StudentClass> GetStudentClassByStudentAndClassIdAsync(int studentId, int classId);
         Task<StudentClass> GetByStudentAndAcademicYearAsync(int studentId, int academicYearId);
         Task<IEnumerable<StudentClass>> SearchAsync(int? studentId, int? classId, int? academicYearId, string studentName);
@@ -26,5 +26,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<List<StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId);
         //history of class assignment
         Task<List<StudentClass>> GetByStudentIdAsync(int studentId);
+        Task<IEnumerable<StudentClass>> GetByAcademicYearIdAsync(int academicYearId);
     }
 }
