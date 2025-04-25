@@ -223,12 +223,12 @@ export default function Sidebar({ isOpen, setIsOpen }) {
     <div
       className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${
         isOpen ? "w-64" : "w-16"
-      }`}
+      } sidebar-scrollbar overflow-y-auto`}
     >
       {/* Button đóng/mở menu */}
       <div
         onClick={() => setIsOpen(!isOpen)}
-        className={`flex h-12 cursor-pointer items-center p-2 hover:bg-sky-500 ${isOpen ? "pl-3" : "justify-center"}`}
+        className={`sticky top-0 z-20 flex h-12 cursor-pointer items-center border-b border-sky-700 bg-sky-800 p-2 hover:bg-sky-500 ${isOpen ? "pl-3" : "justify-center"}`}
       >
         <button className="p-2 text-white focus:outline-none">
           <Menu className="h-6 w-6" />
