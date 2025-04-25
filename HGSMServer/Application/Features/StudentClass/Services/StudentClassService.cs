@@ -65,7 +65,7 @@ namespace Application.Features.StudentClass.Services
         private async Task<bool> HasReadPermissionAsync()
         {
             var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-            var allowedRoles = new[] { "Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư", "Giáo viên", "Phụ huynh" };
+            var allowedRoles = new[] { "Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư", "Giáo viên", "Phụ huynh","Trưởng bộ môn" };
             return allowedRoles.Contains(userRole);
         }
 
