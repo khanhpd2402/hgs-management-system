@@ -1,4 +1,6 @@
 ﻿using Application.Features.StudentClass.DTOs;
+using Application.Features.Students.DTOs;
+using Application.Features.Classes.DTOs;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,8 +15,10 @@ namespace Application.Features.StudentClass.Interfaces
         Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos);
         Task DeleteStudentClassAsync(int id);
         Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null);
-        Task BulkTransferClassAsync(BulkClassTransferDto dto);
+        Task<BulkTransferResultDto> BulkTransferClassAsync(BulkClassTransferDto dto); 
         Task ProcessGraduationAsync(int academicYearId);
-        Task<List<ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
+        Task<List<StudentClass.DTOs.ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
+        Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassesAsync();
+        Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassByLastAcademicYearAsync(int currentAcademicYearId);
     }
 }
