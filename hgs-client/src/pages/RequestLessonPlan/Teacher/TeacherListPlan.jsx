@@ -1,52 +1,40 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
-import './LessonPlanList.scss';
+import '../System/LessonPlanList.scss';
 import { Table, Space, Tag, Select, Form, Card, Modal, Button, Descriptions } from 'antd';
 import { Link } from 'react-router-dom';
 import { EyeOutlined } from '@ant-design/icons';
 import dayjs from 'dayjs';
-import { Input } from 'antd';
-import toast from 'react-hot-toast';
+import { jwtDecode } from 'jwt-decode';
+import { useLessonPlanByTeacher } from 'c:/Users/trung/Downloads/hgs-client/src/services/lessonPlan/queries';
 
-const { Option } = Select;
-
-const LessonPlanList = () => {
-    const [lessonPlans, setLessonPlans] = useState([]);
-    const [loading, setLoading] = useState(true);
+const TeacherListPlan = () => {
     const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     const [selectedStatus, setSelectedStatus] = useState('All');
     const [searchTerm, setSearchTerm] = useState('');
     const pageSize = 10;
     const [isModalVisible, setIsModalVisible] = useState(false);
     const [selectedRequest, setSelectedRequest] = useState(null);
-    const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
-    const [reviewForm] = Form.useForm();
-    const [selectedPlan, setSelectedPlan] = useState(null);
-    const fetchLessonPlans = async (page, status) => {
-        try {
-            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const url = status === 'All'
-                ? `https://localhost:8386/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
-                : `https://localhost:8386/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
 
-            const response = await axios.get(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            setLessonPlans(response.data.lessonPlans);
-            setTotalPages(Math.ceil(response.data.totalCount / pageSize));
-            setLoading(false);
-        } catch (error) {
-            console.error('Lỗi khi tải danh sách:', error);
-            setLoading(false);
-        }
-    };
+    const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+    const decoded = jwtDecode(token);
+    const teacherId = decoded?.teacherId;
 
-    useEffect(() => {
-        fetchLessonPlans(currentPage, selectedStatus);
-    }, [currentPage, selectedStatus]);
+    const { data, isLoading } = useLessonPlanByTeacher(teacherId, currentPage, pageSize);
+
+    const filteredLessonPlans = data?.lessonPlans?.filter(plan => {
+        const searchStr = searchTerm.toLowerCase();
+        const matchesSearch = (
+            plan.planId.toString().includes(searchStr) ||
+            plan.teacherName?.toLowerCase().includes(searchStr) ||
+            plan.subjectName?.toLowerCase().includes(searchStr) ||
+            plan.planContent?.toLowerCase().includes(searchStr) ||
+            plan.reviewerName?.toLowerCase().includes(searchStr) ||
+            plan.feedback?.toLowerCase().includes(searchStr)
+        );
+
+        return matchesSearch && (selectedStatus === 'All' || plan.status === selectedStatus);
+    }) || [];
 
     const formatDate = (dateString) => {
         if (!dateString) return 'N/A';
@@ -84,21 +72,37 @@ const LessonPlanList = () => {
                 return status;
         }
     };
-    const filteredLessonPlans = lessonPlans.filter(plan => {
-        const searchStr = searchTerm.toLowerCase();
-        return (
-            plan.planId.toString().includes(searchStr) ||
-            plan.teacherName?.toLowerCase().includes(searchStr) ||
-            plan.subjectName?.toLowerCase().includes(searchStr) ||
-            plan.planContent?.toLowerCase().includes(searchStr) ||
-            plan.reviewerName?.toLowerCase().includes(searchStr) ||
-            plan.feedback?.toLowerCase().includes(searchStr)
-        );
-    });
 
     const showDetailModal = (record) => {
         setSelectedRequest(record);
         setIsModalVisible(true);
+    };
+
+    const getGoogleDriveEmbedUrl = (url) => {
+        if (!url) return '';
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname === 'drive.google.com') {
+                // For folders
+                if (url.includes('/folders/')) {
+                    const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
+                    if (folderId) {
+                        return `https://drive.google.com/embeddedfolderview?id=${folderId}&amp;usp=sharing#list`;
+                    }
+                }
+                // For files
+                else if (url.includes('/file/d/')) {
+                    const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
+                    if (fileId) {
+                        return `https://drive.google.com/file/d/${fileId}/preview`;
+                    }
+                }
+            }
+            return url;
+        } catch (error) {
+            console.error('Invalid URL:', error);
+            return '';
+        }
     };
 
     const DetailModal = () => (
@@ -127,9 +131,7 @@ const LessonPlanList = () => {
                                 <Descriptions.Item label="ID Kế hoạch" span={2}>
                                     {selectedRequest.planId}
                                 </Descriptions.Item>
-                                <Descriptions.Item label="Giáo viên" span={2}>
-                                    {selectedRequest.teacherName}
-                                </Descriptions.Item>
+
                                 <Descriptions.Item label="Môn học" span={2}>
                                     {selectedRequest.subjectName}
                                 </Descriptions.Item>
@@ -170,11 +172,20 @@ const LessonPlanList = () => {
                                         border: '1px solid #d9d9d9',
                                         borderRadius: '4px'
                                     }}
-                                    frameBorder="0"
-                                    allowFullScreen
-                                    allow="autoplay"
-                                    sandbox="allow-same-origin allow-scripts allow-popups allow-forms"
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        message.error('Không thể tải tệp đính kèm. Vui lòng mở trong tab mới.');
+                                    }}
                                 />
+                                <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                    <a
+                                        href={selectedRequest.attachmentUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Button type="primary">Mở trong tab mới</Button>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -190,16 +201,15 @@ const LessonPlanList = () => {
             key: 'planId',
         },
         {
-            title: 'Giáo viên',
-            dataIndex: 'teacherName',
-            key: 'teacherName',
-        },
-        {
             title: 'Môn học',
             dataIndex: 'subjectName',
             key: 'subjectName',
         },
-
+        {
+            title: 'Nội dung',
+            dataIndex: 'planContent',
+            key: 'planContent',
+        },
         {
             title: 'Trạng thái',
             dataIndex: 'status',
@@ -244,133 +254,27 @@ const LessonPlanList = () => {
                     >
                         Xem chi tiết
                     </Button>
-
-                    <Button
-                        type="primary"
-                        onClick={() => {
-                            setSelectedPlan(record);
-                            setIsReviewModalVisible(true);
-                        }}
-                    >
-                        Phê duyệt
-                    </Button>
-
-
+                    {record.status === 'Chờ duyệt' && (
+                        <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
+                            <Button>Thêm tài liệu</Button>
+                        </Link>
+                    )}
                 </Space>
             ),
         },
     ];
 
-    if (loading) {
+    if (isLoading) {
         return <div className="loading">Đang tải dữ liệu...</div>;
     }
 
-    const getGoogleDriveEmbedUrl = (url) => {
-        if (!url) return '';
-
-        if (url.includes('drive.google.com')) {
-            // Handle folder URLs
-            if (url.includes('/folders/')) {
-                const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
-                if (folderId) {
-                    return `https://drive.google.com/embeddedfolderview?id=${folderId}#list`;
-                }
-            }
-            // Handle file URLs
-            else if (url.includes('/file/d/')) {
-                const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
-                if (fileId) {
-                    return `https://drive.google.com/file/d/${fileId}/preview`;
-                }
-            }
-        }
-        return url;
-    };
-
-
-    const ReviewModal = () => (
-        <Modal
-            title="Phê duyệt kế hoạch giáo án"
-            open={isReviewModalVisible}
-            onCancel={() => {
-                setIsReviewModalVisible(false);
-                reviewForm.resetFields();
-            }}
-            footer={null}
-        >
-            <Form
-                form={reviewForm}
-                onFinish={handleReview}
-                layout="vertical"
-            >
-                <Form.Item
-                    name="status"
-                    label="Trạng thái"
-                    rules={[{ required: true, message: 'Vui lòng chọn trạng thái' }]}
-                >
-                    <Select>
-                        <Option value="Đã duyệt">Phê duyệt</Option>
-                        <Option value="Từ chối">Từ chối</Option>
-                    </Select>
-                </Form.Item>
-
-                <Form.Item
-                    name="feedback"
-                    label="Phản hồi"
-                    rules={[{ required: true, message: 'Vui lòng nhập phản hồi' }]}
-                >
-                    <Input.TextArea rows={4} />
-                </Form.Item>
-
-                <Form.Item>
-                    <Space>
-                        <Button type="primary" htmlType="submit">
-                            Xác nhận
-                        </Button>
-                        <Button onClick={() => {
-                            setIsReviewModalVisible(false);
-                            reviewForm.resetFields();
-                        }}>
-                            Hủy
-                        </Button>
-                    </Space>
-                </Form.Item>
-            </Form>
-        </Modal>
-    );
-
-    const handleReview = async (values) => {
-        try {
-            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            await axios.post('https://localhost:8386/api/LessonPlan/review', {
-                planId: selectedPlan.planId,
-                status: values.status,
-                feedback: values.feedback
-            }, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
-            toast.success('Cập nhật trạng thái thành công');
-            setIsReviewModalVisible(false);
-            reviewForm.resetFields();
-            fetchLessonPlans(currentPage, selectedStatus);
-        } catch (error) {
-            const errorMessage = error.response?.data?.error || 'Đã xảy ra lỗi khi cập nhật';
-            toast.error(errorMessage);
-        }
-    };
     return (
         <div className="lesson-plan-list">
 
             <h2>Danh sách phân công làm giáo án</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2></h2>
-                <Link to="/teacher/lesson-plan/create">
-                    <Button type="primary">
-                        Tạo kế hoạch mới
-                    </Button>
-                </Link>
+
             </div>
             <div className="filters-section">
                 <div className="search-container">
@@ -385,13 +289,10 @@ const LessonPlanList = () => {
                 <div className="filter-container">
                     <select
                         value={selectedStatus}
-                        onChange={(e) => {
-                            setSelectedStatus(e.target.value);
-                            setCurrentPage(1);
-                        }}
+                        onChange={(e) => setSelectedStatus(e.target.value)}
                     >
                         <option value="All">Tất cả</option>
-                        <option value="Chờ duyệt">Đang xử lý</option>
+                        <option value="Đang chờ">Đang xử lý</option>
                         <option value="Đã duyệt">Đã duyệt</option>
                         <option value="Từ chối">Từ chối</option>
                     </select>
@@ -402,11 +303,11 @@ const LessonPlanList = () => {
                 <Table
                     columns={columns}
                     dataSource={filteredLessonPlans}
-                    loading={loading}
+                    loading={isLoading}
                     rowKey="planId"
                     pagination={{
                         pageSize: pageSize,
-                        total: totalPages * pageSize,
+                        total: data?.totalCount || 0,
                         current: currentPage,
                         onChange: (page) => {
                             setCurrentPage(page);
@@ -416,9 +317,8 @@ const LessonPlanList = () => {
             </div>
 
             <DetailModal />
-            <ReviewModal />
         </div>
     );
 };
 
-export default LessonPlanList;
+export default TeacherListPlan

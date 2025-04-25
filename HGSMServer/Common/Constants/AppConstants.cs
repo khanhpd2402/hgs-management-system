@@ -50,7 +50,7 @@ namespace Common.Constants
             public const string PRESENT = "C"; // Có mặt
             public const string PERMISSION = "P"; // Nghỉ có phép
             public const string ABSENT = "K"; // Nghỉ không phép
-            public const string LATE = "X"; // Đi muộn
+            public const string LATE = "X"; // Trường hợp khác (Đi muộn, về sớm, bỏ tiết)
             public static readonly string[] All = { PRESENT, PERMISSION, ABSENT, LATE };
         }
 

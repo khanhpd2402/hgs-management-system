@@ -11,6 +11,7 @@ using Application.Features.Teachers.DTOs;
 using Application.Features.Teachers.Interfaces;
 using Infrastructure.Repositories.Interfaces;
 using System.Text.Json;
+using Application.Features.Role.Interfaces; 
 
 namespace HGSMAPI.Controllers
 {
@@ -22,13 +23,20 @@ namespace HGSMAPI.Controllers
         private readonly ITokenService _tokenService;
         private readonly ITeacherService _teacherService;
         private readonly IAcademicYearRepository _academicYearRepository;
+        private readonly IRoleService _roleService; 
 
-        public AuthController(IUserService userService, ITokenService tokenService, ITeacherService teacherService, IAcademicYearRepository academicYearRepository)
+        public AuthController(
+            IUserService userService,
+            ITokenService tokenService,
+            ITeacherService teacherService,
+            IAcademicYearRepository academicYearRepository,
+            IRoleService roleService) 
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
             _teacherService = teacherService ?? throw new ArgumentNullException(nameof(teacherService));
             _academicYearRepository = academicYearRepository ?? throw new ArgumentNullException(nameof(academicYearRepository));
+            _roleService = roleService ?? throw new ArgumentNullException(nameof(roleService));
         }
 
         [HttpPost("login")]
@@ -150,10 +158,17 @@ namespace HGSMAPI.Controllers
                 return StatusCode(403, new { message = "You do not have permission to assign roles." });
             }
 
-            var validRoles = new[] { 1, 2, 3, 4, 5, 6 };
-            if (!validRoles.Contains(assignRoleDto.RoleId))
+            // Kiểm tra vai trò hợp lệ dựa trên RoleName
+            var role = await _roleService.GetRoleByIdAsync(assignRoleDto.RoleId);
+            if (role == null)
             {
-                return BadRequest(new { message = "Invalid RoleId." });
+                return BadRequest(new { message = "Invalid RoleId. Role does not exist." });
+            }
+
+            var validRoleNames = new[] { "Cán bộ văn thư", "Trưởng bộ môn", "Phụ huynh", "Hiệu trưởng", "Giáo viên", "Hiệu phó" };
+            if (!validRoleNames.Contains(role.RoleName))
+            {
+                return BadRequest(new { message = $"Invalid role. RoleName must be one of: {string.Join(", ", validRoleNames)}." });
             }
 
             var userToUpdate = await _userService.GetUserByIdAsync(assignRoleDto.UserId);
@@ -169,15 +184,13 @@ namespace HGSMAPI.Controllers
                 Username = userToUpdate.Username,
                 Email = userToUpdate.Email,
                 PhoneNumber = userToUpdate.PhoneNumber,
-                RoleId = assignRoleDto.RoleId 
+                RoleId = assignRoleDto.RoleId
             };
 
             await _userService.UpdateUserAsync(updateUserDto);
 
-            return Ok(new { message = "Role assigned successfully.", userId = assignRoleDto.UserId, newRoleId = assignRoleDto.RoleId });
+            return Ok(new { message = "Role assigned successfully.", userId = assignRoleDto.UserId, newRoleId = assignRoleDto.RoleId, newRoleName = role.RoleName });
         }
-
-        
 
         private bool VerifyPassword(string inputPassword, string storedHash)
         {

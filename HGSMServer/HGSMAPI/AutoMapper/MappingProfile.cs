@@ -20,6 +20,8 @@ using Common.Constants;
 using Application.Features.SubstituteTeachings.DTOs;
 using Application.Features.TeacherSubjects.DTOs;
 using Application.Features.Conducts.DTOs;
+using Application.Features.Attendances.DTOs;
+
 
 namespace HGSMAPI.AutoMapper
 {
@@ -27,6 +29,7 @@ namespace HGSMAPI.AutoMapper
     {
         public MappingProfile()
         {
+            CreateMap<Attendance, AttendanceDto>().ReverseMap();
             // Ánh xạ cho TeacherDetailDto sang Teacher
             CreateMap<TeacherDetailDto, Teacher>()
                 .ForMember(dest => dest.User, opt => opt.Ignore());
@@ -86,6 +89,7 @@ namespace HGSMAPI.AutoMapper
             CreateMap<Class, ClassDto>().ReverseMap();
 
             CreateMap<Grade, GradeRespondDto>()
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.GradeId))
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentClass.StudentId))
                 .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.StudentClass.Student.FullName))
                 .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Assignment.Subject.SubjectName))
@@ -157,6 +161,8 @@ namespace HGSMAPI.AutoMapper
 
             CreateMap<GradeLevel, GradeLevelDto>();
             CreateMap<GradeLevel, GradeLevelCreateAndUpdateDto>().ReverseMap();
+
+            CreateMap<Attendance, AttendanceDto>().ReverseMap();
 
             CreateMap<Period, PeriodDto>();
             CreateMap<Period, PeriodCreateAndUpdateDto>().ReverseMap();

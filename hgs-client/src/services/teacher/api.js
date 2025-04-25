@@ -59,3 +59,40 @@ export const getExamsByTeacherId = async (teacherId) => {
     await axiosInstance.get(`ExamProposals/exam-proposals/teacher/${teacherId}`)
   ).data;
 };
+
+export const getStudentByClass = async (classId, semesterId) => {
+  return (
+    await axiosInstance.get(
+      `StudentClasses/filter-data?classId=${classId}&semesterId=${semesterId}`,
+    )
+  ).data;
+};
+
+export const takeAttendance = async ({
+  teacherId,
+  classId,
+  semesterId,
+  data,
+}) => {
+  return await axiosInstance.post(
+    `Attendance/upsert?teacherId=${teacherId}&classId=${classId}&semesterId=${semesterId}`,
+    data,
+  );
+};
+
+export const getStudentAttendances = async ({
+  teacherId,
+  classId,
+  semesterId,
+  weekStart,
+}) => {
+  return (
+    await axiosInstance.get(
+      `Attendance/weekly?teacherId=${teacherId}&classId=${classId}&semesterId=${semesterId}&weekStart=${weekStart}`,
+    )
+  ).data;
+};
+export async function getTeachersBySubject(id) {
+  const response = await axios.get(`/api/TeacherSubject/${id}`);
+  return response.data;
+}

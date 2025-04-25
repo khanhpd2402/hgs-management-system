@@ -19,7 +19,7 @@ const ReviewList = () => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const response = await axios.get(
-                `https://localhost:8386/api/LessonPlan/filter-by-status?status=Đang chờ&pageNumber=${page}&pageSize=${pageSize}`,
+                `https://localhost:8386/api/LessonPlan/filter-by-status?status=Chờ duyệt&pageNumber=${page}&pageSize=${pageSize}`,
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }

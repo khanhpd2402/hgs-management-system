@@ -265,11 +265,28 @@ namespace Application.Features.Users.Services
             if (user == null)
                 throw new ArgumentException($"User with ID {userDto.UserId} not found.");
 
-            // Không cho phép cập nhật Username vì nó được sinh tự động
+            // Lấy RoleName của vai trò mới
+            var newRoleName = await GetRoleNameByRoleIdAsync(userDto.RoleId);
+            if (string.IsNullOrEmpty(newRoleName))
+                throw new ArgumentException($"Role with ID {userDto.RoleId} not found.");
+
+            // Cập nhật thông tin người dùng
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
             user.RoleId = userDto.RoleId;
 
+            // Kiểm tra và cập nhật IsHeadOfDepartment nếu người dùng là giáo viên
+            if (!newRoleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase))
+            {
+                var teacher = await _teacherRepository.GetByUserIdAsync(userDto.UserId);
+                if (teacher != null)
+                {
+                    teacher.IsHeadOfDepartment = newRoleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase);
+                    await _teacherRepository.UpdateAsync(teacher);
+                }
+            }
+
+            // Lưu thay đổi vào bảng Users
             await _userRepository.UpdateAsync(user);
         }
 
