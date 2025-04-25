@@ -58,7 +58,7 @@ namespace Infrastructure.Repositories.Implementtations
             if (OriginalTeacherId.HasValue)
                 query = query.Where(st => st.OriginalTeacherId == OriginalTeacherId.Value);
             if (SubstituteTeacherId.HasValue)
-                query = query.Where(st => st.OriginalTeacherId == SubstituteTeacherId.Value);
+                query = query.Where(st => st.SubstituteTeacherId == SubstituteTeacherId.Value);
 
             if (date.HasValue)
                 query = query.Where(st => st.Date == date.Value);

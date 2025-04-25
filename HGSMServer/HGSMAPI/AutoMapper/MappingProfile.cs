@@ -87,6 +87,7 @@ namespace HGSMAPI.AutoMapper
             CreateMap<Class, ClassDto>().ReverseMap();
 
             CreateMap<Grade, GradeRespondDto>()
+                .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.GradeId))
                 .ForMember(dest => dest.StudentId, opt => opt.MapFrom(src => src.StudentClass.StudentId))
                 .ForMember(dest => dest.StudentName, opt => opt.MapFrom(src => src.StudentClass.Student.FullName))
                 .ForMember(dest => dest.SubjectName, opt => opt.MapFrom(src => src.Assignment.Subject.SubjectName))
