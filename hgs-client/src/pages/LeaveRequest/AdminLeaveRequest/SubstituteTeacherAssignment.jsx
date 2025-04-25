@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Form, Select, Button, message, Input } from 'antd';
+import { Card, Table, Form, Select, Button, message, Input, Checkbox } from 'antd';
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
@@ -18,6 +18,54 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const [form] = Form.useForm();
   const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
   const { data: teachersData, isLoading: teachersLoading } = useTeachers();
+  const [assignedTeachers, setAssignedTeachers] = useState({});
+
+
+  const checkAssignedTeacher = async (timetableDetailId, originalTeacherId, date) => {
+    try {
+      const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+      const response = await fetch(
+        `https://localhost:8386/api/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+        {
+          headers: {
+            'accept': '*/*',
+            'Authorization': `Bearer ${token}`,
+            'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
+          },
+        }
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data && data.length > 0) {  // Kiểm tra data là một mảng và có phần tử
+          setAssignedTeachers(prev => ({
+            ...prev,
+            [timetableDetailId]: {
+              substituteTeacherId: data[0].substituteTeacherId,
+              note: data[0].note,
+              isAssigned: true
+            }
+          }));
+        }
+      }
+    } catch (error) {
+      console.error('Error checking assigned teacher:', error);
+    }
+  };
+
+
+  // Thêm useEffect để kiểm tra giáo viên dạy thay cho mỗi lịch học
+  useEffect(() => {
+    if (!filteredSchedules.length || !leaveRequest?.teacherId) return;
+
+    filteredSchedules.forEach(schedule => {
+      checkAssignedTeacher(
+        schedule.timetableDetailId,
+        leaveRequest.teacherId,
+        schedule.date
+      );
+    });
+  }, [filteredSchedules, leaveRequest]);
 
   // Validate and create payload for API
   const createPayload = (record, teacherId, note) => ({
@@ -32,6 +80,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const handleSaveAssignment = async (record, teacherId, note) => {
     try {
       const payload = createPayload(record, teacherId, note);
+      const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
 
       // Validate payload
       const missingFields = Object.entries(payload).filter(([key, value]) => !value && key !== 'note');
@@ -54,7 +103,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         method: 'POST',
         headers: {
           'accept': '*/*',
-          'Authorization': 'Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIzIiwiZW1haWwiOiJ0cmFudGhpYmluaEBoZ3NkYi5lZHUudm4iLCJuYW1lIjoidHJhbnRoaWJpbmgiLCJyb2xlIjoiR2nDoW8gdmnDqm4iLCJqdGkiOiI5OWU4OWVjMC1mZTI3LTQ1NjEtYTQ5Zi01NTUwZDA2OWZiMmMiLCJ0ZWFjaGVySWQiOiIyIiwiZXhwIjoxNzQ1NTA5MjQwLCJpc3MiOiJodHRwczovL2xvY2FsaG9zdDo4Mzg2IiwiYXVkIjoiaHR0cHM6Ly9sb2NhbGhvc3Q6ODM4NiJ9.xBAmKzkZ20TqHtN9oQv3IvLqgE6t_-VPspwwGoH_-EI',
+          'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
         },
         body: JSON.stringify(payload),
@@ -143,6 +192,17 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   // Table columns configuration
   const columns = [
     {
+      title: 'Đã phân công',
+      key: 'assigned',
+      width: 100,
+      render: (_, record) => (
+        <Checkbox
+          checked={assignedTeachers[record.timetableDetailId]?.isAssigned || false}
+          disabled={true}
+        />
+      ),
+    },
+    {
       title: 'Ngày',
       dataIndex: 'date',
       key: 'date',
@@ -154,30 +214,96 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     {
       title: 'Giáo viên dạy thay',
       key: 'substituteTeacher',
-      render: (_, record) => (
-        <Form.Item
-          name={['assignments', record.scheduleId]}
-          style={{ margin: 0 }}
-          rules={[{ required: true, message: 'Vui lòng chọn giáo viên!' }]}
-        >
-          <Select placeholder="Chọn giáo viên dạy thay" loading={teachersLoading}>
-            {teachersData?.teachers?.map((teacher) => (
-              <Option key={teacher.teacherId} value={teacher.teacherId}>
-                {teacher.fullName} - {teacher.teacherId}
-              </Option>
-            ))}
-          </Select>
-        </Form.Item>
-      ),
+      render: (_, record) => {
+        const isAssigned = assignedTeachers[record.timetableDetailId]?.isAssigned;
+        const assignedTeacherId = assignedTeachers[record.timetableDetailId]?.substituteTeacherId;
+
+        if (isAssigned && assignedTeacherId) {
+          const assignedTeacher = teachersData?.teachers?.find(
+            teacher => teacher.teacherId === assignedTeacherId
+          );
+          return (
+            <div>
+
+              <Form.Item
+                name={['assignments', record.scheduleId]}
+                style={{ margin: 0 }}
+                rules={[{ required: true, message: 'Vui lòng chọn giáo viên!' }]}
+                initialValue={assignedTeacherId}
+              >
+                <Select
+                  placeholder="Chọn giáo viên dạy thay"
+                  loading={teachersLoading}
+                  defaultValue={assignedTeacherId}
+                >
+                  {teachersData?.teachers?.map((teacher) => (
+                    <Option key={teacher.teacherId} value={teacher.teacherId}>
+                      {teacher.fullName} - {teacher.teacherId}
+                    </Option>
+                  ))}
+                </Select>
+              </Form.Item>
+            </div>
+          );
+        }
+
+        return (
+          <Form.Item
+            name={['assignments', record.scheduleId]}
+            style={{ margin: 0 }}
+            rules={[{ required: true, message: 'Vui lòng chọn giáo viên!' }]}
+          >
+            <Select
+              placeholder="Chọn giáo viên dạy thay"
+              loading={teachersLoading}
+            >
+              {teachersData?.teachers?.map((teacher) => (
+                <Option key={teacher.teacherId} value={teacher.teacherId}>
+                  {teacher.fullName} - {teacher.teacherId}
+                </Option>
+              ))}
+            </Select>
+          </Form.Item>
+        );
+      },
     },
     {
       title: 'Ghi chú',
       key: 'note',
-      render: (_, record) => (
-        <Form.Item name={['notes', record.scheduleId]} style={{ margin: 0 }}>
-          <Input.TextArea placeholder="Nhập ghi chú" autoSize={{ minRows: 1, maxRows: 3 }} />
-        </Form.Item>
-      ),
+      render: (_, record) => {
+        const isAssigned = assignedTeachers[record.timetableDetailId]?.isAssigned;
+        const assignedNote = assignedTeachers[record.timetableDetailId]?.note;
+
+        if (isAssigned && assignedNote) {
+          return (
+            <div>
+              <Form.Item
+                name={['notes', record.scheduleId]}
+                style={{ margin: 0 }}
+                initialValue={assignedNote}
+              >
+                <Input.TextArea
+                  placeholder="Nhập ghi chú"
+                  autoSize={{ minRows: 1, maxRows: 3 }}
+                  defaultValue={assignedNote}
+                />
+              </Form.Item>
+            </div>
+          );
+        }
+
+        return (
+          <Form.Item
+            name={['notes', record.scheduleId]}
+            style={{ margin: 0 }}
+          >
+            <Input.TextArea
+              placeholder="Nhập ghi chú"
+              autoSize={{ minRows: 1, maxRows: 3 }}
+            />
+          </Form.Item>
+        );
+      },
     },
     {
       title: 'Lưu',

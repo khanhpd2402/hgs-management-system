@@ -1,198 +1,309 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Form, Select, Button, message, Input } from 'antd';
+import { Card, Table, Form, Select, Button, message, Input, Checkbox } from 'antd';
 import dayjs from 'dayjs';
-import axios from 'axios';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
+import toast from "react-hot-toast";
 
 const { Option } = Select;
 
 const getWeekdayName = (date) => {
-    const weekdays = {
-        0: 'Chủ Nhật',
-        1: 'Thứ Hai',
-        2: 'Thứ Ba',
-        3: 'Thứ Tư',
-        4: 'Thứ Năm',
-        5: 'Thứ Sáu',
-        6: 'Thứ Bảy'
-    };
+    const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
     return weekdays[dayjs(date).day()];
 };
 
 const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     const [loading, setLoading] = useState(false);
+    const [filteredSchedules, setFilteredSchedules] = useState([]);
     const [form] = Form.useForm();
     const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
     const { data: teachersData, isLoading: teachersLoading } = useTeachers();
-    const [filteredSchedules, setFilteredSchedules] = useState([]);
+    const [assignedTeachers, setAssignedTeachers] = useState({});
 
-    const handleSaveAssignment = async (record, teacherId, note) => {
+
+    const checkAssignedTeacher = async (timetableDetailId, originalTeacherId, date) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            if (!token) {
-                message.error('Không tìm thấy token!');
+            const response = await fetch(
+                `https://localhost:8386/api/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+                {
+                    headers: {
+                        'accept': '*/*',
+                        'Authorization': `Bearer ${token}`,
+                        'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
+                    },
+                }
+            );
+
+            if (response.ok) {
+                const data = await response.json();
+                if (data && data.length > 0) {  // Kiểm tra data là một mảng và có phần tử
+                    setAssignedTeachers(prev => ({
+                        ...prev,
+                        [timetableDetailId]: {
+                            substituteTeacherId: data[0].substituteTeacherId,
+                            note: data[0].note,
+                            isAssigned: true
+                        }
+                    }));
+                }
+            }
+        } catch (error) {
+            console.error('Error checking assigned teacher:', error);
+        }
+    };
+
+
+    // Thêm useEffect để kiểm tra giáo viên dạy thay cho mỗi lịch học
+    useEffect(() => {
+        if (!filteredSchedules.length || !leaveRequest?.teacherId) return;
+
+        filteredSchedules.forEach(schedule => {
+            checkAssignedTeacher(
+                schedule.timetableDetailId,
+                leaveRequest.teacherId,
+                schedule.date
+            );
+        });
+    }, [filteredSchedules, leaveRequest]);
+
+    // Validate and create payload for API
+    const createPayload = (record, teacherId, note) => ({
+        timetableDetailId: Number(record.timetableDetailId),
+        originalTeacherId: Number(leaveRequest.teacherId),
+        substituteTeacherId: Number(teacherId),
+        date: record.date,
+        note: note || '',
+    });
+
+    // Save assignment via API
+    const handleSaveAssignment = async (record, teacherId, note) => {
+        try {
+            const payload = createPayload(record, teacherId, note);
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+
+            // Validate payload
+            const missingFields = Object.entries(payload).filter(([key, value]) => !value && key !== 'note');
+            if (missingFields.length) {
+                console.error('Missing required fields:', missingFields);
+                message.error('Dữ liệu không hợp lệ, vui lòng kiểm tra lại!');
                 return;
             }
 
-            const payload = {
-                timetableDetailId: record.timetableDetailId,
-                originalTeacherId: leaveRequest.teacherId,
-                substituteTeacherId: teacherId,
-                date: record.date,
-                note: note || ''
-            };
+            // Validate date
+            const currentDate = dayjs().startOf('day');
+            const assignmentDate = dayjs(payload.date);
+            if (assignmentDate.isBefore(currentDate)) {
+                console.error('Invalid date:', payload.date);
+                message.error('Ngày dạy thay không thể là ngày trong quá khứ!');
+                return;
+            }
 
-            await axios.post('https://localhost:8386/api/SubstituteTeachings', payload, {
+            const response = await fetch('https://localhost:8386/api/SubstituteTeachings', {
+                method: 'POST',
                 headers: {
+                    'accept': '*/*',
                     'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                }
+                    'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
+                },
+                body: JSON.stringify(payload),
             });
 
-            message.success('Đã lưu phân công cho tiết học này!');
+            if (!response.ok) {
+                const errorText = await response.text();
+                console.error('Server response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
+            }
+
+            toast.success('Phân công giáo viên dạy thay thành công!')
+            message.success('Phân công giáo viên dạy thay thành công!');
         } catch (error) {
+            toast.error(`Giáo viên dạy thay không được trùng với giáo viên xin nghỉ`)
             console.error('Error saving assignment:', error);
-            message.error('Lỗi khi lưu phân công: ' + (error.response?.data?.message || error.message));
+            message.error(`Có lỗi khi lưu phân công: ${error.message}`);
         }
     };
 
-    // Process teacher schedule when data changes
-    // Add this mapping function at the top of the component
-    const mapWeekdayToAPI = (weekday) => {
-        const weekdayMapping = {
-            'Chủ Nhật': 'Chủ Nhật',
-            'Thứ Hai': 'Thứ Hai',
-            'Thứ Ba': 'Thứ Ba',
-            'Thứ Tư': 'Thứ Tư',
-            'Thứ Năm': 'Thứ Năm',
-            'Thứ Sáu': 'Thứ Sáu',
-            'Thứ Bảy': 'Thứ Bảy'
-        };
-        return weekdayMapping[weekday];
-    };
-
-    // Update the useEffect that processes the schedule
-    // Add console logs to debug the data
-    // First, add this console log outside useEffect to track initial data
-    console.log('Initial render:', { teacherSchedule, leaveRequest });
-
-    // Then update the useEffect
+    // Process schedules for display
     useEffect(() => {
-        if (!teacherSchedule?.[0]?.details || !leaveRequest) {
-            return;
-        }
+        if (!teacherSchedule?.[0]?.details || !leaveRequest) return;
 
         const scheduleDetails = teacherSchedule[0].details;
         const startDate = dayjs(leaveRequest.leaveFromDate);
         const endDate = dayjs(leaveRequest.leaveToDate);
-        const processedSchedules = [];
+        const currentDate = dayjs().startOf('day');
+        const schedules = [];
 
-        let currentDate = startDate;
-        while (currentDate.isSame(endDate) || currentDate.isBefore(endDate)) {
-            const weekday = getWeekdayName(currentDate);
+        let currentDateIterator = startDate;
+        while (currentDateIterator.isSame(endDate, 'day') || currentDateIterator.isBefore(endDate, 'day')) {
+            if (currentDateIterator.isBefore(currentDate)) {
+                currentDateIterator = currentDateIterator.add(1, 'day');
+                continue;
+            }
 
-            // Get all schedules for the current weekday
-            const daySchedules = scheduleDetails.filter(schedule => {
-                return schedule.dayOfWeek === weekday;
-            });
+            const weekday = getWeekdayName(currentDateIterator);
+            const daySchedules = scheduleDetails.filter((schedule) => schedule.dayOfWeek === weekday);
 
-            // Add each schedule for this day
-            daySchedules.forEach(schedule => {
-                processedSchedules.push({
-                    scheduleId: `${currentDate.format('YYYY-MM-DD')}-${schedule.timetableDetailId}`,
-                    date: currentDate.format('YYYY-MM-DD'),
+            daySchedules.forEach((schedule) => {
+                schedules.push({
+                    scheduleId: `${currentDateIterator.format('YYYY-MM-DD')}-${schedule.timetableDetailId}`,
+                    date: currentDateIterator.format('YYYY-MM-DD'),
                     dayOfWeek: weekday,
                     period: schedule.periodName,
                     className: schedule.className,
                     subject: schedule.subjectName,
-                    timetableDetailId: schedule.timetableDetailId
+                    timetableDetailId: schedule.timetableDetailId,
                 });
             });
 
-            currentDate = currentDate.add(1, 'day');
+            currentDateIterator = currentDateIterator.add(1, 'day');
         }
 
-        setFilteredSchedules(processedSchedules);
+        setFilteredSchedules(schedules);
     }, [teacherSchedule, leaveRequest]);
 
-
+    // Handle bulk assignment submission
     const handleAssignSubstitute = async (values) => {
+        setLoading(true);
         try {
-            setLoading(true);
-            await new Promise(resolve => setTimeout(resolve, 1000));
-            console.log('Dữ liệu phân công:', values);
-            message.success('Phân công giáo viên dạy thay thành công');
-            form.resetFields(['assignments']);
+            const assignments = values.assignments || {};
+            const notes = values.notes || {};
+
+            await Promise.all(
+                filteredSchedules.map(async (schedule) => {
+                    const teacherId = assignments[schedule.scheduleId];
+                    const note = notes[schedule.scheduleId];
+                    if (teacherId) {
+                        await handleSaveAssignment(schedule, teacherId, note);
+                    }
+                })
+            );
+
+            toast.success('Lưu thành công')
+            message.success('Đã lưu tất cả phân công thành công!');
+            form.resetFields(['assignments', 'notes']);
         } catch (error) {
-            message.error('Phân công giáo viên dạy thay thất bại');
+            message.error('Có lỗi xảy ra khi lưu phân công');
         } finally {
             setLoading(false);
         }
     };
 
+    // Table columns configuration
     const columns = [
+        {
+            title: 'Đã phân công',
+            key: 'assigned',
+            width: 100,
+            render: (_, record) => (
+                <Checkbox
+                    checked={assignedTeachers[record.timetableDetailId]?.isAssigned || false}
+                    disabled={true}
+                />
+            ),
+        },
         {
             title: 'Ngày',
             dataIndex: 'date',
             key: 'date',
-            render: (text, record) => `${dayjs(text).format('DD/MM/YYYY')} (${record.dayOfWeek})`
+            render: (text, record) => `${dayjs(text).format('DD/MM/YYYY')} (${record.dayOfWeek})`,
         },
-        {
-            title: 'Tiết học',
-            dataIndex: 'period',
-            key: 'period'
-        },
-        {
-            title: 'Lớp',
-            dataIndex: 'className',
-            key: 'className'
-        },
-        {
-            title: 'Môn học',
-            dataIndex: 'subject',
-            key: 'subject'
-        },
+        { title: 'Tiết học', dataIndex: 'period', key: 'period' },
+        { title: 'Lớp', dataIndex: 'className', key: 'className' },
+        { title: 'Môn học', dataIndex: 'subject', key: 'subject' },
         {
             title: 'Giáo viên dạy thay',
             key: 'substituteTeacher',
-            render: (_, record) => (
-                <Form.Item
-                    name={['assignments', record.scheduleId]}
-                    style={{ margin: 0 }}
-                    rules={[{ required: true, message: 'Vui lòng chọn giáo viên!' }]}
-                >
-                    <Select
-                        placeholder="Chọn giáo viên dạy thay"
-                        optionFilterProp="children"
-                        loading={teachersLoading}
-                    >
-                        {teachersData?.teachers?.map(teacher => (
-                            <Option
-                                key={teacher.teacherId}
-                                value={teacher.teacherId}
+            render: (_, record) => {
+                const isAssigned = assignedTeachers[record.timetableDetailId]?.isAssigned;
+                const assignedTeacherId = assignedTeachers[record.timetableDetailId]?.substituteTeacherId;
+
+                if (isAssigned && assignedTeacherId) {
+                    const assignedTeacher = teachersData?.teachers?.find(
+                        teacher => teacher.teacherId === assignedTeacherId
+                    );
+                    return (
+                        <div>
+
+                            <Form.Item
+                                name={['assignments', record.scheduleId]}
+                                style={{ margin: 0 }}
+                                rules={[{ required: true, message: 'Vui lòng chọn giáo viên!' }]}
+                                initialValue={assignedTeacherId}
                             >
-                                {teacher.fullName} - {teacher.teacherId}
-                            </Option>
-                        ))}
-                    </Select>
-                </Form.Item>
-            )
+                                <Select
+                                    placeholder="Chọn giáo viên dạy thay"
+                                    loading={teachersLoading}
+                                    defaultValue={assignedTeacherId}
+                                >
+                                    {teachersData?.teachers?.map((teacher) => (
+                                        <Option key={teacher.teacherId} value={teacher.teacherId}>
+                                            {teacher.fullName} - {teacher.teacherId}
+                                        </Option>
+                                    ))}
+                                </Select>
+                            </Form.Item>
+                        </div>
+                    );
+                }
+
+                return (
+                    <Form.Item
+                        name={['assignments', record.scheduleId]}
+                        style={{ margin: 0 }}
+                        rules={[{ required: true, message: 'Vui lòng chọn giáo viên!' }]}
+                    >
+                        <Select
+                            placeholder="Chọn giáo viên dạy thay"
+                            loading={teachersLoading}
+                        >
+                            {teachersData?.teachers?.map((teacher) => (
+                                <Option key={teacher.teacherId} value={teacher.teacherId}>
+                                    {teacher.fullName} - {teacher.teacherId}
+                                </Option>
+                            ))}
+                        </Select>
+                    </Form.Item>
+                );
+            },
         },
         {
             title: 'Ghi chú',
             key: 'note',
-            render: (_, record) => (
-                <Form.Item
-                    name={['notes', record.scheduleId]}
-                    style={{ margin: 0 }}
-                >
-                    <Input.TextArea
-                        placeholder="Nhập ghi chú"
-                        autoSize={{ minRows: 1, maxRows: 3 }}
-                    />
-                </Form.Item>
-            )
+            render: (_, record) => {
+                const isAssigned = assignedTeachers[record.timetableDetailId]?.isAssigned;
+                const assignedNote = assignedTeachers[record.timetableDetailId]?.note;
+
+                if (isAssigned && assignedNote) {
+                    return (
+                        <div>
+                            <Form.Item
+                                name={['notes', record.scheduleId]}
+                                style={{ margin: 0 }}
+                                initialValue={assignedNote}
+                            >
+                                <Input.TextArea
+                                    placeholder="Nhập ghi chú"
+                                    autoSize={{ minRows: 1, maxRows: 3 }}
+                                    defaultValue={assignedNote}
+                                />
+                            </Form.Item>
+                        </div>
+                    );
+                }
+
+                return (
+                    <Form.Item
+                        name={['notes', record.scheduleId]}
+                        style={{ margin: 0 }}
+                    >
+                        <Input.TextArea
+                            placeholder="Nhập ghi chú"
+                            autoSize={{ minRows: 1, maxRows: 3 }}
+                        />
+                    </Form.Item>
+                );
+            },
         },
         {
             title: 'Lưu',
@@ -201,6 +312,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                 <Button
                     type="primary"
                     size="small"
+                    loading={loading}
                     onClick={async () => {
                         const teacherId = form.getFieldValue(['assignments', record.scheduleId]);
                         const note = form.getFieldValue(['notes', record.scheduleId]);
@@ -213,19 +325,23 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                 >
                     Lưu
                 </Button>
-            )
-        }
+            ),
+        },
     ];
-    console.log("filteredSchedules", filteredSchedules)
 
     return (
         <div>
             <Card title="Thông tin lịch dạy cần thay thế" style={{ marginBottom: 16 }}>
                 <p>
-                    <strong>Thời gian nghỉ:</strong> {dayjs(leaveRequest?.leaveFromDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveFromDate)})
-                    - {dayjs(leaveRequest?.leaveToDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveToDate)})
+                    <strong>Thời gian nghỉ: </strong>
+                    {dayjs(leaveRequest?.leaveFromDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveFromDate)}) -{' '}
+                    {dayjs(leaveRequest?.leaveToDate).format('DD/MM/YYYY')} ({getWeekdayName(leaveRequest?.leaveToDate)})
                 </p>
-
+                {dayjs(leaveRequest?.leaveFromDate).isBefore(dayjs().startOf('day')) && (
+                    <p style={{ color: 'red' }}>
+                        <strong>Lưu ý:</strong> Một số ngày trong thời gian nghỉ đã qua, chỉ có thể phân công từ hôm nay trở đi.
+                    </p>
+                )}
             </Card>
 
             <Card title="Phân công giáo viên dạy thay">
@@ -233,15 +349,10 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                     <Table
                         dataSource={filteredSchedules}
                         columns={columns}
-                        rowKey={record => record.scheduleId}
+                        rowKey="scheduleId"
                         pagination={false}
                         loading={scheduleLoading}
                     />
-                    <Form.Item style={{ marginTop: 16, textAlign: 'right' }}>
-                        <Button type="primary" htmlType="submit" loading={loading}>
-                            Lưu phân công
-                        </Button>
-                    </Form.Item>
                 </Form>
             </Card>
         </div>
