@@ -98,7 +98,7 @@ const menuItems = [
     label: "Phân công làm giáo án",
     icon: FileText,
     path: "/system/lesson-plan",
-    roles: ["Hiệu trưởng", "Hiệu phó"],
+    roles: ["Trưởng bộ môn"],
   },
   {
     label: "Quản lý đề thi",

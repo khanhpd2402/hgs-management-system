@@ -163,6 +163,7 @@ export default function AttendanceTable() {
     }
   };
 
+  console.log(studentsData);
   useEffect(() => {
     if (semesters?.length > 0) {
       const now = new Date();
@@ -213,6 +214,8 @@ export default function AttendanceTable() {
     }
   }, [students, studentAttendances, date, session]);
 
+  console.log(students);
+
   const debounceTimeout = useRef({});
 
   // Debounce cho lý do
@@ -255,7 +258,7 @@ export default function AttendanceTable() {
   };
 
   return (
-    <Card className="mt-6 p-4">
+    <div className="mt-6 p-4">
       <div className="flex items-center">
         <div>
           {" "}
@@ -335,7 +338,10 @@ export default function AttendanceTable() {
                   ? "bg-blue-600 text-white shadow-sm"
                   : "bg-gray-200 text-gray-700 hover:bg-blue-100",
               )}
-              onClick={() => setSemester(sem)}
+              onClick={() => {
+                setSemester(sem);
+                setClassroom("");
+              }}
             >
               {sem.semesterName}
             </button>
@@ -563,6 +569,6 @@ export default function AttendanceTable() {
           Lưu điểm danh
         </Button>
       </div>
-    </Card>
+    </div>
   );
 }

@@ -63,7 +63,7 @@ export const getExamsByTeacherId = async (teacherId) => {
 export const getStudentByClass = async (classId, semesterId) => {
   return (
     await axiosInstance.get(
-      `StudentClasses/filter-data?classId=${classId}&semesterId=${semesterId}`,
+      `StudentClass/filter-data?classId=${classId}&semesterId=${semesterId}`,
     )
   ).data;
 };
