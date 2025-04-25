@@ -24,7 +24,7 @@ export const createSubstituteTeaching = async (payload) => {
   return response.data;
 };
 
-export const getAssignedTeacher = async (
+export const getSubstituteTeachings = async (
   timetableDetailId,
   originalTeacherId,
   date,

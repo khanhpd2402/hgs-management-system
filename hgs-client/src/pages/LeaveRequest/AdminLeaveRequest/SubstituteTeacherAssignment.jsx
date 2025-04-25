@@ -3,10 +3,10 @@ import { Card, Table, Form, Select, Button, message, Input, Checkbox } from 'ant
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
-import { useAssignedTeacher, useCreateSubstituteTeaching } from '../../../services/schedule/queries';
+import { useGetSubstituteTeachings, useCreateSubstituteTeaching } from '../../../services/schedule/queries';
 import toast from "react-hot-toast";
+import { getSubstituteTeachings } from "../../../services/schedule/api";
 
-const baseUrl = process.env.VITE_BASE_URL;
 const { Option } = Select;
 
 const getWeekdayName = (date) => {
@@ -25,16 +25,16 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
 
   const checkAssignedTeacher = async (timetableDetailId, originalTeacherId, date) => {
     try {
-      const { data } = useAssignedTeacher(timetableDetailId, originalTeacherId, date);
+      const data = await getSubstituteTeachings(timetableDetailId, originalTeacherId, date);
 
-      if (data && data.length > 0) {
+      if (Array.isArray(data) && data.length > 0) {
         setAssignedTeachers(prev => ({
           ...prev,
           [timetableDetailId]: {
             substituteTeacherId: data[0].substituteTeacherId,
             note: data[0].note,
-            isAssigned: true
-          }
+            isAssigned: true,
+          },
         }));
       }
     } catch (error) {

@@ -4,7 +4,7 @@ import {
   getScheduleByStudent,
   getTimetableForPrincipal,
   createSubstituteTeaching,
-  getAssignedTeacher,
+  getSubstituteTeachings,
 } from "./api";
 
 export function useScheduleTeacher(teacherId) {
@@ -40,11 +40,20 @@ export function useCreateSubstituteTeaching() {
   });
 }
 
-export function useAssignedTeacher(timetableDetailId, originalTeacherId, date) {
+export function useGetSubstituteTeachings(
+  timetableDetailId,
+  originalTeacherId,
+  date,
+) {
   return useQuery({
-    queryKey: ["assignedTeacher", timetableDetailId, originalTeacherId, date],
+    queryKey: [
+      "substituteTeachings",
+      timetableDetailId,
+      originalTeacherId,
+      date,
+    ],
     queryFn: () =>
-      getAssignedTeacher(timetableDetailId, originalTeacherId, date),
+      getSubstituteTeachings(timetableDetailId, originalTeacherId, date),
     enabled: !!timetableDetailId && !!originalTeacherId && !!date,
   });
 }
