@@ -75,6 +75,142 @@ const ListMarkTeacher = () => {
     }
   };
 
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedGrades, setEditedGrades] = useState({});
+  const [editingRows, setEditingRows] = useState({});
+
+  const handleInputChange = (studentId, field, value) => {
+    setEditedGrades(prev => ({
+      ...prev,
+      [studentId]: {
+        ...prev[studentId],
+        [field]: value
+      }
+    }));
+  };
+
+  const handleSaveGrades = async () => {
+    try {
+      // Tạo mảng các điểm cần cập nhật
+      const updatedGrades = Object.entries(editedGrades).flatMap(([studentId, fields]) => {
+        return Object.entries(fields).map(([field, value]) => ({
+          studentId: parseInt(studentId),
+          score: parseFloat(value),
+          assessmentType: field === 'TX1' ? 'ĐĐG TX 1' :
+            field === 'TX2' ? 'ĐĐG TX 2' :
+              field === 'TX3' ? 'ĐĐG TX 3' :
+                field === 'GK' ? 'ĐĐG GK' :
+                  field === 'CK' ? 'ĐĐG CK' : '',
+          teacherId: parseInt(teacherId),
+          classId: parseInt(selectedAssignment.classId),
+          subjectId: parseInt(selectedAssignment.subjectId),
+          semesterId: semester === '1' ? 1 : 2
+        }));
+      });
+
+      await axios.post(
+        'https://localhost:8386/api/Grades/update-multiple',
+        updatedGrades,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Sau khi lưu thành công, cập nhật lại dữ liệu
+      handleSearchGrades();
+      setIsEditing(false);
+      setEditedGrades({});
+    } catch (error) {
+      console.error('Error saving grades:', error);
+    }
+  };
+
+  const handleEditRow = async (studentId) => {
+    try {
+      // Lấy thông tin điểm của học sinh từ grades
+      const studentGrades = grades.filter(g => g.studentId === studentId);
+
+      // Tạo payload theo cấu trúc API mới
+      const gradesPayload = {
+        grades: studentGrades.map(grade => ({
+          gradeID: grade.gradeId,
+          score: grade.score ? grade.score.toString() : "0", // Add null check and default value
+          teacherComment: "nhập điểm"
+        }))
+      };
+      console.log("gradesPayload", gradesPayload)
+      console.log("grade", grades)
+
+      await axios.post(
+        'https://localhost:8386/api/Grades/update-multiple-scores',
+        gradesPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      // Cập nhật trạng thái sau khi lưu thành công
+      handleSearchGrades();
+      setEditingRows(prev => ({
+        ...prev,
+        [studentId]: true
+      }));
+    } catch (error) {
+      console.error('Error updating grades:', error);
+    }
+  };
+
+  const handleSaveRow = async (studentId) => {
+    try {
+      const studentGrades = editedGrades[studentId];
+      if (!studentGrades) return;
+
+      const gradesPayload = {
+        grades: Object.entries(studentGrades).map(([field, value]) => ({
+          gradeID: grades.find(g =>
+            g.studentId === parseInt(studentId) &&
+            g.assessmentType === (
+              field === 'TX1' ? 'ĐĐG TX 1' :
+                field === 'TX2' ? 'ĐĐG TX 2' :
+                  field === 'TX3' ? 'ĐĐG TX 3' :
+                    field === 'GK' ? 'ĐĐG GK' :
+                      field === 'CK' ? 'ĐĐG CK' : ''
+            )
+          )?.gradeId,
+          score: value.toString(),
+          teacherComment: "nhập điểm"
+        }))
+      };
+
+      await axios.post(
+        'https://localhost:8386/api/Grades/update-multiple-scores',
+        gradesPayload,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      handleSearchGrades();
+      setEditingRows(prev => ({
+        ...prev,
+        [studentId]: false
+      }));
+      setEditedGrades(prev => {
+        const newGrades = { ...prev };
+        delete newGrades[studentId];
+        return newGrades;
+      });
+    } catch (error) {
+      console.error('Error saving row:', error);
+    }
+  };
+
   return (
     <div>
       <div className="mark-report-container">
@@ -111,7 +247,29 @@ const ListMarkTeacher = () => {
           Tìm kiếm
         </button>
 
-        <h3 className="text-lg font-semibold mb-2">Danh sách điểm học sinh</h3>
+        <div className="flex justify-between items-center mb-4">
+          <h3 className="text-lg font-semibold">Danh sách điểm học sinh</h3>
+          {grades.length > 0 && (
+            <div>
+              {isEditing ? (
+                <button
+                  onClick={handleSaveGrades}
+                  className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mr-2"
+                >
+                  Lưu điểm
+                </button>
+              ) : (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded"
+                >
+                  Nhập điểm
+                </button>
+              )}
+            </div>
+          )}
+        </div>
+
         <table className="w-full border-collapse">
           <thead>
             <tr>
@@ -122,6 +280,7 @@ const ListMarkTeacher = () => {
               <th className="border p-2" rowSpan="2">Điểm giữa kỳ</th>
               <th className="border p-2" rowSpan="2">Điểm cuối kỳ</th>
               <th className="border p-2" rowSpan="2">Nhận xét của giáo viên</th>
+              <th className="border p-2" rowSpan="2">Hành động</th>
             </tr>
             <tr>
               <th className="border p-2">TX1</th>
@@ -170,12 +329,99 @@ const ListMarkTeacher = () => {
                 <tr key={student.studentId}>
                   <td className="border p-2">{index + 1}</td>
                   <td className="border p-2">{student.studentName}</td>
-                  <td className="border p-2">{student.TX1 !== null ? student.TX1 : 'Chưa có điểm'}</td>
-                  <td className="border p-2">{student.TX2 !== null ? student.TX2 : 'Chưa có điểm'}</td>
-                  <td className="border p-2">{student.TX3 !== null ? student.TX3 : 'Chưa có điểm'}</td>
-                  <td className="border p-2">{student.GK !== null ? student.GK : 'Chưa có điểm'}</td>
-                  <td className="border p-2">{student.CK !== null ? student.CK : 'Chưa có điểm'}</td>
+                  <td className="border p-2">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={editedGrades[student.studentId]?.TX1 ?? student.TX1 ?? ''}
+                        onChange={(e) => handleInputChange(student.studentId, 'TX1', e.target.value)}
+                        className="w-20 p-1 border rounded"
+                      />
+                    ) : (
+                      student.TX1 !== null ? student.TX1 : 'Chưa có điểm'
+                    )}
+                  </td>
+                  <td className="border p-2">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={editedGrades[student.studentId]?.TX2 ?? student.TX2 ?? ''}
+                        onChange={(e) => handleInputChange(student.studentId, 'TX2', e.target.value)}
+                        className="w-20 p-1 border rounded"
+                      />
+                    ) : (
+                      student.TX2 !== null ? student.TX2 : 'Chưa có điểm'
+                    )}
+                  </td>
+                  <td className="border p-2">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={editedGrades[student.studentId]?.TX3 ?? student.TX3 ?? ''}
+                        onChange={(e) => handleInputChange(student.studentId, 'TX3', e.target.value)}
+                        className="w-20 p-1 border rounded"
+                      />
+                    ) : (
+                      student.TX3 !== null ? student.TX3 : 'Chưa có điểm'
+                    )}
+                  </td>
+                  <td className="border p-2">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={editedGrades[student.studentId]?.GK ?? student.GK ?? ''}
+                        onChange={(e) => handleInputChange(student.studentId, 'GK', e.target.value)}
+                        className="w-20 p-1 border rounded"
+                      />
+                    ) : (
+                      student.GK !== null ? student.GK : 'Chưa có điểm'
+                    )}
+                  </td>
+                  <td className="border p-2">
+                    {isEditing ? (
+                      <input
+                        type="number"
+                        step="0.1"
+                        min="0"
+                        max="10"
+                        value={editedGrades[student.studentId]?.CK ?? student.CK ?? ''}
+                        onChange={(e) => handleInputChange(student.studentId, 'CK', e.target.value)}
+                        className="w-20 p-1 border rounded"
+                      />
+                    ) : (
+                      student.CK !== null ? student.CK : 'Chưa có điểm'
+                    )}
+                  </td>
                   <td className="border p-2">{student.teacherComment || 'Chưa có nhận xét'}</td>
+                  <td className="border p-2">
+                    {editingRows[student.studentId] ? (
+                      <button
+                        onClick={() => handleSaveRow(student.studentId)}
+                        className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Lưu
+                      </button>
+                    ) : (
+                      <button
+                        onClick={() => handleEditRow(student.studentId)}
+                        className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm"
+                      >
+                        Cập nhật
+                      </button>
+                    )}
+                  </td>
                 </tr>
               ))
             ) : (
