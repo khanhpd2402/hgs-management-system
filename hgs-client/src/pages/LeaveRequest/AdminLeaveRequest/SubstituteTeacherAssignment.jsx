@@ -25,30 +25,17 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
 
   const checkAssignedTeacher = async (timetableDetailId, originalTeacherId, date) => {
     try {
-      const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-      const response = await fetch(
-        `${baseUrl}/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
-        {
-          headers: {
-            'accept': '*/*',
-            'Authorization': `Bearer ${token}`,
-            'Content-Type': 'application/json;odata.metadata=minimal;odata.streaming=true',
-          },
-        }
-      );
+      const { data } = useAssignedTeacher(timetableDetailId, originalTeacherId, date);
 
-      if (response.ok) {
-        const data = await response.json();
-        if (data && data.length > 0) {  // Kiểm tra data là một mảng và có phần tử
-          setAssignedTeachers(prev => ({
-            ...prev,
-            [timetableDetailId]: {
-              substituteTeacherId: data[0].substituteTeacherId,
-              note: data[0].note,
-              isAssigned: true
-            }
-          }));
-        }
+      if (data && data.length > 0) {
+        setAssignedTeachers(prev => ({
+          ...prev,
+          [timetableDetailId]: {
+            substituteTeacherId: data[0].substituteTeacherId,
+            note: data[0].note,
+            isAssigned: true
+          }
+        }));
       }
     } catch (error) {
       console.error('Error checking assigned teacher:', error);

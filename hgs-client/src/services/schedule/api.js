@@ -23,3 +23,14 @@ export const createSubstituteTeaching = async (payload) => {
   const response = await axiosInstance.post("SubstituteTeachings", payload);
   return response.data;
 };
+
+export const getAssignedTeacher = async (
+  timetableDetailId,
+  originalTeacherId,
+  date,
+) => {
+  const response = await axiosInstance.get(
+    `SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+  );
+  return response.data;
+};
