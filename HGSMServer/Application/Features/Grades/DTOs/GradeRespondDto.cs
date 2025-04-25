@@ -2,6 +2,7 @@
 {
     public class GradeRespondDto
     {
+        public int GradeId { get; set; }
         public int StudentId { get; set; }
         public string StudentName { get; set; }
         public string SubjectName { get; set; }

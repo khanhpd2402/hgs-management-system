@@ -1,4 +1,4 @@
-﻿using Application.Features.AcademicYears.DTOs;
+using Application.Features.AcademicYears.DTOs;
 using Application.Features.Classes.DTOs;
 using Application.Features.Semesters.DTOs;
 using Application.Features.StudentClass.DTOs;

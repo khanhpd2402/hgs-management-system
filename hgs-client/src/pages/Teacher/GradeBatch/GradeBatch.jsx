@@ -26,9 +26,9 @@ export default function GradeBatch() {
   );
   const getStatusBadge = (status) => {
     switch (status) {
-      case "Hoạt Động":
+      case "Hoạt động":
         return <Badge className="bg-green-500">Đang mở</Badge>;
-      case "Không Hoạt Động":
+      case "Không hoạt động":
         return <Badge className="bg-gray-500">Đã đóng</Badge>;
 
       default:

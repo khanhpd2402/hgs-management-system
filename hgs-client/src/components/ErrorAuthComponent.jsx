@@ -45,7 +45,10 @@ const ErrorAuthComponent = () => {
 
             <div className="mt-4 flex gap-4">
               <Button
-                onClick={() => navigate("/login")}
+                onClick={() => {
+                  localStorage.removeItem("token");
+                  navigate("/login");
+                }}
                 className="rounded-lg bg-gradient-to-r from-blue-500 to-purple-600 px-6 py-3 text-white shadow-md transition-all duration-300 hover:shadow-lg"
               >
                 Về trang đăng nhập
