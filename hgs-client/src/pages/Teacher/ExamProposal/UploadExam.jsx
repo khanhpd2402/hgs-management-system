@@ -67,8 +67,12 @@ function UploadExam() {
     if (gradeFilter !== "all" && exam.grade !== gradeFilter) match = false;
     if (subjectFilter !== "all" && exam.subjectId !== subjectFilter)
       match = false;
+    if (semester && exam.semesterId !== semester.semesterID) match = false;
     return match;
   });
+
+  console.log(filteredExams);
+  console.log(semester);
 
   const { page, pageSize } = filter;
   const totalPages = Math.ceil(filteredExams.length / pageSize);

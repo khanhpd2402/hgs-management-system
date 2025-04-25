@@ -27,7 +27,7 @@ const menuItems = [
       { label: "Quản lý đơn xin nghỉ phép", path: "/system/leave-request" },
       { label: "Liên hệ", path: "/system/contact" },
       { label: "Quản lý năm học", path: "/system/academic-year" },
-      { label: "Quản lý giáo án", path: "/system/lesson-plan" },
+      { label: "Phân công làm giáo án", path: "/system/lesson-plan" },
       { label: "Quản lý đề thi", path: "/system/exam" },
 
       {
@@ -73,21 +73,19 @@ const menuItems = [
         path: "/teacher/leave-request",
       },
       {
-        label: "Quản lý giáo án",
+        label: "Phân công làm giáo án",
         path: "/teacher/lesson-plan",
       },
       {
-        label: "Danh sách kế hoạch giáo án",
+        label: "Danh sách được phân công làm giáo án",
         path: "/teacher/lesson-plan-by-teacher"
       },
-      {
-        label: "Tạo lịch giảng dạy",
-        path: "/teacher/lesson-plan/create",
-      },
+
       {
         label: "Nộp đề thi",
         path: "/teacher/upload-exam",
       },
+
     ],
   },
   {

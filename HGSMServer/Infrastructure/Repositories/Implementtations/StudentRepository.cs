@@ -105,5 +105,12 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Students
                 .ToListAsync();
         }
+        public async Task<IEnumerable<int>> GetStudentIdsByParentUserIdAsync(int userId)
+        {
+            return await _context.Students
+                .Where(s => s.Parent != null && s.Parent.UserId == userId)
+                .Select(s => s.StudentId)
+                .ToListAsync();
+        }
     }
 }

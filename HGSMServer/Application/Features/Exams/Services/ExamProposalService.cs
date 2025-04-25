@@ -7,6 +7,10 @@ using Infrastructure.Repositories.Implementations;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.AspNetCore.Http;
 using System.Security.Claims;
+using Common.Utils;
+using System.Threading.Tasks;
+using System.Collections.Generic;
+using System;
 
 namespace Application.Features.Exams.Services
 {
@@ -17,19 +21,25 @@ namespace Application.Features.Exams.Services
         private readonly GoogleDriveService _googleDriveService;
         private readonly IHttpContextAccessor _httpContextAccessor;
         private readonly ISubjectRepository _subjectRepository;
+        private readonly EmailService _emailService;
+        private readonly ITeacherRepository _teacherRepository;
 
         public ExamProposalService(
             IMapper mapper,
             IExamProposalRepository examProposalRepository,
             GoogleDriveService googleDriveService,
             IHttpContextAccessor httpContextAccessor,
-            ISubjectRepository subjectRepository)
+            ISubjectRepository subjectRepository,
+            EmailService emailService,
+            ITeacherRepository teacherRepository)
         {
             _mapper = mapper;
             _examProposalRepository = examProposalRepository;
             _googleDriveService = googleDriveService;
             _httpContextAccessor = httpContextAccessor;
             _subjectRepository = subjectRepository;
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
+            _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
         }
 
         public async Task<ExamProposalDto> CreateExamProposalAsync(ExamProposalRequestDto request)
@@ -88,18 +98,60 @@ namespace Application.Features.Exams.Services
             }
 
             var proposal = await _examProposalRepository.GetExamProposalAsync(proposalId);
-            if (proposal != null)
+            if (proposal == null)
             {
-                proposal.Status = status;
-                proposal.Comment = comment;
+                throw new Exception("Đề thi không tồn tại.");
+            }
 
-                if (status == "Từ chối" && !string.IsNullOrEmpty(proposal.FileUrl))
+            proposal.Status = status;
+            proposal.Comment = comment;
+
+            if (status == "Từ chối" && !string.IsNullOrEmpty(proposal.FileUrl))
+            {
+                await _googleDriveService.DeleteFileAsync(proposal.FileUrl);
+                proposal.FileUrl = null;
+            }
+
+            await _examProposalRepository.UpdateExamProposalAsync(proposal);
+
+            if (status == "Đã duyệt" || status == "Từ chối")
+            {
+                var teacher = await _teacherRepository.GetByIdAsync(proposal.CreatedBy);
+                if (teacher != null)
                 {
-                    await _googleDriveService.DeleteFileAsync(proposal.FileUrl);
-                    proposal.FileUrl = null;
+                    var subject = await _subjectRepository.GetByIdAsync(proposal.SubjectId);
+                    if (subject != null && !string.IsNullOrEmpty(teacher.User?.Email))
+                    {
+                        _ = Task.Run(async () =>
+                        {
+                            try
+                            {
+                                await _emailService.SendExamProposalStatusUpdateAsync(
+                                    teacherEmail: teacher.User.Email,
+                                    planTitle: proposal.Title,
+                                    subjectName: subject.SubjectName,
+                                    grade: proposal.Grade,
+                                    semesterId: proposal.SemesterId,
+                                    status: status,
+                                    feedback: comment
+                                );
+                                Console.WriteLine($"Đã gửi email thông báo trạng thái đề thi đến {teacher.User.Email}.");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"Không thể gửi email thông báo trạng thái đề thi đến {teacher.User.Email}: {ex.Message}");
+                            }
+                        });
+                    }
+                    else
+                    {
+                        Console.WriteLine($"Không thể gửi email: Môn học không tồn tại hoặc email giáo viên (TeacherId: {proposal.CreatedBy}) không hợp lệ.");
+                    }
                 }
-
-                await _examProposalRepository.UpdateExamProposalAsync(proposal);
+                else
+                {
+                    Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {proposal.CreatedBy}. Bỏ qua gửi email.");
+                }
             }
         }
 

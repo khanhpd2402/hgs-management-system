@@ -14,6 +14,7 @@ import {
   resetUserPassword,
   updateAcademicYear,
   updateClass,
+  updateExamStatus,
   updateGradeBatch,
   updateHomeroom,
   updateSubject,
@@ -210,10 +211,28 @@ export function useUpdateSubject() {
             toast.error("Cấu hình môn học thất bại");
           }
         }
-        queryClient.invalidateQueries({ queryKey: ["subjects"] });
-        queryClient.invalidateQueries({
-          queryKey: ["subjectConfig", { id: variables.subjectId }],
-        });
+        if (
+          configData.length > 0 &&
+          configData.every((item) => item.status === "delete")
+        ) {
+          queryClient.invalidateQueries({ queryKey: ["subjects"] });
+          queryClient.invalidateQueries({ queryKey: ["subjectConfigs"] });
+          queryClient.invalidateQueries({
+            queryKey: ["subject", { id: variables.subjectId }],
+          });
+          queryClient.removeQueries({
+            queryKey: ["subjectConfig", { id: variables.subjectId }],
+          });
+        } else {
+          queryClient.invalidateQueries({ queryKey: ["subjects"] });
+          queryClient.invalidateQueries({ queryKey: ["subjectConfigs"] });
+          queryClient.invalidateQueries({
+            queryKey: ["subject", { id: variables.subjectId }],
+          });
+          queryClient.invalidateQueries({
+            queryKey: ["subjectConfig", { id: variables.subjectId }],
+          });
+        }
         toast.success("Cập nhật môn học thành công");
       }
     },
@@ -294,7 +313,7 @@ export function useCreateAcademicYear() {
     mutationFn: (data) => {
       return createAcademicYear(data);
     },
-    onSettled: (data, error, variables) => {
+    onSettled: (data, error) => {
       if (error) {
         console.log(error);
         toast.error("Đã có lỗi xảy ra");
@@ -454,6 +473,25 @@ export function useAssignRole() {
         console.log(data);
         toast.success("Đổi vai trò thành công");
         queryClient.invalidateQueries({ queryKey: ["users"] });
+      }
+    },
+  });
+}
+
+export function useUpdateExamStatus() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: ({ examId, data }) => {
+      return updateExamStatus(examId, data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Cập nhật trạng thái thành công");
+        queryClient.invalidateQueries({ queryKey: ["exams"] });
       }
     },
   });

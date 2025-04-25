@@ -62,7 +62,6 @@ export default function TATable() {
   const teachers = teacherQuery.data?.teachers || [];
   const teacherHomeRoomQuery = useHomeroomTeachers();
   const teacherHomeRooms = teacherHomeRoomQuery.data || [];
-  // console.log(semester);
   // console.log(subjectConfigQuery.data);
   // console.log(TAQuery.data);
   // console.log(classQuery.data);

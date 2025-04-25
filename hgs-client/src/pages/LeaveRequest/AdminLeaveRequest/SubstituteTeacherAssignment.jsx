@@ -3,6 +3,7 @@ import { Card, Table, Form, Select, Button, message, Input } from 'antd';
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
+import toast from "react-hot-toast";
 
 const { Option } = Select;
 
@@ -65,8 +66,10 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         throw new Error(`HTTP error! status: ${response.status}, message: ${errorText}`);
       }
 
+      toast.success('Phân công giáo viên dạy thay thành công!')
       message.success('Phân công giáo viên dạy thay thành công!');
     } catch (error) {
+      toast.error(`Giáo viên dạy thay không được trùng với giáo viên xin nghỉ`)
       console.error('Error saving assignment:', error);
       message.error(`Có lỗi khi lưu phân công: ${error.message}`);
     }
@@ -127,6 +130,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         })
       );
 
+      toast.success('Lưu thành công')
       message.success('Đã lưu tất cả phân công thành công!');
       form.resetFields(['assignments', 'notes']);
     } catch (error) {

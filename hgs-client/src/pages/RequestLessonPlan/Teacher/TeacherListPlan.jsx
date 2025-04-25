@@ -107,7 +107,7 @@ const TeacherListPlan = () => {
 
     const DetailModal = () => (
         <Modal
-            title="Chi tiết kế hoạch giáo án"
+            title="Chi tiết giáo án"
             open={isModalVisible}
             onCancel={() => setIsModalVisible(false)}
             width={1000}
@@ -125,7 +125,7 @@ const TeacherListPlan = () => {
             {selectedRequest && (
                 <div className="lesson-plan-detail">
                     <div className="detail-section">
-                        <h2>Thông tin kế hoạch</h2>
+                        <h2>Thông tin chi tiết </h2>
                         <Card bordered={false}>
                             <Descriptions bordered column={2}>
                                 <Descriptions.Item label="ID Kế hoạch" span={2}>
@@ -254,9 +254,11 @@ const TeacherListPlan = () => {
                     >
                         Xem chi tiết
                     </Button>
-                    <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
-                        <Button>Thêm tài liệu</Button>
-                    </Link>
+                    {record.status === 'Chờ duyệt' && (
+                        <Link to={`/system/lesson-plan/add-document/${record.planId}`}>
+                            <Button>Thêm tài liệu</Button>
+                        </Link>
+                    )}
                 </Space>
             ),
         },
@@ -269,7 +271,7 @@ const TeacherListPlan = () => {
     return (
         <div className="lesson-plan-list">
 
-            <h2>Danh sách kế hoạch giáo án</h2>
+            <h2>Danh sách phân công làm giáo án</h2>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <h2></h2>
 

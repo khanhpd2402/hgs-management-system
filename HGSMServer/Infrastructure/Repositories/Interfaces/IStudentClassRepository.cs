@@ -11,6 +11,7 @@ namespace Infrastructure.Repositories.Interfaces
     public interface IStudentClassRepository
     {
         Task<IEnumerable<StudentClass>> GetByClassIdAndAcademicYearAsync(int classId, int academicYearId);
+        Task<StudentClass?> GetWithClassAndStudentAsync(int studentClassId);
         Task<StudentClass?> GetByIdAsync(int id);
         Task<IEnumerable<StudentClass>> GetAllAsync();
         Task<StudentClass> AddAsync(StudentClass entity);
@@ -24,5 +25,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task DeleteRangeAsync(List<int> ids);
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<List<StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId);
+        //history of class assignment
+        Task<List<StudentClass>> GetByStudentIdAsync(int studentId);
     }
 }

@@ -4,6 +4,8 @@ import {
   getHeadTeacherAssignments,
   getTeacher,
   getExamsByTeacherId,
+  getStudentByClass,
+  getStudentAttendances,
   getTeachersBySubject,
 } from "./api";
 
@@ -61,6 +63,36 @@ export function useExamsByTeacherId(teacherId) {
       return getExamsByTeacherId(teacherId);
     },
     enabled: !!teacherId,
+  });
+}
+
+export function useStudentByClass({ classId, semesterId }) {
+  return useQuery({
+    queryKey: ["student-by-class", { classId, semesterId }],
+    queryFn: () => getStudentByClass(classId, semesterId),
+    enabled: !!classId && !!semesterId,
+  });
+}
+
+export function useStudentAttendances(data) {
+  return useQuery({
+    queryKey: [
+      "student-attendances",
+      {
+        teacherId: data.teacherId,
+        classId: data.classId,
+        semesterId: data.semesterId,
+        weekStart: data.weekStart,
+      },
+    ],
+    queryFn: () => {
+      return getStudentAttendances(data);
+    },
+    enabled:
+      !!data.teacherId &&
+      !!data.classId &&
+      !!data.semesterId &&
+      !!data.weekStart,
   });
 }
 export function useTeachersBySubject(id) {

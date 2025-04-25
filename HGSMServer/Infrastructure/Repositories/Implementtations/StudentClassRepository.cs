@@ -22,6 +22,13 @@ namespace Infrastructure.Repositories.Implementtations
                              && sc.AcademicYearId == academicYearId)
                 .ToListAsync();
         }
+        public async Task<StudentClass?> GetWithClassAndStudentAsync(int studentClassId)
+        {
+            return await _context.StudentClasses
+                .Include(sc => sc.Student).ThenInclude(s => s.Parent)
+                .Include(sc => sc.Class)
+                .FirstOrDefaultAsync(sc => sc.Id == studentClassId);
+        }
 
         public async Task<StudentClass?> GetByIdAsync(int id)
         {
@@ -100,7 +107,7 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.StudentClasses.AddRangeAsync(entities);
             await _context.SaveChangesAsync();
         }
-        public async Task UpdateRangeAsync(List<Domain.Models.StudentClass> assignments)
+        public async Task UpdateRangeAsync(List<StudentClass> assignments)
         {
             foreach (var assignment in assignments)
             {
@@ -117,7 +124,7 @@ namespace Infrastructure.Repositories.Implementtations
             _context.StudentClasses.RemoveRange(assignments);
             await _context.SaveChangesAsync();
         }
-        public async Task<List<Domain.Models.StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId)
+        public async Task<List<StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId)
         {
             return await _context.StudentClasses
                 .Include(sc => sc.Class)
@@ -130,6 +137,14 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<IDbContextTransaction> BeginTransactionAsync()
         {
             return await _context.Database.BeginTransactionAsync();
+        }
+        public async Task<List<StudentClass>> GetByStudentIdAsync(int studentId)
+        {
+            return await _context.StudentClasses
+                .Include(sc => sc.Class)
+                .Include(sc => sc.AcademicYear)
+                .Where(sc => sc.StudentId == studentId)
+                .ToListAsync();
         }
 
     }

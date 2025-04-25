@@ -3,6 +3,7 @@ import {
   createTeacher,
   deleteTeacher,
   importTeachers,
+  takeAttendance,
   updateTeacher,
   uploadExam,
 } from "./api";
@@ -78,15 +79,42 @@ export function useDeleteTeacher() {
 }
 
 export function useUploadExam() {
+  const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data) => uploadExam(data),
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         toast.error("đã có lỗi xảy ra");
       } else {
         console.log(data);
         toast.success("Tải lên đề thi thành công");
+        const teacherId = variables.get("TeacherId");
+        queryClient.invalidateQueries(["exams-by-teacher-id", { teacherId }]);
+      }
+    },
+  });
+}
+
+export function useTakeAttendance() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => takeAttendance(data),
+    onSettled: (data, error, variables) => {
+      if (error) {
+        console.log(error);
+        toast.error("đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Điểm danh thành công");
+        queryClient.invalidateQueries([
+          "student-attendances",
+          {
+            teacherId: variables.teacherId,
+            classId: variables.classId,
+            semesterId: variables.semesterId,
+          },
+        ]);
       }
     },
   });

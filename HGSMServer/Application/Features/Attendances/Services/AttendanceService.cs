@@ -1,43 +1,44 @@
 ﻿using Application.Features.Attendances.DTOs;
 using Application.Features.Attendances.Interfaces;
 using AutoMapper;
+using Common.Constants;
+using Common.Utils;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
+using Infrastructure.Repositories.UnitOfWork;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
+using static Common.Constants.AppConstants;
 
 namespace Application.Features.Attendances.Services
 {
     public class AttendanceService : IAttendanceService
     {
-        private readonly IAttendanceRepository _repository;
+        private readonly IAttendanceUnitOfWork _uow;
         private readonly IMapper _mapper;
-        private readonly ITeachingAssignmentRepository _teachingAssignmentRepo;
+        private readonly EmailService _emailService;
 
-        public AttendanceService(
-            IAttendanceRepository repository,
-            IMapper mapper,
-            ITeachingAssignmentRepository teachingAssignmentRepo)
+        public AttendanceService(IAttendanceUnitOfWork uow, IMapper mapper, EmailService emailService)
         {
-            _repository = repository;
+            _uow = uow;
             _mapper = mapper;
-            _teachingAssignmentRepo = teachingAssignmentRepo;
+            _emailService = emailService;
         }
 
 
         public async Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int teacherId, int classId, int semesterId, DateOnly weekStart)
         {
-            var isAssigned = await _teachingAssignmentRepo.IsTeacherAssignedAsync(teacherId, classId, semesterId);
+            var isAssigned = await _uow.TeachingAssignmentRepository.IsTeacherAssignedAsync(teacherId, classId, semesterId);
             if (!isAssigned)
                 throw new UnauthorizedAccessException("Bạn không được phân công dạy lớp này trong học kỳ này.");
 
-            var attendances = await _repository.GetByWeekAsync(classId, weekStart);
+            var attendances = await _uow.AttendanceRepository.GetByWeekAsync(classId, weekStart);
             return _mapper.Map<List<AttendanceDto>>(attendances);
         }
 
         public async Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos)
         {
-            var isAssigned = await _teachingAssignmentRepo.IsTeacherAssignedAsync(teacherId, classId, semesterId);
+            var isAssigned = await _uow.TeachingAssignmentRepository.IsTeacherAssignedAsync(teacherId, classId, semesterId);
             if (!isAssigned)
                 throw new UnauthorizedAccessException("Bạn không được phân công dạy lớp này trong học kỳ này.");
 
@@ -45,6 +46,8 @@ namespace Application.Features.Attendances.Services
             var now = DateTime.Now;
             var entitiesToAdd = new List<Attendance>();
             var entitiesToUpdate = new List<Attendance>();
+
+            var teacher = await _uow.TeacherRepository.GetByIdAsync(teacherId);
 
             foreach (var dto in dtos)
             {
@@ -56,7 +59,7 @@ namespace Application.Features.Attendances.Services
                 if (attendanceDate == today)
                     ValidateSessionTime(dto.Session, now);
 
-                var existing = await _repository.GetAsync(dto.StudentClassId, dto.Date, dto.Session);
+                var existing = await _uow.AttendanceRepository.GetAsync(dto.StudentClassId, dto.Date, dto.Session);
                 if (existing != null)
                 {
                     existing.Status = dto.Status;
@@ -69,29 +72,66 @@ namespace Application.Features.Attendances.Services
                     entity.CreatedAt = now;
                     entitiesToAdd.Add(entity);
                 }
+
+                // Gửi thông báo nếu không có mặt
+                if (dto.Status != AttendanceStatus.PRESENT)
+                {
+                    var studentClass = await _uow.StudentClassRepository.GetWithClassAndStudentAsync(dto.StudentClassId);
+                    if (studentClass?.Student?.Parent != null)
+                    {
+                        string reason = dto.Status switch
+                        {
+                            AttendanceStatus.ABSENT => "Nghỉ học không phép",
+                            AttendanceStatus.PERMISSION => "Nghỉ học có phép",
+                            AttendanceStatus.LATE => $"Trường hợp khác: {dto.Note}",
+                            _ => "Không rõ lý do"
+                        };
+
+                        var parentEmails = new List<string?>
+                {
+                    studentClass.Student.Parent.EmailMother,
+                    studentClass.Student.Parent.EmailFather,
+                    studentClass.Student.Parent.EmailGuardian
+                };
+
+                        foreach (var parentEmail in parentEmails.Where(e => !string.IsNullOrWhiteSpace(e)).Distinct())
+                        {
+                            await _emailService.SendAbsenceNotificationAsync(
+                                parentEmail: parentEmail!,
+                                studentName: studentClass.Student.FullName,
+                                className: studentClass.Class.ClassName,
+                                absenceDate: dto.Date.ToDateTime(TimeOnly.MinValue),
+                                reason: reason,
+                                teacherName: teacher?.FullName,
+                                teacherEmail: teacher?.User.Email,
+                                teacherPhone: teacher?.User.PhoneNumber
+                            );
+                        }
+                    }
+                }
             }
 
             if (entitiesToAdd.Any())
-                await _repository.AddRangeAsync(entitiesToAdd);
+                await _uow.AttendanceRepository.AddRangeAsync(entitiesToAdd);
 
             if (entitiesToUpdate.Any())
-                await _repository.UpdateRangeAsync(entitiesToUpdate);
+                await _uow.AttendanceRepository.UpdateRangeAsync(entitiesToUpdate);
         }
 
         private void ValidateSessionTime(string session, DateTime now)
         {
             switch (session)
             {
-                case "Sáng":
-                    if (now.Hour < 7)
-                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
-                    break;
-                case "Chiều":
-                    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
-                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
-                    break;
-                default:
-                    throw new InvalidOperationException("Buổi học không hợp lệ.");
+                //case "Sáng":
+                //    if (now.Hour < 7)
+                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
+                //    break;
+                //case "Chiều":
+                //    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
+                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
+                //    break;
+                //default:
+                //    throw new InvalidOperationException("Buổi học không hợp lệ.");
             }
         }
     }

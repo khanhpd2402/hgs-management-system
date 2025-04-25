@@ -132,7 +132,7 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException($"Role with ID {userDto.RoleId} not found.");
 
             // Kiểm tra các trường bắt buộc cho Teacher và các role khác
-            if (userDto.RoleId != 6) // Không phải Parent
+            if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)) // Không phải Parent
             {
                 if (string.IsNullOrEmpty(userDto.FullName))
                     throw new ArgumentException("FullName is required for non-Parent roles.");
@@ -149,10 +149,10 @@ namespace Application.Features.Users.Services
             {
                 Username = "tempuser", 
                 PasswordHash = passwordHash,
-                Email = userDto.RoleId == 6
+                Email = roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)
                     ? (userDto.Email ?? userDto.EmailFather ?? userDto.EmailMother ?? userDto.EmailGuardian)
                     : userDto.Email,
-                PhoneNumber = userDto.RoleId == 6
+                PhoneNumber = roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)
                     ? (userDto.PhoneNumber ?? userDto.PhoneNumberFather ?? userDto.PhoneNumberMother ?? userDto.PhoneNumberGuardian)
                     : userDto.PhoneNumber,
                 RoleId = userDto.RoleId,
@@ -184,7 +184,7 @@ namespace Application.Features.Users.Services
             Console.WriteLine($"Created new user with UserID: {user.UserId}");
 
             // Sinh Username bằng FormatUserName dựa trên FullName và UserId
-            string fullNameForUsername = userDto.RoleId == 6
+            string fullNameForUsername = roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)
                 ? (userDto.FullNameFather ?? userDto.FullNameMother ?? userDto.FullNameGuardian ?? "user")
                 : userDto.FullName;
             string finalUsername = FormatUserName.GenerateUsername(fullNameForUsername, user.UserId);
@@ -198,7 +198,7 @@ namespace Application.Features.Users.Services
             Console.WriteLine($"Updated user with Username: {user.Username}");
 
             // Tạo bản ghi Teacher hoặc Parent
-            if (userDto.RoleId != 6) // Tất cả role ngoài Parent đều vào bảng Teacher
+            if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)) // Tất cả role ngoài Parent đều vào bảng Teacher
             {
                 var teacher = new Teacher
                 {

@@ -6,11 +6,12 @@ using System.Threading.Tasks;
 
 namespace Application.Features.StudentClass.DTOs
 {
-    public class StudentFilterDto
+    public class PromotionCheckResult
     {
-        public int StudentClassId { get; set; }
         public int StudentId { get; set; }
-        public string FullName { get; set; } = null!;
-        public string Status { get; set; }
+        public string FullName { get; set; }
+        public int AcademicYearId { get; set; }
+        public bool MustRepeat { get; set; }
+        public List<string> Reasons { get; set; }
     }
 }

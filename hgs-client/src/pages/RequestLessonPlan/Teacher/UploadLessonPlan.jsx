@@ -19,7 +19,7 @@ const INITIAL_FORM = {
 
 const FORM_FIELDS = [
     { name: 'title', label: 'Tiêu đề', type: 'text' },
-    { name: 'planContent', label: 'Nội dung kế hoạch', type: 'textarea', rows: 4 },
+    { name: 'planContent', label: 'Nội dung  ', type: 'textarea', rows: 4 },
 ];
 
 const UploadLessonPlan = () => {
@@ -110,13 +110,13 @@ const UploadLessonPlan = () => {
         try {
             await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
-            const toastId = toast.success('Tạo kế hoạch giảng dạy thành công!');
+            const toastId = toast.success('Tạo lịch giáo án thành công!');
             setTimeout(() => {
                 toast.dismiss(toastId);
                 navigate('/teacher/lesson-plan');
             }, 2100);
         } catch (error) {
-            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo kế hoạch giảng dạy');
+            toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo giáo án');
         }
     };
 
@@ -141,7 +141,7 @@ const UploadLessonPlan = () => {
 
     return (
         <div className="upload-lesson-plan">
-            <h1>Tải lên kế hoạch giáo án</h1>
+            <h1>Phân công làm giáo án</h1>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
                     <div className="form-field">
@@ -164,7 +164,7 @@ const UploadLessonPlan = () => {
                                 </select>
                             </div>
                             <div style={{ flex: 1 }}>
-                                <label>Giáo viên:</label>
+                                <label>Chọn giáo viên làm giáo án:</label>
                                 <select
                                     name="teacherId"
                                     value={form.teacherId}
@@ -253,11 +253,11 @@ const UploadLessonPlan = () => {
                     <button
                         type="button"
                         className="btn-back"
-                        onClick={() => navigate('/teacher/lesson-plan')}
+                        onClick={() => navigate(-1)}
                     >
                         Trở lại danh sách
                     </button>
-                    <button type="submit">Tải lên</button>
+                    <button type="submit">Phân công làm giáo án</button>
                 </div>
             </form>
         </div>

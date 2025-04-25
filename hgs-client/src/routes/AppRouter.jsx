@@ -5,7 +5,6 @@ import Login from "@/pages/Login/Login";
 
 import AttendanceTable from "@/pages/Teacher/Attendance/AttendanceTable";
 import GradeBatch from "@/pages/Teacher/GradeBatch/GradeBatch";
-import MarkReportTable from "@/pages/Teacher/MarkReport/MarkReportTable";
 import AddTeacher from "@/pages/Teacher/Profile/AddTeacher";
 import ProtectedRoute from "@/routes/ProtectedRoute";
 import { lazy, Suspense } from "react";
@@ -16,7 +15,9 @@ import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
-const AddDocument = lazy(() => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"));
+const AddDocument = lazy(
+  () => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"),
+);
 const TeacherLessonPlan = lazy(
   () => import("@/pages/RequestLessonPlan/Teacher/TeacherLessonPlan"),
 );
@@ -28,13 +29,33 @@ const LeaveRequestDetail = lazy(
   () => import("@/pages/LeaveRequest/AdminLeaveRequest/LeaveRequestDetail"),
 );
 const Contact = lazy(() => import("@/pages/contact/Contact"));
-const TeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"));
-const CreateTeacherLeaveRequest = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"));
-const LessonPlanList = lazy(() => import("@/pages/RequestLessonPlan/System/LessonPlanList"));
-const UploadLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/Teacher/UploadLessonPlan"));
-const RequestLessonPlan = lazy(() => import("@/pages/RequestLessonPlan/System/RequestLessonPlan"));
-const ReviewDetail = lazy(() => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"));
-const TeacherLeaveRequestDetail = lazy(() => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"));
+const TeacherLeaveRequest = lazy(
+  () => import("@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequest"),
+);
+const CreateTeacherLeaveRequest = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/CreateTeacherLeaveRequest"
+    ),
+);
+const LessonPlanList = lazy(
+  () => import("@/pages/RequestLessonPlan/System/LessonPlanList"),
+);
+const UploadLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/Teacher/UploadLessonPlan"),
+);
+const RequestLessonPlan = lazy(
+  () => import("@/pages/RequestLessonPlan/System/RequestLessonPlan"),
+);
+const ReviewDetail = lazy(
+  () => import("@/pages/RequestLessonPlan/ReviewList/ReviewDetail"),
+);
+const TeacherLeaveRequestDetail = lazy(
+  () =>
+    import(
+      "@/pages/LeaveRequest/TeacherLeaveRequest/TeacherLeaveRequestDetail"
+    ),
+);
 
 const TeacherTable = lazy(() => import("@/pages/Teacher/Profile/TeacherTable"));
 const StudentTable = lazy(() => import("@/pages/Student/Profile/StudentTable"));
@@ -91,7 +112,6 @@ const ExamManagement = lazy(
 const TeacherListPlan = lazy(
   () => import("@/pages/RequestLessonPlan/Teacher/TeacherListPlan"),
 );
-
 const ListMarkTeacher = lazy(
   () => import("@/pages/Student/MarkReport/ListMarkTeacher"),
 );
@@ -149,6 +169,16 @@ const adminRouter = [
           <SubjectManagement />
         </Suspense>
       </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/exam",
+    element: (
+      // <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+      <Suspense fallback={<div>Loading...</div>}>
+        <ExamManagement />
+      </Suspense>
+      // </ProtectedRoute>
     ),
   },
   {
@@ -296,9 +326,11 @@ const teacherRouter = [
   {
     path: "/teacher/mark-report",
     element: (
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <ListMarkTeacher />
         </Suspense>
+      </ProtectedRoute>
     ),
   },
   {
@@ -312,7 +344,7 @@ const teacherRouter = [
   {
     path: "/teacher/schedule",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <ScheduleTeacher />
         </Suspense>
@@ -332,7 +364,7 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <TeacherLeaveRequest />
         </Suspense>
@@ -342,7 +374,7 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request/create",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
+      <ProtectedRoute requiredRoles={["Giáo viên"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <CreateTeacherLeaveRequest />
         </Suspense>
@@ -364,9 +396,7 @@ const teacherRouter = [
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
-
           <TeacherLessonPlan />
-
         </Suspense>
       </ProtectedRoute>
     ),
@@ -384,14 +414,14 @@ const teacherRouter = [
   {
     path: "system/lesson-plan/add-document/:planId",
     element: (
-      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên", "Hiệu trưởng"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <AddDocument />
         </Suspense>
-
       </ProtectedRoute>
     ),
-  }, {
+  },
+  {
     path: "/teacher/lesson-plan-by-teacher",
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
@@ -402,7 +432,6 @@ const teacherRouter = [
     ),
 
   }
-
 ];
 
 const studentRouter = [
@@ -446,14 +475,14 @@ const studentRouter = [
       </Suspense>
     ),
   },
-
 ];
 
 const privateRouter = [
   {
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}>
-
+      <ProtectedRoute
+        requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}
+      >
         <DefaultLayout />
       </ProtectedRoute>
     ),
