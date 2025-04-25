@@ -58,9 +58,9 @@ namespace HGSMAPI.Controllers
 
             Console.WriteLine($"User found: {user.Username}, Status: {user.Status}");
 
-            if (user.Status == "Deactive")
+            if (user.Status == "Không hoạt động")
             {
-                Console.WriteLine($"User {user.Username} is deactivated.");
+                Console.WriteLine($"User {user.Username} Không hoạt động.");
                 return Unauthorized(new { message = "Your account is deactivated. Please contact the administrator." });
             }
 
