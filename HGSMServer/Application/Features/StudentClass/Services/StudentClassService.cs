@@ -597,6 +597,7 @@ namespace Application.Features.StudentClass.Services
                 students = studentClasses
                     .Select(sc => new StudentFilterDto
                     {
+                        StudentClassId = sc.Id, // Gán StudentClassId từ bản ghi phân công
                         StudentId = sc.Student.StudentId,
                         FullName = sc.Student.FullName,
                         Status = sc.Student.Status
@@ -605,8 +606,20 @@ namespace Application.Features.StudentClass.Services
             }
             else
             {
-                students = (await _studentRepository.GetAllAsync())
-                    .Select(s => new StudentFilterDto { StudentId = s.StudentId, FullName = s.FullName, Status = s.Status })
+                // Lấy năm học hiện tại
+                var currentAcademicYear = await GetCurrentAcademicYearAsync();
+                int currentAcademicYearId = currentAcademicYear.AcademicYearId;
+
+                // Lấy tất cả học sinh đã được phân công lớp trong năm học hiện tại
+                var studentClasses = await _studentClassRepository.GetByAcademicYearIdAsync(currentAcademicYearId);
+                students = studentClasses
+                    .Select(sc => new StudentFilterDto
+                    {
+                        StudentClassId = sc.Id, // Gán StudentClassId từ bản ghi phân công
+                        StudentId = sc.Student.StudentId,
+                        FullName = sc.Student.FullName,
+                        Status = sc.Student.Status
+                    })
                     .ToList();
             }
 
