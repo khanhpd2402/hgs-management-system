@@ -9,8 +9,8 @@ namespace Application.Features.StudentClass.DTOs
     public class BulkClassTransferDto
     {
         public int ClassId { get; set; } 
-        public int AcademicYearId { get; set; } 
+        public int? AcademicYearId { get; set; } 
         public int TargetClassId { get; set; } 
-        public int TargetAcademicYearId { get; set; } 
+        public int? TargetAcademicYearId { get; set; } 
     }
 }
