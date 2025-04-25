@@ -150,10 +150,10 @@ export default function TATable() {
   );
 
   return (
-    <div className="relative mt-6 p-4">
+    <div className="relative mt-6">
       <div className="mb-4 flex items-center justify-between border-b pb-4">
         <div className="flex items-center gap-4">
-          <h2 className="!mb-0 text-lg font-semibold">Phân công giảng dạy</h2>
+          <h2 className="!mb-0 text-2xl font-semibold">Phân công giảng dạy</h2>
           <div className="bg-muted text-muted-foreground inline-flex h-10 items-center justify-center rounded-lg p-1">
             {semesters?.map((sem) => (
               <button
