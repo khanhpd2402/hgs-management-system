@@ -2,150 +2,228 @@ import { useState, useEffect } from "react";
 import { useNavigate, useLocation } from "react-router";
 import {
   Menu,
-  ChevronDown,
-  ChevronRight,
   Home,
   Users,
+  BookOpen,
+  Calendar,
+  ClipboardList,
+  FileText,
+  FileEdit,
+  Mail,
   Settings,
+  School,
+  Upload,
+  Contact,
+  UserCheck,
+  UserPlus,
+  User,
+  CalendarClock,
+  LayoutDashboard,
+  BarChart,
+  FolderKanban,
+  FileClock,
+  FilePieChart,
+  Book,
 } from "lucide-react";
+import { jwtDecode } from "jwt-decode";
 
 const menuItems = [
   {
     label: "Trang chủ",
     icon: Home,
     path: "/home",
+    roles: [
+      "Hiệu trưởng",
+      "Hiệu phó",
+      "Trưởng bộ môn",
+      "Giáo viên",
+      "Cán bộ văn thư",
+    ],
   },
   {
-    label: "Quản trị",
+    label: "Quản lý người dùng",
+    icon: UserPlus,
+    path: "/system/user",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý lớp",
+    icon: Users,
+    path: "/system/class",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Phân công giảng dạy",
+    icon: ClipboardList,
+    path: "/system/teaching-assignment",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý môn học",
+    icon: BookOpen,
+    path: "/system/subject",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý đợt nhập điểm",
+    icon: FileEdit,
+    path: "/system/grade-batch",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý lịch giảng dạy",
+    icon: CalendarClock,
+    path: "/system/schedule",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý đơn xin nghỉ phép",
+    icon: FileClock,
+    path: "/system/leave-request",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Liên hệ",
+    icon: Contact,
+    path: "/system/contact",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý năm học",
+    icon: Calendar,
+    path: "/system/academic-year",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Phân công làm giáo án",
+    icon: FileText,
+    path: "/system/lesson-plan",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý đề thi",
+    icon: FilePieChart,
+    path: "/system/exam",
+    roles: ["Hiệu trưởng", "Hiệu phó", "Trưởng bộ môn"],
+  },
+  {
+    label: "Kết chuyển dữ liệu",
+    icon: FolderKanban,
+    path: "/system/transfer-data",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Cấu hình môn học",
     icon: Settings,
-    path: "/system",
-    children: [
-      { label: "Quản lý người dùng", path: "/system/user" },
-      { label: "Quản lý lớp", path: "/system/class" },
-      { label: "Quản lý môn học", path: "/system/subject" },
-      { label: "Quản lý lịch giảng dạy", path: "/system/schedule" },
-      { label: "Quản lý đơn xin nghỉ phép", path: "/system/leave-request" },
-      { label: "Liên hệ", path: "/system/contact" },
-      { label: "Quản lý năm học", path: "/system/academic-year" },
-      { label: "Phân công làm giáo án", path: "/system/lesson-plan" },
-      { label: "Quản lý đề thi", path: "/system/exam" },
+    path: "/system/teacher-subject",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
 
-      {
-        label: "Cấu hình môn học",
-        path: "/system/teacher-subject",
-      },
-      // { label: "Quản lý giáo viên", path: "/admin/teacher" },
-      // { label: "Quản lý học sinh", path: "/admin/student" },
-    ],
+  // Giáo viên
+  {
+    label: "Điểm danh",
+    icon: UserCheck,
+    path: "/teacher/take-attendance",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
   },
   {
-    label: "Giáo viên",
-    icon: Users,
-    path: "/teacher",
-    children: [
-      { label: "Hồ sơ giáo viên", path: "/teacher/profile" },
-      {
-        label: "Phân công giảng dạy",
-        path: "/teacher/teaching-assignment",
-      },
-      {
-        label: "Phân công chủ nhiệm",
-        path: "/teacher/head-teacher-assignment",
-      },
-      {
-        label: "Điểm danh",
-        path: "/teacher/take-attendance",
-      },
-      {
-        label: "Báo cáo điểm",
-        path: "/teacher/mark-report",
-      },
-      {
-        label: "Quản lý đợt nhập điểm",
-        path: "/teacher/grade-batch",
-      },
-      {
-        label: "Lịch giảng dạy",
-        path: "/teacher/schedule",
-      },
-      {
-        label: "Quản lý đơn xin nghỉ phép",
-        path: "/teacher/leave-request",
-      },
-      {
-        label: "Phân công làm giáo án",
-        path: "/teacher/lesson-plan",
-      },
-      {
-        label: "Danh sách được phân công làm giáo án",
-        path: "/teacher/lesson-plan-by-teacher"
-      },
+    label: "Báo cáo điểm",
+    icon: BarChart,
+    path: "/teacher/mark-report",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+  },
 
-      {
-        label: "Nộp đề thi",
-        path: "/teacher/upload-exam",
-      },
-
-    ],
+  {
+    label: "Lịch giảng dạy",
+    icon: Calendar,
+    path: "/teacher/schedule",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
   },
   {
-    label: "Học Sinh",
-    icon: Users,
-    path: "/student",
+    label: "Quản lý đơn xin nghỉ phép",
+    icon: FileClock,
+    path: "/teacher/leave-request",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý giáo án",
+    icon: FileText,
+    path: "/teacher/lesson-plan",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+  },
+  {
+    label: "Tạo lịch giảng dạy",
+    icon: ClipboardList,
+    path: "/teacher/lesson-plan/create",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+  },
+  {
+    label: "Nộp đề thi",
+    icon: Upload,
+    path: "/teacher/upload-exam",
+    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+  },
+  {
+    label: "Phân công làm giáo án",
+    path: "/teacher/lesson-plan",
+  },
 
-    children: [
-      { label: "Hồ sơ học sinh", path: "/student/profile" },
-      {
-        label: "Thời khóa biểu học sinh",
-        path: "/student/schedule",
-      },
-    ],
+  // Học sinh
+  {
+    label: "Thời khóa biểu học sinh",
+    icon: Calendar,
+    path: "/student/schedule",
+    roles: ["Phụ huynh", "Học Sinh"],
   },
   {
     label: "Xem điểm",
-    icon: Users,
+    icon: BarChart,
     path: "/student/score",
+    roles: ["Phụ huynh", "Học Sinh"],
+  },
+
+  // Cán bộ văn thư
+  {
+    label: "Hồ sơ giáo viên",
+    icon: User,
+    path: "/teacher/profile",
+    roles: ["Cán bộ văn thư", "Hiệu trưởng"],
+  },
+  {
+    label: "Hồ sơ học sinh",
+    icon: School,
+    path: "/student/profile",
+    roles: ["Cán bộ văn thư", "Hiệu trưởng"],
   },
 ];
 
 export default function Sidebar({ isOpen, setIsOpen }) {
-  const [openMenus, setOpenMenus] = useState({});
   const navigate = useNavigate();
   const location = useLocation();
   const currentPath = location.pathname;
+  const [userRole, setUserRole] = useState(null);
 
   useEffect(() => {
-    menuItems.forEach((item) => {
-      if (
-        currentPath === item.path ||
-        item.children?.some((child) => child.path === currentPath)
-      ) {
-        setOpenMenus((prev) => ({ ...prev, [item.label]: true }));
-      }
-    });
-  }, [currentPath]);
-
-  const toggleMenu = (label) => {
-    if (isOpen) {
-      setOpenMenus((prev) => ({ ...prev, [label]: !prev[label] }));
+    const token = JSON.parse(localStorage.getItem("token"));
+    const storedRole = token ? jwtDecode(token).role : null;
+    if (storedRole) {
+      setUserRole(storedRole.replace(/^"|"$/g, ""));
     }
-  };
+  }, []);
+
+  const filteredMenuItems = menuItems.filter(
+    (item) => userRole && item.roles && item.roles.includes(userRole),
+  );
 
   const isMenuActive = (item) => {
-    return (
-      currentPath === item.path ||
-      item.children?.some((child) => child.path === currentPath)
-    );
-  };
-
-  const isSubmenuActive = (path) => {
-    return currentPath === path;
+    return currentPath === item.path;
   };
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${isOpen ? "w-64" : "w-16"
-        }`}
+      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${
+        isOpen ? "w-64" : "w-16"
+      }`}
     >
       {/* Button đóng/mở menu */}
       <div
@@ -159,56 +237,21 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
       {/* Danh sách menu */}
       <nav className="space-y-1 p-2">
-        {menuItems.map((item) => (
-          <div key={item.label}>
-            {/* Menu chính */}
-            <button
-              className={`flex h-12 w-full cursor-pointer items-center justify-between rounded-md px-2 hover:bg-sky-600 ${isMenuActive(item) ? "bg-sky-500" : ""
-                }`}
-              onClick={() =>
-                item.children ? toggleMenu(item.label) : navigate(item.path)
-              }
-            >
-              <div className="flex min-w-0 items-center">
-                <div className="flex w-8 shrink-0 justify-center">
-                  <item.icon className="h-5 w-5" />
-                </div>
-                <span
-                  className={`truncate ${isOpen ? "inline-block" : "hidden"}`}
-                >
-                  {item.label}
-                </span>
-              </div>
-              {item.children && isOpen && (
-                <div className="w-8 shrink-0">
-                  {openMenus[item.label] ? (
-                    <ChevronDown className="h-4 w-4" />
-                  ) : (
-                    <ChevronRight className="h-4 w-4" />
-                  )}
-                </div>
-              )}
-            </button>
-
-            {/* Submenu */}
-            <div
-              className={`${openMenus[item.label] && isOpen ? "block" : "hidden"
-                }`}
-            >
-              {item.children?.map((child) => (
-                <button
-                  key={child.label}
-                  className={`mt-1 flex h-12 w-full cursor-pointer items-center rounded-md text-left hover:bg-sky-500 ${isSubmenuActive(child.path) ? "bg-sky-500" : ""
-                    }`}
-                  onClick={() => navigate(child.path)}
-                >
-                  <div className="ml-2 w-8 shrink-0" />
-                  {/* Khoảng cách để thẳng hàng với icon cha */}
-                  <span className="truncate">{child.label}</span>
-                </button>
-              ))}
+        {filteredMenuItems.map((item) => (
+          <button
+            key={item.label}
+            className={`flex h-12 w-full cursor-pointer items-center rounded-md px-2 hover:bg-sky-600 ${
+              isMenuActive(item) ? "bg-sky-500" : ""
+            }`}
+            onClick={() => navigate(item.path)}
+          >
+            <div className="flex w-8 shrink-0 justify-center">
+              {item.icon ? <item.icon className="h-5 w-5" /> : null}
             </div>
-          </div>
+            <span className={`truncate ${isOpen ? "inline-block" : "hidden"}`}>
+              {item.label}
+            </span>
+          </button>
         ))}
       </nav>
     </div>

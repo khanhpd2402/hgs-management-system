@@ -235,11 +235,13 @@ const UserManagement = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tất cả</SelectItem>
-              {roles.map((role) => (
-                <SelectItem value={role.roleID} key={role.roleID}>
-                  {role.roleName}
-                </SelectItem>
-              ))}
+              {roles
+                .filter((r) => r.roleName !== "Hiệu trưởng")
+                .map((role) => (
+                  <SelectItem value={role.roleID} key={role.roleID}>
+                    {role.roleName}
+                  </SelectItem>
+                ))}
             </SelectContent>
           </Select>
           <Select value={statusFilter} onValueChange={setStatusFilter}>
@@ -257,18 +259,21 @@ const UserManagement = () => {
 
       <Card className="mb-6 overflow-hidden border border-gray-200">
         <CardContent className="p-0">
-          <div className="max-h-[500px] overflow-auto">
+          <div className="max-h-[400px] overflow-auto">
             <Table className="table-fixed border-collapse">
               <TableHeader className="bg-slate-100">
                 <TableRow className="border-b border-gray-200">
-                  <TableHead className="w-40 border border-gray-200 text-center">
-                    Thao tác
-                  </TableHead>
                   <TableHead className="w-16 border border-gray-200 text-center">
                     STT
                   </TableHead>
+                  <TableHead className="w-40 border border-gray-200 text-center">
+                    Thao tác
+                  </TableHead>
                   <TableHead className="w-48 border border-gray-200 text-center">
                     Tên cán bộ
+                  </TableHead>
+                  <TableHead className="w-32 border border-gray-200 text-center">
+                    Vai trò
                   </TableHead>
                   <TableHead className="w-44 border border-gray-200 text-center">
                     Tên đăng nhập
@@ -310,6 +315,10 @@ const UserManagement = () => {
                       key={user.userId}
                       className="border-b border-gray-200"
                     >
+                      <TableCell className="border border-gray-200 text-center">
+                        {startIndex + index}
+                      </TableCell>
+
                       <TableCell className="border border-gray-200">
                         <div className="flex justify-center space-x-2">
                           <CustomTooltip content="Thay đổi quyền">
@@ -356,11 +365,12 @@ const UserManagement = () => {
                           </CustomTooltip>
                         </div>
                       </TableCell>
-                      <TableCell className="border border-gray-200 text-center">
-                        {startIndex + index}
-                      </TableCell>
+
                       <TableCell className="border border-gray-200">
                         {user.fullName}
+                      </TableCell>
+                      <TableCell className="border border-gray-200">
+                        {user.roleName}
                       </TableCell>
                       <TableCell className="border border-gray-200">
                         {user.username}
