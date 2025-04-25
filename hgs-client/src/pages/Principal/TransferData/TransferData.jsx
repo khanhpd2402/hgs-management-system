@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import { useEffect, useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -24,52 +24,46 @@ import {
   SelectContent,
   SelectItem,
 } from "@/components/ui/select";
-import toast from "react-hot-toast";
 import { Checkbox } from "@/components/ui/checkbox";
+import { useClasses } from "@/services/common/queries";
+import { usePreviousYearStudents } from "@/services/principal/queries";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 
 export default function TransferData() {
-  // State cho loading, modal, dữ liệu lớp, học sinh, chế độ chuyển
-  const [loading, setLoading] = useState(false);
+  const { currentYear } = useLayout();
   const [mode, setMode] = useState("class"); // "class" hoặc "student"
   const [open, setOpen] = useState(false);
-  const [fromClass, setFromClass] = useState("");
-  const [toClass, setToClass] = useState("");
+
   const [selectedStudents, setSelectedStudents] = useState([]);
-  const [students, setStudents] = useState([
-    // Dữ liệu mẫu, thực tế lấy từ API
-    { id: 1, name: "Nguyễn Văn A", class: "6A" },
-    { id: 2, name: "Trần Thị B", class: "6A" },
-    { id: 3, name: "Lê Văn C", class: "6B" },
-  ]);
-  const [classes, setClasses] = useState([
-    // Dữ liệu mẫu, thực tế lấy từ API
-    { id: "6A", name: "6A" },
-    { id: "6B", name: "6B" },
-    { id: "7A", name: "7A" },
-    { id: "7B", name: "7B" },
-  ]);
-  // Dữ liệu mẫu danh sách lớp
-  const [classList, setClassList] = useState([
-    { id: "6A", name: "6A", size: 40, qualified: 38, toClass: "" },
-    { id: "6B", name: "6B", size: 42, qualified: 40, toClass: "" },
-    { id: "7A", name: "7A", size: 39, qualified: 37, toClass: "" },
-  ]);
+
+  const classQuery = useClasses();
+  const classes = classQuery.data;
+  const studentQuery = usePreviousYearStudents(currentYear?.academicYearID);
+  const students = studentQuery.data;
 
   const [grade, setGrade] = useState("");
   const [className, setClassName] = useState("");
+  const [classList, setClassList] = useState([]);
+
+  useEffect(() => {
+    if (mode === "class" && grade && classes) {
+      const filtered = classes
+        .filter((c) => c.className[0] == grade)
+        .map((c) => ({
+          ...c,
+          toClass: "",
+        }));
+
+      setClassList(filtered);
+    }
+  }, [mode, grade, classes]);
+  console.log(selectedStudents);
 
   // Xử lý chuyển dữ liệu
-  const handleTransfer = () => {
-    setLoading(true);
-    setTimeout(() => {
-      setLoading(false);
-      setOpen(false);
-      toast.success("Chuyển dữ liệu thành công!");
-    }, 1500);
-  };
+  const handleTransfer = () => {};
 
   // UI loading skeleton
-  if (loading) {
+  if (classQuery.isLoading) {
     return (
       <Card className="mt-6 border shadow">
         <CardHeader>
@@ -120,6 +114,8 @@ export default function TransferData() {
           <SelectContent>
             <SelectItem value="6">Khối 6</SelectItem>
             <SelectItem value="7">Khối 7</SelectItem>
+            <SelectItem value="8">Khối 8</SelectItem>
+            <SelectItem value="9">Khối 9</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -131,8 +127,15 @@ export default function TransferData() {
             <SelectValue placeholder="Chọn lớp" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="6A">6A</SelectItem>
-            <SelectItem value="7A">7A</SelectItem>
+            {classes.map((item) => {
+              if (item.className[0] == grade) {
+                return (
+                  <SelectItem key={item.classId} value={item.className}>
+                    {item.className}
+                  </SelectItem>
+                );
+              }
+            })}
           </SelectContent>
         </Select>
         <Button onClick={() => setOpen(true)} className="ml-auto">
@@ -141,31 +144,26 @@ export default function TransferData() {
       </div>
 
       {/* Bảng danh sách các lớp */}
-      {mode === "class" && (
+      {mode === "class" && grade && (
         <div className="mt-4">
           <p className="font-semibold">Danh sách các lớp</p>
           <Card className="mt-4 border shadow">
             <CardContent className="p-0">
               <Table>
-                <TableHeader>
-                  <TableRow>
-                    <TableHead className="w-12 text-center">STT</TableHead>
-                    <TableHead className="text-center">Lớp hiện tại</TableHead>
-                    <TableHead className="text-center">Sĩ số</TableHead>
-                    <TableHead className="text-center">
-                      Đủ điều kiện lên lớp
-                    </TableHead>
-                    <TableHead className="text-center">
-                      Lớp chuyển đến
-                    </TableHead>
-                  </TableRow>
-                </TableHeader>
+                <TableHeader>{/* ... existing code ... */}</TableHeader>
                 <TableBody>
                   {classList.map((cls, idx) => (
-                    <TableRow key={cls.id}>
+                    <TableRow key={cls.classId}>
                       <TableCell className="text-center">{idx + 1}</TableCell>
-                      <TableCell className="text-center">{cls.name}</TableCell>
-                      <TableCell className="text-center">{cls.size}</TableCell>
+                      <TableCell className="text-center">
+                        {cls.className}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        {
+                          students.filter((s) => s.className == cls.className)
+                            .length
+                        }
+                      </TableCell>
                       <TableCell className="text-center">
                         {cls.qualified}
                       </TableCell>
@@ -175,7 +173,9 @@ export default function TransferData() {
                           onValueChange={(val) => {
                             setClassList((prev) =>
                               prev.map((c) =>
-                                c.id === cls.id ? { ...c, toClass: val } : c,
+                                c.className === cls.className
+                                  ? { ...c, toClass: val }
+                                  : c,
                               ),
                             );
                           }}
@@ -185,10 +185,14 @@ export default function TransferData() {
                           </SelectTrigger>
                           <SelectContent>
                             {classes
-                              .filter((c) => c.id !== cls.id)
+                              .filter(
+                                (c) =>
+                                  c.className[0] == +grade + 1 &&
+                                  c.status === "Hoạt động",
+                              )
                               .map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
+                                <SelectItem key={c.classId} value={c.className}>
+                                  {c.className}
                                 </SelectItem>
                               ))}
                           </SelectContent>
@@ -203,7 +207,7 @@ export default function TransferData() {
         </div>
       )}
 
-      {mode === "student" && (
+      {mode === "student" && grade && className && (
         <div>
           <div className="mt-4 font-medium">Chọn học sinh cần chuyển:</div>
           <div className="overflow-x-auto">
@@ -218,63 +222,81 @@ export default function TransferData() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students.map((student) => (
-                      <TableRow key={student.id}>
-                        <TableCell>
-                          <Checkbox
-                            checked={selectedStudents.some(
-                              (s) => s.id === student.id,
-                            )}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedStudents([
-                                  ...selectedStudents,
-                                  { ...student, toClass: "" },
-                                ]);
-                              } else {
-                                setSelectedStudents(
-                                  selectedStudents.filter(
-                                    (s) => s.id !== student.id,
+                    {students
+                      .filter((s) => s.className === className)
+                      .map((student) => (
+                        <TableRow key={student.studentId}>
+                          <TableCell>
+                            <Checkbox
+                              checked={selectedStudents.some(
+                                (s) => s.studentId === student.studentId,
+                              )}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedStudents([
+                                    ...selectedStudents,
+                                    {
+                                      studentId: student.studentId,
+                                      classId: student.classId,
+                                      toClass: "",
+                                    },
+                                  ]);
+                                } else {
+                                  setSelectedStudents(
+                                    selectedStudents.filter(
+                                      (s) => s.studentId !== student.studentId,
+                                    ),
+                                  );
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell>{student.studentName}</TableCell>
+                          <TableCell>
+                            <Select
+                              value={
+                                selectedStudents.find(
+                                  (s) => s.studentId === student.studentId,
+                                )?.toClass || ""
+                              }
+                              onValueChange={(val) => {
+                                setSelectedStudents((prev) =>
+                                  prev.map((s) =>
+                                    s.studentId === student.studentId
+                                      ? { ...s, toClass: val }
+                                      : s,
                                   ),
                                 );
+                              }}
+                              disabled={
+                                !selectedStudents.some(
+                                  (s) => s.studentId === student.studentId,
+                                )
                               }
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell>{student.name}</TableCell>
-                        <TableCell>
-                          <Select
-                            value={
-                              selectedStudents.find((s) => s.id === student.id)
-                                ?.toClass || ""
-                            }
-                            onValueChange={(val) => {
-                              setSelectedStudents((prev) =>
-                                prev.map((s) =>
-                                  s.id === student.id
-                                    ? { ...s, toClass: val }
-                                    : s,
-                                ),
-                              );
-                            }}
-                            disabled={
-                              !selectedStudents.some((s) => s.id === student.id)
-                            }
-                          >
-                            <SelectTrigger className="w-[120px]">
-                              <SelectValue placeholder="Chọn lớp" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {classes.map((c) => (
-                                <SelectItem key={c.id} value={c.id}>
-                                  {c.name}
-                                </SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                            >
+                              <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Chọn lớp" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {classes
+                                  .filter(
+                                    (c) =>
+                                      c.status === "Hoạt động" &&
+                                      c.className[0] == +grade + 1,
+                                  )
+                                  .map((c) => (
+                                    <SelectItem
+                                      key={c.classId}
+                                      value={c.className}
+                                    >
+                                      {c.className}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -286,7 +308,7 @@ export default function TransferData() {
       {/* Chuyển cả lớp */}
 
       {/* Modal xác nhận chuyển */}
-      <Dialog open={open} onOpenChange={setOpen}>
+      {/* <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Xác nhận chuyển dữ liệu</DialogTitle>
@@ -311,7 +333,7 @@ export default function TransferData() {
             <Button onClick={handleTransfer}>Xác nhận</Button>
           </DialogFooter>
         </DialogContent>
-      </Dialog>
+      </Dialog> */}
     </div>
   );
 }

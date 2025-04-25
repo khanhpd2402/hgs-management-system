@@ -258,7 +258,7 @@ const adminRouter = [
   {
     path: "/system/lesson-plan",
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
         <Suspense fallback={<div>Loading...</div>}>
           <RequestLessonPlan />
         </Suspense>

@@ -120,7 +120,7 @@ export const deleteTeachingAssignment = async (teacherId, semesterId) => {
 export const getClassesWithStudentCount = async (academicYearId) => {
   return (
     await axiosInstance.get(
-      `StudentClasses/classes-with-student-count?academicYearId=${academicYearId}`,
+      `StudentClass/classes-with-student-count?academicYearId=${academicYearId}`,
     )
   ).data;
 };
@@ -185,5 +185,14 @@ export const getAllExams = async () => {
 export const updateExamStatus = async (id, data) => {
   return (
     await axiosInstance.put(`ExamProposals/exam-proposal/${id}/status`, data)
+  ).data;
+};
+
+//data transfer
+export const getStudentPreviousYear = async (id) => {
+  return (
+    await axiosInstance.get(
+      `StudentClass/last-academic-year?currentAcademicYearId=${id}`,
+    )
   ).data;
 };
