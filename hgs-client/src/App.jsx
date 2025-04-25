@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import AppRouter from "./routes/AppRouter";
 import toast, { Toaster, useToasterStore } from "react-hot-toast";
+import "./App.css";
 
 const TOAST_LIMIT = 1;
 
