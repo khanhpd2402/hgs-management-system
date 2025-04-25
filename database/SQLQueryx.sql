@@ -180,7 +180,7 @@ CREATE TABLE [dbo].[GradeBatches](
 	[SemesterID] [int] NOT NULL,
 	[StartDate] [date] NULL,
 	[EndDate] [date] NULL,
-	[Status] [nvarchar](10) NOT NULL,
+	[Status] [nvarchar](50) NOT NULL,
 PRIMARY KEY CLUSTERED 
 (
 	[BatchID] ASC
