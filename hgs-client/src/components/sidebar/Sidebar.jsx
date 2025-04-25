@@ -95,7 +95,7 @@ const menuItems = [
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
   {
-    label: "Quản lý giáo án",
+    label: "Phân công làm giáo án",
     icon: FileText,
     path: "/system/lesson-plan",
     roles: ["Hiệu trưởng", "Hiệu phó"],
@@ -162,6 +162,10 @@ const menuItems = [
     icon: Upload,
     path: "/teacher/upload-exam",
     roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+  },
+  {
+    label: "Phân công làm giáo án",
+    path: "/teacher/lesson-plan",
   },
 
   // Học sinh

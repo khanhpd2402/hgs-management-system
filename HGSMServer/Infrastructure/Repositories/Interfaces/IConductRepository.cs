@@ -13,7 +13,8 @@ namespace Infrastructure.Repositories.Interfaces
         Task<Conduct> GetByIdAsync(int id);
         Task<Conduct> CreateAsync(Conduct conduct);
         Task<bool> UpdateAsync(int id, Conduct conduct);
-        Task<bool> DeleteAsync(int id);
-    }
+        Task<bool> DeleteAsync(int id); Task<Conduct> GetByStudentAndSemesterAsync(int studentId, int semesterId);
+    
+}
 
 }
