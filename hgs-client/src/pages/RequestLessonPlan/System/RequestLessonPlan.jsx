@@ -23,13 +23,6 @@ const RequestLessonPlan = () => {
         <div className="p-6">
             {/* Bộ lọc */}
             <div className="mb-4 flex space-x-4">
-                <button
-                    onClick={() => setActiveTab('upload')}
-                    className={`py-2 px-4 rounded text-black transition-colors border
-                    ${activeTab === 'upload' ? 'border-gray-500 bg-gray-100' : 'border-gray-300 hover:bg-gray-100'}`}
-                >
-                    Tạo Kế Hoạch Mới
-                </button>
 
                 <button
                     onClick={() => setActiveTab('list')}

@@ -92,3 +92,7 @@ export const getStudentAttendances = async ({
     )
   ).data;
 };
+export async function getTeachersBySubject(id) {
+  const response = await axios.get(`/api/TeacherSubject/${id}`);
+  return response.data;
+}

@@ -6,6 +6,7 @@ import {
   getExamsByTeacherId,
   getStudentByClass,
   getStudentAttendances,
+  getTeachersBySubject,
 } from "./api";
 
 export function useTeachers() {
@@ -92,5 +93,12 @@ export function useStudentAttendances(data) {
       !!data.classId &&
       !!data.semesterId &&
       !!data.weekStart,
+  });
+}
+export function useTeachersBySubject(id) {
+  return useQuery({
+    queryKey: ["teachersBySubject", id],
+    queryFn: () => getTeachersBySubject(id),
+    enabled: !!id,
   });
 }
