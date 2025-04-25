@@ -55,7 +55,7 @@ const menuItems = [
   {
     label: "Phân công giảng dạy",
     icon: ClipboardList,
-    path: "/teacher/teaching-assignment",
+    path: "/system/teaching-assignment",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
   {
