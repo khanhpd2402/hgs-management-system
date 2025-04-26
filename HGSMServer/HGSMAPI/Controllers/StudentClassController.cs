@@ -6,13 +6,14 @@ using Application.Features.StudentClass.DTOs;
 using Application.Features.StudentClass.Interfaces;
 using System.Linq;
 using System;
+using Microsoft.AspNetCore.Http;
 
 namespace HGSMAPI.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
     [Authorize]
-    public class StudentClassController : ControllerBase 
+    public class StudentClassController : ControllerBase
     {
         private readonly IStudentClassService _studentClassService;
 
@@ -32,147 +33,157 @@ namespace HGSMAPI.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi lấy danh sách phân công lớp.", Detail = ex.Message });
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy danh sách phân công lớp." });
             }
         }
 
-        [HttpGet("last-academic-year")] 
+        [HttpGet("last-academic-year")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh")]
-        public async Task<ActionResult<IEnumerable<StudentClassResponseDto>>> GetAllStudentClassByLastAcademicYear([FromQuery] int currentAcademicYearId) // Sử dụng [FromQuery]
+        public async Task<ActionResult<IEnumerable<StudentClassResponseDto>>> GetAllStudentClassByLastAcademicYear([FromQuery] int currentAcademicYearId)
         {
             try
             {
-                var studentClasses = await _studentClassService.GetAllStudentClassByLastAcademicYearAsync(currentAcademicYearId);
-
-                if (!studentClasses.Any())
+                if (currentAcademicYearId <= 0)
                 {
-                    // Có thể trả về NotFound nếu không tìm thấy năm học hoặc không có học sinh trong năm đó
-                    return NotFound($"Không tìm thấy bản ghi phân công lớp cho năm học vừa kết thúc (trước năm học có Id {currentAcademicYearId}).");
+                    return BadRequest(new { message = "AcademicYearId phải là một số nguyên dương." });
                 }
 
+                var studentClasses = await _studentClassService.GetAllStudentClassByLastAcademicYearAsync(currentAcademicYearId);
                 return Ok(studentClasses);
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
-            catch (ArgumentException ex) 
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi lấy danh sách phân công lớp năm học vừa kết thúc.", Detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy danh sách phân công lớp năm học vừa kết thúc." });
             }
         }
 
-
-   
-        [HttpPost] 
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")] 
+        [HttpPost]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> CreateStudentClass([FromBody] StudentClassAssignmentDto dto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { message = "Dữ liệu đầu vào không hợp lệ." });
             }
 
             try
             {
                 await _studentClassService.CreateStudentClassAsync(dto);
-                return Ok(new { Message = "Phân công lớp thành công." });
+                return Ok(new { message = "Phân công lớp thành công." });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                return Conflict(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi tạo phân công lớp.", Detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi tạo phân công lớp." });
             }
         }
 
-        [HttpPut] 
+        [HttpPut]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> UpdateStudentClasses([FromBody] List<StudentClassAssignmentDto> dtos)
         {
             if (dtos == null || !dtos.Any())
             {
-                return BadRequest(new { Message = "Danh sách phân công lớp không được rỗng." });
+                return BadRequest(new { message = "Danh sách phân công lớp không được rỗng." });
             }
-
 
             try
             {
                 await _studentClassService.UpdateStudentClassesAsync(dtos);
                 return Ok(new
                 {
-                    Message = "Cập nhật phân công lớp thành công.",
+                    message = "Cập nhật phân công lớp thành công.",
                     UpdatedCount = dtos.Count,
-                    Assignments = dtos.Select(d => new { d.StudentId, d.ClassId, d.AcademicYearId }) // Trả về thông tin các assignment đã cập nhật
+                    Assignments = dtos.Select(d => new { d.StudentId, d.ClassId, d.AcademicYearId })
                 });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message, Detail = ex.InnerException?.Message }); // Giữ lại InnerException detail nếu có
+                return Conflict(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi cập nhật phân công lớp.", Detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi cập nhật phân công lớp." });
             }
         }
 
-        
-        [HttpDelete("{id}")] 
+        [HttpDelete("{id}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> DeleteStudentClass(int id)
         {
             try
             {
+                if (id <= 0)
+                {
+                    return BadRequest(new { message = "ID phân công lớp phải là một số nguyên dương." });
+                }
+
                 await _studentClassService.DeleteStudentClassAsync(id);
-                return Ok(new { Message = "Phân công lớp đã được xóa thành công." });
+                return Ok(new { message = "Xóa phân công lớp thành công." });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi xóa phân công lớp.", Detail = ex.Message });
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi xóa phân công lớp." });
             }
         }
 
-      
-        [HttpGet("filter-data")] 
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh,Trưởng bộ môn")] 
+        [HttpGet("filter-data")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh,Trưởng bộ môn")]
         public async Task<IActionResult> GetFilterData([FromQuery] int? classId = null, [FromQuery] int? semesterId = null)
         {
             try
@@ -182,15 +193,19 @@ namespace HGSMAPI.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
-            catch (ArgumentException ex)
+            catch (KeyNotFoundException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return NotFound(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi lấy dữ liệu lọc.", Detail = ex.Message });
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy dữ liệu lọc." });
             }
         }
 
@@ -200,11 +215,16 @@ namespace HGSMAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                return BadRequest(new { message = "Dữ liệu đầu vào không hợp lệ." });
             }
 
             try
             {
+                if (dtos == null || !dtos.Any())
+                {
+                    return BadRequest(new { message = "Danh sách chuyển lớp không được rỗng." });
+                }
+
                 var results = new List<BulkTransferResultDto>();
                 foreach (var dto in dtos)
                 {
@@ -215,68 +235,87 @@ namespace HGSMAPI.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message, Detail = ex.InnerException?.Message });
+                return Conflict(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi trong quá trình chuyển lớp hàng loạt.", Detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình chuyển lớp hàng loạt." });
             }
         }
-        [HttpPost("process-graduation/{academicYearId}")] 
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")] 
+
+        [HttpPost("process-graduation/{academicYearId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> ProcessGraduation(int academicYearId)
         {
             try
             {
+                if (academicYearId <= 0)
+                {
+                    return BadRequest(new { message = "AcademicYearId phải là một số nguyên dương." });
+                }
+
                 await _studentClassService.ProcessGraduationAsync(academicYearId);
-                return Ok(new { Message = "Xử lý tốt nghiệp thành công." });
+                return Ok(new { message = "Xử lý tốt nghiệp thành công." });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                return Conflict(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi.", Detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình xử lý tốt nghiệp." });
             }
         }
 
-        [HttpGet("classes-with-student-count")] 
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh")] 
+        [HttpGet("classes-with-student-count")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh")]
         public async Task<IActionResult> GetClassesWithStudentCount([FromQuery] int? academicYearId = null)
         {
             try
             {
+                if (academicYearId.HasValue && academicYearId <= 0)
+                {
+                    return BadRequest(new { message = "AcademicYearId phải là một số nguyên dương." });
+                }
+
                 var classes = await _studentClassService.GetClassesWithStudentCountAsync(academicYearId);
                 return Ok(classes);
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { Message = ex.Message });
+                return Unauthorized(new { message = ex.Message });
             }
-            catch (ArgumentException ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                return BadRequest(new { message = ex.Message });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return StatusCode(500, new { Message = "Đã xảy ra lỗi khi lấy thông tin lớp.", Detail = ex.Message });
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy thông tin lớp." });
             }
         }
     }
