@@ -34,3 +34,13 @@ export const getSubstituteTeachings = async (
   );
   return response.data;
 };
+
+export const getTimetiableSubstituteSubstituteForTeacher = async (
+  teacherId,
+  date,
+) => {
+  const response = await axiosInstance.get(
+    `SubstituteTeachings?SubstituteTeacherId=${teacherId}&date=${date.format("YYYY-MM-DD")}`,
+  );
+  return response.data;
+};
