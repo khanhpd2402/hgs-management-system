@@ -924,7 +924,6 @@ namespace Application.Features.StudentClass.Services
             }
 
             // Điều kiện lên lớp: Không có môn nào dưới 3.5, không quá X môn dưới 5.0, hạnh kiểm từ Khá trở lên
-            // Cần điều chỉnh logic kiểm tra điều kiện chi tiết hơn tùy theo quy định thực tế
             var fail3_5 = reasons.Any(r => r.Contains("< 3.5"));
             var below5_0 = reasons.Count(r => r.Contains("< 5.0"));
             var weakConduct = reasons.Any(r => r.Contains("Hạnh kiểm") && r.Contains("'Yếu'"));
