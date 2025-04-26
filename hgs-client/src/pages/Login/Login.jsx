@@ -21,7 +21,7 @@ import * as z from "zod";
 import "./Login.scss";
 import { useLoginMutation } from "@/services/common/mutation";
 import { Navigate, useNavigate } from "react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { isAuthenticated } from "@/utils/authUtils";
 
@@ -33,10 +33,12 @@ const formSchema = z.object({
 const Login = () => {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+  const [bgLoaded, setBgLoaded] = useState(false);
 
   useEffect(() => {
     const img = new window.Image();
     img.src = "school.jpg";
+    img.onload = () => setBgLoaded(true);
   }, []);
 
   // Check if user is already logged in
@@ -70,8 +72,20 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container">
-      <div className="login-content">
+    <div className="login-container relative">
+      {!bgLoaded && (
+        <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
+          <div className="h-full w-full animate-pulse bg-gray-200" />
+        </div>
+      )}
+      <div
+        className={`login-content transition-opacity duration-300 ${bgLoaded ? "opacity-100" : "opacity-0"}`}
+        style={{
+          backgroundImage: bgLoaded ? 'url("school.jpg")' : "none",
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
+      >
         <div className="login-left">
           <div className="login-welcome">
             <div className="school-logo">
