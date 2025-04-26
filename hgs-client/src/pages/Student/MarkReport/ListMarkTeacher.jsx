@@ -1,6 +1,23 @@
 import React, { useState, useCallback, useMemo } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import './ListMarkTeacher.scss';
 
 // Hàm ánh xạ assessmentType
@@ -258,142 +275,154 @@ const ListMarkTeacher = () => {
   );
 
   return (
-    <div className="mark-report-container">
-      <h2 className="text-xl font-bold mb-4">Chọn học kỳ</h2>
-      {error && <div className="text-red-500 mb-4">{error}</div>}
-      <select
-        value={semester}
-        onChange={handleSemesterChange}
-        className="w-full p-2 border rounded mb-4"
-        disabled={loading}
-      >
-        <option value="">-- Chọn học kỳ --</option>
-        <option value="1">Học kỳ 1</option>
-        <option value="2">Học kỳ 2</option>
-      </select>
-
-      <h3 className="text-lg font-semibold mb-2">Chọn lớp và môn học</h3>
-      <select
-        value={selectedAssignment}
-        onChange={handleAssignmentChange}
-        className="w-full p-2 border rounded mb-4"
-        disabled={loading}
-      >
-        <option value="">-- Chọn lớp và môn học --</option>
-        {assignments.map((a) => (
-          <option key={a.assignmentId} value={a.assignmentId}>
-            {a.subjectName} ({a.subjectId}) - {a.className} ({a.classId})
-          </option>
-        ))}
-      </select>
-
-      <button
-        onClick={handleSearchGrades}
-        className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded mb-6 disabled:bg-gray-400"
-        disabled={!selectedAssignment || loading}
-      >
-        {loading ? 'Đang tải...' : 'Tìm kiếm'}
-      </button>
-
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold">Danh sách điểm học sinh</h3>
-        {grades.length > 0 && (
+    <div className="container mx-auto py-6">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b pb-4">
           <div>
-            {isEditing ? (
-              <button
-                onClick={handleSaveGrades}
-                className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded mr-2 disabled:bg-gray-400"
-                disabled={loading}
-              >
-                {loading ? 'Đang lưu...' : 'Lưu điểm'}
-              </button>
-            ) : (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded disabled:bg-gray-400"
-                disabled={loading}
-              >
-                Nhập điểm
-              </button>
-            )}
+            <h1 className="text-2xl font-bold">Quản lý điểm học sinh</h1>
+            <p className="text-muted-foreground text-sm">
+              Quản lý điểm số của học sinh theo học kỳ
+            </p>
+          </div>
+        </div>
+
+        <div className="grid gap-4 md:grid-cols-2">
+          <div>
+            <Select
+              value={semester}
+              onValueChange={(value) => {
+                setSemester(value);
+                handleSemesterChange({ target: { value } });
+              }}
+              disabled={loading}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Chọn học kỳ --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default" disabled>-- Chọn học kỳ --</SelectItem>
+                <SelectItem value="1">Học kỳ 1</SelectItem>
+                <SelectItem value="2">Học kỳ 2</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Select
+              value={selectedAssignment}
+              onValueChange={(value) => {
+                setSelectedAssignment(value);
+                handleAssignmentChange({ target: { value } });
+              }}
+              disabled={loading}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Chọn lớp và môn học --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default" disabled>-- Chọn lớp và môn học --</SelectItem>
+                {assignments.map((a) => (
+                  <SelectItem key={a.assignmentId} value={a.assignmentId}>
+                    {a.subjectName} ({a.subjectId}) - {a.className} ({a.classId})
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        <div className="flex justify-end">
+          <Button
+            onClick={handleSearchGrades}
+            className="bg-blue-600 hover:bg-blue-700 text-white"
+            disabled={!selectedAssignment || loading}
+          >
+            {loading ? 'Đang tải...' : 'Tìm kiếm'}
+          </Button>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
           </div>
         )}
-      </div>
 
-      <table className="w-full border-collapse">
-        <thead>
-          <tr>
-            <th className="border p-2" rowSpan="2">Stt</th>
-            <th className="border p-2" rowSpan="2">Tên học sinh</th>
-            <th className="border p-2" colSpan="3">Điểm thường xuyên</th>
-            <th className="border p-2" rowSpan="2">Điểm giữa kỳ</th>
-            <th className="border p-2" rowSpan="2">Điểm cuối kỳ</th>
-            <th className="border p-2" rowSpan="2">Nhận xét của giáo viên</th>
-            <th className="border p-2" rowSpan="2">Hành động</th>
-          </tr>
-          <tr>
-            <th className="border p-2">TX1</th>
-            <th className="border p-2">TX2</th>
-            <th className="border p-2">TX3</th>
-          </tr>
-        </thead>
-        <tbody>
-          {groupedGrades.length > 0 ? (
-            groupedGrades.map((student, index) => (
-              <tr key={student.studentId}>
-                <td className="border p-2">{index + 1}</td>
-                <td className="border p-2">{student.studentName}</td>
-                {['TX1', 'TX2', 'TX3', 'GK', 'CK'].map((field) => (
-                  <td className="border p-2" key={field}>
-                    {isEditing || editingRows[student.studentId] ? (
-                      <input
-                        type="number"
-                        step="0.1"
-                        min="0"
-                        max="10"
-                        value={editedGrades[student.studentId]?.[field] ?? student[field] ?? ''}
-                        onChange={(e) => handleInputChange(student.studentId, field, e.target.value)}
-                        className="w-20 p-1 border rounded"
-                        disabled={loading}
-                      />
-                    ) : student[field] !== null ? (
-                      student[field]
-                    ) : (
-                      'Chưa có điểm'
-                    )}
-                  </td>
-                ))}
-                <td className="border p-2">{student.teacherComment || 'Chưa có nhận xét'}</td>
-                <td className="border p-2">
-                  {editingRows[student.studentId] ? (
-                    <button
-                      onClick={() => handleSaveRow(student.studentId)}
-                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-1 rounded text-sm disabled:bg-gray-400"
-                      disabled={loading}
-                    >
-                      Lưu
-                    </button>
-                  ) : (
-                    <button
-                      onClick={() => handleEditRow(student.studentId)}
-                      className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-1 rounded text-sm disabled:bg-gray-400"
-                      disabled={loading}
-                    >
-                      Cập nhật
-                    </button>
-                  )}
-                </td>
-              </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="9" className="border p-2 text-center">
-                Không có dữ liệu điểm.
-              </td>
-            </tr>
+        <div className="flex justify-between items-center">
+          <h2 className="text-lg font-semibold">Danh sách điểm học sinh</h2>
+          {grades.length > 0 && (
+            <Button
+              onClick={() => setIsEditing(!isEditing)}
+              className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+              disabled={loading}
+            >
+              {isEditing ? 'Lưu điểm' : 'Nhập điểm'}
+            </Button>
           )}
-        </tbody>
-      </table>
+        </div>
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead rowSpan="2" className="border text-center">Stt</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Tên học sinh</TableHead>
+              <TableHead colSpan="3" className="border text-center">Điểm thường xuyên</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Điểm giữa kỳ</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Điểm cuối kỳ</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Nhận xét</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Hành động</TableHead>
+            </TableRow>
+            <TableRow>
+              <TableHead className="border text-center">TX1</TableHead>
+              <TableHead className="border text-center">TX2</TableHead>
+              <TableHead className="border text-center">TX3</TableHead>
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groupedGrades.length > 0 ? (
+              groupedGrades.map((student, index) => (
+                <TableRow key={student.studentId}>
+                  <TableCell className="border text-center">{index + 1}</TableCell>
+                  <TableCell className="border">{student.studentName}</TableCell>
+                  {['TX1', 'TX2', 'TX3', 'GK', 'CK'].map((field) => (
+                    <TableCell key={field} className="border text-center">
+                      {isEditing || editingRows[student.studentId] ? (
+                        <Input
+                          type="number"
+                          step="0.1"
+                          min="0"
+                          max="10"
+                          value={editedGrades[student.studentId]?.[field] ?? student[field] ?? ''}
+                          onChange={(e) => handleInputChange(student.studentId, field, e.target.value)}
+                          className="w-20 text-center"
+                          disabled={loading}
+                        />
+                      ) : (
+                        student[field] !== null ? student[field] : 'Chưa có điểm'
+                      )}
+                    </TableCell>
+                  ))}
+                  <TableCell className="border">{student.teacherComment || 'Chưa có nhận xét'}</TableCell>
+                  <TableCell className="border text-center">
+                    <Button
+                      onClick={() => editingRows[student.studentId] ? handleSaveRow(student.studentId) : handleEditRow(student.studentId)}
+                      className={editingRows[student.studentId] ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+                      disabled={loading}
+                    >
+                      {editingRows[student.studentId] ? 'Lưu' : 'Cập nhật'}
+                    </Button>
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell colSpan="9" className="text-center">
+                  Không có dữ liệu điểm.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
+      </div>
     </div>
   );
 };

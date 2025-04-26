@@ -23,3 +23,16 @@ export const getLessonPlanByTeacher = async (
     throw error;
   }
 };
+
+export const getLessonPlanById = async (planId) => {
+  const response = await axiosInstance.get(`/LessonPlan/${planId}`);
+  return response.data;
+};
+
+export const updateLessonPlan = async (planId, data) => {
+  const response = await axiosInstance.put(
+    `/LessonPlan/${planId}/update`,
+    data,
+  );
+  return response.data;
+};
