@@ -1,4 +1,10 @@
 import React, { useState } from 'react';
+import '../System/LessonPlanList.scss';
+import { Space, Tag, Modal, Descriptions, message } from 'antd';
+import { Link } from 'react-router-dom';
+import { EyeOutlined } from '@ant-design/icons';
+import { jwtDecode } from 'jwt-decode';
+import { useLessonPlanByTeacher } from '../../../services/lessonPlan/queries';
 import { Card } from "@/components/ui/card";
 import {
     Table,
@@ -9,12 +15,6 @@ import {
     TableCell,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Link } from 'react-router-dom';
-import { EyeOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-import { jwtDecode } from 'jwt-decode';
-import { useLessonPlanByTeacher } from '../../../services/lessonPlan/queries';
-import { Modal, Space, Tag, Descriptions } from 'antd';
 
 const TeacherLessonPlan = () => {
     const [currentPage, setCurrentPage] = useState(1);
@@ -58,11 +58,11 @@ const TeacherLessonPlan = () => {
     const getStatusClass = (status) => {
         switch (status) {
             case 'Chờ duyệt':
-                return 'status-processing';
+                return 'status-chờ-duyệt';
             case 'Đã duyệt':
-                return 'status-approved';
+                return 'status-đã-duyệt';
             case 'Từ chối':
-                return 'status-rejected';
+                return 'status-từ-chối';
             default:
                 return '';
         }
@@ -73,7 +73,7 @@ const TeacherLessonPlan = () => {
             case 'Chờ duyệt':
                 return 'Đang xử lý';
             case 'Đã duyệt':
-                return 'Đã duyệt';
+                return 'Đã phê duyệt';
             case 'Từ chối':
                 return 'Từ chối';
             default:
@@ -84,6 +84,33 @@ const TeacherLessonPlan = () => {
     const showDetailModal = (record) => {
         setSelectedRequest(record);
         setIsModalVisible(true);
+    };
+
+    const getGoogleDriveEmbedUrl = (url) => {
+        if (!url) return '';
+        try {
+            const urlObj = new URL(url);
+            if (urlObj.hostname === 'drive.google.com') {
+                // For folders
+                if (url.includes('/folders/')) {
+                    const folderId = url.match(/\/folders\/([^?/]+)/)?.[1];
+                    if (folderId) {
+                        return `https://drive.google.com/embeddedfolderview?id=${folderId}&amp;usp=sharing#list`;
+                    }
+                }
+                // For files
+                else if (url.includes('/file/d/')) {
+                    const fileId = url.match(/\/file\/d\/([^/]+)/)?.[1];
+                    if (fileId) {
+                        return `https://drive.google.com/file/d/${fileId}/preview`;
+                    }
+                }
+            }
+            return url;
+        } catch (error) {
+            console.error('Invalid URL:', error);
+            return '';
+        }
     };
 
     const DetailModal = () => (
@@ -145,7 +172,7 @@ const TeacherLessonPlan = () => {
                             <h2>File đính kèm</h2>
                             <div className="file-preview">
                                 <iframe
-                                    src={selectedRequest.attachmentUrl}
+                                    src={getGoogleDriveEmbedUrl(selectedRequest.attachmentUrl)}
                                     title="File đính kèm"
                                     width="100%"
                                     height="600px"
@@ -153,7 +180,20 @@ const TeacherLessonPlan = () => {
                                         border: '1px solid #d9d9d9',
                                         borderRadius: '4px'
                                     }}
+                                    onError={(e) => {
+                                        e.target.style.display = 'none';
+                                        message.error('Không thể tải tệp đính kèm. Vui lòng mở trong tab mới.');
+                                    }}
                                 />
+                                <div style={{ marginTop: '10px', textAlign: 'center' }}>
+                                    <a
+                                        href={selectedRequest.attachmentUrl}
+                                        target="_blank"
+                                        rel="noopener noreferrer"
+                                    >
+                                        <Button type="primary">Mở trong tab mới</Button>
+                                    </a>
+                                </div>
                             </div>
                         </div>
                     )}
@@ -189,7 +229,7 @@ const TeacherLessonPlan = () => {
                     className="px-3 py-2 border rounded-md"
                 >
                     <option value="All">Tất cả</option>
-                    <option value="Đang chờ">Đang xử lý</option>
+                    <option value="Chờ duyệt">Đang xử lý</option>
                     <option value="Đã duyệt">Đã duyệt</option>
                     <option value="Từ chối">Từ chối</option>
                 </select>
@@ -217,9 +257,9 @@ const TeacherLessonPlan = () => {
                                 <TableCell>{plan.subjectName}</TableCell>
                                 <TableCell>{plan.planContent}</TableCell>
                                 <TableCell>
-                                    <span className={`status-${plan.status.toLowerCase()} ${getStatusClass(plan.status)}`}>
+                                    <Tag className={`status-${plan.status.toLowerCase()} ${getStatusClass(plan.status)}`}>
                                         {getStatusText(plan.status)}
-                                    </span>
+                                    </Tag>
                                 </TableCell>
                                 <TableCell>{formatDate(plan.submittedDate)}</TableCell>
                                 <TableCell>{plan.reviewerName}</TableCell>
@@ -235,11 +275,11 @@ const TeacherLessonPlan = () => {
                                             <EyeOutlined className="mr-2" />
                                             Xem chi tiết
                                         </Button>
-                                        <Link to={`/system/lesson-plan/add-document/${plan.planId}`}>
-                                            <Button variant="outline" size="sm">
-                                                Thêm tài liệu
-                                            </Button>
-                                        </Link>
+                                        {plan.status === 'Chờ duyệt' && (
+                                            <Link to={`/teacher/lesson-plan/add-document/${plan.planId}`}>
+                                                <Button variant="outline">Thêm tài liệu</Button>
+                                            </Link>
+                                        )}
                                     </Space>
                                 </TableCell>
                             </TableRow>

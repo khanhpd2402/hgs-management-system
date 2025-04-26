@@ -199,7 +199,7 @@ $danger-color: #dc3545;
 // ReviewStatus.scss
 
 .status {
-    &-Pending, &-pending, &-Đang chờ {
+    &-Pending, &-pending, &-Chờ duyệt, &-chờ duyệt {
         color: #faad14;
         background-color: #fffbe6;
         border: 1px solid #ffe58f;
@@ -209,7 +209,7 @@ $danger-color: #dc3545;
         display: inline-block;
     }
     
-    &-Approved, &-approved {
+    &-Approved, &-approved ,&-Đã duyệt, &-đã duyệt{
         color: #52c41a;
         background-color: #f6ffed;
         border: 1px solid #b7eb8f;
@@ -219,7 +219,7 @@ $danger-color: #dc3545;
         display: inline-block;
     }
     
-    &-Rejected, &-rejected {
+    &-Rejected, &-rejected, &-Từ chối, &-từ chối {
         color: #ff4d4f;
         background-color: #fff1f0;
         border: 1px solid #ffa39e;
@@ -232,7 +232,7 @@ $danger-color: #dc3545;
 
 // Status tag styles
 .ant-tag {
-    &.status-đang-chờ {
+    &.status-chờ-duyệt{
         color: #faad14;
         background: #fffbe6;
         border-color: #ffe58f;
@@ -262,9 +262,11 @@ $danger-color: #dc3545;
     min-width: 80px;
 
     &.status-processing {
-        background-color: #e6f7ff;
-        color: #1890ff;
-        border: 1px solid #91d5ff;
+
+
+        color: #faad14;
+        background: #fffbe6;
+        border-color: #ffe58f;
     }
 
     &.status-approved {
