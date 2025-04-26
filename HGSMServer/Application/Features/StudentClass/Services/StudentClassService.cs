@@ -75,7 +75,7 @@ namespace Application.Features.StudentClass.Services
             var academicYear = await _academicYearRepository.GetByIdAsync(academicYearId);
             if (academicYear == null)
             {
-                throw new ArgumentException($"Năm học với Id {academicYearId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {academicYearId}.");
             }
 
             if (mustBeActive && (academicYear.StartDate > DateOnly.FromDateTime(DateTime.Now) || academicYear.EndDate < DateOnly.FromDateTime(DateTime.Now)))
@@ -136,7 +136,7 @@ namespace Application.Features.StudentClass.Services
             var nextAcademicYear = await _academicYearRepository.GetByIdAsync(nextAcademicYearId);
             if (nextAcademicYear == null)
             {
-                return null;
+                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {nextAcademicYearId}.");
             }
 
             var academicYears = await _academicYearRepository.GetAllAsync();
@@ -144,6 +144,11 @@ namespace Application.Features.StudentClass.Services
                 .Where(ay => ay.EndDate < nextAcademicYear.StartDate)
                 .OrderByDescending(ay => ay.EndDate)
                 .FirstOrDefault();
+
+            if (previousAcademicYear == null)
+            {
+                throw new InvalidOperationException($"Không tìm thấy năm học trước năm học với ID {nextAcademicYearId}.");
+            }
 
             return previousAcademicYear;
         }
@@ -155,7 +160,7 @@ namespace Application.Features.StudentClass.Services
 
             if (semester1 == null)
             {
-                return false;
+                throw new InvalidOperationException($"Không tìm thấy Học kỳ 1 cho năm học với ID {academicYearId}.");
             }
 
             var today = DateOnly.FromDateTime(DateTime.Now);
@@ -169,7 +174,7 @@ namespace Application.Features.StudentClass.Services
 
             if (sourceAcademicYear == null || targetAcademicYear == null)
             {
-                throw new ArgumentException($"Năm học nguồn (ID: {sourceAcademicYearId}) hoặc năm học đích (ID: {targetAcademicYearId}) không tồn tại.");
+                throw new KeyNotFoundException($"Năm học nguồn (ID: {sourceAcademicYearId}) hoặc năm học đích (ID: {targetAcademicYearId}) không tồn tại.");
             }
 
             var semestersInTargetYear = await _semesterRepository.GetByAcademicYearIdAsync(targetAcademicYearId);
@@ -194,21 +199,28 @@ namespace Application.Features.StudentClass.Services
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
             }
 
-            var studentClasses = await _studentClassRepository.GetAllAsync();
-
-            var studentClassDtos = studentClasses.Select(sc => new StudentClassResponseDto
+            try
             {
-                Id = sc.Id,
-                StudentId = sc.StudentId,
-                StudentName = sc.Student?.FullName ?? "N/A",
-                ClassId = sc.ClassId,
-                ClassName = sc.Class?.ClassName ?? "N/A",
-                AcademicYearId = sc.AcademicYearId,
-                YearName = sc.AcademicYear?.YearName ?? "N/A",
-                RepeatingYear = sc.RepeatingYear
-            }).ToList();
+                var studentClasses = await _studentClassRepository.GetAllAsync();
 
-            return studentClassDtos;
+                var studentClassDtos = studentClasses.Select(sc => new StudentClassResponseDto
+                {
+                    Id = sc.Id,
+                    StudentId = sc.StudentId,
+                    StudentName = sc.Student?.FullName ?? "N/A",
+                    ClassId = sc.ClassId,
+                    ClassName = sc.Class?.ClassName ?? "N/A",
+                    AcademicYearId = sc.AcademicYearId,
+                    YearName = sc.AcademicYear?.YearName ?? "N/A",
+                    RepeatingYear = sc.RepeatingYear
+                }).ToList();
+
+                return studentClassDtos;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách phân công lớp do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassByLastAcademicYearAsync(int currentAcademicYearId)
@@ -219,31 +231,37 @@ namespace Application.Features.StudentClass.Services
             }
 
             var lastAcademicYear = await GetPreviousAcademicYearByIdAsync(currentAcademicYearId);
-
             if (lastAcademicYear == null)
             {
-                return Enumerable.Empty<StudentClassResponseDto>();
-            }
-            var studentClassesInLastYear = await _studentClassRepository.GetByAcademicYearIdAsync(lastAcademicYear.AcademicYearId);
-
-            if (!studentClassesInLastYear.Any())
-            {
-                return Enumerable.Empty<StudentClassResponseDto>();
+                throw new InvalidOperationException($"Không tìm thấy năm học trước năm học với ID {currentAcademicYearId}.");
             }
 
-            var studentClassDtos = studentClassesInLastYear.Select(sc => new StudentClassResponseDto
+            try
             {
-                Id = sc.Id,
-                StudentId = sc.StudentId,
-                StudentName = sc.Student?.FullName ?? "N/A",
-                ClassId = sc.ClassId,
-                ClassName = sc.Class?.ClassName ?? "N/A",
-                AcademicYearId = sc.AcademicYearId,
-                YearName = sc.AcademicYear?.YearName ?? "N/A",
-                RepeatingYear = sc.RepeatingYear
-            }).ToList();
+                var studentClassesInLastYear = await _studentClassRepository.GetByAcademicYearIdAsync(lastAcademicYear.AcademicYearId);
+                if (!studentClassesInLastYear.Any())
+                {
+                    throw new InvalidOperationException($"Không tìm thấy phân công lớp nào trong năm học trước (ID: {lastAcademicYear.AcademicYearId}).");
+                }
 
-            return studentClassDtos;
+                var studentClassDtos = studentClassesInLastYear.Select(sc => new StudentClassResponseDto
+                {
+                    Id = sc.Id,
+                    StudentId = sc.StudentId,
+                    StudentName = sc.Student?.FullName ?? "N/A",
+                    ClassId = sc.ClassId,
+                    ClassName = sc.Class?.ClassName ?? "N/A",
+                    AcademicYearId = sc.AcademicYearId,
+                    YearName = sc.AcademicYear?.YearName ?? "N/A",
+                    RepeatingYear = sc.RepeatingYear
+                }).ToList();
+
+                return studentClassDtos;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách phân công lớp của năm học trước do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task CreateStudentClassAsync(StudentClassAssignmentDto dto)
@@ -251,6 +269,11 @@ namespace Application.Features.StudentClass.Services
             if (!await HasPermissionAsync())
             {
                 throw new UnauthorizedAccessException("Bạn không có quyền phân công lớp.");
+            }
+
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto), "Thông tin phân công lớp không được để trống.");
             }
 
             int academicYearId = dto.AcademicYearId ?? (await GetCurrentAcademicYearAsync()).AcademicYearId;
@@ -264,7 +287,7 @@ namespace Application.Features.StudentClass.Services
             var student = await _studentRepository.GetByIdAsync(dto.StudentId);
             if (student == null)
             {
-                throw new ArgumentException($"Học sinh với Id {dto.StudentId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy học sinh với ID {dto.StudentId}.");
             }
 
             if (student.Status == "Tốt nghiệp")
@@ -275,7 +298,7 @@ namespace Application.Features.StudentClass.Services
             var classEntity = await _classRepository.GetByIdAsync(dto.ClassId);
             if (classEntity == null)
             {
-                throw new ArgumentException($"Lớp với Id {dto.ClassId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy lớp với ID {dto.ClassId}.");
             }
 
             await ValidateAcademicYearAsync(academicYearId, mustBeActive: false);
@@ -291,10 +314,17 @@ namespace Application.Features.StudentClass.Services
                 StudentId = dto.StudentId,
                 ClassId = dto.ClassId,
                 AcademicYearId = academicYearId,
-                RepeatingYear = false 
+                RepeatingYear = false
             };
 
-            await _studentClassRepository.AddAsync(assignment);
+            try
+            {
+                await _studentClassRepository.AddAsync(assignment);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể phân công lớp do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos)
@@ -304,14 +334,15 @@ namespace Application.Features.StudentClass.Services
                 throw new UnauthorizedAccessException("Bạn không có quyền cập nhật phân công lớp.");
             }
 
-            if (!dtos.Any())
+            if (dtos == null || !dtos.Any())
             {
                 throw new ArgumentException("Danh sách phân công lớp không được rỗng.");
             }
+
             var distinctStudentIds = dtos.Select(d => d.StudentId).Distinct().Count();
             if (distinctStudentIds < dtos.Count)
             {
-                throw new ArgumentException("Tìm thấy Id học sinh trùng lặp trong danh sách phân công lớp.");
+                throw new ArgumentException("Tìm thấy ID học sinh trùng lặp trong danh sách phân công lớp.");
             }
 
             var updatedAssignments = new List<Domain.Models.StudentClass>();
@@ -337,7 +368,7 @@ namespace Application.Features.StudentClass.Services
                     var student = await _studentRepository.GetByIdAsync(dto.StudentId);
                     if (student == null)
                     {
-                        throw new ArgumentException($"Học sinh với Id {dto.StudentId} không tồn tại.");
+                        throw new KeyNotFoundException($"Không tìm thấy học sinh với ID {dto.StudentId}.");
                     }
 
                     if (student.Status == "Tốt nghiệp")
@@ -348,8 +379,9 @@ namespace Application.Features.StudentClass.Services
                     var classEntity = await _classRepository.GetByIdAsync(dto.ClassId);
                     if (classEntity == null)
                     {
-                        throw new ArgumentException($"Lớp với Id {dto.ClassId} không tồn tại.");
+                        throw new KeyNotFoundException($"Không tìm thấy lớp với ID {dto.ClassId}.");
                     }
+
                     if (classEntity.Status != "Hoạt động")
                     {
                         throw new InvalidOperationException($"Lớp {classEntity.ClassName} không hoạt động.");
@@ -373,7 +405,7 @@ namespace Application.Features.StudentClass.Services
                         StudentId = dto.StudentId,
                         ClassId = dto.ClassId,
                         AcademicYearId = academicYearId,
-                        RepeatingYear = false // Mặc định không lưu ban khi cập nhật
+                        RepeatingYear = false
                     };
                     updatedAssignments.Add(newAssignment);
                 }
@@ -386,10 +418,10 @@ namespace Application.Features.StudentClass.Services
                 await _context.SaveChangesAsync();
                 await transaction.CommitAsync();
             }
-            catch
+            catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw;
+                throw new InvalidOperationException("Không thể cập nhật phân công lớp do lỗi hệ thống.", ex);
             }
         }
 
@@ -412,6 +444,11 @@ namespace Application.Features.StudentClass.Services
                 throw new UnauthorizedAccessException("Bạn không có quyền chuyển lớp hàng loạt.");
             }
 
+            if (dto == null)
+            {
+                throw new ArgumentNullException(nameof(dto), "Thông tin chuyển lớp hàng loạt không được để trống.");
+            }
+
             int sourceAcademicYearId = dto.AcademicYearId ?? (await GetCurrentAcademicYearAsync()).AcademicYearId;
             int targetAcademicYearId = dto.TargetAcademicYearId ?? await GetNextAcademicYearIdAsync(sourceAcademicYearId);
 
@@ -429,7 +466,7 @@ namespace Application.Features.StudentClass.Services
             var currentClass = await _classRepository.GetByIdAsync(dto.ClassId);
             if (currentClass == null)
             {
-                throw new ArgumentException($"Lớp nguồn với Id {dto.ClassId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy lớp nguồn với ID {dto.ClassId}.");
             }
 
             if (currentClass.GradeLevelId == 4)
@@ -440,7 +477,7 @@ namespace Application.Features.StudentClass.Services
             var targetClass = await _classRepository.GetByIdAsync(dto.TargetClassId);
             if (targetClass == null)
             {
-                throw new ArgumentException($"Lớp đích với Id {dto.TargetClassId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy lớp đích với ID {dto.TargetClassId}.");
             }
 
             if (targetClass.Status != "Hoạt động")
@@ -517,15 +554,9 @@ namespace Application.Features.StudentClass.Services
                     }
                     catch (InvalidOperationException ex)
                     {
-                        // Đặt RepeatingYear = true cho bản ghi hiện tại trong năm nguồn
                         studentClass.RepeatingYear = true;
                         await _studentClassRepository.UpdateAsync(studentClass);
                         skippedStudents.Add(new SkippedStudentDto { StudentId = student.StudentId, FullName = student.FullName, Reason = ex.Message });
-                        continue;
-                    }
-                    catch (Exception ex)
-                    {
-                        skippedStudents.Add(new SkippedStudentDto { StudentId = student.StudentId, FullName = student.FullName, Reason = $"Gặp lỗi khi kiểm tra điều kiện: {ex.Message}" });
                         continue;
                     }
                 }
@@ -541,7 +572,7 @@ namespace Application.Features.StudentClass.Services
             catch (Exception ex)
             {
                 await transaction.RollbackAsync();
-                throw new InvalidOperationException($"Lỗi hệ thống trong quá trình chuyển lớp hàng loạt: {ex.Message}");
+                throw new InvalidOperationException("Không thể chuyển lớp hàng loạt do lỗi hệ thống.", ex);
             }
 
             return new BulkTransferResultDto
@@ -564,10 +595,17 @@ namespace Application.Features.StudentClass.Services
             var assignment = await _studentClassRepository.GetByIdAsync(id);
             if (assignment == null)
             {
-                throw new KeyNotFoundException($"Phân công lớp với Id {id} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy phân công lớp với ID {id}.");
             }
 
-            await _studentClassRepository.DeleteAsync(id);
+            try
+            {
+                await _studentClassRepository.DeleteAsync(id);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể xóa phân công lớp do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null)
@@ -577,138 +615,168 @@ namespace Application.Features.StudentClass.Services
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
             }
 
-            List<StudentFilterDto> students;
-
-            if (classId.HasValue && semesterId.HasValue)
+            try
             {
-                var semesterr = await _semesterRepository.GetByIdAsync(semesterId.Value);
-                if (semesterr == null)
+                List<StudentFilterDto> students;
+
+                if (classId.HasValue && semesterId.HasValue)
                 {
-                    throw new ArgumentException($"Học kỳ với Id {semesterId.Value} không tồn tại.");
+                    var semester = await _semesterRepository.GetByIdAsync(semesterId.Value);
+                    if (semester == null)
+                    {
+                        throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId.Value}.");
+                    }
+
+                    var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classId.Value, semester.AcademicYearId);
+                    students = studentClasses
+                        .Select(sc => new StudentFilterDto
+                        {
+                            StudentClassId = sc.Id,
+                            StudentId = sc.Student.StudentId,
+                            FullName = sc.Student.FullName,
+                            Status = sc.Student.Status
+                        })
+                        .ToList();
+                }
+                else
+                {
+                    var currentAcademicYear = await GetCurrentAcademicYearAsync();
+                    int currentAcademicYearId = currentAcademicYear.AcademicYearId;
+
+                    var studentClasses = await _studentClassRepository.GetByAcademicYearIdAsync(currentAcademicYearId);
+                    students = studentClasses
+                        .Select(sc => new StudentFilterDto
+                        {
+                            StudentClassId = sc.Id,
+                            StudentId = sc.Student.StudentId,
+                            FullName = sc.Student.FullName,
+                            Status = sc.Student.Status
+                        })
+                        .ToList();
                 }
 
-                var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classId.Value, semesterr.AcademicYearId);
-                students = studentClasses
-                    .Select(sc => new StudentFilterDto
-                    {
-                        StudentClassId = sc.Id,
-                        StudentId = sc.Student.StudentId,
-                        FullName = sc.Student.FullName,
-                        Status = sc.Student.Status
-                    })
-                    .ToList();
-            }
-            else
-            {
-                var currentAcademicYear = await GetCurrentAcademicYearAsync();
-                int currentAcademicYearId = currentAcademicYear.AcademicYearId;
+                var classes = classId.HasValue
+                    ? new List<Domain.Models.Class> { await _classRepository.GetByIdAsync(classId.Value) }
+                    : await _classRepository.GetAllAsync();
 
-                var studentClasses = await _studentClassRepository.GetByAcademicYearIdAsync(currentAcademicYearId);
-                students = studentClasses
-                    .Select(sc => new StudentFilterDto
-                    {
-                        StudentClassId = sc.Id,
-                        StudentId = sc.Student.StudentId,
-                        FullName = sc.Student.FullName,
-                        Status = sc.Student.Status
-                    })
-                    .ToList();
-            }
-
-            var classes = classId.HasValue
-                ? new List<Domain.Models.Class> { await _classRepository.GetByIdAsync(classId.Value) }
-                : await _classRepository.GetAllAsync();
-
-            if (classId.HasValue && classes.FirstOrDefault() == null)
-            {
-                throw new ArgumentException($"Lớp với Id {classId.Value} không tồn tại.");
-            }
-
-            var classDtos = new List<ClassDto>();
-
-            foreach (var classEntity in classes.Where(c => c != null))
-            {
-                int studentCount = 0;
-                var classDto = new ClassDto
+                if (classId.HasValue && classes.FirstOrDefault() == null)
                 {
-                    ClassId = classEntity.ClassId,
-                    ClassName = classEntity.ClassName,
-                    GradeLevelId = classEntity.GradeLevelId,
-                    StudentCount = studentCount,
-                    Status = classEntity.Status,
-                    HomeroomTeachers = new List<HomeroomTeacherInfo>()
-                };
+                    throw new KeyNotFoundException($"Không tìm thấy lớp với ID {classId.Value}.");
+                }
 
-                if (semesterId.HasValue)
+                var classDtos = new List<ClassDto>();
+
+                foreach (var classEntity in classes.Where(c => c != null))
                 {
-                    var semesterr = await _semesterRepository.GetByIdAsync(semesterId.Value);
-                    if (semesterr != null)
+                    int studentCount = 0;
+                    var classDto = new ClassDto
                     {
-                        var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, semesterr.AcademicYearId);
-                        studentCount = studentCountQuery.Count();
+                        ClassId = classEntity.ClassId,
+                        ClassName = classEntity.ClassName,
+                        GradeLevelId = classEntity.GradeLevelId,
+                        StudentCount = studentCount,
+                        Status = classEntity.Status,
+                        HomeroomTeachers = new List<HomeroomTeacherInfo>()
+                    };
 
-                        var homeroomAssignment = await _context.HomeroomAssignments
-                            .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semesterId.Value)
-                            .Include(ha => ha.Teacher)
-                            .FirstOrDefaultAsync();
-
-                        classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
+                    if (semesterId.HasValue)
+                    {
+                        var semester = await _semesterRepository.GetByIdAsync(semesterId.Value);
+                        if (semester != null)
                         {
-                            SemesterId = semesterr.SemesterId,
-                            SemesterName = semesterr.SemesterName,
-                            TeacherName = homeroomAssignment?.Teacher?.FullName ?? "Chưa có"
-                        });
+                            var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, semester.AcademicYearId);
+                            studentCount = studentCountQuery.Count();
 
-                        var otherSemesters = await _semesterRepository.GetByAcademicYearIdAsync(semesterr.AcademicYearId);
-                        foreach (var otherSemester in otherSemesters.Where(s => s.SemesterId != semesterId.Value))
-                        {
-                            var otherHomeroomAssignment = await _context.HomeroomAssignments
-                                .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == otherSemester.SemesterId)
+                            var homeroomAssignment = await _context.HomeroomAssignments
+                                .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semesterId.Value)
                                 .Include(ha => ha.Teacher)
                                 .FirstOrDefaultAsync();
 
                             classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
                             {
-                                SemesterId = otherSemester.SemesterId,
-                                SemesterName = otherSemester.SemesterName,
-                                TeacherName = otherHomeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                                SemesterId = semester.SemesterId,
+                                SemesterName = semester.SemesterName,
+                                TeacherName = homeroomAssignment?.Teacher?.FullName ?? "Chưa có"
                             });
+
+                            var otherSemesters = await _semesterRepository.GetByAcademicYearIdAsync(semester.AcademicYearId);
+                            foreach (var otherSemester in otherSemesters.Where(s => s.SemesterId != semesterId.Value))
+                            {
+                                var otherHomeroomAssignment = await _context.HomeroomAssignments
+                                    .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == otherSemester.SemesterId)
+                                    .Include(ha => ha.Teacher)
+                                    .FirstOrDefaultAsync();
+
+                                classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
+                                {
+                                    SemesterId = otherSemester.SemesterId,
+                                    SemesterName = otherSemester.SemesterName,
+                                    TeacherName = otherHomeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                                });
+                            }
                         }
                     }
+                    else
+                    {
+                        var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
+                        studentCount = studentCountQuery.Count();
+                    }
+
+                    classDto.StudentCount = studentCount;
+                    classDtos.Add(classDto);
+                }
+
+                var semesterDto = new SemesterDto();
+                if (semesterId.HasValue)
+                {
+                    var semester = await _semesterRepository.GetByIdAsync(semesterId.Value);
+                    if (semester == null)
+                    {
+                        throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId.Value}.");
+                    }
+
+                    semesterDto = new SemesterDto
+                    {
+                        SemesterID = semester.SemesterId,
+                        SemesterName = semester.SemesterName,
+                        AcademicYearID = semester.AcademicYearId,
+                        StartDate = semester.StartDate,
+                        EndDate = semester.EndDate
+                    };
                 }
                 else
                 {
-                    var studentCountQuery = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
-                    studentCount = studentCountQuery.Count();
+                    var currentAcademicYear = await GetCurrentAcademicYearAsync();
+                    var semesters = await _semesterRepository.GetByAcademicYearIdAsync(currentAcademicYear.AcademicYearId);
+                    var semester = semesters.FirstOrDefault(s => s.StartDate <= DateOnly.FromDateTime(DateTime.Now) && s.EndDate >= DateOnly.FromDateTime(DateTime.Now));
+                    if (semester == null)
+                    {
+                        throw new InvalidOperationException("Không tìm thấy học kỳ đang hoạt động.");
+                    }
+
+                    semesterDto = new SemesterDto
+                    {
+                        SemesterID = semester.SemesterId,
+                        SemesterName = semester.SemesterName,
+                        AcademicYearID = semester.AcademicYearId,
+                        StartDate = semester.StartDate,
+                        EndDate = semester.EndDate
+                    };
                 }
 
-                classDto.StudentCount = studentCount;
-                classDtos.Add(classDto);
+                var filterData = new StudentClassFilterDataDto
+                {
+                    Students = students,
+                    Classes = classDtos.OrderBy(c => c.ClassName).ToList(),
+                    Semesters = new List<SemesterDto> { semesterDto }
+                };
+
+                return filterData;
             }
-
-            var semester = await _semesterRepository.GetByIdAsync(semesterId ?? 1);
-            if (semester == null)
+            catch (Exception ex)
             {
-                throw new ArgumentException($"Học kỳ với Id {(semesterId ?? 1)} không tồn tại.");
+                throw new InvalidOperationException("Không thể lấy dữ liệu lọc do lỗi hệ thống.", ex);
             }
-
-            var semesterDto = new SemesterDto
-            {
-                SemesterID = semester.SemesterId,
-                SemesterName = semester.SemesterName,
-                AcademicYearID = semester.AcademicYearId,
-                StartDate = semester.StartDate,
-                EndDate = semester.EndDate
-            };
-
-            var filterData = new StudentClassFilterDataDto
-            {
-                Students = students,
-                Classes = classDtos.OrderBy(c => c.ClassName).ToList(),
-                Semesters = new List<SemesterDto> { semesterDto }
-            };
-
-            return filterData;
         }
 
         public async Task<List<StudentClass.DTOs.ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null)
@@ -718,65 +786,72 @@ namespace Application.Features.StudentClass.Services
                 throw new UnauthorizedAccessException("Bạn không có quyền truy cập thông tin lớp.");
             }
 
-            var classes = await _classRepository.GetAllAsync();
-            var result = new List<ClassDto>();
-
-            foreach (var classEntity in classes)
+            try
             {
-                int studentCount = 0;
-                if (academicYearId.HasValue)
-                {
-                    var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, academicYearId.Value);
-                    studentCount = studentClasses.Count();
-                }
-                else
-                {
-                    var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
-                    studentCount = studentClasses.Count();
-                }
+                var classes = await _classRepository.GetAllAsync();
+                var result = new List<ClassDto>();
 
-                var classDto = new StudentClass.DTOs.ClassDto
+                foreach (var classEntity in classes)
                 {
-                    ClassId = classEntity.ClassId,
-                    ClassName = classEntity.ClassName,
-                    GradeLevelId = classEntity.GradeLevelId,
-                    StudentCount = studentCount,
-                    Status = classEntity.Status,
-                    HomeroomTeachers = new List<HomeroomTeacherInfo>()
-                };
-
-                if (academicYearId.HasValue)
-                {
-                    var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYearId.Value);
-                    foreach (var semester in semesters.OrderBy(s => s.SemesterName))
+                    int studentCount = 0;
+                    if (academicYearId.HasValue)
                     {
-                        var homeroomAssignment = await _context.HomeroomAssignments
-                            .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semester.SemesterId)
-                            .Include(ha => ha.Teacher)
-                            .FirstOrDefaultAsync();
+                        var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, academicYearId.Value);
+                        studentCount = studentClasses.Count();
+                    }
+                    else
+                    {
+                        var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classEntity.ClassId, 0);
+                        studentCount = studentClasses.Count();
+                    }
 
+                    var classDto = new StudentClass.DTOs.ClassDto
+                    {
+                        ClassId = classEntity.ClassId,
+                        ClassName = classEntity.ClassName,
+                        GradeLevelId = classEntity.GradeLevelId,
+                        StudentCount = studentCount,
+                        Status = classEntity.Status,
+                        HomeroomTeachers = new List<HomeroomTeacherInfo>()
+                    };
+
+                    if (academicYearId.HasValue)
+                    {
+                        var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYearId.Value);
+                        foreach (var semester in semesters.OrderBy(s => s.SemesterName))
+                        {
+                            var homeroomAssignment = await _context.HomeroomAssignments
+                                .Where(ha => ha.ClassId == classEntity.ClassId && ha.SemesterId == semester.SemesterId)
+                                .Include(ha => ha.Teacher)
+                                .FirstOrDefaultAsync();
+
+                            classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
+                            {
+                                SemesterId = semester.SemesterId,
+                                SemesterName = semester.SemesterName,
+                                TeacherName = homeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                            });
+                        }
+                    }
+                    else
+                    {
                         classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
                         {
-                            SemesterId = semester.SemesterId,
-                            SemesterName = semester.SemesterName,
-                            TeacherName = homeroomAssignment?.Teacher?.FullName ?? "Chưa có"
+                            SemesterId = 0,
+                            SemesterName = "N/A",
+                            TeacherName = "N/A"
                         });
                     }
-                }
-                else
-                {
-                    classDto.HomeroomTeachers.Add(new HomeroomTeacherInfo
-                    {
-                        SemesterId = 0,
-                        SemesterName = "N/A",
-                        TeacherName = "N/A"
-                    });
+
+                    result.Add(classDto);
                 }
 
-                result.Add(classDto);
+                return result.OrderBy(c => c.ClassName).ToList();
             }
-
-            return result.OrderBy(c => c.ClassName).ToList();
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy thông tin lớp do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task ProcessGraduationAsync(int academicYearId)
@@ -789,7 +864,7 @@ namespace Application.Features.StudentClass.Services
             var academicYear = await _academicYearRepository.GetByIdAsync(academicYearId);
             if (academicYear == null)
             {
-                throw new ArgumentException($"Năm học với Id {academicYearId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {academicYearId}.");
             }
 
             if (academicYear.EndDate > DateOnly.FromDateTime(DateTime.Now))
@@ -800,26 +875,32 @@ namespace Application.Features.StudentClass.Services
             var grade9Students = await _studentClassRepository.GetByGradeLevelAndAcademicYearAsync(4, academicYearId);
             if (!grade9Students.Any())
             {
-                return;
+                throw new InvalidOperationException($"Không tìm thấy học sinh lớp 9 trong năm học {academicYear.YearName} để xử lý tốt nghiệp.");
             }
 
-            foreach (var studentClass in grade9Students)
+            try
             {
-                var student = await _studentRepository.GetByIdAsync(studentClass.StudentId);
-                if (student != null && student.Status != "Tốt nghiệp")
+                foreach (var studentClass in grade9Students)
                 {
-                    try
+                    var student = await _studentRepository.GetByIdAsync(studentClass.StudentId);
+                    if (student != null && student.Status != "Tốt nghiệp")
                     {
-                        await CheckStudentPromotionEligibilityAsync(studentClass.StudentId, academicYearId);
-                        student.Status = "Tốt nghiệp";
-                        await _studentRepository.UpdateAsync(student);
-                    }
-                    catch (InvalidOperationException)
-                    {
-                        // Bỏ qua học sinh không đủ điều kiện tốt nghiệp
-                        continue;
+                        try
+                        {
+                            await CheckStudentPromotionEligibilityAsync(studentClass.StudentId, academicYearId);
+                            student.Status = "Tốt nghiệp";
+                            await _studentRepository.UpdateAsync(student);
+                        }
+                        catch (InvalidOperationException)
+                        {
+                            continue;
+                        }
                     }
                 }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể xử lý tốt nghiệp do lỗi hệ thống.", ex);
             }
         }
 
@@ -833,13 +914,13 @@ namespace Application.Features.StudentClass.Services
             var student = await _studentRepository.GetByIdAsync(studentId);
             if (student == null)
             {
-                throw new ArgumentException($"Học sinh với Id {studentId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy học sinh với ID {studentId}.");
             }
 
             var academicYear = await _academicYearRepository.GetByIdAsync(academicYearId);
             if (academicYear == null)
             {
-                throw new ArgumentException($"Năm học với Id {academicYearId} không tồn tại.");
+                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {academicYearId}.");
             }
 
             if (academicYear.EndDate > DateOnly.FromDateTime(DateTime.Now))
@@ -928,6 +1009,7 @@ namespace Application.Features.StudentClass.Services
                 await _studentClassRepository.UpdateAsync(studentClass);
             }
         }
+
         public async Task<IEnumerable<StudentClassResponseDto>> GetRepeatStudentsByAcademicYearAsync(int academicYearId)
         {
             if (!await HasReadPermissionAsync())
@@ -937,27 +1019,34 @@ namespace Application.Features.StudentClass.Services
 
             await ValidateAcademicYearAsync(academicYearId, mustBeActive: false);
 
-            var repeatStudents = await _studentClassRepository.GetByAcademicYearIdAsync(academicYearId);
-            repeatStudents = repeatStudents.Where(sc => sc.RepeatingYear == true).ToList();
-
-            if (!repeatStudents.Any())
+            try
             {
-                return Enumerable.Empty<StudentClassResponseDto>();
+                var repeatStudents = await _studentClassRepository.GetByAcademicYearIdAsync(academicYearId);
+                repeatStudents = repeatStudents.Where(sc => sc.RepeatingYear == true).ToList();
+
+                if (!repeatStudents.Any())
+                {
+                    throw new InvalidOperationException($"Không tìm thấy học sinh lưu ban trong năm học với ID {academicYearId}.");
+                }
+
+                var studentClassDtos = repeatStudents.Select(sc => new StudentClassResponseDto
+                {
+                    Id = sc.Id,
+                    StudentId = sc.StudentId,
+                    StudentName = sc.Student?.FullName ?? "N/A",
+                    ClassId = sc.ClassId,
+                    ClassName = sc.Class?.ClassName ?? "N/A",
+                    AcademicYearId = sc.AcademicYearId,
+                    YearName = sc.AcademicYear?.YearName ?? "N/A",
+                    RepeatingYear = sc.RepeatingYear ?? false
+                }).ToList();
+
+                return studentClassDtos;
             }
-
-            var studentClassDtos = repeatStudents.Select(sc => new StudentClassResponseDto
+            catch (Exception ex)
             {
-                Id = sc.Id,
-                StudentId = sc.StudentId,
-                StudentName = sc.Student?.FullName ?? "N/A",
-                ClassId = sc.ClassId,
-                ClassName = sc.Class?.ClassName ?? "N/A",
-                AcademicYearId = sc.AcademicYearId,
-                YearName = sc.AcademicYear?.YearName ?? "N/A",
-                RepeatingYear = sc.RepeatingYear ?? false
-            }).ToList();
-
-            return studentClassDtos;
+                throw new InvalidOperationException("Không thể lấy danh sách học sinh lưu ban do lỗi hệ thống.", ex);
+            }
         }
     }
 }

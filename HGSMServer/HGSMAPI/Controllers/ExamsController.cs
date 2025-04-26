@@ -2,7 +2,8 @@
 using Application.Features.Exams.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
+using System;
+using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -25,11 +26,23 @@ namespace HGSMAPI.Controllers
             try
             {
                 var proposal = await _examProposalService.CreateExamProposalAsync(request);
-                return CreatedAtAction(nameof(GetExamProposal), new { id = proposal.ProposalId }, proposal);
+                return CreatedAtAction(nameof(GetExamProposal), new { id = proposal.ProposalId }, new { message = "Tạo đề thi thành công!", proposal });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình tạo đề thi." });
             }
         }
 
@@ -41,9 +54,13 @@ namespace HGSMAPI.Controllers
                 var proposal = await _examProposalService.GetExamProposalAsync(id);
                 return Ok(proposal);
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException ex)
             {
-                return BadRequest(ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy thông tin đề thi." });
             }
         }
 
@@ -54,11 +71,23 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _examProposalService.UpdateExamProposalStatusAsync(id, dto.Status, dto.Comment);
-                return NoContent();
+                return Ok(new { message = "Cập nhật trạng thái đề thi thành công!" });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình cập nhật trạng thái đề thi." });
             }
         }
 
@@ -71,9 +100,17 @@ namespace HGSMAPI.Controllers
                 var proposals = await _examProposalService.GetExamProposalsByStatusAsync(status);
                 return Ok(proposals);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy danh sách đề thi theo trạng thái." });
             }
         }
 
@@ -84,11 +121,19 @@ namespace HGSMAPI.Controllers
             try
             {
                 var updatedProposal = await _examProposalService.UpdateExamProposalAsync(id, request);
-                return Ok(updatedProposal);
+                return Ok(new { message = "Cập nhật đề thi thành công!", proposal = updatedProposal });
             }
-            catch (Exception ex)
+            catch (KeyNotFoundException ex)
             {
-                return BadRequest(ex.Message);
+                return NotFound(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình cập nhật đề thi." });
             }
         }
 
@@ -101,9 +146,13 @@ namespace HGSMAPI.Controllers
                 var proposals = await _examProposalService.GetAllAsync();
                 return Ok(proposals);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy danh sách tất cả đề thi." });
             }
         }
 
@@ -116,9 +165,13 @@ namespace HGSMAPI.Controllers
                 var proposals = await _examProposalService.GetAllByTeacherIdAsync(teacherId);
                 return Ok(proposals);
             }
-            catch (Exception ex)
+            catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy danh sách đề thi của giáo viên." });
             }
         }
     }

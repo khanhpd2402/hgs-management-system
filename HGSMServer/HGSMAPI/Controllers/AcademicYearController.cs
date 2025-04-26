@@ -1,5 +1,4 @@
-﻿// File: AcademicYearController.cs
-using Application.Features.AcademicYears.DTOs;
+﻿using Application.Features.AcademicYears.DTOs;
 using Application.Features.AcademicYears.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

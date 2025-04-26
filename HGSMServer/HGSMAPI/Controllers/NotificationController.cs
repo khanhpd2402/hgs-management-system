@@ -1,5 +1,4 @@
 ﻿using Application.Features.Notification.DTOs;
-using Application.Features.Notification.DTOs;
 using Application.Features.Teachers.Interfaces;
 using Common.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -30,10 +29,14 @@ namespace HGSMAPI.Controllers
             try
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.Subject) || string.IsNullOrWhiteSpace(request.Body))
-                    return BadRequest("Tiêu đề và nội dung tin nhắn không được để trống.");
+                {
+                    return BadRequest(new { message = "Tiêu đề và nội dung tin nhắn không được để trống." });
+                }
 
                 if (request.TeacherIds == null || !request.TeacherIds.Any())
-                    return BadRequest("Danh sách ID giáo viên không được để trống.");
+                {
+                    return BadRequest(new { message = "Danh sách ID giáo viên không được để trống." });
+                }
 
                 var teacherEmails = new List<string>();
                 foreach (var teacherId in request.TeacherIds)
@@ -53,7 +56,9 @@ namespace HGSMAPI.Controllers
                 }
 
                 if (!teacherEmails.Any())
-                    return BadRequest("Không tìm thấy email hợp lệ nào để gửi tin nhắn.");
+                {
+                    return BadRequest(new { message = "Không tìm thấy email hợp lệ nào để gửi tin nhắn." });
+                }
 
                 await _emailService.SendEmailToMultipleRecipientsAsync(
                     toEmails: teacherEmails,
@@ -64,9 +69,17 @@ namespace HGSMAPI.Controllers
 
                 return Ok(new { message = "Gửi tin nhắn thành công!" });
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                return BadRequest($"Lỗi khi gửi tin nhắn: {ex.Message}");
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình gửi tin nhắn." });
             }
         }
     }

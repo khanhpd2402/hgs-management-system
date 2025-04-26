@@ -47,13 +47,29 @@ namespace Application.Features.LessonPlans.Services
 
         public async Task<LessonPlanResponseDto> CreateLessonPlanAsync(LessonPlanCreateDto createDto)
         {
-            if (createDto == null) throw new ArgumentNullException(nameof(createDto));
-            if (createDto.TeacherId <= 0) throw new ArgumentException("Target TeacherId is required.", nameof(createDto.TeacherId));
-            if (createDto.SubjectId <= 0) throw new ArgumentException("SubjectId is required.", nameof(createDto.SubjectId));
-            if (createDto.SemesterId <= 0) throw new ArgumentException("SemesterId is required.", nameof(createDto.SemesterId));
+            if (createDto == null)
+            {
+                throw new ArgumentNullException(nameof(createDto), "Thông tin giáo án không được để trống.");
+            }
+
+            if (createDto.TeacherId <= 0)
+            {
+                throw new ArgumentException("TeacherId phải là một số nguyên dương.", nameof(createDto.TeacherId));
+            }
+
+            if (createDto.SubjectId <= 0)
+            {
+                throw new ArgumentException("SubjectId phải là một số nguyên dương.", nameof(createDto.SubjectId));
+            }
+
+            if (createDto.SemesterId <= 0)
+            {
+                throw new ArgumentException("SemesterId phải là một số nguyên dương.", nameof(createDto.SemesterId));
+            }
+
             if (createDto.StartDate.HasValue && createDto.EndDate.HasValue && createDto.EndDate < createDto.StartDate)
             {
-                throw new ArgumentException("DeadlineDate must be on or after StartDate.");
+                throw new ArgumentException("Ngày kết thúc phải sau hoặc bằng ngày bắt đầu.");
             }
 
             var creatorTeacherId = GetCurrentTeacherId();
@@ -74,53 +90,59 @@ namespace Application.Features.LessonPlans.Services
                 ReviewerId = null
             };
 
-            await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
-
-            // Gửi email thông báo cho giáo viên được assign
-            var assignedTeacher = await _teacherRepository.GetByIdAsync(createDto.TeacherId);
-            if (assignedTeacher != null)
+            try
             {
-                var subject = await _subjectRepository.GetByIdAsync(createDto.SubjectId);
-                if (subject != null)
+                await _lessonPlanRepository.AddLessonPlanAsync(lessonPlan);
+
+                var assignedTeacher = await _teacherRepository.GetByIdAsync(createDto.TeacherId);
+                if (assignedTeacher != null)
                 {
-                    try
+                    var subject = await _subjectRepository.GetByIdAsync(createDto.SubjectId);
+                    if (subject != null)
                     {
-                        var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(createDto.TeacherId);
-                        if (!string.IsNullOrEmpty(teacherEmail))
+                        try
                         {
-                            await _emailService.SendLessonPlanNotificationAsync(
-                                teacherEmail: teacherEmail,
-                                teacherName: assignedTeacher.FullName,
-                                planTitle: createDto.Title,
-                                subjectName: subject.SubjectName,
-                                semesterId: createDto.SemesterId,
-                                startDate: createDto.StartDate,
-                                endDate: createDto.EndDate
-                            );
-                            Console.WriteLine($"Đã gửi email thông báo kế hoạch bài giảng đến {teacherEmail}.");
+                            var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(createDto.TeacherId);
+                            if (!string.IsNullOrEmpty(teacherEmail))
+                            {
+                                await _emailService.SendLessonPlanNotificationAsync(
+                                    teacherEmail: teacherEmail,
+                                    teacherName: assignedTeacher.FullName,
+                                    planTitle: createDto.Title,
+                                    subjectName: subject.SubjectName,
+                                    semesterId: createDto.SemesterId,
+                                    startDate: createDto.StartDate,
+                                    endDate: createDto.EndDate
+                                );
+                                Console.WriteLine($"Đã gửi email thông báo kế hoạch bài giảng đến {teacherEmail}.");
+                            }
+                            else
+                            {
+                                Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {createDto.TeacherId}.");
+                            }
                         }
-                        else
+                        catch (Exception ex)
                         {
-                            Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {createDto.TeacherId}.");
+                            Console.WriteLine($"Không thể gửi email thông báo kế hoạch bài giảng đến TeacherId {createDto.TeacherId}: {ex.Message}");
                         }
                     }
-                    catch (Exception ex)
+                    else
                     {
-                        Console.WriteLine($"Không thể gửi email thông báo kế hoạch bài giảng đến TeacherId {createDto.TeacherId}: {ex.Message}");
+                        Console.WriteLine($"Không tìm thấy môn học với SubjectId {createDto.SubjectId}.");
                     }
                 }
                 else
                 {
-                    Console.WriteLine($"Không tìm thấy môn học với SubjectId {createDto.SubjectId}.");
+                    Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {createDto.TeacherId}.");
                 }
-            }
-            else
-            {
-                Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {createDto.TeacherId}.");
-            }
 
-            var createdPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(lessonPlan.PlanId);
-            return _mapper.Map<LessonPlanResponseDto>(createdPlan);
+                var createdPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(lessonPlan.PlanId);
+                return _mapper.Map<LessonPlanResponseDto>(createdPlan);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể tạo giáo án do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task UpdateMyLessonPlanAsync(int planId, LessonPlanUpdateDto updateDto)
@@ -129,25 +151,29 @@ namespace Application.Features.LessonPlans.Services
             var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdAsync(planId);
 
             if (lessonPlan == null)
-                throw new KeyNotFoundException("Lesson plan not found.");
+            {
+                throw new KeyNotFoundException($"Không tìm thấy giáo án với ID {planId}.");
+            }
 
             if (lessonPlan.TeacherId != teacherId)
-                throw new UnauthorizedAccessException("You are not authorized to update this lesson plan.");
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền cập nhật giáo án này.");
+            }
 
             if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Đã nộp")
             {
-                throw new InvalidOperationException($"Cannot update lesson plan with status '{lessonPlan.Status}'.");
+                throw new InvalidOperationException($"Không thể cập nhật giáo án với trạng thái '{lessonPlan.Status}'.");
             }
 
             DateTime currentDate = DateTime.SpecifyKind(DateTime.Now.Date, DateTimeKind.Unspecified);
             if (lessonPlan.StartDate.HasValue && currentDate < lessonPlan.StartDate.Value.Date)
             {
-                throw new InvalidOperationException($"You can only start updating the lesson plan from {lessonPlan.StartDate.Value:dd/MM/yyyy}.");
+                throw new InvalidOperationException($"Bạn chỉ có thể bắt đầu cập nhật giáo án từ ngày {lessonPlan.StartDate.Value:dd/MM/yyyy}.");
             }
 
             if (lessonPlan.EndDate.HasValue && currentDate > lessonPlan.EndDate.Value.Date)
             {
-                Console.WriteLine($"Warning: Updating lesson plan (ID: {planId}) after the deadline.");
+                Console.WriteLine($"Cảnh báo: Cập nhật giáo án (ID: {planId}) sau thời hạn.");
             }
 
             lessonPlan.PlanContent = updateDto.PlanContent;
@@ -156,26 +182,39 @@ namespace Application.Features.LessonPlans.Services
             lessonPlan.SubmittedDate = DateTime.Now;
             lessonPlan.Status = "Chờ duyệt";
 
-            await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
+            try
+            {
+                await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể cập nhật giáo án do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task ReviewLessonPlanAsync(LessonPlanReviewDto reviewDto)
         {
             if (reviewDto == null || reviewDto.PlanId <= 0 || string.IsNullOrEmpty(reviewDto.Status))
-                throw new ArgumentException("PlanId and status are required.");
+            {
+                throw new ArgumentException("PlanId và trạng thái là bắt buộc.");
+            }
 
             if (reviewDto.Status != "Đã duyệt" && reviewDto.Status != "Từ chối")
-                throw new ArgumentException("Status must be 'Đã duyệt' or 'Từ chối'.");
+            {
+                throw new ArgumentException("Trạng thái phải là 'Đã duyệt' hoặc 'Từ chối'.");
+            }
 
             var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdAsync(reviewDto.PlanId);
             if (lessonPlan == null)
-                throw new KeyNotFoundException("Lesson plan not found.");
+            {
+                throw new KeyNotFoundException($"Không tìm thấy giáo án với ID {reviewDto.PlanId}.");
+            }
 
             var reviewerId = GetCurrentTeacherId();
             var reviewer = await _teacherRepository.GetByIdAsync(reviewerId);
             if (reviewer == null || !(reviewer.IsHeadOfDepartment ?? false))
             {
-                throw new UnauthorizedAccessException("Only Head of Department can review lesson plans.");
+                throw new UnauthorizedAccessException("Chỉ trưởng bộ môn mới có quyền duyệt giáo án.");
             }
 
             lessonPlan.Status = reviewDto.Status;
@@ -183,52 +222,58 @@ namespace Application.Features.LessonPlans.Services
             lessonPlan.ReviewedDate = DateTime.Now;
             lessonPlan.ReviewerId = reviewerId;
 
-            await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
-
-            // Gửi email thông báo khi trạng thái thay đổi thành "Đã duyệt" hoặc "Từ chối"
-            if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Từ chối")
+            try
             {
-                var assignedTeacher = await _teacherRepository.GetByIdAsync(lessonPlan.TeacherId);
-                if (assignedTeacher != null)
+                await _lessonPlanRepository.UpdateLessonPlanAsync(lessonPlan);
+
+                if (lessonPlan.Status == "Đã duyệt" || lessonPlan.Status == "Từ chối")
                 {
-                    var subject = await _subjectRepository.GetByIdAsync(lessonPlan.SubjectId);
-                    if (subject != null)
+                    var assignedTeacher = await _teacherRepository.GetByIdAsync(lessonPlan.TeacherId);
+                    if (assignedTeacher != null)
                     {
-                        try
+                        var subject = await _subjectRepository.GetByIdAsync(lessonPlan.SubjectId);
+                        if (subject != null)
                         {
-                            var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(lessonPlan.TeacherId);
-                            if (!string.IsNullOrEmpty(teacherEmail))
+                            try
                             {
-                                await _emailService.SendLessonPlanStatusUpdateAsync(
-                                    teacherEmail: teacherEmail,
-                                    teacherName: assignedTeacher.FullName,
-                                    planTitle: lessonPlan.Title,
-                                    subjectName: subject.SubjectName,
-                                    semesterId: lessonPlan.SemesterId,
-                                    status: lessonPlan.Status,
-                                    feedback: lessonPlan.Feedback
-                                );
-                                Console.WriteLine($"Đã gửi email cập nhật trạng thái kế hoạch bài giảng đến {teacherEmail}.");
+                                var teacherEmail = await _teacherService.GetEmailByTeacherIdAsync(lessonPlan.TeacherId);
+                                if (!string.IsNullOrEmpty(teacherEmail))
+                                {
+                                    await _emailService.SendLessonPlanStatusUpdateAsync(
+                                        teacherEmail: teacherEmail,
+                                        teacherName: assignedTeacher.FullName,
+                                        planTitle: lessonPlan.Title,
+                                        subjectName: subject.SubjectName,
+                                        semesterId: lessonPlan.SemesterId,
+                                        status: lessonPlan.Status,
+                                        feedback: lessonPlan.Feedback
+                                    );
+                                    Console.WriteLine($"Đã gửi email cập nhật trạng thái kế hoạch bài giảng đến {teacherEmail}.");
+                                }
+                                else
+                                {
+                                    Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {lessonPlan.TeacherId}.");
+                                }
                             }
-                            else
+                            catch (Exception ex)
                             {
-                                Console.WriteLine($"Không tìm thấy email cho giáo viên với TeacherId {lessonPlan.TeacherId}.");
+                                Console.WriteLine($"Không thể gửi email cập nhật trạng thái kế hoạch bài giảng đến TeacherId {lessonPlan.TeacherId}: {ex.Message}");
                             }
                         }
-                        catch (Exception ex)
+                        else
                         {
-                            Console.WriteLine($"Không thể gửi email cập nhật trạng thái kế hoạch bài giảng đến TeacherId {lessonPlan.TeacherId}: {ex.Message}");
+                            Console.WriteLine($"Không tìm thấy môn học với SubjectId {lessonPlan.SubjectId}.");
                         }
                     }
                     else
                     {
-                        Console.WriteLine($"Không tìm thấy môn học với SubjectId {lessonPlan.SubjectId}.");
+                        Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {lessonPlan.TeacherId}.");
                     }
                 }
-                else
-                {
-                    Console.WriteLine($"Không tìm thấy giáo viên với TeacherId {lessonPlan.TeacherId}.");
-                }
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể duyệt giáo án do lỗi hệ thống.", ex);
             }
         }
 
@@ -236,47 +281,81 @@ namespace Application.Features.LessonPlans.Services
         {
             var lessonPlan = await _lessonPlanRepository.GetLessonPlanByIdIncludingDetailsAsync(planId);
             if (lessonPlan == null)
-                throw new KeyNotFoundException("Lesson plan not found.");
+            {
+                throw new KeyNotFoundException($"Không tìm thấy giáo án với ID {planId}.");
+            }
+
             return _mapper.Map<LessonPlanResponseDto>(lessonPlan);
         }
 
         public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetAllLessonPlansAsync(int pageNumber, int pageSize)
         {
-            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetAllLessonPlansIncludingDetailsAsync(pageNumber, pageSize);
-            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
-            return (lessonPlanDtos, totalCount);
+            try
+            {
+                var (lessonPlans, totalCount) = await _lessonPlanRepository.GetAllLessonPlansIncludingDetailsAsync(pageNumber, pageSize);
+                var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+                return (lessonPlanDtos, totalCount);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách giáo án do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByTeacherAsync(int teacherId, int pageNumber, int pageSize)
         {
-            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByTeacherIncludingDetailsAsync(teacherId, pageNumber, pageSize);
-            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
-            return (lessonPlanDtos, totalCount);
+            try
+            {
+                var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByTeacherIncludingDetailsAsync(teacherId, pageNumber, pageSize);
+                var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+                return (lessonPlanDtos, totalCount);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách giáo án của giáo viên do lỗi hệ thống.", ex);
+            }
         }
 
         public async Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize)
         {
             if (string.IsNullOrEmpty(status))
-                throw new ArgumentException("Status is required.");
+            {
+                throw new ArgumentException("Trạng thái là bắt buộc.");
+            }
 
-            var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByStatusIncludingDetailsAsync(status, pageNumber, pageSize);
-            var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
-            return (lessonPlanDtos, totalCount);
+            try
+            {
+                var (lessonPlans, totalCount) = await _lessonPlanRepository.GetLessonPlansByStatusIncludingDetailsAsync(status, pageNumber, pageSize);
+                var lessonPlanDtos = _mapper.Map<List<LessonPlanResponseDto>>(lessonPlans);
+                return (lessonPlanDtos, totalCount);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách giáo án theo trạng thái do lỗi hệ thống.", ex);
+            }
         }
 
         private int GetCurrentTeacherId()
         {
             var claims = _httpContextAccessor.HttpContext?.User?.Claims?.ToList() ?? new List<Claim>();
             var userIdClaim = claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier)
-               ?? claims.FirstOrDefault(c => c.Type == "sub")
-               ?? throw new UnauthorizedAccessException("User ID not found in token.");
+               ?? claims.FirstOrDefault(c => c.Type == "sub");
+            if (userIdClaim == null)
+            {
+                throw new UnauthorizedAccessException("Không tìm thấy User ID trong token.");
+            }
 
             if (!int.TryParse(userIdClaim.Value, out var userId))
-                throw new UnauthorizedAccessException("Invalid User ID format in token.");
+            {
+                throw new UnauthorizedAccessException("User ID trong token không hợp lệ.");
+            }
 
             var teacher = Task.Run(() => _teacherRepository.GetByUserIdAsync(userId)).GetAwaiter().GetResult();
             if (teacher == null)
-                throw new UnauthorizedAccessException($"No teacher profile found for UserID {userId}.");
+            {
+                throw new UnauthorizedAccessException($"Không tìm thấy giáo viên với UserID {userId}.");
+            }
+
             return teacher.TeacherId;
         }
     }
