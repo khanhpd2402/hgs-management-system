@@ -5,6 +5,7 @@ import { useSubjects } from '@/services/common/queries';
 import './Schedule.scss';
 import { Calendar, Save, Trash2 } from "lucide-react";
 import ExportSchedule from './ExportSchedule';
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 
 const Schedule = () => {
     // Add daysOfWeek array at the top
@@ -54,12 +55,9 @@ const Schedule = () => {
     };
 
     // Add dummy data (replace with actual data from your API)
-    // Remove this line since we're getting teacherData from useTeachers hook
-    // const teacherData = []; // Remove this line
     const subjectData = []; // Replace with actual subject data
     const grades = ['6', '7', '8', '9']; // Replace with actual grades
 
-    // Add handler functions
     // Add filtered state
     const [filteredSchedule, setFilteredSchedule] = useState(null);
 
@@ -137,7 +135,7 @@ const Schedule = () => {
     };
 
     // Update getSchedule function
-    const getSchedule = (day, periodId, className) => {
+    const getSchedule = (day, periodId, className, classIndex) => {
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         if (!scheduleToUse?.details) return null;
 
@@ -150,24 +148,81 @@ const Schedule = () => {
 
         if (schedule) {
             return (
-                <div className="schedule-cell">
-                    <div className="subject">{schedule.subjectName}</div>
-                    {showTeacherName && <div className="teacher">{schedule.teacherName}</div>}
-                </div>
+                <Draggable
+                    key={`${className}-${day}-${periodId}`}
+                    draggableId={`${className}-${day}-${periodId}`}
+                    index={periodId}
+                >
+                    {(provided) => (
+                        <div
+                            className="schedule-cell"
+                            ref={provided.innerRef}
+                            {...provided.draggableProps}
+                            {...provided.dragHandleProps}
+                        >
+                            <div className="subject">{schedule.subjectName}</div>
+                            {showTeacherName && <div className="teacher">{schedule.teacherName}</div>}
+                        </div>
+                    )}
+                </Draggable>
             );
         }
-        return null;
+        return <div className="schedule-cell"></div>;
     };
 
+    // Handle drag and drop
+    const onDragEnd = (result, className) => {
+        const { source, destination } = result;
 
+        // If no destination or dropped in the same position, do nothing
+        if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
+            return;
+        }
 
-    // Then update the hook usage (around line 155)
+        const scheduleToUse = filteredSchedule || scheduleData?.[0];
+        if (!scheduleToUse?.details) return;
+
+        // Create a copy of the details array
+        const updatedDetails = [...scheduleToUse.details];
+
+        // Find the source and destination items
+        const sourceItem = updatedDetails.find(
+            item => item.dayOfWeek === daysOfWeek[source.droppableId.split('-')[1]] &&
+                item.periodId === source.index &&
+                item.className === className
+        );
+        const destItem = updatedDetails.find(
+            item => item.dayOfWeek === daysOfWeek[destination.droppableId.split('-')[1]] &&
+                item.periodId === destination.index &&
+                item.className === className
+        );
+
+        // Swap periodId of the source and destination items
+        if (sourceItem && destItem) {
+            const sourcePeriodId = sourceItem.periodId;
+            sourceItem.periodId = destItem.periodId;
+            destItem.periodId = sourcePeriodId;
+        } else if (sourceItem) {
+            // Move source item to empty destination
+            sourceItem.periodId = destination.index;
+        }
+
+        // Update the schedule state
+        if (filteredSchedule) {
+            setFilteredSchedule({
+                ...filteredSchedule,
+                details: updatedDetails
+            });
+        } else {
+            // Update the original schedule data (this assumes scheduleData is mutable)
+            scheduleData[0].details = updatedDetails;
+        }
+    };
+
+    // Hook usage
     const { data: scheduleData, isLoading: scheduleLoading } = useTimetableForPrincipal(3);
-    // Remove or comment out the console.log
-    // console.log(scheduleData);
     const { data: teachersResponse = { teachers: [] }, isLoading: teachersLoading } = useTeachers();
     const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
-    console.log("subjects: ", subjects)
 
     const teachers = Array.isArray(teachersResponse) ? teachersResponse : teachersResponse.teachers || [];
 
@@ -221,15 +276,10 @@ const Schedule = () => {
         );
     };
 
-    console.log("scheduleData", scheduleData)
-
     return (
         <div className="schedule-container">
-
             <div className="sticky-filter">
-                {/* Add the new filter container here */}
                 <div className="filter-container">
-                    {/* Row 1: Semester, Application Date, Teacher */}
                     <div className="filter-row">
                         <div className="filter-column">
                             <label>Học kỳ</label>
@@ -239,7 +289,6 @@ const Schedule = () => {
                                 readOnly
                             />
                         </div>
-
                         <div className="filter-column">
                             <label>Ngày áp dụng</label>
                             <input
@@ -248,12 +297,10 @@ const Schedule = () => {
                                     scheduleData?.[0]?.effectiveDate && scheduleData?.[0]?.endDate
                                         ? `Từ ${formatDate(scheduleData[0].effectiveDate)} đến ${formatDate(scheduleData[0].endDate)}`
                                         : ""
-                                } readOnly
+                                }
+                                readOnly
                             />
                         </div>
-
-
-
                         <div className="filter-column">
                             <label>Giáo viên</label>
                             <select onChange={(e) => setTempTeacher(e.target.value)} value={tempTeacher}>
@@ -266,8 +313,6 @@ const Schedule = () => {
                             </select>
                         </div>
                     </div>
-
-                    {/* Row 2: Grade, Class, Subject */}
                     <div className="filter-row">
                         <div className="filter-column">
                             <label>Khối</label>
@@ -278,7 +323,6 @@ const Schedule = () => {
                                 ))}
                             </select>
                         </div>
-
                         <div className="filter-column">
                             <label>Lớp</label>
                             <select
@@ -292,7 +336,6 @@ const Schedule = () => {
                                 ))}
                             </select>
                         </div>
-
                         <div className="filter-column">
                             <label>Môn học</label>
                             <select onChange={(e) => setTempSubject(e.target.value)} value={tempSubject}>
@@ -305,8 +348,6 @@ const Schedule = () => {
                             </select>
                         </div>
                     </div>
-
-                    {/* Row 3: Session selection */}
                     <div className="filter-row">
                         <div className="filter-column">
                             <label>Chọn buổi</label>
@@ -317,8 +358,6 @@ const Schedule = () => {
                             </select>
                         </div>
                     </div>
-
-                    {/* Search and reset buttons */}
                     <div className="filter-row">
                         <div className="filter-column search-button">
                             <button onClick={handleSearch}>Tìm kiếm</button>
@@ -326,11 +365,9 @@ const Schedule = () => {
                         </div>
                     </div>
                 </div>
-
                 <div className="filter-row-table" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <Calendar size={20} />
-
                         <span>Thời khóa biểu</span>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -339,79 +376,87 @@ const Schedule = () => {
                                 {showTeacherName ? "Ẩn tên giáo viên" : "Hiển thị tên giáo viên"}
                             </button>
                         </div>
-
                         <ExportSchedule
                             schedule={filteredSchedule || scheduleData?.[0]}
                             showTeacherName={showTeacherName}
                         />
-
-                        {/* Nút Lưu */}
                         <button className="btn-save">
                             <Save size={16} /> Lưu
                         </button>
-
                         <button className="btn-delete">
                             <Trash2 size={16} /> Xóa
                         </button>
-
                     </div>
                 </div>
             </div>
-
-            <div className="table-container" ref={topScrollRef} onScroll={() => syncScroll(topScrollRef, bottomScrollRef)}>
-                <div className="timetable-table dummy-scroll" />
-
-                <br></br>
-                <br></br>
-
-                <table className="schedule-table">
-                    <thead>
-                        <tr>
-                            <th className="sticky-header col-1" colSpan="3">Lịch học</th>
-                            {!selectedClass && Object.entries(getClassesByGrade()).map(([grade, gradeClasses]) => (
-                                <th key={grade} colSpan={gradeClasses.length}>Khối {grade}</th>
-                            ))}
-                            {selectedClass && <th>Khối {selectedClass.charAt(0)}</th>}
-                        </tr>
-                        <tr>
-                            <th className="sticky-col col-1">Thứ</th>
-                            <th className="sticky-col col-2">Buổi</th>
-                            <th className="sticky-col col-3">Tiết</th>
-                            {selectedClass ? [selectedClass] : classes.map(className => (
-                                <th key={className}>{className}</th>
-                            ))}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {daysOfWeek.map((day, dayIndex) => {
-                            const shiftsToShow = getFilteredShifts();
-                            const totalPeriods = shiftsToShow.reduce((sum, shift) => sum + shift.periods.length, 0);
-                            return shiftsToShow.map((shift, shiftIndex) =>
-                                shift.periods.map((period, periodIndex) => (
-                                    <tr
-                                        key={`${day}-${shift.name}-${period}`}
-                                        className={dayIndex % 2 === 0 ? 'even-day' : 'odd-day'}
-                                    >
-                                        {shiftIndex === 0 && periodIndex === 0 && (
-                                            <td className="sticky-col col-1" rowSpan={totalPeriods}>{day}</td>
-                                        )}
-                                        {periodIndex === 0 && (
-                                            <td className="sticky-col col-2" rowSpan={shift.periods.length}>{shift.name}</td>
-                                        )}
-                                        <td className="sticky-col col-3">{getPeriodName(period)}</td>
-                                        {(selectedClass ? [selectedClass] : classes).map(className => (
-                                            <td key={className}>
-                                                {getSchedule(day, period, className)}
-                                            </td>
-                                        ))}
-                                    </tr>
-                                ))
-                            );
-                        })}
-                    </tbody>
-                </table>
-            </div>
-        </div >
+            <DragDropContext onDragEnd={(result) => {
+                const className = result.source.droppableId.split('-')[0];
+                onDragEnd(result, className);
+            }}>
+                <div className="table-container" ref={topScrollRef} onScroll={() => syncScroll(topScrollRef, bottomScrollRef)}>
+                    <div className="timetable-table dummy-scroll" />
+                    <br></br>
+                    <br></br>
+                    <table className="schedule-table">
+                        <thead>
+                            <tr>
+                                <th className="sticky-header col-1" colSpan="3">Lịch học</th>
+                                {!selectedClass && Object.entries(getClassesByGrade()).map(([grade, gradeClasses]) => (
+                                    <th key={grade} colSpan={gradeClasses.length}>Khối {grade}</th>
+                                ))}
+                                {selectedClass && <th>Khối {selectedClass.charAt(0)}</th>}
+                            </tr>
+                            <tr>
+                                <th className="sticky-col col-1">Thứ</th>
+                                <th className="sticky-col col-2">Buổi</th>
+                                <th className="sticky-col col-3">Tiết</th>
+                                {selectedClass ? [selectedClass] : classes.map(className => (
+                                    <th key={className}>{className}</th>
+                                ))}
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {daysOfWeek.map((day, dayIndex) => {
+                                const shiftsToShow = getFilteredShifts();
+                                const totalPeriods = shiftsToShow.reduce((sum, shift) => sum + shift.periods.length, 0);
+                                return shiftsToShow.map((shift, shiftIndex) =>
+                                    shift.periods.map((period, periodIndex) => (
+                                        <tr
+                                            key={`${day}-${shift.name}-${period}`}
+                                            className={dayIndex % 2 === 0 ? 'even-day' : 'odd-day'}
+                                        >
+                                            {shiftIndex === 0 && periodIndex === 0 && (
+                                                <td className="sticky-col col-1" rowSpan={totalPeriods}>{day}</td>
+                                            )}
+                                            {periodIndex === 0 && (
+                                                <td className="sticky-col col-2" rowSpan={shift.periods.length}>{shift.name}</td>
+                                            )}
+                                            <td className="sticky-col col-3">{getPeriodName(period)}</td>
+                                            {(selectedClass ? [selectedClass] : classes).map((className, classIndex) => (
+                                                <Droppable
+                                                    key={`${className}-${dayIndex}`}
+                                                    droppableId={`${className}-${dayIndex}`}
+                                                >
+                                                    {(provided) => (
+                                                        <td
+                                                            ref={provided.innerRef}
+                                                            {...provided.droppableProps}
+                                                        >
+                                                            {getSchedule(day, period, className, classIndex)}
+                                                            {provided.placeholder}
+                                                        </td>
+                                                    )}
+                                                </Droppable>
+                                            ))}
+                                        </tr>
+                                    ))
+                                );
+                            })}
+                        </tbody>
+                    </table>
+                </div>
+            </DragDropContext>
+        </div>
     );
 };
 

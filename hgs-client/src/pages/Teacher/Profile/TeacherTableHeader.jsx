@@ -21,7 +21,7 @@ const TeacherTableHeader = ({
 
   return (
     <div className="mb-4 flex items-center justify-between">
-      <h2 className="text-lg font-semibold">Danh sách cán bộ</h2>
+      <h2 className="text-2xl font-semibold">Danh sách cán bộ</h2>
       <div className="flex gap-2">
         <TeacherFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />

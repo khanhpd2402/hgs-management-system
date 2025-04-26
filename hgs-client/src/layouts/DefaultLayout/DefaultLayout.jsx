@@ -23,7 +23,7 @@ const DefaultLayout = () => {
         className={`flex-1 ${sidebarOpen ? "ml-64" : "ml-16"} relative overflow-hidden`}
       >
         <div className="h-full overflow-x-clip overflow-y-scroll">
-          <div className="container mx-auto px-4 py-4">
+          <div className="mx-auto px-4 py-4">
             <Header setCurrentYear={setCurrentYear} />
             <Outlet context={{ currentYear }} />
             <Footer />

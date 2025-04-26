@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useClasses, useGradeLevels } from "@/services/common/queries";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 StudentFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
@@ -43,7 +44,7 @@ export default function StudentFilter({ setFilter }) {
     setFilter((options) => ({
       ...options,
       page: 1,
-      search: search.trim(),
+      search: cleanString(search.trim()),
       grade,
       className,
     }));
@@ -58,7 +59,12 @@ export default function StudentFilter({ setFilter }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Lọc</Button>
+      <Button
+        onClick={() => setOpen(true)}
+        className="cursor-pointer bg-blue-600 font-semibold hover:bg-blue-700"
+      >
+        Lọc
+      </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -118,7 +124,12 @@ export default function StudentFilter({ setFilter }) {
               <Button type="button" variant="outline" onClick={handleReset}>
                 Reset
               </Button>
-              <Button type="submit">Xác nhận</Button>
+              <Button
+                type="submit"
+                className="cursor-pointer bg-blue-600 font-semibold hover:bg-blue-700"
+              >
+                Xác nhận
+              </Button>
             </div>
           </form>
         </DialogContent>

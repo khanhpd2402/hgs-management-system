@@ -1,4 +1,3 @@
-import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import AuthLayout from "@/layouts/AuthLayout/AuthLayout";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
 import Login from "@/pages/Login/Login";
@@ -15,6 +14,7 @@ import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
 import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
+import { Spinner } from "@/components/Spinner";
 const AddDocument = lazy(
   () => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"),
 );
@@ -147,7 +147,7 @@ const adminRouter = [
     path: "/system/user",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng", "Cán bộ văn thư"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <UserManagement />
         </Suspense>
       </ProtectedRoute>
@@ -157,7 +157,7 @@ const adminRouter = [
     path: "/system/academic-year",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <AcademicYearManagement />
         </Suspense>
       </ProtectedRoute>
@@ -167,7 +167,7 @@ const adminRouter = [
     path: "/system/subject",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <SubjectManagement />
         </Suspense>
       </ProtectedRoute>
@@ -179,7 +179,7 @@ const adminRouter = [
       <ProtectedRoute
         requiredRoles={["Hiệu trưởng", "Hiệu phó", "Trưởng bộ môn"]}
       >
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <ExamManagement />
         </Suspense>
       </ProtectedRoute>
@@ -189,7 +189,7 @@ const adminRouter = [
     path: "/system/class",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <ClassManagement />
         </Suspense>
       </ProtectedRoute>
@@ -199,7 +199,7 @@ const adminRouter = [
     path: "/system/teacher-subject",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <SubjectConfigForTeacher />
         </Suspense>
       </ProtectedRoute>
@@ -209,7 +209,7 @@ const adminRouter = [
     path: "/system/transfer-data",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <TransferData />
         </Suspense>
       </ProtectedRoute>
@@ -219,7 +219,7 @@ const adminRouter = [
     path: "/system/schedule",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <ScheduleManagement />
         </Suspense>
       </ProtectedRoute>
@@ -229,7 +229,7 @@ const adminRouter = [
     path: "/system/leave-request",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <ListLeaveRequest />
         </Suspense>
       </ProtectedRoute>
@@ -239,7 +239,7 @@ const adminRouter = [
     path: "/system/leave-request/:id",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <LeaveRequestDetail />
         </Suspense>
       </ProtectedRoute>
@@ -249,7 +249,7 @@ const adminRouter = [
     path: "/system/contact",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <Contact />
         </Suspense>
       </ProtectedRoute>
@@ -258,8 +258,8 @@ const adminRouter = [
   {
     path: "/system/lesson-plan",
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
+        <Suspense fallback={<Spinner />}>
           <RequestLessonPlan />
         </Suspense>
       </ProtectedRoute>
@@ -269,7 +269,7 @@ const adminRouter = [
     path: "/system/review-detail/:planId",
     element: (
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <ReviewDetail />
         </Suspense>
       </ProtectedRoute>
@@ -284,8 +284,8 @@ const teacherRouter = [
       <ProtectedRoute
         requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
       >
-        <ErrorBoundary fallback={<FallbackErrorBoundary />}>
-          <Suspense fallback={<div>Loading...</div>}>
+        <ErrorBoundary fallback={<ErrorRouteComponent />}>
+          <Suspense fallback={<Spinner />}>
             <TeacherTable />
           </Suspense>
         </ErrorBoundary>
@@ -296,11 +296,11 @@ const teacherRouter = [
   {
     path: "/teacher/profile/:id",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Spinner />}>
             <TeacherProfile />
           </Suspense>
         </ProtectedRoute>
@@ -311,7 +311,7 @@ const teacherRouter = [
   {
     path: "/teacher/profile/create-teacher",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
@@ -323,9 +323,9 @@ const teacherRouter = [
   {
     path: "/system/teaching-assignment",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Spinner />}>
             <TATable />
           </Suspense>
         </ProtectedRoute>
@@ -338,7 +338,7 @@ const teacherRouter = [
       <ProtectedRoute
         requiredRoles={["Hiệu phó", "Trưởng bộ môn", "Giáo viên"]}
       >
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <AttendanceTable />
         </Suspense>
       </ProtectedRoute>
@@ -349,7 +349,7 @@ const teacherRouter = [
     path: "/teacher/mark-report",
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <ListMarkTeacher />
         </Suspense>
       </ProtectedRoute>
@@ -358,9 +358,9 @@ const teacherRouter = [
   {
     path: "/system/grade-batch",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Spinner />}>
             <GradeBatch />
           </Suspense>
         </ProtectedRoute>
@@ -370,8 +370,15 @@ const teacherRouter = [
   {
     path: "/teacher/schedule",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedRoute
+        requiredRoles={[
+          "Giáo viên",
+          "Hiệu trưởng",
+          "Hiệu phó",
+          "Trưởng bộ môn",
+        ]}
+      >
+        <Suspense fallback={<Spinner />}>
           <ScheduleTeacher />
         </Suspense>
       </ProtectedRoute>
@@ -381,7 +388,7 @@ const teacherRouter = [
     path: "/teacher/upload-exam",
     element: (
       <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <UploadExam />
         </Suspense>
       </ProtectedRoute>
@@ -390,8 +397,8 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
+        <Suspense fallback={<Spinner />}>
           <TeacherLeaveRequest />
         </Suspense>
       </ProtectedRoute>
@@ -400,8 +407,8 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request/create",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
+        <Suspense fallback={<Spinner />}>
           <CreateTeacherLeaveRequest />
         </Suspense>
       </ProtectedRoute>
@@ -410,8 +417,8 @@ const teacherRouter = [
   {
     path: "/teacher/leave-request/:id",
     element: (
-      <ProtectedRoute requiredRoles={["Giáo viên"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+      <ProtectedRoute requiredRoles={["Giáo viên", "Trưởng bộ môn"]}>
+        <Suspense fallback={<Spinner />}>
           <TeacherLeaveRequestDetail />
         </Suspense>
       </ProtectedRoute>
@@ -421,7 +428,7 @@ const teacherRouter = [
     path: "/teacher/lesson-plan",
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <TeacherLessonPlan />
         </Suspense>
       </ProtectedRoute>
@@ -431,7 +438,7 @@ const teacherRouter = [
     path: "/teacher/lesson-plan/create",
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <UploadLessonPlan />
         </Suspense>
       </ProtectedRoute>
@@ -441,7 +448,7 @@ const teacherRouter = [
     path: "system/lesson-plan/add-document/:planId",
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <AddDocument />
         </Suspense>
       </ProtectedRoute>
@@ -451,7 +458,7 @@ const teacherRouter = [
     path: "/teacher/lesson-plan-by-teacher",
     element: (
       <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Giáo viên"]}>
-        <Suspense fallback={<div>Loading...</div>}>
+        <Suspense fallback={<Spinner />}>
           <TeacherListPlan />
         </Suspense>
       </ProtectedRoute>
@@ -463,11 +470,11 @@ const studentRouter = [
   {
     path: "/student/profile",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Spinner />}>
             <StudentTable />
           </Suspense>
         </ProtectedRoute>
@@ -477,11 +484,11 @@ const studentRouter = [
   {
     path: "/student/profile/:id",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Spinner />}>
             <StudentProfile />
           </Suspense>
         </ProtectedRoute>
@@ -491,11 +498,11 @@ const studentRouter = [
   {
     path: "/student/profile/create-student",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
-          <Suspense fallback={<div>Loading...</div>}>
+          <Suspense fallback={<Spinner />}>
             <AddStudent />
           </Suspense>
         </ProtectedRoute>
@@ -505,7 +512,7 @@ const studentRouter = [
   {
     path: "/student/score",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
+      <Suspense fallback={<Spinner />}>
         <StudentScore />
       </Suspense>
     ),
@@ -513,9 +520,11 @@ const studentRouter = [
   {
     path: "/student/schedule",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <ScheduleStudent />
-      </Suspense>
+      <ProtectedRoute requiredRoles={["Phụ huynh"]}>
+        <Suspense fallback={<Spinner />}>
+          <ScheduleStudent />
+        </Suspense>
+      </ProtectedRoute>
     ),
   },
 ];
@@ -524,7 +533,12 @@ const privateRouter = [
   {
     element: (
       <ProtectedRoute
-        requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}
+        requiredRoles={[
+          "Hiệu trưởng",
+          "Giáo viên",
+          "Trưởng bộ môn",
+          "Phụ huynh",
+        ]}
       >
         <DefaultLayout />
       </ProtectedRoute>

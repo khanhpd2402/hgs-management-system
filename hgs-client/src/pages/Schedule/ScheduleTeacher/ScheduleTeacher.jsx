@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { useScheduleTeacher } from '../../../services/schedule/queries';
+import { useScheduleTeacher, useGetTimetiableSubstituteSubstituteForTeacher } from '../../../services/schedule/queries';
+import { DatePicker } from 'antd';
+import dayjs from 'dayjs';
 import './ScheduleTeacher.scss';
 
 const ScheduleTeacher = () => {
     const [teacherId, setTeacherId] = useState(null);
-    const [effectiveDate, setEffectiveDate] = useState('');
+    const [selectedDate, setSelectedDate] = useState(dayjs());
 
     useEffect(() => {
         const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
@@ -18,6 +20,7 @@ const ScheduleTeacher = () => {
     }, []);
 
     const { data: scheduleData, isLoading } = useScheduleTeacher(teacherId);
+    const { data: substituteData = [] } = useGetTimetiableSubstituteSubstituteForTeacher(teacherId, selectedDate);
 
     const daysOfWeek = [
         'Thứ Hai',
@@ -36,7 +39,19 @@ const ScheduleTeacher = () => {
 
     const getSchedule = (day, shift, period) => {
         if (!scheduleData?.[0]?.details) return '';
-        
+
+        // Kiểm tra xem có lịch dạy thay không
+        const substituteClass = substituteData.find(
+            sub => sub.dayOfWeek === day && sub.periodId === period
+        );
+
+        if (substituteClass) {
+            return {
+                content: `${substituteClass.className} - ${substituteClass.subjectName}\n(Dạy thay)`,
+                isSubstitute: true
+            };
+        }
+
         const schedule = scheduleData[0].details.find(
             (item) =>
                 item.dayOfWeek === day &&
@@ -44,7 +59,10 @@ const ScheduleTeacher = () => {
         );
 
         if (schedule) {
-            return `${schedule.className} - ${schedule.subjectName}`;
+            return {
+                content: `${schedule.className} - ${schedule.subjectName}`,
+                isSubstitute: false
+            };
         }
         return '';
     };
@@ -57,16 +75,26 @@ const ScheduleTeacher = () => {
 
     return (
         <div className="schedule-teacher-container">
-          
-
-            {currentSchedule && (
-                <div style={{ marginBottom: '20px' }}>
-                    <h2>Thời Khóa Biểu Trong Tuần</h2>
-                    <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
-                    <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
-                    <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
+            <div className="schedule-header">
+                <div className="date-picker-section">
+                    <label>Chọn ngày:</label>
+                    <DatePicker
+                        value={selectedDate}
+                        onChange={(date) => setSelectedDate(date)}
+                        format="DD/MM/YYYY"
+                        placeholder="Chọn ngày"
+                    />
                 </div>
-            )}
+
+                {currentSchedule && (
+                    <div className="schedule-info">
+                        <h2>Thời Khóa Biểu Trong Tuần</h2>
+                        <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
+                        <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
+                        <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
+                    </div>
+                )}
+            </div>
 
             <table className="schedule-teacher-table">
                 <thead>
@@ -94,11 +122,17 @@ const ScheduleTeacher = () => {
                                     </td>
                                 )}
                                 <td>{period}</td>
-                                {daysOfWeek.map((day, idx) => (
-                                    <td key={idx} className={idx % 2 === 0 ? 'even-column' : 'odd-column'}>
-                                        {getSchedule(day, shift.name, period)}
-                                    </td>
-                                ))}
+                                {daysOfWeek.map((day, idx) => {
+                                    const scheduleInfo = getSchedule(day, shift.name, period);
+                                    return (
+                                        <td
+                                            key={idx}
+                                            className={`${idx % 2 === 0 ? 'even-column' : 'odd-column'} ${scheduleInfo.isSubstitute ? 'substitute-class' : ''}`}
+                                        >
+                                            {scheduleInfo.content || ''}
+                                        </td>
+                                    );
+                                })}
                             </tr>
                         ))
                     )}

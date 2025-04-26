@@ -18,3 +18,34 @@ export const getTimetableForPrincipal = async (timetableId) => {
   );
   return response.data;
 };
+
+export const createSubstituteTeaching = async (payload) => {
+  const response = await axiosInstance.post("SubstituteTeachings", payload);
+  return response.data;
+};
+
+export const getSubstituteTeachings = async (
+  timetableDetailId,
+  originalTeacherId,
+  date,
+) => {
+  const response = await axiosInstance.get(
+    `SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+  );
+  return response.data;
+};
+
+export const getTimetiableSubstituteSubstituteForTeacher = async (
+  teacherId,
+  date,
+) => {
+  const response = await axiosInstance.get(
+    `SubstituteTeachings?SubstituteTeacherId=${teacherId}&date=${date.format("YYYY-MM-DD")}`,
+  );
+  return response.data;
+};
+
+export const getStudentNameAndClass = async (id, academicYearId) => {
+  const response = await axiosInstance.get(`Student/${id}/${academicYearId}`);
+  return response.data;
+};
