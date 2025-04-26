@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { useScheduleStudent } from '../../../services/schedule/queries';
+import { useScheduleStudent, useGetStudentNameAndClass } from '../../../services/schedule/queries';
 import { Select } from 'antd';
 import '../ScheduleTeacher/ScheduleTeacher.scss';
-
+import { getStudentNameAndClass } from '../../../services/schedule/api';
 const ScheduleStudent = () => {
     const [studentId, setStudentId] = useState(null);
     const [semesterId, setSemesterId] = useState(1);
@@ -16,21 +16,21 @@ const ScheduleStudent = () => {
             if (tokenParts.length === 3) {
                 const payload = JSON.parse(atob(tokenParts[1]));
                 const studentIdList = payload.studentIds.split(',');
+                const academicYearId = 1;
 
-                // Lấy thông tin chi tiết của từng học sinh
                 Promise.all(
                     studentIdList.map(id =>
-                        fetch(`https://localhost:8386/api/Student/${id}/1`)
-                            .then(res => res.json())
+                        getStudentNameAndClass(id, academicYearId)
                     )
                 ).then(students => {
                     const formattedStudents = students.map(student => ({
                         value: student.studentId,
-                        label: `${student.fullName} - Lớp ${student.className}`
+                        label: `${student.fullName} - Lớp ${student.className}`,
+                        studentInfo: student
                     }));
                     setStudentList(formattedStudents);
                     setStudentId(formattedStudents[0]?.value || null);
-                    setSelectedStudent(students[0] || null);
+                    setSelectedStudent(formattedStudents[0]?.studentInfo || null);
                 }).catch(error => {
                     console.error('Error fetching student details:', error);
                 });
@@ -38,19 +38,12 @@ const ScheduleStudent = () => {
         }
     }, []);
 
-    // Cập nhật thông tin học sinh khi chọn
-    useEffect(() => {
-        if (studentId) {
-            fetch(`https://localhost:8386/api/Student/${studentId}/1`)
-                .then(res => res.json())
-                .then(data => {
-                    setSelectedStudent(data);
-                })
-                .catch(error => {
-                    console.error('Error fetching student details:', error);
-                });
-        }
-    }, [studentId]);
+    // Cập nhật thông tin học sinh từ danh sách đã lưu
+    const handleStudentChange = (value) => {
+        setStudentId(value);
+        const selectedStudentInfo = studentList.find(student => student.value === value)?.studentInfo;
+        setSelectedStudent(selectedStudentInfo);
+    };
 
     const { data: scheduleData, isLoading } = useScheduleStudent(studentId, semesterId);
 
@@ -119,7 +112,7 @@ const ScheduleStudent = () => {
                         <label>Chọn học sinh</label>
                         <Select
                             value={studentId}
-                            onChange={(value) => setStudentId(value)}
+                            onChange={handleStudentChange}
                             options={studentList}
                             style={{ width: 300 }}
                             placeholder="Chọn học sinh"

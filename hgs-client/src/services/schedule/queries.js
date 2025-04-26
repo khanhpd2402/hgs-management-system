@@ -6,6 +6,7 @@ import {
   createSubstituteTeaching,
   getSubstituteTeachings,
   getTimetiableSubstituteSubstituteForTeacher,
+  getStudentNameAndClass,
 } from "./api";
 
 export function useScheduleTeacher(teacherId) {
@@ -67,5 +68,15 @@ export function useGetTimetiableSubstituteSubstituteForTeacher(
     queryKey: ["substituteTeachings", teacherId, date],
     queryFn: () => getTimetiableSubstituteSubstituteForTeacher(teacherId, date),
     enabled: !!teacherId && !!date,
+  });
+}
+
+// ... existing code ...
+
+export function useGetStudentNameAndClass(id, academicYearId) {
+  return useQuery({
+    queryKey: ["student", id, academicYearId],
+    queryFn: () => getStudentNameAndClass(id, academicYearId),
+    enabled: !!id && !!academicYearId,
   });
 }

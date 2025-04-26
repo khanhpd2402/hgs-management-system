@@ -44,3 +44,8 @@ export const getTimetiableSubstituteSubstituteForTeacher = async (
   );
   return response.data;
 };
+
+export const getStudentNameAndClass = async (id, academicYearId) => {
+  const response = await axiosInstance.get(`Student/${id}/${academicYearId}`);
+  return response.data;
+};
