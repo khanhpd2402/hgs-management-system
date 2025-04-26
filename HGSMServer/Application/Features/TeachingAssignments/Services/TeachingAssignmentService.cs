@@ -94,7 +94,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             .Where(ta => ta.SemesterId == semesterId)
             .AsQueryable();
 
-        if (userRole == "Teacher")
+        if (userRole == "Giáo viên")
         {
             var teacher = await _context.Teachers.FirstOrDefaultAsync(t => t.UserId == userId);
             if (teacher != null)
