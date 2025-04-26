@@ -513,9 +513,11 @@ const studentRouter = [
   {
     path: "/student/schedule",
     element: (
-      <Suspense fallback={<div>Loading...</div>}>
-        <ScheduleStudent />
-      </Suspense>
+      <ProtectedRoute requiredRoles={["Phụ huynh"]}>
+        <Suspense fallback={<div>Loading...</div>}>
+          <ScheduleStudent />
+        </Suspense>
+      </ProtectedRoute >
     ),
   },
 ];
@@ -524,7 +526,7 @@ const privateRouter = [
   {
     element: (
       <ProtectedRoute
-        requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn"]}
+        requiredRoles={["Hiệu trưởng", "Giáo viên", "Trưởng bộ môn", "Phụ huynh"]}
       >
         <DefaultLayout />
       </ProtectedRoute>

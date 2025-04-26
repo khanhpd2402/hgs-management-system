@@ -1,10 +1,56 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useScheduleStudent } from '../../../services/schedule/queries';
+import { Select } from 'antd';
 import '../ScheduleTeacher/ScheduleTeacher.scss';
 
 const ScheduleStudent = () => {
-    const [studentId] = useState(646);
+    const [studentId, setStudentId] = useState(null);
     const [semesterId, setSemesterId] = useState(1);
+    const [studentList, setStudentList] = useState([]);
+    const [selectedStudent, setSelectedStudent] = useState(null);
+
+    useEffect(() => {
+        const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+        if (token) {
+            const tokenParts = token.split('.');
+            if (tokenParts.length === 3) {
+                const payload = JSON.parse(atob(tokenParts[1]));
+                const studentIdList = payload.studentIds.split(',');
+
+                // Lấy thông tin chi tiết của từng học sinh
+                Promise.all(
+                    studentIdList.map(id =>
+                        fetch(`https://localhost:8386/api/Student/${id}/1`)
+                            .then(res => res.json())
+                    )
+                ).then(students => {
+                    const formattedStudents = students.map(student => ({
+                        value: student.studentId,
+                        label: `${student.fullName} - Lớp ${student.className}`
+                    }));
+                    setStudentList(formattedStudents);
+                    setStudentId(formattedStudents[0]?.value || null);
+                    setSelectedStudent(students[0] || null);
+                }).catch(error => {
+                    console.error('Error fetching student details:', error);
+                });
+            }
+        }
+    }, []);
+
+    // Cập nhật thông tin học sinh khi chọn
+    useEffect(() => {
+        if (studentId) {
+            fetch(`https://localhost:8386/api/Student/${studentId}/1`)
+                .then(res => res.json())
+                .then(data => {
+                    setSelectedStudent(data);
+                })
+                .catch(error => {
+                    console.error('Error fetching student details:', error);
+                });
+        }
+    }, [studentId]);
 
     const { data: scheduleData, isLoading } = useScheduleStudent(studentId, semesterId);
 
@@ -70,6 +116,16 @@ const ScheduleStudent = () => {
             <div className="filter-section">
                 <div className="filter-row">
                     <div className="filter-item">
+                        <label>Chọn học sinh</label>
+                        <Select
+                            value={studentId}
+                            onChange={(value) => setStudentId(value)}
+                            options={studentList}
+                            style={{ width: 300 }}
+                            placeholder="Chọn học sinh"
+                        />
+                    </div>
+                    <div className="filter-item">
                         <label>Học kỳ</label>
                         <select
                             value={semesterId}
@@ -83,9 +139,9 @@ const ScheduleStudent = () => {
                 </div>
             </div>
 
-            {currentSchedule && (
+            {currentSchedule && selectedStudent && (
                 <div className="schedule-header">
-                    <h2>Thời Khóa Biểu Lớp {currentSchedule.details?.[0]?.className}</h2>
+                    <h2>Thời Khóa Biểu - {selectedStudent.fullName} - Lớp {selectedStudent.className}</h2>
                     <div className="schedule-info">
                         <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
                         <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
