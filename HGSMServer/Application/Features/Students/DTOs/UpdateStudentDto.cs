@@ -16,7 +16,6 @@ namespace Application.Features.Students.DTOs
         public string? PermanentAddress { get; set; }
         public string? BirthPlace { get; set; }
         public string? Religion { get; set; }
-        public bool? RepeatingYear { get; set; }
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
 
