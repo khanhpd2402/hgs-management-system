@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HGSMAPI.Controllers
 {
@@ -25,6 +26,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("login")]
+        //[Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư,Hiệu phó,Giáo viên,Trưởng bộ môn")]
         public IActionResult Login()
         {
             var properties = new AuthenticationProperties
@@ -94,7 +96,7 @@ namespace HGSMAPI.Controllers
                 return null;
             }
 
-            var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
+            var allowedRoles = new[] { "Hiệu trưởng", "Hiệu phó", "Trưởng bộ môn", "Giáo viên", "Cán bộ văn thư" };
             return allowedRoles.Contains(userRole) ? userRole : null;
         }
     }
