@@ -12,6 +12,8 @@ import {
   deleteSubjectConfigue,
   deleteTeachingAssignment,
   resetUserPassword,
+  transferClassData,
+  transferStudentData,
   updateAcademicYear,
   updateClass,
   updateExamStatus,
@@ -492,6 +494,44 @@ export function useUpdateExamStatus() {
         console.log(data);
         toast.success("Cập nhật trạng thái thành công");
         queryClient.invalidateQueries({ queryKey: ["exams"] });
+      }
+    },
+  });
+}
+
+//transfer dataa
+export function useTransferClassData() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return transferClassData(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Chuyển dữ liệu thành công");
+        queryClient.invalidateQueries({ queryKey: ["classes"] });
+      }
+    },
+  });
+}
+
+export function useTransferStudentData() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data) => {
+      return transferStudentData(data);
+    },
+    onSettled: (data, error) => {
+      if (error) {
+        console.log(error);
+        toast.error("Đã có lỗi xảy ra");
+      } else {
+        console.log(data);
+        toast.success("Chuyển dữ liệu thành công");
       }
     },
   });

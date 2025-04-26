@@ -48,6 +48,8 @@ export default function StudentProfile() {
     student.fullName.toLowerCase().includes(searchQuery.toLowerCase()),
   );
 
+  console.log(studentQuery.data);
+
   const handleChangeSibling = (student) => {
     const currentValues = watch();
     const parentInfo = {};

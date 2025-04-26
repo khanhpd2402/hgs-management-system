@@ -25,12 +25,26 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useClasses } from "@/services/common/queries";
+import { useAcademicYears, useClasses } from "@/services/common/queries";
 import { usePreviousYearStudents } from "@/services/principal/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import {
+  useTransferClassData,
+  useTransferStudentData,
+} from "@/services/principal/mutation";
+import toast from "react-hot-toast";
 
 export default function TransferData() {
   const { currentYear } = useLayout();
+  const academicYearQuery = useAcademicYears();
+  const academicYears = academicYearQuery.data || [];
+  const sortedYears = [...academicYears].sort(
+    (a, b) => new Date(a.startDate) - new Date(b.startDate),
+  );
+  const currentIndex = sortedYears.findIndex(
+    (y) => y.academicYearID === currentYear.academicYearID,
+  );
+  const previousYear = currentIndex > 0 ? sortedYears[currentIndex - 1] : null;
   const [mode, setMode] = useState("class"); // "class" hoặc "student"
   const [open, setOpen] = useState(false);
   const [selectedClasses, setSelectedClasses] = useState([]);
@@ -44,20 +58,60 @@ export default function TransferData() {
   const classes = classQuery.data || [];
   const studentQuery = usePreviousYearStudents(currentYear?.academicYearID);
   const students = studentQuery.data || [];
+  if (studentQuery.error) {
+    toast.error(
+      "Không tìm thấy bản ghi học sinh cho năm học trước, vui lòng chọn năm mới",
+    );
+  }
+
+  const transferClassDataMutation = useTransferClassData();
+  const transferStudentDataMutation = useTransferStudentData();
 
   const [grade, setGrade] = useState("");
   const [className, setClassName] = useState("");
-  console.log(selectedStudents);
 
   // Xử lý chuyển dữ liệu
-  const handleTransfer = () => {};
+  const handleTransfer = () => {
+    if (mode === "class") {
+      if (selectedClasses.length === 0) {
+        toast.error("Vui lòng chọn ít nhất một lớp để chuyển");
+        return;
+      }
+      const data = selectedClasses.map((cls) => ({
+        classId: cls.classId,
+        targetClassId: cls.targetClassId,
+        academicYearId: previousYear?.academicYearID,
+        targetAcademicYearId: currentYear?.academicYearID,
+      }));
+      console.log(data);
+      transferClassDataMutation.mutate(data);
+    }
+    if (mode === "student") {
+      if (selectedStudents.length === 0) {
+        toast.error("Vui lòng chọn ít nhất một học sinh để chuyển");
+        return;
+      }
+      // console.log(selectedStudents);
+      const data = selectedStudents.map((student) => ({
+        studentId: student.studentId,
+        classId: student.toClass,
+        academicYearId: currentYear?.academicYearID,
+      }));
+      console.log(data);
+      transferStudentDataMutation.mutate(data);
+    }
+  };
+
+  // console.log(selectedStudents);
 
   // UI loading skeleton
   if (classQuery.isLoading) {
     return (
       <Card className="mt-6 border shadow">
         <CardHeader>
-          <CardTitle>Chuyển dữ liệu học sinh</CardTitle>
+          <CardTitle className="text-2xl font-bold">
+            Chuyển dữ liệu học sinh
+          </CardTitle>
         </CardHeader>
         <CardContent>
           <Skeleton className="mb-4 h-10 w-1/3" />
@@ -146,7 +200,10 @@ export default function TransferData() {
             })}
           </SelectContent>
         </Select>
-        <Button onClick={() => setOpen(true)} className="ml-auto">
+        <Button
+          onClick={handleTransfer}
+          className="ml-auto cursor-pointer bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-700"
+        >
           Thực hiện chuyển dữ liệu
         </Button>
       </div>
