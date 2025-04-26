@@ -152,9 +152,9 @@ const menuItems = [
     roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
   },
   {
-    label: "Tạo lịch giảng dạy",
+    label: "Danh được phân công làm giáo án ",
     icon: ClipboardList,
-    path: "/teacher/lesson-plan/create",
+    path: "/teacher/lesson-plan-by-teacher",
     roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
   },
   {
@@ -221,9 +221,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${
-        isOpen ? "w-64" : "w-16"
-      } sidebar-scrollbar overflow-y-auto`}
+      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${isOpen ? "w-64" : "w-16"
+        } sidebar-scrollbar overflow-y-auto`}
     >
       {/* Button đóng/mở menu */}
       <div
@@ -240,9 +239,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {filteredMenuItems.map((item) => (
           <button
             key={item.label}
-            className={`flex h-12 w-full cursor-pointer items-center rounded-md px-2 hover:bg-sky-600 ${
-              isMenuActive(item) ? "bg-sky-500" : ""
-            }`}
+            className={`flex h-12 w-full cursor-pointer items-center rounded-md px-2 hover:bg-sky-600 ${isMenuActive(item) ? "bg-sky-500" : ""
+              }`}
             onClick={() => navigate(item.path)}
           >
             <div className="flex w-8 shrink-0 justify-center">
