@@ -25,8 +25,6 @@ public partial class Student
 
     public string? Religion { get; set; }
 
-    public bool? RepeatingYear { get; set; }
-
     public string? IdcardNumber { get; set; }
 
     public string? Status { get; set; }

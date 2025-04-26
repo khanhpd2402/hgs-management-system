@@ -20,5 +20,6 @@ namespace Application.Features.StudentClass.Interfaces
         Task<List<StudentClass.DTOs.ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
         Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassesAsync();
         Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassByLastAcademicYearAsync(int currentAcademicYearId);
+        Task<IEnumerable<StudentClassResponseDto>> GetRepeatStudentsByAcademicYearAsync(int academicYearId);
     }
 }

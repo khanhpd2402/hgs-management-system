@@ -594,9 +594,6 @@ namespace Application.Features.Students.Services
                 if (!string.IsNullOrWhiteSpace(updateStudentDto.Religion) && updateStudentDto.Religion != "string")
                     student.Religion = updateStudentDto.Religion;
 
-                if (updateStudentDto.RepeatingYear != null)
-                    student.RepeatingYear = updateStudentDto.RepeatingYear.Value;
-
                 if (!string.IsNullOrWhiteSpace(updateStudentDto.IdcardNumber) && updateStudentDto.IdcardNumber != "string")
                 {
                     if (updateStudentDto.IdcardNumber != student.IdcardNumber)
@@ -922,7 +919,6 @@ namespace Application.Features.Students.Services
                             PermanentAddress = row.TryGetValue("Địa chỉ thường trú", out var permAddress) ? permAddress.Trim() : null,
                             BirthPlace = row.TryGetValue("Nơi sinh", out var birthPlace) ? birthPlace.Trim() : null,
                             Religion = row.TryGetValue("Tôn giáo", out var religion) ? religion.Trim() : null,
-                            RepeatingYear = row.TryGetValue("Lưu ban", out var repeating) && repeating.Trim().ToLower() == "có",
                             IdcardNumber = idCardNumber?.Trim(),
                             Status = row.TryGetValue("Trạng thái", out var status) ? status.Trim() : "Đang học",
                             StudentClasses = new List<Domain.Models.StudentClass>
