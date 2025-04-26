@@ -149,10 +149,10 @@ const menuItems = [
     label: "Quản lý giáo án",
     icon: FileText,
     path: "/teacher/lesson-plan",
-    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+    roles: ["Trưởng bộ môn", "Hiệu phó"],
   },
   {
-    label: "Danh được phân công làm giáo án ",
+    label: "Danh sách được phân công làm giáo án ",
     icon: ClipboardList,
     path: "/teacher/lesson-plan-by-teacher",
     roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
