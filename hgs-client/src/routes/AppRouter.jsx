@@ -1,4 +1,3 @@
-import { FallbackErrorBoundary } from "@/components/FallbackErrorBoundary";
 import AuthLayout from "@/layouts/AuthLayout/AuthLayout";
 import DefaultLayout from "@/layouts/DefaultLayout/DefaultLayout";
 import Login from "@/pages/Login/Login";
@@ -285,7 +284,7 @@ const teacherRouter = [
       <ProtectedRoute
         requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
       >
-        <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+        <ErrorBoundary fallback={<ErrorRouteComponent />}>
           <Suspense fallback={<Spinner />}>
             <TeacherTable />
           </Suspense>
@@ -297,7 +296,7 @@ const teacherRouter = [
   {
     path: "/teacher/profile/:id",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
@@ -312,7 +311,7 @@ const teacherRouter = [
   {
     path: "/teacher/profile/create-teacher",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
@@ -324,7 +323,7 @@ const teacherRouter = [
   {
     path: "/system/teaching-assignment",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
           <Suspense fallback={<Spinner />}>
             <TATable />
@@ -359,7 +358,7 @@ const teacherRouter = [
   {
     path: "/system/grade-batch",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute requiredRoles={["Hiệu trưởng", "Hiệu phó"]}>
           <Suspense fallback={<Spinner />}>
             <GradeBatch />
@@ -471,7 +470,7 @@ const studentRouter = [
   {
     path: "/student/profile",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
@@ -485,7 +484,7 @@ const studentRouter = [
   {
     path: "/student/profile/:id",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >
@@ -499,7 +498,7 @@ const studentRouter = [
   {
     path: "/student/profile/create-student",
     element: (
-      <ErrorBoundary fallback={<FallbackErrorBoundary />}>
+      <ErrorBoundary fallback={<ErrorRouteComponent />}>
         <ProtectedRoute
           requiredRoles={["Hiệu trưởng", "Hiệu phó", "Cán bộ văn thư"]}
         >

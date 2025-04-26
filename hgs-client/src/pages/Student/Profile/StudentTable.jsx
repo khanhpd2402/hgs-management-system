@@ -170,7 +170,7 @@ export default function StudentTable() {
   }
 
   return (
-    <Card className="p-4">
+    <div className="mt-4">
       <StudentTableHeader
         setFilter={setFilter}
         type="student"
@@ -180,7 +180,7 @@ export default function StudentTable() {
         data={data?.students}
       />
 
-      <div className="max-h-[400px] overflow-auto border border-gray-200">
+      <Card className="max-h-[400px] overflow-auto border border-gray-200">
         <div className="min-w-max">
           <div>
             <Table className="w-full border-collapse">
@@ -458,7 +458,7 @@ export default function StudentTable() {
             </Table>
           </div>
         </div>
-      </div>
+      </Card>
       <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
@@ -474,6 +474,6 @@ export default function StudentTable() {
           onPageChange={setFilter}
         />
       </div>
-    </Card>
+    </div>
   );
 }

@@ -154,12 +154,12 @@ export default function TeacherTable() {
 
   if (isError) {
     return (
-      <div className="rounded border border-red-300 bg-red-50 p-4 text-red-500">
+      <div className="border border-red-300 bg-red-50 p-4 text-red-500">
         <h3 className="font-bold">Đã xảy ra lỗi:</h3>
         <p>{error.message || "Không thể tải dữ liệu nhân viên"}</p>
         <button
           onClick={() => queryClient.invalidateQueries(["employees"])}
-          className="mt-2 rounded bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
+          className="mt-2 bg-blue-500 px-4 py-2 text-white hover:bg-blue-600"
         >
           Thử lại
         </button>
@@ -168,7 +168,7 @@ export default function TeacherTable() {
   }
 
   return (
-    <Card className="p-4">
+    <div className="mt-2">
       <TeacherTableHeader
         setFilter={setFilter}
         type="teachers"
@@ -178,7 +178,7 @@ export default function TeacherTable() {
         data={data?.teachers}
       />
 
-      <div className="max-h-[500px] overflow-auto border border-gray-200">
+      <Card className="max-h-[500px] overflow-auto border border-gray-200">
         <div className="min-w-max">
           <Table className="w-full border-collapse">
             <TableHeader className="bg-gray-100">
@@ -370,7 +370,7 @@ export default function TeacherTable() {
             </TableBody>
           </Table>
         </div>
-      </div>
+      </Card>
       <div className="mt-4 flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
@@ -414,6 +414,6 @@ export default function TeacherTable() {
           </DialogFooter>
         </DialogContent>
       </Dialog>
-    </Card>
+    </div>
   );
 }

@@ -27,8 +27,10 @@ import { useState } from "react";
 import { useStudents } from "@/services/student/queries";
 import { cleanString } from "@/helpers/removeWhiteSpace";
 import { X } from "lucide-react";
+import { useNavigate } from "react-router";
 
 export default function AddStudent() {
+  const navigate = useNavigate();
   const { currentYear } = useLayout();
   const classQuery = useClasses();
   const academicYearId = currentYear?.academicYearID;
@@ -660,14 +662,25 @@ export default function AddStudent() {
 
   return (
     <>
+      <Button
+        onClick={() => navigate("/student/profile")}
+        className="mt-2 cursor-pointer bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-700"
+      >
+        Quay lại
+      </Button>
+
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className="container mx-auto space-y-6 py-6"
+        className="mx-auto mt-4 space-y-6"
       >
         {/* Header with title and save button */}
         <div className="flex items-center justify-between">
           <h1 className="text-3xl font-bold">Thêm mới hồ sơ học sinh</h1>
-          <Button type="submit" disabled={isUpdating}>
+          <Button
+            type="submit"
+            disabled={isUpdating}
+            className="cursor-pointer bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-700"
+          >
             {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>
@@ -934,7 +947,11 @@ export default function AddStudent() {
 
         {/* Submit button at bottom for convenience */}
         <div className="flex justify-end">
-          <Button type="submit" disabled={isUpdating} size="lg">
+          <Button
+            type="submit"
+            disabled={isUpdating}
+            className="cursor-pointer bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-700"
+          >
             {isUpdating ? "Đang lưu..." : "Lưu"}
           </Button>
         </div>

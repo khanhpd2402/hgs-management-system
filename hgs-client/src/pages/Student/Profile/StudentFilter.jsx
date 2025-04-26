@@ -59,7 +59,12 @@ export default function StudentFilter({ setFilter }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Lọc</Button>
+      <Button
+        onClick={() => setOpen(true)}
+        className="cursor-pointer bg-blue-600 font-semibold hover:bg-blue-700"
+      >
+        Lọc
+      </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -119,7 +124,12 @@ export default function StudentFilter({ setFilter }) {
               <Button type="button" variant="outline" onClick={handleReset}>
                 Reset
               </Button>
-              <Button type="submit">Xác nhận</Button>
+              <Button
+                type="submit"
+                className="cursor-pointer bg-blue-600 font-semibold hover:bg-blue-700"
+              >
+                Xác nhận
+              </Button>
             </div>
           </form>
         </DialogContent>
