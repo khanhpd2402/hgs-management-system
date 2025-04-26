@@ -129,7 +129,9 @@ namespace Application.Features.Students.Services
             new Domain.Models.StudentClass
             {
                 ClassId = createStudentDto.ClassId,
-                AcademicYearId = currentAcademicYearId
+                AcademicYearId = currentAcademicYearId,
+                RepeatingYear = false,
+                
             }
         };
 
@@ -926,7 +928,8 @@ namespace Application.Features.Students.Services
                         new Domain.Models.StudentClass
                         {
                             ClassId = classEntity.ClassId,
-                            AcademicYearId = currentAcademicYear.AcademicYearId
+                            AcademicYearId = currentAcademicYear.AcademicYearId,
+                            RepeatingYear = false
                         }
                     }
                         };
