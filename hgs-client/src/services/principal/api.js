@@ -196,3 +196,12 @@ export const getStudentPreviousYear = async (id) => {
     )
   ).data;
 };
+
+//transfer data
+export const transferClassData = async (data) => {
+  return (await axiosInstance.post(`StudentClass/bulk-transfer`, data)).data;
+};
+
+export const transferStudentData = async (data) => {
+  return (await axiosInstance.put(`StudentClass`, data)).data;
+};
