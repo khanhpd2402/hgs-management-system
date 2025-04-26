@@ -18,3 +18,19 @@ export const getTimetableForPrincipal = async (timetableId) => {
   );
   return response.data;
 };
+
+export const createSubstituteTeaching = async (payload) => {
+  const response = await axiosInstance.post("SubstituteTeachings", payload);
+  return response.data;
+};
+
+export const getSubstituteTeachings = async (
+  timetableDetailId,
+  originalTeacherId,
+  date,
+) => {
+  const response = await axiosInstance.get(
+    `SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+  );
+  return response.data;
+};

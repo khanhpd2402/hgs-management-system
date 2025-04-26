@@ -1,42 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import axios from 'axios';
-import { Card, Button, Descriptions, Space, Modal, Form, Input, message } from 'antd';
+import { Card, Button, Descriptions, Space, Modal, Form, Input } from 'antd';
 import { EditOutlined, EyeOutlined } from '@ant-design/icons';
 import toast from 'react-hot-toast';
+import { useLessonPlanById } from '../../../services/lessonPlan/queries';
+import { useUpdateLessonPlan } from '../../../services/lessonPlan/mutations';
 
 const AddDocument = () => {
-    const [lessonPlan, setLessonPlan] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [isUpdateModalVisible, setIsUpdateModalVisible] = useState(false);
     const [isPreviewVisible, setIsPreviewVisible] = useState(false);
     const [form] = Form.useForm();
     const { planId } = useParams();
     const navigate = useNavigate();
 
-    const getToken = () => localStorage.getItem('token')?.replace(/^"|"$/g, '');
-
-    const fetchLessonPlan = async () => {
-        try {
-            const response = await axios.get(`https://localhost:8386/api/LessonPlan/${planId}`, {
-                headers: { Authorization: `Bearer ${getToken()}` },
-            });
-            setLessonPlan(response.data);
-            setLoading(false);
-        } catch (error) {
-            console.error('Error fetching lesson plan:', error);
-            message.error('Không thể tải chi tiết giáo án');
-            setLoading(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchLessonPlan();
-    }, [planId]);
+    const { data: lessonPlan, isLoading: loading, refetch } = useLessonPlanById(planId);
+    const updateLessonPlanMutation = useUpdateLessonPlan();
 
     const formatDate = (dateString) =>
         dateString
-            ? new Date(dateString).toLocaleDateString('vi-VN', {
+            ? new Date(dateString).toLocaleString('vi-VN', {
                 day: '2-digit',
                 month: '2-digit',
                 year: 'numeric',
@@ -58,78 +40,60 @@ const AddDocument = () => {
         return url;
     };
 
+    const showUpdateModal = () => {
+        form.setFieldsValue({
+            title: lessonPlan.title,
+            planContent: lessonPlan.planContent,
+            attachmentUrl: lessonPlan.attachmentUrl,
+        });
+        setIsUpdateModalVisible(true);
+    };
+
     const handleUpdate = async (values) => {
         try {
-            // Validate required fields
             if (!values.title || !values.planContent) {
                 toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
                 return;
             }
 
-            // Validate dates
             const startDate = new Date(lessonPlan.startDate);
             const endDate = new Date(lessonPlan.endDate);
             const currentDate = new Date();
-
-
-            if (isNaN(startDate) || isNaN(endDate)) {
-                toast.error('Ngày bắt đầu hoặc ngày kết thúc không hợp lệ');
-                return;
-            }
 
             if (startDate >= endDate) {
                 toast.error('Ngày kết thúc phải sau ngày bắt đầu');
                 return;
             }
 
-
-
             if (currentDate < startDate || currentDate > endDate) {
-                const formattedStart = formatDate(startDate);
-                const formattedEnd = formatDate(endDate);
-                toast.error(`Bạn chỉ có thể cập nhật giáo án từ ngày ${formattedStart} đến ${formattedEnd}`);
+                toast.error(
+                    `Bạn chỉ có thể cập nhật giáo án từ ngày ${formatDate(startDate)} đến ${formatDate(endDate)}`
+                );
                 return;
             }
-            console.log("startDate: ", startDate)
-            console.log("endDate: ", endDate)
-            console.log("currentDate: ", currentDate)
-            console.log("currentDate >= startDate: ", currentDate >= startDate)
-            console.log("currentDate <= endDate: ", currentDate <= endDate)
 
-            await axios.put(
-                `https://localhost:8386/api/LessonPlan/${planId}/update`,
-                values,
-                {
-                    headers: {
-                        Authorization: `Bearer ${getToken()}`,
-                        'Content-Type': 'application/json',
-                    },
-                }
-            );
+            await updateLessonPlanMutation.mutateAsync({
+                planId,
+                data: {
+                    ...lessonPlan,
+                    ...values,
+                },
+            });
 
             toast.success('Cập nhật giáo án thành công!');
             setIsUpdateModalVisible(false);
-            fetchLessonPlan();
+            refetch();
         } catch (error) {
-            console.error('Error updating lesson plan:', error);
-            toast.error(error.response?.data?.message || 'Cập nhật giáo án thất bại');
+            toast.error(error?.response?.data?.message || 'Cập nhật thất bại');
         }
     };
 
-    const showUpdateModal = () => {
-        form.setFieldsValue({
-            planContent: lessonPlan.planContent,
-            title: lessonPlan.title,
-            attachmentUrl: lessonPlan.attachmentUrl,
-        });
-        setIsUpdateModalVisible(true);
-    };
-
     return (
-        <div style={{ padding: '24px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+        <div style={{ padding: 24 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <h2>Chi tiết giáo án</h2>
             </div>
+
             {loading ? (
                 <div>Đang tải...</div>
             ) : lessonPlan ? (
@@ -152,18 +116,14 @@ const AddDocument = () => {
                                 {lessonPlan.attachmentUrl ? (
                                     <>
                                         <a href={lessonPlan.attachmentUrl} target="_blank" rel="noopener noreferrer">
-                                            Link drive
+                                            Link Drive
                                         </a>
                                         <Button
                                             type="primary"
-                                            size="small"
                                             icon={<EyeOutlined />}
-                                            style={{
-                                                borderRadius: '6px',
-                                                background: '#1890ff',
-                                                boxShadow: '0 2px 4px rgba(24, 144, 255, 0.2)',
-                                            }}
                                             onClick={() => setIsPreviewVisible(true)}
+                                            size="small"
+                                            style={{ borderRadius: '6px', background: '#1890ff' }}
                                         >
                                             Xem nhanh
                                         </Button>
@@ -175,7 +135,7 @@ const AddDocument = () => {
                         </Descriptions.Item>
                     </Descriptions>
 
-                    <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'space-between' }}>
+                    <div style={{ marginTop: 24, display: 'flex', justifyContent: 'space-between' }}>
                         <Button type="primary" icon={<EditOutlined />} onClick={showUpdateModal}>
                             Cập nhật giáo án
                         </Button>
@@ -192,7 +152,7 @@ const AddDocument = () => {
                 onCancel={() => setIsUpdateModalVisible(false)}
                 footer={null}
             >
-                <Form form={form} onFinish={handleUpdate} layout="vertical">
+                <Form form={form} layout="vertical" onFinish={handleUpdate}>
                     <Form.Item
                         name="title"
                         label="Tiêu đề"
@@ -207,7 +167,7 @@ const AddDocument = () => {
                     >
                         <Input.TextArea rows={4} />
                     </Form.Item>
-                    <Form.Item name="attachmentUrl" label="URL đính kèm">
+                    <Form.Item name="attachmentUrl" label="URL tài liệu đính kèm">
                         <Input />
                     </Form.Item>
                     <Form.Item>

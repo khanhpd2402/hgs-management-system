@@ -110,10 +110,10 @@ const UploadLessonPlan = () => {
         try {
             await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
-            const toastId = toast.success('Tạo lịch giáo án thành công!');
+            const toastId = toast.success('Tạo lịch phân công giáo án thành công!');
             setTimeout(() => {
                 toast.dismiss(toastId);
-                navigate('/teacher/lesson-plan');
+                navigate(-1);
             }, 2100);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Có lỗi xảy ra khi tạo giáo án');
