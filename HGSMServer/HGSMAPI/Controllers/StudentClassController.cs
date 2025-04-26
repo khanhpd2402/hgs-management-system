@@ -194,9 +194,9 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPost("bulk-transfer")] 
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")] 
-        public async Task<ActionResult<BulkTransferResultDto>> BulkTransferClass([FromBody] BulkClassTransferDto dto) // Kiểu trả về là ActionResult<BulkTransferResultDto>
+        [HttpPost("bulk-transfer")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+        public async Task<ActionResult<List<BulkTransferResultDto>>> BulkTransferClass([FromBody] List<BulkClassTransferDto> dtos)
         {
             if (!ModelState.IsValid)
             {
@@ -205,8 +205,13 @@ namespace HGSMAPI.Controllers
 
             try
             {
-                var result = await _studentClassService.BulkTransferClassAsync(dto); 
-                return Ok(result);
+                var results = new List<BulkTransferResultDto>();
+                foreach (var dto in dtos)
+                {
+                    var result = await _studentClassService.BulkTransferClassAsync(dto);
+                    results.Add(result);
+                }
+                return Ok(results);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -225,7 +230,6 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, new { Message = "Đã xảy ra lỗi trong quá trình chuyển lớp hàng loạt.", Detail = ex.Message });
             }
         }
-
         [HttpPost("process-graduation/{academicYearId}")] 
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")] 
         public async Task<IActionResult> ProcessGraduation(int academicYearId)
