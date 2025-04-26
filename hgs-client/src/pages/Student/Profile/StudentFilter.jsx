@@ -17,6 +17,7 @@ import {
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
 import { useClasses, useGradeLevels } from "@/services/common/queries";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 StudentFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
@@ -43,7 +44,7 @@ export default function StudentFilter({ setFilter }) {
     setFilter((options) => ({
       ...options,
       page: 1,
-      search: search.trim(),
+      search: cleanString(search.trim()),
       grade,
       className,
     }));

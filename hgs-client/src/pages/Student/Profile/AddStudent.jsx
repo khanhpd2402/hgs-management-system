@@ -109,7 +109,14 @@ export default function AddStudent() {
 
   const studentSchema = z
     .object({
-      fullName: z.string().min(1, "Họ và tên không được để trống"),
+      fullName: z
+        .string()
+        .min(1, "Họ và tên không được để trống")
+        .max(25, "Họ và tên tối đa 25 kí tự")
+        .regex(
+          /^[\p{L}\s]+$/u,
+          "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+        ),
       dob: z
         .date()
         .nullable()
@@ -136,13 +143,33 @@ export default function AddStudent() {
         }),
       enrollmentType: z
         .string()
-        .min(1, "Hình thức trúng tuyển không được để trống"),
-      ethnicity: z.string().min(1, "Dân tộc không được để trống"),
+        .min(1, "Hình thức trúng tuyển không được để trống")
+        .max(30, "Hình thức trúng tuyển tối đa 30 kí tự")
+        .regex(
+          /^[\p{L}\s]+$/u,
+          "Hình thức trúng tuyển không được chứa số hoặc ký tự đặc biệt",
+        ),
+      ethnicity: z
+        .string()
+        .min(1, "Dân tộc không được để trống")
+        .max(20, "Dân tộc tối đa 20 kí tự")
+        .regex(
+          /^[\p{L}\s]+$/u,
+          "Dân tộc không được chứa số hoặc ký tự đặc biệt",
+        ),
       permanentAddress: z
         .string()
-        .min(1, "Địa chỉ thưởng trú không được để trống"),
+        .min(1, "Địa chỉ thưởng trú không được để trống")
+        .max(200, "Địa chỉ tối đa 200 kí tự"),
       birthPlace: z.string().min(1, "Nơi sinh không được để trống"),
-      religion: z.string().min(1, "Tôn giáo không được để trống"),
+      religion: z
+        .string()
+        .min(1, "Tôn giáo không được để trống")
+        .max(20, "Tôn giáo tối đa 20 kí tự")
+        .regex(
+          /^[\p{L}\s]+$/u,
+          "Tôn giáo không được chứa số hoặc ký tự đặc biệt",
+        ),
       repeatingYear: z.boolean().default(false),
       idcardNumber: z
         .string()
@@ -156,17 +183,53 @@ export default function AddStudent() {
       status: z.string().min(1, "Vui lòng chọn trạng thái"),
 
       // Father information
-      fullNameFather: z
-        .string()
-        .min(showFatherInfo ? 1 : 0, "Họ và tên không được để trống"),
+      fullNameFather: z.string().superRefine((val, ctx) => {
+        if (showFatherInfo) {
+          if (!val || val.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên không được để trống",
+            });
+          } else if (val.length > 25) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên tối đa 25 kí tự",
+            });
+          } else if (!/^[\p{L}\s]+$/u.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+            });
+          }
+        }
+        return z.NEVER;
+      }),
       yearOfBirthFather: z
         .union([z.date(), z.null()])
         .refine((val) => !showFatherInfo || val !== null, {
           message: "Vui lòng chọn ngày sinh",
         }),
-      occupationFather: z
-        .string()
-        .min(showFatherInfo ? 1 : 0, "Nghề nghiệp không được để trống"),
+      occupationFather: z.string().superRefine((val, ctx) => {
+        if (showFatherInfo) {
+          if (!val || val.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp không được để trống",
+            });
+          } else if (val.length > 30) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp tối đa 30 kí tự",
+            });
+          } else if (!/^[\p{L}\s]+$/u.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp không được chứa số hoặc ký tự đặc biệt",
+            });
+          }
+        }
+        return z.NEVER;
+      }),
       phoneNumberFather: z
         .string()
         .min(showFatherInfo ? 1 : 0, "Số điện thoại không được để trống")
@@ -210,17 +273,53 @@ export default function AddStudent() {
         .optional(),
 
       // Mother information
-      fullNameMother: z
-        .string()
-        .min(showMotherInfo ? 1 : 0, "Họ và tên không được để trống"),
+      fullNameMother: z.string().superRefine((val, ctx) => {
+        if (showMotherInfo) {
+          if (!val || val.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên không được để trống",
+            });
+          } else if (val.length > 25) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên tối đa 25 kí tự",
+            });
+          } else if (!/^[\p{L}\s]+$/u.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+            });
+          }
+        }
+        return z.NEVER;
+      }),
       yearOfBirthMother: z
         .union([z.date(), z.null()])
         .refine((val) => !showMotherInfo || val !== null, {
           message: "Vui lòng chọn ngày sinh",
         }),
-      occupationMother: z
-        .string()
-        .min(showMotherInfo ? 1 : 0, "Nghề nghiệp không được để trống"),
+      occupationMother: z.string().superRefine((val, ctx) => {
+        if (showMotherInfo) {
+          if (!val || val.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp không được để trống",
+            });
+          } else if (val.length > 30) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp tối đa 30 kí tự",
+            });
+          } else if (!/^[\p{L}\s]+$/u.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp không được chứa số hoặc ký tự đặc biệt",
+            });
+          }
+        }
+        return z.NEVER;
+      }),
       phoneNumberMother: z
         .string()
         .min(showMotherInfo ? 1 : 0, "Số điện thoại không được để trống")
@@ -259,17 +358,53 @@ export default function AddStudent() {
         .optional(),
 
       // Guardian information
-      fullNameGuardian: z
-        .string()
-        .min(showGuardianInfo ? 1 : 0, "Họ và tên không được để trống"),
+      fullNameGuardian: z.string().superRefine((val, ctx) => {
+        if (showGuardianInfo) {
+          if (!val || val.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên không được để trống",
+            });
+          } else if (val.length > 25) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên tối đa 25 kí tự",
+            });
+          } else if (!/^[\p{L}\s]+$/u.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Họ và tên không được chứa số hoặc ký tự đặc biệt",
+            });
+          }
+        }
+        return z.NEVER;
+      }),
       yearOfBirthGuardian: z
         .union([z.date(), z.null()])
         .refine((val) => !showGuardianInfo || val !== null, {
           message: "Vui lòng chọn ngày sinh",
         }),
-      occupationGuardian: z
-        .string()
-        .min(showGuardianInfo ? 1 : 0, "Nghề nghiệp không được để trống"),
+      occupationGuardian: z.string().superRefine((val, ctx) => {
+        if (showGuardianInfo) {
+          if (!val || val.trim().length === 0) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp không được để trống",
+            });
+          } else if (val.length > 30) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp tối đa 30 kí tự",
+            });
+          } else if (!/^[\p{L}\s]+$/u.test(val)) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              message: "Nghề nghiệp không được chứa số hoặc ký tự đặc biệt",
+            });
+          }
+        }
+        return z.NEVER;
+      }),
       phoneNumberGuardian: z
         .string()
         .min(showGuardianInfo ? 1 : 0, "Số điện thoại không được để trống")
@@ -367,11 +502,12 @@ export default function AddStudent() {
       emailGuardian: "",
       yearOfBirthGuardian: null,
     },
-    mode: "onBlur",
-    reValidateMode: "onBlur",
+    mode: "onSubmit",
+    reValidateMode: "onSubmit",
   });
 
   // Submit handler
+
   const onSubmit = (formData) => {
     // if (!showFatherInfo && !showMotherInfo && !showGuardianInfo) {
     //   return;

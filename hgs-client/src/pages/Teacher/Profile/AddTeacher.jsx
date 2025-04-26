@@ -33,6 +33,7 @@ export default function AddTeacher() {
     fullName: z
       .string()
       .min(1, "Họ và tên không được để trống")
+      .max(25, "Họ và tên tối đa 25 kí tự")
       .regex(
         /^[\p{L}\s]+$/u,
         "Họ và tên không được chứa số hoặc ký tự đặc biệt",

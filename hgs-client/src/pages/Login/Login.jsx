@@ -20,9 +20,10 @@ import { useForm } from "react-hook-form";
 import * as z from "zod";
 import "./Login.scss";
 import { useLoginMutation } from "@/services/common/mutation";
-import { useNavigate } from "react-router";
+import { Navigate, useNavigate } from "react-router";
 import { useEffect } from "react";
 import { jwtDecode } from "jwt-decode";
+import { isAuthenticated } from "@/utils/authUtils";
 
 const formSchema = z.object({
   username: z.string().min(1, "Tên đăng nhập là bắt buộc"),
@@ -40,23 +41,12 @@ const Login = () => {
 
   // Check if user is already logged in
   useEffect(() => {
-    const token = JSON.parse(localStorage.getItem("token"));
-    const userRole = token ? jwtDecode(token).role : null;
-
-    if (userRole) {
-      redirectBasedOnRole(userRole);
+    // const token = JSON.parse(localStorage.getItem("token"));
+    // const userRole = token ? jwtDecode(token).role : null;
+    if (isAuthenticated()) {
+      return <Navigate to="/home" />;
     }
   }, [navigate]);
-
-  const redirectBasedOnRole = (role) => {
-    switch (role) {
-      case "Hiệu trưởng":
-        navigate("/home");
-        break;
-      default:
-        navigate("/home");
-    }
-  };
 
   const form = useForm({
     resolver: zodResolver(formSchema),
@@ -71,10 +61,10 @@ const Login = () => {
       onSuccess: (data) => {
         // Store token and user role in localStorage
         localStorage.setItem("token", JSON.stringify(data.token));
-        const role = jwtDecode(data.token).role;
+        navigate("/home");
+        // const role = jwtDecode(data.token).role;
 
         // Redirect based on role
-        redirectBasedOnRole(role);
       },
     });
   };

@@ -30,10 +30,14 @@ export function useCreateStudent() {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        toast.error("Đã có lỗi xảy ra");
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
-        toast.success("Thêm thành công");
+        toast.success("Thêm mới học sinh thành công");
         queryClient.invalidateQueries("students");
       }
     },
