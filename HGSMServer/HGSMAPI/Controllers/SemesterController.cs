@@ -21,18 +21,19 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching all semesters...");
                 var result = await _service.GetAllSemester();
                 return Ok(result);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching semesters: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi lấy danh sách học kỳ." });
+                return BadRequest("Lỗi khi lấy danh sách học kỳ.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error fetching semesters: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy danh sách học kỳ." });
+                return StatusCode(500, "Lỗi khi lấy danh sách học kỳ.");
             }
         }
 
@@ -44,21 +45,22 @@ namespace HGSMAPI.Controllers
                 if (academicYearId <= 0)
                 {
                     Console.WriteLine("Invalid AcademicYearId.");
-                    return BadRequest(new { message = "AcademicYearId không hợp lệ." });
+                    return BadRequest("AcademicYearId không hợp lệ.");
                 }
 
+                Console.WriteLine("Fetching semesters by academic year...");
                 var result = await _service.GetByAcademicYearIdAsync(academicYearId);
                 return Ok(result);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching semesters by academic year: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi lấy danh sách học kỳ." });
+                return BadRequest("Lỗi khi lấy danh sách học kỳ.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error fetching semesters by academic year: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy danh sách học kỳ." });
+                return StatusCode(500, "Lỗi khi lấy danh sách học kỳ.");
             }
         }
 
@@ -70,21 +72,22 @@ namespace HGSMAPI.Controllers
                 if (id <= 0)
                 {
                     Console.WriteLine("Invalid semester ID.");
-                    return BadRequest(new { message = "ID học kỳ không hợp lệ." });
+                    return BadRequest("ID học kỳ không hợp lệ.");
                 }
 
+                Console.WriteLine("Fetching semester...");
                 var result = await _service.GetByIdAsync(id);
                 return Ok(result);
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error fetching semester: {ex.Message}");
-                return NotFound(new { message = "Không tìm thấy học kỳ." });
+                return NotFound("Không tìm thấy học kỳ.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error fetching semester: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy thông tin học kỳ." });
+                return StatusCode(500, "Lỗi khi lấy thông tin học kỳ.");
             }
         }
 
@@ -96,31 +99,32 @@ namespace HGSMAPI.Controllers
                 if (semesterDto == null)
                 {
                     Console.WriteLine("Semester data is null.");
-                    return BadRequest(new { message = "Thông tin học kỳ không được để trống." });
+                    return BadRequest("Thông tin học kỳ không được để trống.");
                 }
 
+                Console.WriteLine("Creating semester...");
                 await _service.AddAsync(semesterDto);
-                return Ok(new { message = "Tạo học kỳ thành công!" });
+                return Ok("Tạo học kỳ thành công.");
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error creating semester: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi tạo học kỳ." });
+                return BadRequest("Lỗi khi tạo học kỳ.");
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error creating semester: {ex.Message}");
-                return NotFound(new { message = "Không tìm thấy năm học." });
+                return NotFound("Không tìm thấy năm học.");
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error creating semester: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi tạo học kỳ." });
+                return BadRequest("Lỗi khi tạo học kỳ.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error creating semester: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi tạo học kỳ." });
+                return StatusCode(500, "Lỗi khi tạo học kỳ.");
             }
         }
 
@@ -132,43 +136,44 @@ namespace HGSMAPI.Controllers
                 if (id <= 0)
                 {
                     Console.WriteLine("Invalid semester ID.");
-                    return BadRequest(new { message = "ID học kỳ không hợp lệ." });
+                    return BadRequest("ID học kỳ không hợp lệ.");
                 }
 
                 if (semesterDto == null)
                 {
                     Console.WriteLine("Semester data is null.");
-                    return BadRequest(new { message = "Thông tin học kỳ không được để trống." });
+                    return BadRequest("Thông tin học kỳ không được để trống.");
                 }
 
                 if (id != semesterDto.SemesterID)
                 {
                     Console.WriteLine("ID mismatch in update request.");
-                    return BadRequest(new { message = "ID không khớp." });
+                    return BadRequest("ID không khớp.");
                 }
 
+                Console.WriteLine("Updating semester...");
                 await _service.UpdateAsync(semesterDto);
-                return Ok(new { message = "Cập nhật học kỳ thành công!" });
+                return Ok("Cập nhật học kỳ thành công.");
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating semester: {ex.Message}");
-                return NotFound(new { message = "Không tìm thấy học kỳ." });
+                return NotFound("Không tìm thấy học kỳ.");
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error updating semester: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi cập nhật học kỳ." });
+                return BadRequest("Lỗi khi cập nhật học kỳ.");
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating semester: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi cập nhật học kỳ." });
+                return BadRequest("Lỗi khi cập nhật học kỳ.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error updating semester: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật học kỳ." });
+                return StatusCode(500, "Lỗi khi cập nhật học kỳ.");
             }
         }
 
@@ -180,26 +185,27 @@ namespace HGSMAPI.Controllers
                 if (id <= 0)
                 {
                     Console.WriteLine("Invalid semester ID.");
-                    return BadRequest(new { message = "ID học kỳ không hợp lệ." });
+                    return BadRequest("ID học kỳ không hợp lệ.");
                 }
 
+                Console.WriteLine("Deleting semester...");
                 await _service.DeleteAsync(id);
-                return Ok(new { message = "Xóa học kỳ thành công!" });
+                return Ok("Xóa học kỳ thành công.");
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error deleting semester: {ex.Message}");
-                return NotFound(new { message = "Không tìm thấy học kỳ." });
+                return NotFound("Không tìm thấy học kỳ.");
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error deleting semester: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi xóa học kỳ." });
+                return BadRequest("Lỗi khi xóa học kỳ.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error deleting semester: {ex.Message}");
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi xóa học kỳ." });
+                return StatusCode(500, "Lỗi khi xóa học kỳ.");
             }
         }
     }

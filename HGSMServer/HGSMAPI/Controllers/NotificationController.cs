@@ -3,7 +3,6 @@ using Application.Features.Teachers.Interfaces;
 using Common.Utils;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -30,14 +29,17 @@ namespace HGSMAPI.Controllers
             {
                 if (request == null || string.IsNullOrWhiteSpace(request.Subject) || string.IsNullOrWhiteSpace(request.Body))
                 {
-                    return BadRequest(new { message = "Tiêu đề và nội dung tin nhắn không được để trống." });
+                    Console.WriteLine("Invalid notification data.");
+                    return BadRequest("Tiêu đề và nội dung tin nhắn không được để trống.");
                 }
 
                 if (request.TeacherIds == null || !request.TeacherIds.Any())
                 {
-                    return BadRequest(new { message = "Danh sách ID giáo viên không được để trống." });
+                    Console.WriteLine("Empty teacher IDs list.");
+                    return BadRequest("Danh sách ID giáo viên không được để trống.");
                 }
 
+                Console.WriteLine("Sending notification...");
                 var teacherEmails = new List<string>();
                 foreach (var teacherId in request.TeacherIds)
                 {
@@ -57,7 +59,8 @@ namespace HGSMAPI.Controllers
 
                 if (!teacherEmails.Any())
                 {
-                    return BadRequest(new { message = "Không tìm thấy email hợp lệ nào để gửi tin nhắn." });
+                    Console.WriteLine("No valid emails found.");
+                    return BadRequest("Không tìm thấy email hợp lệ để gửi tin nhắn.");
                 }
 
                 await _emailService.SendEmailToMultipleRecipientsAsync(
@@ -67,19 +70,22 @@ namespace HGSMAPI.Controllers
                     isHtml: request.IsHtml
                 );
 
-                return Ok(new { message = "Gửi tin nhắn thành công!" });
+                return Ok("Gửi tin nhắn thành công.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error sending notification: {ex.Message}");
+                return BadRequest("Lỗi khi gửi tin nhắn.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error sending notification: {ex.Message}");
+                return BadRequest("Lỗi khi gửi tin nhắn.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình gửi tin nhắn." });
+                Console.WriteLine($"Unexpected error sending notification: {ex.Message}");
+                return StatusCode(500, "Lỗi khi gửi tin nhắn.");
             }
         }
     }

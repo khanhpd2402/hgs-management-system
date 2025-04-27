@@ -24,21 +24,38 @@ namespace HGSMAPI.Controllers
         [HttpGet("{academicYearId}")]
         public async Task<IActionResult> GetAllStudentsWithParents(int academicYearId)
         {
-            var students = await _studentService.GetAllStudentsWithParentsAsync(academicYearId);
-            return Ok(students);
+            try
+            {
+                Console.WriteLine("Fetching all students with parents...");
+                var students = await _studentService.GetAllStudentsWithParentsAsync(academicYearId);
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching students: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách học sinh.");
+            }
         }
 
         [HttpGet("{id}/{academicYearId}")]
         public async Task<ActionResult<StudentDto>> GetStudent(int id, int academicYearId)
         {
-            var student = await _studentService.GetStudentByIdAsync(id, academicYearId);
-            if (student == null)
+            try
             {
-                Console.WriteLine("Student not found.");
-                return NotFound(new ApiResponse(false, "Không tìm thấy học sinh."));
+                Console.WriteLine("Fetching student...");
+                var student = await _studentService.GetStudentByIdAsync(id, academicYearId);
+                if (student == null)
+                {
+                    Console.WriteLine("Student not found.");
+                    return NotFound("Không tìm thấy học sinh.");
+                }
+                return Ok(student);
             }
-
-            return Ok(student);
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching student: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thông tin học sinh.");
+            }
         }
 
         [HttpPost]
@@ -48,32 +65,33 @@ namespace HGSMAPI.Controllers
             if (createStudentDto == null)
             {
                 Console.WriteLine("Student data is null.");
-                return BadRequest(new ApiResponse(false, "Dữ liệu học sinh không được để trống."));
+                return BadRequest("Dữ liệu học sinh không được để trống.");
             }
 
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                 Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
-                return BadRequest(new ApiResponse(false, "Dữ liệu đầu vào không hợp lệ.", errors));
+                return BadRequest("Dữ liệu đầu vào không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Creating student...");
                 var studentId = await _studentService.AddStudentAsync(createStudentDto);
                 var academicYearId = createStudentDto.AcademicYearId ?? await GetCurrentAcademicYearIdAsync();
                 var createdStudent = await _studentService.GetStudentByIdAsync(studentId, academicYearId);
                 if (createdStudent == null)
                 {
                     Console.WriteLine("Student not found after creation.");
-                    return NotFound(new ApiResponse(false, "Không tìm thấy học sinh sau khi tạo."));
+                    return NotFound("Không tìm thấy học sinh sau khi tạo.");
                 }
                 return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId }, createdStudent);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating student: {ex.Message}");
-                return BadRequest(new ApiResponse(false, "Lỗi khi thêm học sinh."));
+                return BadRequest("Lỗi khi thêm học sinh.");
             }
         }
 
@@ -100,23 +118,24 @@ namespace HGSMAPI.Controllers
             if (updateStudentDto == null)
             {
                 Console.WriteLine("Student data is null.");
-                return BadRequest(new ApiResponse(false, "Dữ liệu học sinh không được để trống."));
+                return BadRequest("Dữ liệu học sinh không được để trống.");
             }
 
             try
             {
+                Console.WriteLine("Updating student...");
                 await _studentService.UpdateStudentAsync(id, updateStudentDto);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating student: {ex.Message}");
-                return NotFound(new ApiResponse(false, "Không tìm thấy học sinh."));
+                return NotFound("Không tìm thấy học sinh.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating student: {ex.Message}");
-                return BadRequest(new ApiResponse(false, "Lỗi khi cập nhật học sinh."));
+                return BadRequest("Lỗi khi cập nhật học sinh.");
             }
         }
 
@@ -125,13 +144,14 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Deleting student...");
                 await _studentService.DeleteStudentAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error deleting student: {ex.Message}");
-                return BadRequest(new ApiResponse(false, "Lỗi khi xóa học sinh."));
+                return BadRequest("Lỗi khi xóa học sinh.");
             }
         }
 
@@ -141,32 +161,19 @@ namespace HGSMAPI.Controllers
             if (file == null || file.Length == 0)
             {
                 Console.WriteLine("Excel file is empty or not provided.");
-                return BadRequest(new ApiResponse(false, "Vui lòng chọn file Excel!"));
+                return BadRequest("Vui lòng chọn file Excel!");
             }
 
             try
             {
+                Console.WriteLine("Importing students from Excel...");
                 var results = await _studentService.ImportStudentsFromExcelAsync(file);
-                return Ok(new ApiResponse(true, "Import danh sách học sinh hoàn tất", results));
+                return Ok(results);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error importing students: {ex.Message}");
-                return BadRequest(new ApiResponse(false, "Lỗi khi nhập học sinh từ Excel."));
-            }
-        }
-
-        public class ApiResponse
-        {
-            public bool Success { get; set; }
-            public string Message { get; set; }
-            public object Data { get; set; }
-
-            public ApiResponse(bool success, string message, object data = null)
-            {
-                Success = success;
-                Message = message;
-                Data = data;
+                return BadRequest("Lỗi khi nhập học sinh từ Excel.");
             }
         }
     }

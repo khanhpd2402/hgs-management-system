@@ -2,8 +2,6 @@
 using Application.Features.LessonPlans.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -24,24 +22,29 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Creating lesson plan...");
                 var createdPlan = await _lessonPlanService.CreateLessonPlanAsync(createDto);
-                return CreatedAtAction(nameof(GetLessonPlanById), new { planId = createdPlan.PlanId }, new { message = "Tạo giáo án thành công!", plan = createdPlan });
+                return CreatedAtAction(nameof(GetLessonPlanById), new { planId = createdPlan.PlanId }, createdPlan);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error creating lesson plan: {ex.Message}");
+                return BadRequest("Lỗi khi tạo giáo án.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error creating lesson plan: {ex.Message}");
+                return BadRequest("Lỗi khi tạo giáo án.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình tạo giáo án." });
+                Console.WriteLine($"Unexpected error creating lesson plan: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo giáo án.");
             }
         }
 
@@ -49,31 +52,37 @@ namespace HGSMAPI.Controllers
         [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
         public async Task<IActionResult> UpdateMyLessonPlan(int planId, [FromBody] LessonPlanUpdateDto updateDto)
         {
-            if (planId <= 0)
-            {
-                return BadRequest(new { message = "Plan ID không hợp lệ." });
-            }
-
             try
             {
+                if (planId <= 0)
+                {
+                    Console.WriteLine("Invalid plan ID.");
+                    return BadRequest("Plan ID không hợp lệ.");
+                }
+
+                Console.WriteLine("Updating lesson plan...");
                 await _lessonPlanService.UpdateMyLessonPlanAsync(planId, updateDto);
-                return Ok(new { message = "Cập nhật giáo án thành công.", planId });
+                return Ok("Cập nhật giáo án thành công.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error updating lesson plan: {ex.Message}");
+                return NotFound("Không tìm thấy giáo án.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error updating lesson plan: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật giáo án.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình cập nhật giáo án." });
+                Console.WriteLine($"Unexpected error updating lesson plan: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật giáo án.");
             }
         }
 
@@ -83,28 +92,34 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Reviewing lesson plan...");
                 await _lessonPlanService.ReviewLessonPlanAsync(reviewDto);
-                return Ok(new { message = "Duyệt giáo án thành công.", planId = reviewDto.PlanId, status = reviewDto.Status });
+                return Ok("Duyệt giáo án thành công.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error reviewing lesson plan: {ex.Message}");
+                return NotFound("Không tìm thấy giáo án.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error reviewing lesson plan: {ex.Message}");
+                return BadRequest("Lỗi khi duyệt giáo án.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error reviewing lesson plan: {ex.Message}");
+                return BadRequest("Lỗi khi duyệt giáo án.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình duyệt giáo án." });
+                Console.WriteLine($"Unexpected error reviewing lesson plan: {ex.Message}");
+                return StatusCode(500, "Lỗi khi duyệt giáo án.");
             }
         }
 
@@ -112,21 +127,24 @@ namespace HGSMAPI.Controllers
         [Authorize(Roles = "Cán bộ văn thư,Trưởng bộ môn,Hiệu trưởng")]
         public async Task<IActionResult> GetAllLessonPlans([FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageSize < 1) pageSize = 10;
-
             try
             {
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+
+                Console.WriteLine("Fetching all lesson plans...");
                 var (lessonPlans, totalCount) = await _lessonPlanService.GetAllLessonPlansAsync(pageNumber, pageSize);
                 return Ok(new { lessonPlans, totalCount, pageNumber, pageSize });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error fetching lesson plans: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách giáo án.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy danh sách giáo án." });
+                Console.WriteLine($"Unexpected error fetching lesson plans: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách giáo án.");
             }
         }
 
@@ -134,26 +152,30 @@ namespace HGSMAPI.Controllers
         [Authorize(Roles = "Giáo viên,Trưởng bộ môn,Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> GetLessonPlansByTeacher(int teacherId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            if (teacherId <= 0)
-            {
-                return BadRequest(new { message = "Teacher ID không hợp lệ." });
-            }
-
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageSize < 1) pageSize = 10;
-
             try
             {
+                if (teacherId <= 0)
+                {
+                    Console.WriteLine("Invalid teacher ID.");
+                    return BadRequest("Teacher ID không hợp lệ.");
+                }
+
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+
+                Console.WriteLine("Fetching lesson plans by teacher...");
                 var (lessonPlans, totalCount) = await _lessonPlanService.GetLessonPlansByTeacherAsync(teacherId, pageNumber, pageSize);
                 return Ok(new { lessonPlans, totalCount, pageNumber, pageSize });
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error fetching lesson plans: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách giáo án của giáo viên.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy danh sách giáo án của giáo viên." });
+                Console.WriteLine($"Unexpected error fetching lesson plans: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách giáo án của giáo viên.");
             }
         }
 
@@ -161,23 +183,27 @@ namespace HGSMAPI.Controllers
         [Authorize(Roles = "Giáo viên,Trưởng bộ môn,Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> GetLessonPlanById(int planId)
         {
-            if (planId <= 0)
-            {
-                return BadRequest(new { message = "Plan ID không hợp lệ." });
-            }
-
             try
             {
+                if (planId <= 0)
+                {
+                    Console.WriteLine("Invalid plan ID.");
+                    return BadRequest("Plan ID không hợp lệ.");
+                }
+
+                Console.WriteLine("Fetching lesson plan...");
                 var lessonPlan = await _lessonPlanService.GetLessonPlanByIdAsync(planId);
                 return Ok(lessonPlan);
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error fetching lesson plan: {ex.Message}");
+                return NotFound("Không tìm thấy giáo án.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy thông tin giáo án." });
+                Console.WriteLine($"Unexpected error fetching lesson plan: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin giáo án.");
             }
         }
 
@@ -185,25 +211,29 @@ namespace HGSMAPI.Controllers
         [Authorize(Roles = "Giáo viên,Trưởng bộ môn,Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> GetLessonPlansByStatus([FromQuery] string status, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
-            if (pageNumber < 1) pageNumber = 1;
-            if (pageSize < 1) pageSize = 10;
-
             try
             {
+                if (pageNumber < 1) pageNumber = 1;
+                if (pageSize < 1) pageSize = 10;
+
+                Console.WriteLine("Filtering lesson plans by status...");
                 var (lessonPlans, totalCount) = await _lessonPlanService.GetLessonPlansByStatusAsync(status, pageNumber, pageSize);
                 return Ok(new { lessonPlans, totalCount, pageNumber, pageSize });
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error filtering lesson plans: {ex.Message}");
+                return BadRequest("Lỗi khi lọc giáo án theo trạng thái.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error filtering lesson plans: {ex.Message}");
+                return BadRequest("Lỗi khi lọc giáo án theo trạng thái.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lọc giáo án theo trạng thái." });
+                Console.WriteLine($"Unexpected error filtering lesson plans: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lọc giáo án theo trạng thái.");
             }
         }
     }
