@@ -121,11 +121,13 @@ namespace Application.Features.TeacherSubjects.Services
 
                 if (teacherSubject != null)
                 {
+                    // Cập nhật IsMainSubject nếu môn học đã tồn tại
                     teacherSubject.IsMainSubject = subjectInfo.IsMainSubject;
                     await _repository.UpdateAsync(teacherSubject);
                 }
                 else
                 {
+                    // Thêm môn học mới
                     var newTeacherSubject = new TeacherSubject
                     {
                         TeacherId = dto.TeacherId,
@@ -135,6 +137,7 @@ namespace Application.Features.TeacherSubjects.Services
                     await _repository.AddAsync(newTeacherSubject);
                 }
             }
+            // Không xóa bất kỳ môn học hiện có nào, ngay cả khi chúng không có trong dto.Subjects
         }
 
         public async Task DeleteAsync(int id)
