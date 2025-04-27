@@ -119,7 +119,7 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _service.DeleteAsync(id);
-                return Ok(new { message = $"Năm học với ID {id} đã được xóa thành công!" }); // Hoặc NoContent()
+                return Ok(new { message = $"Xóa năm học thành công!" }); 
             }
             catch (KeyNotFoundException ex)
             {

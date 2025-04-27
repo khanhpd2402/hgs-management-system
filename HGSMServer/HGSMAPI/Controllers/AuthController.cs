@@ -44,7 +44,7 @@ namespace HGSMAPI.Controllers
         {
             if (loginDto == null || string.IsNullOrEmpty(loginDto.Username) || string.IsNullOrEmpty(loginDto.Password))
             {
-                return BadRequest(new { message = "Username and password are required." });
+                return BadRequest(new { message = "Vui lòng điền đầy đủ tài khoản và mật khẩu." });
             }
 
             Console.WriteLine($"Attempting to login with username: {loginDto.Username}");
@@ -53,7 +53,7 @@ namespace HGSMAPI.Controllers
             if (user == null)
             {
                 Console.WriteLine($"User with username {loginDto.Username} not found.");
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Unauthorized(new { message = "Tài khoản không hợp lệ." });
             }
 
             Console.WriteLine($"User found: {user.Username}, Status: {user.Status}");
@@ -61,7 +61,7 @@ namespace HGSMAPI.Controllers
             if (user.Status == "Không hoạt động")
             {
                 Console.WriteLine($"User {user.Username} Không hoạt động.");
-                return Unauthorized(new { message = "Your account is deactivated. Please contact the administrator." });
+                return Unauthorized(new { message = "Tài khoản của bạn không hoạt động. Liên hệ cán bộ văn thử để giải quyết." });
             }
 
             // Kiểm tra mật khẩu
@@ -69,7 +69,7 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"Password verification failed for user {loginDto.Username}.");
                 Console.WriteLine($"Stored hash: {user.PasswordHash}");
-                return Unauthorized(new { message = "Invalid username or password." });
+                return Unauthorized(new { message = "Mật khẩu không đúng." });
             }
 
             Console.WriteLine($"Password verified successfully for user {loginDto.Username}.");
@@ -78,7 +78,7 @@ namespace HGSMAPI.Controllers
             if (string.IsNullOrEmpty(userRole))
             {
                 Console.WriteLine($"Role not found for user {user.Username} with RoleId {user.RoleId}.");
-                return StatusCode(500, new { message = "Role not found for this user." });
+                return StatusCode(500, new { message = "Vai trò không hợp lệ." });
             }
 
             Console.WriteLine($"User role: {userRole}");
@@ -87,7 +87,7 @@ namespace HGSMAPI.Controllers
             string effectiveRole = userRole;
             if (teacher != null && teacher.IsHeadOfDepartment == true)
             {
-                effectiveRole = "HeadOfDepartment";
+                effectiveRole = "Trưởng bộ môn";
                 Console.WriteLine($"User {user.Username} is HeadOfDepartment. Effective role: {effectiveRole}");
             }
 
@@ -131,7 +131,7 @@ namespace HGSMAPI.Controllers
             HttpContext.Session.Clear();
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
             Console.WriteLine("User logged out successfully.");
-            return Ok(new { message = "Logged out successfully." });
+            return Ok(new { message = "Đăng xuất thành công." });
         }
 
         [HttpPost("assign-role")]
@@ -140,32 +140,32 @@ namespace HGSMAPI.Controllers
         {
             if (assignRoleDto == null || assignRoleDto.UserId <= 0 || assignRoleDto.RoleId <= 0)
             {
-                return BadRequest(new { message = "UserId and RoleId are required and must be positive." });
+                return BadRequest(new { message = "Id phải là số dương." });
             }
 
             var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
             if (string.IsNullOrEmpty(currentUserRole) || !new[] { "Hiệu trưởng", "Cán bộ văn thư" }.Contains(currentUserRole))
             {
-                return StatusCode(403, new { message = "You do not have permission to assign roles." });
+                return StatusCode(403, new { message = "Bạn không có quyền phân công vai trò người dùng." });
             }
 
             // Kiểm tra vai trò hợp lệ dựa trên RoleName
             var role = await _roleService.GetRoleByIdAsync(assignRoleDto.RoleId);
             if (role == null)
             {
-                return BadRequest(new { message = "Invalid RoleId. Role does not exist." });
+                return BadRequest(new { message = "Vai trò không tồn tại." });
             }
 
             var validRoleNames = new[] { "Cán bộ văn thư", "Trưởng bộ môn", "Phụ huynh", "Hiệu trưởng", "Giáo viên", "Hiệu phó" };
             if (!validRoleNames.Contains(role.RoleName))
             {
-                return BadRequest(new { message = $"Invalid role. RoleName must be one of: {string.Join(", ", validRoleNames)}." });
+                return BadRequest(new { message = "Vai trò không tồn tại." });
             }
 
             var userToUpdate = await _userService.GetUserByIdAsync(assignRoleDto.UserId);
             if (userToUpdate == null)
             {
-                return NotFound(new { message = "User not found." });
+                return NotFound(new { message = "Không tìm thấy người dùng." });
             }
 
             // Ánh xạ từ UserDTO sang UpdateUserDTO
@@ -180,7 +180,7 @@ namespace HGSMAPI.Controllers
 
             await _userService.UpdateUserAsync(updateUserDto);
 
-            return Ok(new { message = "Role assigned successfully.", userId = assignRoleDto.UserId, newRoleId = assignRoleDto.RoleId, newRoleName = role.RoleName });
+            return Ok(new { message = "Phân công vai trò người dùng thành công.", userId = assignRoleDto.UserId, newRoleId = assignRoleDto.RoleId, newRoleName = role.RoleName });
         }
 
         private bool VerifyPassword(string inputPassword, string storedHash)
@@ -199,7 +199,7 @@ namespace HGSMAPI.Controllers
         private async Task<string> GetAndValidateUserRole(int roleId)
         {
             var userRole = await _userService.GetRoleNameByRoleIdAsync(roleId);
-            return userRole ?? throw new InvalidOperationException($"Role with ID {roleId} not found.");
+            return userRole ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
         }
     }
 }

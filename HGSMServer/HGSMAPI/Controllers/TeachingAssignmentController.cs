@@ -23,7 +23,7 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _teachingAssignmentService.CreateTeachingAssignmentsAsync(dtos);
-                return Ok("Teaching assignments created successfully.");
+                return Ok("Phân công giảng dạy thành công.");
             }
             catch (Exception ex)
             {
@@ -68,7 +68,7 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
-                return Ok("Teaching assignments updated successfully.");
+                return Ok("Cập nhật phân công giảng dạy thành công.");
             }
             catch (Exception ex)
             {
@@ -77,7 +77,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("all")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Giáo viên")]
         public async Task<IActionResult> GetAllTeachingAssignments([FromQuery] int semesterId)
         {
             try
@@ -92,7 +92,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("teacher/{teacherId}/semester/{semesterId}")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Teacher")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Giáo viên")]
         public async Task<IActionResult> GetTeachingAssignmentsByTeacherId(int teacherId, int semesterId)
         {
             try
@@ -107,13 +107,13 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpDelete("teacher/{teacherId}/semester/{semesterId}")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư,Giáo viên")]
         public async Task<IActionResult> DeleteTeachingAssignmentsByTeacherIdAndSemesterId(int teacherId, int semesterId)
         {
             try
             {
                 await _teachingAssignmentService.DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(teacherId, semesterId);
-                return Ok("Teaching assignments deleted successfully.");
+                return Ok("Xóa phân công giảng dạy thành công.");
             }
             catch (Exception ex)
             {

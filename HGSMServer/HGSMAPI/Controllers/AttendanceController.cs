@@ -15,8 +15,6 @@ namespace HGSMAPI.Controllers
         {
             _service = service;
         }
-
-        // GET: api/attendance/weekly?teacherId=123&classId=1&semesterId=2&weekStart=2025-04-21
         [HttpGet("weekly")]
         public async Task<IActionResult> GetWeeklyAttendance(
             [FromQuery] int teacherId,
@@ -27,8 +25,6 @@ namespace HGSMAPI.Controllers
             var data = await _service.GetWeeklyAttendanceAsync(teacherId, classId, semesterId, weekStart);
             return Ok(data);
         }
-
-        // POST: api/attendance/upsert?teacherId=123&classId=1&semesterId=2
         [HttpPost("upsert")]
         public async Task<IActionResult> UpsertAttendances(
             [FromQuery] int teacherId,
