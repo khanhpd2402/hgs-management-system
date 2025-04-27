@@ -41,7 +41,7 @@ namespace Application.Features.TeacherSubjects.Services
             var teacherSubject = await _repository.GetByIdAsync(id);
             if (teacherSubject == null)
             {
-                throw new ArgumentException($"TeacherSubject with Id {id} does not exist.");
+                throw new ArgumentException("TeacherSubject does not exist.");
             }
             return _mapper.Map<TeacherSubjectDto>(teacherSubject);
         }
@@ -51,7 +51,7 @@ namespace Application.Features.TeacherSubjects.Services
             var teacher = await _teacherRepository.GetByIdAsync(teacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+                throw new ArgumentException("Teacher does not exist.");
             }
 
             var teacherSubjects = await _repository.GetAllAsync();
@@ -67,7 +67,7 @@ namespace Application.Features.TeacherSubjects.Services
             var subject = await _subjectRepository.GetByIdAsync(subjectId);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {subjectId} does not exist.");
+                throw new ArgumentException("Subject does not exist.");
             }
 
             var teacherSubjects = await _repository.GetAllAsync();
@@ -83,19 +83,19 @@ namespace Application.Features.TeacherSubjects.Services
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+                throw new ArgumentException("Teacher does not exist.");
             }
 
             var subject = await _subjectRepository.GetByIdAsync(dto.SubjectId);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
+                throw new ArgumentException("Subject does not exist.");
             }
 
             var existingTeacherSubject = await _repository.GetAllAsync();
             if (existingTeacherSubject.Any(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId))
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} is already assigned to Subject with Id {dto.SubjectId}.");
+                throw new ArgumentException("Teacher is already assigned to this subject.");
             }
 
             var teacherSubject = _mapper.Map<TeacherSubject>(dto);
@@ -107,7 +107,7 @@ namespace Application.Features.TeacherSubjects.Services
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+                throw new ArgumentException("Teacher does not exist.");
             }
 
             var existingTeacherSubjects = await _repository.GetAllAsync();
@@ -117,7 +117,7 @@ namespace Application.Features.TeacherSubjects.Services
                 var subject = await _subjectRepository.GetByIdAsync(subjectInfo.SubjectId);
                 if (subject == null)
                 {
-                    throw new ArgumentException($"Subject with Id {subjectInfo.SubjectId} does not exist.");
+                    throw new ArgumentException("Subject does not exist.");
                 }
 
                 var teacherSubject = existingTeacherSubjects
@@ -146,7 +146,7 @@ namespace Application.Features.TeacherSubjects.Services
             var teacherSubject = await _repository.GetByIdAsync(id);
             if (teacherSubject == null)
             {
-                throw new ArgumentException($"TeacherSubject with Id {id} does not exist.");
+                throw new ArgumentException("TeacherSubject does not exist.");
             }
 
             await _repository.DeleteAsync(id);
