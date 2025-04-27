@@ -23,8 +23,9 @@ public class TeachersController : ControllerBase
     [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
     public async Task<IActionResult> GetAllTeachers()
     {
+        Console.WriteLine("Fetching all teachers...");
         var result = await _teacherService.GetAllTeachersAsync();
-        return Ok(new ApiResponse(true, "Lấy danh sách giáo viên thành công.", result));
+        return Ok(result);
     }
 
     [HttpGet("{id}")]
@@ -33,19 +34,20 @@ public class TeachersController : ControllerBase
     {
         try
         {
+            Console.WriteLine("Fetching teacher...");
             var teacher = await _teacherService.GetTeacherByIdAsync(id);
             if (teacher == null)
             {
                 Console.WriteLine("Teacher not found.");
-                return NotFound(new ApiResponse(false, "Không tìm thấy giáo viên."));
+                return NotFound("Không tìm thấy giáo viên.");
             }
 
-            return Ok(new ApiResponse(true, "Lấy thông tin giáo viên thành công.", teacher));
+            return Ok(teacher);
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error fetching teacher: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi lấy thông tin giáo viên."));
+            return BadRequest("Lỗi khi lấy thông tin giáo viên.");
         }
     }
 
@@ -55,24 +57,25 @@ public class TeachersController : ControllerBase
     {
         try
         {
+            Console.WriteLine("Fetching teacher email...");
             var email = await _teacherService.GetEmailByTeacherIdAsync(id);
             if (string.IsNullOrEmpty(email))
             {
                 Console.WriteLine("Email not found for teacher.");
-                return NotFound(new ApiResponse(false, "Không tìm thấy email của giáo viên."));
+                return NotFound("Không tìm thấy email của giáo viên.");
             }
 
-            return Ok(new ApiResponse(true, "Lấy email giáo viên thành công.", new { Email = email }));
+            return Ok(new { Email = email });
         }
         catch (KeyNotFoundException ex)
         {
             Console.WriteLine($"Error fetching email: {ex.Message}");
-            return NotFound(new ApiResponse(false, "Không tìm thấy email của giáo viên."));
+            return NotFound("Không tìm thấy email của giáo viên.");
         }
         catch (InvalidOperationException ex)
         {
             Console.WriteLine($"Error fetching email: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi lấy email giáo viên."));
+            return BadRequest("Lỗi khi lấy email giáo viên.");
         }
     }
 
@@ -85,22 +88,22 @@ public class TeachersController : ControllerBase
             if (teacherDto == null)
             {
                 Console.WriteLine("Teacher data is null.");
-                return BadRequest(new ApiResponse(false, "Dữ liệu giáo viên không được để trống."));
+                return BadRequest("Dữ liệu giáo viên không được để trống.");
             }
 
+            Console.WriteLine("Adding teacher...");
             await _teacherService.AddTeacherAsync(teacherDto);
-            return CreatedAtAction(nameof(GetTeacherById), new { id = teacherDto.TeacherId },
-                new ApiResponse(true, "Thêm giáo viên thành công."));
+            return CreatedAtAction(nameof(GetTeacherById), new { id = teacherDto.TeacherId }, "Thêm giáo viên thành công.");
         }
         catch (ArgumentException ex)
         {
             Console.WriteLine($"Error adding teacher: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi thêm giáo viên."));
+            return BadRequest("Lỗi khi thêm giáo viên.");
         }
         catch (InvalidOperationException ex)
         {
             Console.WriteLine($"Error adding teacher: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi thêm giáo viên."));
+            return BadRequest("Lỗi khi thêm giáo viên.");
         }
     }
 
@@ -113,33 +116,34 @@ public class TeachersController : ControllerBase
             if (teacherDto == null || id != teacherDto.TeacherId)
             {
                 Console.WriteLine("Invalid teacher data or ID mismatch.");
-                return BadRequest(new ApiResponse(false, "Dữ liệu không hợp lệ hoặc ID không khớp."));
+                return BadRequest("Dữ liệu không hợp lệ hoặc ID không khớp.");
             }
 
+            Console.WriteLine("Updating teacher...");
             await _teacherService.UpdateTeacherAsync(id, teacherDto);
             var updatedTeacher = await _teacherService.GetTeacherByIdAsync(id);
             if (updatedTeacher == null)
             {
                 Console.WriteLine("Teacher not found after update.");
-                return NotFound(new ApiResponse(false, "Không tìm thấy giáo viên."));
+                return NotFound("Không tìm thấy giáo viên.");
             }
 
-            return Ok(new ApiResponse(true, "Cập nhật giáo viên thành công.", updatedTeacher));
+            return Ok("Cập nhật giáo viên thành công.");
         }
         catch (KeyNotFoundException ex)
         {
             Console.WriteLine($"Error updating teacher: {ex.Message}");
-            return NotFound(new ApiResponse(false, "Không tìm thấy giáo viên."));
+            return NotFound("Không tìm thấy giáo viên.");
         }
         catch (ArgumentException ex)
         {
             Console.WriteLine($"Error updating teacher: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi cập nhật giáo viên."));
+            return BadRequest("Lỗi khi cập nhật giáo viên.");
         }
         catch (InvalidOperationException ex)
         {
             Console.WriteLine($"Error updating teacher: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi cập nhật giáo viên."));
+            return BadRequest("Lỗi khi cập nhật giáo viên.");
         }
     }
 
@@ -149,19 +153,20 @@ public class TeachersController : ControllerBase
     {
         try
         {
+            Console.WriteLine("Deleting teacher...");
             var result = await _teacherService.DeleteTeacherAsync(id);
             if (!result)
             {
                 Console.WriteLine("Teacher not found for deletion.");
-                return NotFound(new ApiResponse(false, "Không tìm thấy giáo viên để xóa."));
+                return NotFound("Không tìm thấy giáo viên để xóa.");
             }
 
-            return Ok(new ApiResponse(true, "Xóa giáo viên thành công."));
+            return Ok("Xóa giáo viên thành công.");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error deleting teacher: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi xóa giáo viên."));
+            return BadRequest("Lỗi khi xóa giáo viên.");
         }
     }
 
@@ -174,36 +179,23 @@ public class TeachersController : ControllerBase
             if (file == null || file.Length == 0)
             {
                 Console.WriteLine("Excel file is empty or not provided.");
-                return BadRequest(new ApiResponse(false, "Vui lòng chọn file Excel!"));
+                return BadRequest("Vui lòng chọn file Excel!");
             }
 
+            Console.WriteLine("Importing teachers from Excel...");
             var (success, errors) = await _teacherService.ImportTeachersFromExcelAsync(file);
             if (!success)
             {
                 Console.WriteLine("Error importing teachers from Excel.");
-                return BadRequest(new ApiResponse(false, "Lỗi khi nhập giáo viên từ Excel.", errors));
+                return BadRequest("Lỗi khi nhập giáo viên từ Excel.");
             }
 
-            return Ok(new ApiResponse(true, "Nhập giáo viên từ Excel thành công."));
+            return Ok("Nhập giáo viên từ Excel thành công.");
         }
         catch (Exception ex)
         {
             Console.WriteLine($"Error importing teachers: {ex.Message}");
-            return BadRequest(new ApiResponse(false, "Lỗi khi nhập giáo viên từ Excel."));
-        }
-    }
-
-    public class ApiResponse
-    {
-        public bool Success { get; set; }
-        public string Message { get; set; }
-        public object Data { get; set; }
-
-        public ApiResponse(bool success, string message, object data = null)
-        {
-            Success = success;
-            Message = message;
-            Data = data;
+            return BadRequest("Lỗi khi nhập giáo viên từ Excel.");
         }
     }
 }

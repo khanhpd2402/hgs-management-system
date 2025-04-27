@@ -15,50 +15,83 @@ namespace HGSMAPI.Controllers
             _gradeService = gradesService;
         }
 
-        // Học sinh xem điểm
         [HttpGet("student")]
         public async Task<IActionResult> GetGradesForStudent(int studentId, int semesterId)
         {
-            var result = await _gradeService.GetGradesForStudentAsync(studentId, semesterId);
-            return Ok(result);
-        }
-
-        // Giáo viên xem điểm theo lớp - môn - học kỳ
-        [HttpGet("teacher")]
-        public async Task<IActionResult> GetGradesForTeacher(int teacherId, int classId, int subjectId, int semesterId)
-        {
-            var result = await _gradeService.GetGradesForTeacherAsync(teacherId, classId, subjectId, semesterId);
-            return Ok(result);
-        }
-
-        // Hiệu trưởng xem điểm toàn trường theo lớp - môn - học kỳ
-        [HttpGet("school")]
-        public async Task<IActionResult> GetGradesForPrincipal(int classId, int subjectId, int semesterId)
-        {
-            var result = await _gradeService.GetGradesForPrincipalAsync(classId, subjectId, semesterId);
-            return Ok(result);
-        }
-        [HttpPut("update-multiple-scores")]
-        public async Task<IActionResult> UpdateMultipleGrades([FromBody] UpdateMultipleGradesDto dto)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
             try
             {
-                var result = await _gradeService.UpdateMultipleGradesAsync(dto);
-                if (!result)
-                    return NotFound("No grades found to update");
-
-                return Ok("Grades updated successfully");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
+                Console.WriteLine("Fetching grades for student...");
+                var result = await _gradeService.GetGradesForStudentAsync(studentId, semesterId);
+                return Ok(result);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Error fetching grades for student: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy điểm của học sinh.");
+            }
+        }
+
+        [HttpGet("teacher")]
+        public async Task<IActionResult> GetGradesForTeacher(int teacherId, int classId, int subjectId, int semesterId)
+        {
+            try
+            {
+                Console.WriteLine("Fetching grades for teacher...");
+                var result = await _gradeService.GetGradesForTeacherAsync(teacherId, classId, subjectId, semesterId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching grades for teacher: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy điểm của giáo viên.");
+            }
+        }
+
+        [HttpGet("school")]
+        public async Task<IActionResult> GetGradesForPrincipal(int classId, int subjectId, int semesterId)
+        {
+            try
+            {
+                Console.WriteLine("Fetching grades for principal...");
+                var result = await _gradeService.GetGradesForPrincipalAsync(classId, subjectId, semesterId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching grades for principal: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy điểm toàn trường.");
+            }
+        }
+
+        [HttpPut("update-multiple-scores")]
+        public async Task<IActionResult> UpdateMultipleGrades([FromBody] UpdateMultipleGradesDto dto)
+        {
+            try
+            {
+                if (!ModelState.IsValid)
+                {
+                    Console.WriteLine("Invalid grade data.");
+                    return BadRequest("Dữ liệu không hợp lệ.");
+                }
+
+                Console.WriteLine("Updating multiple grades...");
+                var result = await _gradeService.UpdateMultipleGradesAsync(dto);
+                if (!result)
+                {
+                    Console.WriteLine("No grades found to update.");
+                    return NotFound("Không tìm thấy điểm để cập nhật.");
+                }
+                return Ok("Cập nhật điểm thành công.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error updating grades: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật điểm.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error updating grades: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật điểm.");
             }
         }
     }

@@ -36,7 +36,7 @@ namespace HGSMAPI.Controllers
             if (user == null)
             {
                 Console.WriteLine("User not found.");
-                return NotFound(new { message = "Không tìm thấy người dùng." });
+                return NotFound("Không tìm thấy người dùng.");
             }
 
             return Ok(user);
@@ -50,7 +50,7 @@ namespace HGSMAPI.Controllers
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                 Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
-                return BadRequest(new { message = "Nhập thông tin không hợp lệ.", errors });
+                return BadRequest("Nhập thông tin không hợp lệ.");
             }
 
             Console.WriteLine("Creating new user...");
@@ -65,13 +65,13 @@ namespace HGSMAPI.Controllers
             if (userDto == null)
             {
                 Console.WriteLine("User data is null.");
-                return BadRequest(new { message = "Thông tin người dùng không được để trống." });
+                return BadRequest("Thông tin người dùng không được để trống.");
             }
 
             if (id != userDto.UserId)
             {
                 Console.WriteLine("ID mismatch.");
-                return BadRequest(new { message = "ID không khớp." });
+                return BadRequest("ID không khớp.");
             }
 
             try
@@ -83,12 +83,12 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error updating user: {ex.Message}");
-                return NotFound(new { message = "Không tìm thấy người dùng." });
+                return NotFound("Không tìm thấy người dùng.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error updating user: {ex.Message}");
-                return StatusCode(500, new { message = "Lỗi khi cập nhật thông tin người dùng." });
+                return StatusCode(500, "Lỗi khi cập nhật thông tin người dùng.");
             }
         }
 
@@ -100,17 +100,17 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine("Deleting user...");
                 await _userService.DeleteUserAsync(id);
-                return StatusCode(200, new { message = "Xóa người dùng thành công." });
+                return Ok("Xóa người dùng thành công.");
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error deleting user: {ex.Message}");
-                return NotFound(new { message = "Không tìm thấy người dùng." });
+                return NotFound("Không tìm thấy người dùng.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error deleting user: {ex.Message}");
-                return StatusCode(500, new { message = "Lỗi khi xóa người dùng." });
+                return StatusCode(500, "Lỗi khi xóa người dùng.");
             }
         }
 
@@ -121,7 +121,7 @@ namespace HGSMAPI.Controllers
             if (changePasswordDto == null || string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
             {
                 Console.WriteLine("Invalid password input data.");
-                return BadRequest(new { message = "Mật khẩu cũ và mới không được để trống." });
+                return BadRequest("Mật khẩu cũ và mới không được để trống.");
             }
 
             try
@@ -130,28 +130,28 @@ namespace HGSMAPI.Controllers
                 if (userIdClaim == null)
                 {
                     Console.WriteLine("User ID not found in token.");
-                    return Unauthorized(new { message = "Không tìm thấy ID người dùng trong token." });
+                    return Unauthorized("Không tìm thấy ID người dùng trong token.");
                 }
 
                 var userId = int.Parse(userIdClaim.Value);
                 Console.WriteLine("Attempting to change password...");
                 await _userService.ChangePasswordAsync(userId, changePasswordDto);
-                return Ok(new { message = "Đổi mật khẩu thành công." });
+                return Ok("Đổi mật khẩu thành công.");
             }
             catch (UnauthorizedAccessException ex)
             {
                 Console.WriteLine($"Unauthorized password change: {ex.Message}");
-                return Unauthorized(new { message = "Không có quyền đổi mật khẩu." });
+                return Unauthorized("Không có quyền đổi mật khẩu.");
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error changing password: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi đổi mật khẩu." });
+                return BadRequest("Lỗi khi đổi mật khẩu.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error changing password: {ex.Message}");
-                return StatusCode(500, new { message = "Lỗi khi đổi mật khẩu." });
+                return StatusCode(500, "Lỗi khi đổi mật khẩu.");
             }
         }
 
@@ -162,13 +162,13 @@ namespace HGSMAPI.Controllers
             if (changeStatusDto == null || string.IsNullOrEmpty(changeStatusDto.Status))
             {
                 Console.WriteLine("Invalid status data.");
-                return BadRequest(new { message = "Trạng thái không được để trống." });
+                return BadRequest("Trạng thái không được để trống.");
             }
 
             if (!new[] { "Hoạt động", "Không hoạt động" }.Contains(changeStatusDto.Status))
             {
                 Console.WriteLine("Invalid status value.");
-                return BadRequest(new { message = "Trạng thái phải là 'Hoạt động' hoặc 'Không hoạt động'." });
+                return BadRequest("Trạng thái phải là 'Hoạt động' hoặc 'Không hoạt động'.");
             }
 
             try
@@ -177,22 +177,22 @@ namespace HGSMAPI.Controllers
                 if (userDto == null)
                 {
                     Console.WriteLine("User not found for status change.");
-                    return NotFound(new { message = "Không tìm thấy người dùng." });
+                    return NotFound("Không tìm thấy người dùng.");
                 }
 
                 Console.WriteLine("Changing user status...");
                 await _userService.ChangeUserStatusAsync(id, changeStatusDto.Status);
-                return Ok(new { message = "Cập nhật trạng thái thành công.", userId = id, newStatus = changeStatusDto.Status });
+                return Ok("Cập nhật trạng thái thành công.");
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error changing status: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi cập nhật trạng thái." });
+                return BadRequest("Lỗi khi cập nhật trạng thái.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error changing status: {ex.Message}");
-                return StatusCode(500, new { message = "Lỗi khi cập nhật trạng thái." });
+                return StatusCode(500, "Lỗi khi cập nhật trạng thái.");
             }
         }
 
@@ -204,24 +204,24 @@ namespace HGSMAPI.Controllers
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
                 Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
-                return BadRequest(new { message = "Dữ liệu không hợp lệ.", errors });
+                return BadRequest("Dữ liệu không hợp lệ.");
             }
 
             try
             {
                 Console.WriteLine("Admin changing password...");
                 await _userService.AdminChangePasswordAsync(id, adminChangePasswordDto.NewPassword);
-                return Ok(new { message = "Đổi mật khẩu thành công bởi admin.", userId = id });
+                return Ok("Đổi mật khẩu thành công bởi admin.");
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error admin changing password: {ex.Message}");
-                return BadRequest(new { message = "Lỗi khi đổi mật khẩu." });
+                return BadRequest("Lỗi khi đổi mật khẩu.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error admin changing password: {ex.Message}");
-                return StatusCode(500, new { message = "Lỗi khi đổi mật khẩu." });
+                return StatusCode(500, "Lỗi khi đổi mật khẩu.");
             }
         }
     }

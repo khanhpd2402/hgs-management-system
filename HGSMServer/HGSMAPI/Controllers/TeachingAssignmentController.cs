@@ -22,6 +22,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Creating teaching assignments...");
                 await _teachingAssignmentService.CreateTeachingAssignmentsAsync(dtos);
                 return Ok("Phân công giảng dạy thành công.");
             }
@@ -38,6 +39,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching filter data...");
                 var filterData = await _teachingAssignmentService.GetFilterDataAsync();
                 return Ok(filterData);
             }
@@ -54,6 +56,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching assignments for creation...");
                 var result = await _teachingAssignmentService.GetAssignmentsForCreationAsync(dto);
                 return Ok(result);
             }
@@ -70,6 +73,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Updating teaching assignments...");
                 await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
                 return Ok("Cập nhật phân công giảng dạy thành công.");
             }
@@ -86,6 +90,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching all teaching assignments...");
                 var result = await _teachingAssignmentService.GetAllTeachingAssignmentsAsync(semesterId);
                 return Ok(result);
             }
@@ -102,6 +107,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching teaching assignments by teacher...");
                 var result = await _teachingAssignmentService.GetTeachingAssignmentsByTeacherIdAsync(teacherId, semesterId);
                 return Ok(result);
             }
@@ -118,6 +124,7 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Deleting teaching assignments...");
                 await _teachingAssignmentService.DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(teacherId, semesterId);
                 return Ok("Xóa phân công giảng dạy thành công.");
             }

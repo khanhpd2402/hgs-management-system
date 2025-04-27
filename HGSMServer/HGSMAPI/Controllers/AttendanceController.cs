@@ -1,6 +1,5 @@
 ﻿using Application.Features.Attendances.DTOs;
 using Application.Features.Attendances.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -15,6 +14,7 @@ namespace HGSMAPI.Controllers
         {
             _service = service;
         }
+
         [HttpGet("weekly")]
         public async Task<IActionResult> GetWeeklyAttendance(
             [FromQuery] int teacherId,
@@ -22,9 +22,19 @@ namespace HGSMAPI.Controllers
             [FromQuery] int semesterId,
             [FromQuery] DateOnly weekStart)
         {
-            var data = await _service.GetWeeklyAttendanceAsync(teacherId, classId, semesterId, weekStart);
-            return Ok(data);
+            try
+            {
+                Console.WriteLine("Fetching weekly attendance...");
+                var data = await _service.GetWeeklyAttendanceAsync(teacherId, classId, semesterId, weekStart);
+                return Ok(data);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching weekly attendance: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách điểm danh hàng tuần.");
+            }
         }
+
         [HttpPost("upsert")]
         public async Task<IActionResult> UpsertAttendances(
             [FromQuery] int teacherId,
@@ -32,9 +42,17 @@ namespace HGSMAPI.Controllers
             [FromQuery] int semesterId,
             [FromBody] List<AttendanceDto> dtos)
         {
-            await _service.UpsertAttendancesAsync(teacherId, classId, semesterId, dtos);
-            return Ok(new { message = "Điểm danh thành công." });
+            try
+            {
+                Console.WriteLine("Upserting attendances...");
+                await _service.UpsertAttendancesAsync(teacherId, classId, semesterId, dtos);
+                return Ok("Điểm danh thành công.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error upserting attendances: {ex.Message}");
+                return StatusCode(500, "Lỗi khi điểm danh.");
+            }
         }
     }
-
 }

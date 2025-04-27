@@ -28,20 +28,24 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching all student classes...");
                 var studentClasses = await _studentClassService.GetAllStudentClassesAsync();
                 return Ok(studentClasses);
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error fetching student classes: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách phân công lớp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy danh sách phân công lớp." });
+                Console.WriteLine($"Unexpected error fetching student classes: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách phân công lớp.");
             }
         }
 
@@ -53,23 +57,28 @@ namespace HGSMAPI.Controllers
             {
                 if (currentAcademicYearId <= 0)
                 {
-                    return BadRequest(new { message = "AcademicYearId phải là một số nguyên dương." });
+                    Console.WriteLine("Invalid AcademicYearId.");
+                    return BadRequest("AcademicYearId phải là một số nguyên dương.");
                 }
 
+                Console.WriteLine("Fetching student classes by last academic year...");
                 var studentClasses = await _studentClassService.GetAllStudentClassByLastAcademicYearAsync(currentAcademicYearId);
                 return Ok(studentClasses);
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (InvalidOperationException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error fetching student classes: {ex.Message}");
+                return NotFound("Không tìm thấy phân công lớp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy danh sách phân công lớp năm học vừa kết thúc." });
+                Console.WriteLine($"Unexpected error fetching student classes: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách phân công lớp năm học vừa kết thúc.");
             }
         }
 
@@ -79,33 +88,40 @@ namespace HGSMAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Dữ liệu đầu vào không hợp lệ." });
+                Console.WriteLine("Invalid input data.");
+                return BadRequest("Dữ liệu đầu vào không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Creating student class...");
                 await _studentClassService.CreateStudentClassAsync(dto);
-                return Ok(new { message = "Phân công lớp thành công." });
+                return Ok("Phân công lớp thành công.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error creating student class: {ex.Message}");
+                return BadRequest("Lỗi khi tạo phân công lớp.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error creating student class: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message });
+                Console.WriteLine($"Error creating student class: {ex.Message}");
+                return Conflict("Lỗi khi tạo phân công lớp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi tạo phân công lớp." });
+                Console.WriteLine($"Unexpected error creating student class: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo phân công lớp.");
             }
         }
 
@@ -115,38 +131,40 @@ namespace HGSMAPI.Controllers
         {
             if (dtos == null || !dtos.Any())
             {
-                return BadRequest(new { message = "Danh sách phân công lớp không được rỗng." });
+                Console.WriteLine("Empty student class list.");
+                return BadRequest("Danh sách phân công lớp không được rỗng.");
             }
 
             try
             {
+                Console.WriteLine("Updating student classes...");
                 await _studentClassService.UpdateStudentClassesAsync(dtos);
-                return Ok(new
-                {
-                    message = "Cập nhật phân công lớp thành công.",
-                    UpdatedCount = dtos.Count,
-                    Assignments = dtos.Select(d => new { d.StudentId, d.ClassId, d.AcademicYearId })
-                });
+                return Ok("Cập nhật phân công lớp thành công.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error updating student classes: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error updating student classes: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật phân công lớp.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message });
+                Console.WriteLine($"Error updating student classes: {ex.Message}");
+                return Conflict("Lỗi khi cập nhật phân công lớp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi cập nhật phân công lớp." });
+                Console.WriteLine($"Unexpected error updating student classes: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật phân công lớp.");
             }
         }
 
@@ -158,27 +176,33 @@ namespace HGSMAPI.Controllers
             {
                 if (id <= 0)
                 {
-                    return BadRequest(new { message = "ID phân công lớp phải là một số nguyên dương." });
+                    Console.WriteLine("Invalid student class ID.");
+                    return BadRequest("ID phân công lớp phải là một số nguyên dương.");
                 }
 
+                Console.WriteLine("Deleting student class...");
                 await _studentClassService.DeleteStudentClassAsync(id);
-                return Ok(new { message = "Xóa phân công lớp thành công." });
+                return Ok("Xóa phân công lớp thành công.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error deleting student class: {ex.Message}");
+                return NotFound("Không tìm thấy phân công lớp.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error deleting student class: {ex.Message}");
+                return BadRequest("Lỗi khi xóa phân công lớp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi xóa phân công lớp." });
+                Console.WriteLine($"Unexpected error deleting student class: {ex.Message}");
+                return StatusCode(500, "Lỗi khi xóa phân công lớp.");
             }
         }
 
@@ -188,24 +212,29 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching filter data...");
                 var filterData = await _studentClassService.GetFilterDataAsync(classId, semesterId);
                 return Ok(filterData);
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error fetching filter data: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error fetching filter data: {ex.Message}");
+                return BadRequest("Lỗi khi lấy dữ liệu lọc.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy dữ liệu lọc." });
+                Console.WriteLine($"Unexpected error fetching filter data: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy dữ liệu lọc.");
             }
         }
 
@@ -215,16 +244,19 @@ namespace HGSMAPI.Controllers
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(new { message = "Dữ liệu đầu vào không hợp lệ." });
+                Console.WriteLine("Invalid input data.");
+                return BadRequest("Dữ liệu đầu vào không hợp lệ.");
             }
 
             try
             {
                 if (dtos == null || !dtos.Any())
                 {
-                    return BadRequest(new { message = "Danh sách chuyển lớp không được rỗng." });
+                    Console.WriteLine("Empty transfer list.");
+                    return BadRequest("Danh sách chuyển lớp không được rỗng.");
                 }
 
+                Console.WriteLine("Processing bulk class transfer...");
                 var results = new List<BulkTransferResultDto>();
                 foreach (var dto in dtos)
                 {
@@ -235,23 +267,28 @@ namespace HGSMAPI.Controllers
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error processing bulk transfer: {ex.Message}");
+                return BadRequest("Lỗi khi chuyển lớp hàng loạt.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error processing bulk transfer: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message });
+                Console.WriteLine($"Error processing bulk transfer: {ex.Message}");
+                return Conflict("Lỗi khi chuyển lớp hàng loạt.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình chuyển lớp hàng loạt." });
+                Console.WriteLine($"Unexpected error processing bulk transfer: {ex.Message}");
+                return StatusCode(500, "Lỗi khi chuyển lớp hàng loạt.");
             }
         }
 
@@ -263,31 +300,38 @@ namespace HGSMAPI.Controllers
             {
                 if (academicYearId <= 0)
                 {
-                    return BadRequest(new { message = "AcademicYearId phải là một số nguyên dương." });
+                    Console.WriteLine("Invalid AcademicYearId.");
+                    return BadRequest("AcademicYearId phải là một số nguyên dương.");
                 }
 
+                Console.WriteLine("Processing graduation...");
                 await _studentClassService.ProcessGraduationAsync(academicYearId);
-                return Ok(new { message = "Xử lý tốt nghiệp thành công." });
+                return Ok("Xử lý tốt nghiệp thành công.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error processing graduation: {ex.Message}");
+                return BadRequest("Lỗi khi xử lý tốt nghiệp.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error processing graduation: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message });
+                Console.WriteLine($"Error processing graduation: {ex.Message}");
+                return Conflict("Lỗi khi xử lý tốt nghiệp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình xử lý tốt nghiệp." });
+                Console.WriteLine($"Unexpected error processing graduation: {ex.Message}");
+                return StatusCode(500, "Lỗi khi xử lý tốt nghiệp.");
             }
         }
 
@@ -299,23 +343,28 @@ namespace HGSMAPI.Controllers
             {
                 if (academicYearId.HasValue && academicYearId <= 0)
                 {
-                    return BadRequest(new { message = "AcademicYearId phải là một số nguyên dương." });
+                    Console.WriteLine("Invalid AcademicYearId.");
+                    return BadRequest("AcademicYearId phải là một số nguyên dương.");
                 }
 
+                Console.WriteLine("Fetching classes with student count...");
                 var classes = await _studentClassService.GetClassesWithStudentCountAsync(academicYearId);
                 return Ok(classes);
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Unauthorized(new { message = ex.Message });
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error fetching classes: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thông tin lớp.");
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi khi lấy thông tin lớp." });
+                Console.WriteLine($"Unexpected error fetching classes: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin lớp.");
             }
         }
     }
