@@ -10,6 +10,7 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using DocumentFormat.OpenXml.Drawing.Charts;
 
 public class TeachingAssignmentService : ITeachingAssignmentService
 {
@@ -198,19 +199,11 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         return filterData;
     }
 
-    public async Task UpdateTeachingAssignmentsAsync(List<TeachingAssignmentUpdateDto> dtos)
+    public async Task UpdateTeachingAssignmentsAsync(int teacherId, int semesterId, List<TeachingAssignmentUpdateDto> dtos)
     {
         if (!dtos.Any())
         {
             throw new ArgumentException("Danh sách phân công không được để trống.");
-        }
-
-        var teacherId = dtos.First().TeacherId;
-        var semesterId = dtos.First().SemesterId;
-
-        if (dtos.Any(dto => dto.TeacherId != teacherId || dto.SemesterId != semesterId))
-        {
-            throw new ArgumentException("Tất cả phân công phải có cùng giáo viên và học kỳ.");
         }
 
         var teacher = await _context.Teachers.FindAsync(teacherId);
@@ -225,25 +218,24 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             throw new ArgumentException("Học kỳ không tồn tại.");
         }
 
+        // Xóa tất cả phân công hiện tại của giáo viên trong học kỳ
         var existingAssignments = await _context.TeachingAssignments
             .Where(ta => ta.TeacherId == teacherId && ta.SemesterId == semesterId)
             .ToListAsync();
         _context.TeachingAssignments.RemoveRange(existingAssignments);
 
+        // Lấy danh sách môn học mà giáo viên được phân công
+        var teacherSubjects = await _context.TeacherSubjects
+            .Where(ts => ts.TeacherId == teacherId)
+            .Select(ts => ts.SubjectId)
+            .ToListAsync();
+
         foreach (var dto in dtos)
         {
-            var subject = await _context.Subjects
-                .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
-            if (subject == null)
+            // Kiểm tra môn học có trong TeacherSubjects
+            if (!teacherSubjects.Contains(dto.SubjectId))
             {
-                throw new ArgumentException("Môn học không tồn tại.");
-            }
-
-            var teacherSubject = await _context.TeacherSubjects
-                .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
-            if (teacherSubject == null)
-            {
-                throw new ArgumentException("Giáo viên chưa được phân công dạy môn học này.");
+                throw new ArgumentException($"Giáo viên chưa được phân công dạy môn học với ID {dto.SubjectId}.");
             }
 
             foreach (var classAssignment in dto.ClassAssignments)
@@ -251,77 +243,21 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
                 if (classEntity == null)
                 {
-                    throw new ArgumentException("Lớp học không tồn tại.");
+                    throw new ArgumentException($"Lớp học với ID {classAssignment.ClassId} không tồn tại.");
                 }
 
                 var newAssignment = new Domain.Models.TeachingAssignment
                 {
-                    TeacherId = dto.TeacherId,
+                    TeacherId = teacherId,
                     SubjectId = dto.SubjectId,
                     ClassId = classAssignment.ClassId,
-                    SemesterId = dto.SemesterId
+                    SemesterId = semesterId
                 };
                 _context.TeachingAssignments.Add(newAssignment);
             }
         }
 
         await _context.SaveChangesAsync();
-    }
-
-    public async Task<List<TeachingAssignmentResponseDto>> GetAssignmentsForCreationAsync(TeachingAssignmentCreateDto dto)
-    {
-        var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
-        if (teacher == null)
-        {
-            throw new ArgumentException("Giáo viên không tồn tại.");
-        }
-
-        var subject = await _context.Subjects
-            .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
-        if (subject == null)
-        {
-            throw new ArgumentException("Môn học không tồn tại.");
-        }
-
-        var semester = await _context.Semesters.FindAsync(dto.SemesterId);
-        if (semester == null)
-        {
-            throw new ArgumentException("Học kỳ không tồn tại.");
-        }
-
-        var homeroomAssignments = await _context.HomeroomAssignments
-            .Where(ha => ha.Status == "Hoạt Động")
-            .Include(ha => ha.Teacher)
-            .ToListAsync();
-
-        var result = new List<TeachingAssignmentResponseDto>();
-
-        foreach (var classAssignment in dto.ClassAssignments)
-        {
-            var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
-            if (classEntity == null)
-            {
-                throw new ArgumentException("Lớp học không tồn tại.");
-            }
-
-            var homeroomTeacher = homeroomAssignments
-                .FirstOrDefault(ha => ha.ClassId == classAssignment.ClassId && ha.SemesterId == dto.SemesterId);
-
-            result.Add(new TeachingAssignmentResponseDto
-            {
-                AssignmentId = 0,
-                TeacherId = dto.TeacherId,
-                TeacherName = teacher.FullName,
-                SubjectId = dto.SubjectId,
-                SubjectName = subject.SubjectName,
-                ClassId = classAssignment.ClassId,
-                ClassName = classEntity.ClassName,
-                SemesterId = dto.SemesterId,
-                SemesterName = semester.SemesterName,
-            });
-        }
-
-        return result;
     }
 
     public async Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId, int semesterId)

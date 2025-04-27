@@ -9,8 +9,7 @@ namespace Application.Features.TeachingAssignments.Interfaces
         Task CreateTeachingAssignmentsAsync(List<TeachingAssignmentCreateDto> dtos);
         Task<List<TeachingAssignmentResponseDto>> GetAllTeachingAssignmentsAsync(int semesterId);
         Task<TeachingAssignmentFilterDataDto> GetFilterDataAsync();
-        Task UpdateTeachingAssignmentsAsync(List<TeachingAssignmentUpdateDto> dtos);
-        Task<List<TeachingAssignmentResponseDto>> GetAssignmentsForCreationAsync(TeachingAssignmentCreateDto dto);
+        Task UpdateTeachingAssignmentsAsync(int teacherId, int semesterId, List<TeachingAssignmentUpdateDto> dtos);
         Task<List<TeachingAssignmentResponseDto>> GetTeachingAssignmentsByTeacherIdAsync(int teacherId, int semesterId);
         Task DeleteTeachingAssignmentsByTeacherIdAndSemesterIdAsync(int teacherId, int semesterId);
     }
