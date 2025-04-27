@@ -10,7 +10,6 @@ using System.Security.Claims;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DocumentFormat.OpenXml.InkML;
 
 public class TeachingAssignmentService : ITeachingAssignmentService
 {
@@ -30,27 +29,27 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+                throw new ArgumentException("Giáo viên không tồn tại.");
             }
 
             var subject = await _context.Subjects
                 .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
+                throw new ArgumentException("Môn học không tồn tại.");
             }
 
             var semester = await _context.Semesters.FindAsync(dto.SemesterId);
             if (semester == null)
             {
-                throw new ArgumentException($"Semester with Id {dto.SemesterId} does not exist.");
+                throw new ArgumentException("Học kỳ không tồn tại.");
             }
 
             var teacherSubject = await _context.TeacherSubjects
                 .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
             if (teacherSubject == null)
             {
-                throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
+                throw new ArgumentException("Giáo viên chưa được phân công dạy môn học này.");
             }
 
             var existingAssignments = await _context.TeachingAssignments
@@ -63,7 +62,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
                 if (classEntity == null)
                 {
-                    throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
+                    throw new ArgumentException("Lớp học không tồn tại.");
                 }
 
                 var newAssignment = new Domain.Models.TeachingAssignment
@@ -103,7 +102,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             }
             else
             {
-                throw new UnauthorizedAccessException("Teacher not found.");
+                throw new UnauthorizedAccessException("Giáo viên không tồn tại.");
             }
         }
 
@@ -211,19 +210,19 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
         if (dtos.Any(dto => dto.TeacherId != teacherId || dto.SemesterId != semesterId))
         {
-            throw new ArgumentException("Tất cả phân công trong danh sách phải có cùng TeacherId và SemesterId.");
+            throw new ArgumentException("Tất cả phân công phải có cùng giáo viên và học kỳ.");
         }
 
         var teacher = await _context.Teachers.FindAsync(teacherId);
         if (teacher == null)
         {
-            throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+            throw new ArgumentException("Giáo viên không tồn tại.");
         }
 
         var semester = await _context.Semesters.FindAsync(semesterId);
         if (semester == null)
         {
-            throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
+            throw new ArgumentException("Học kỳ không tồn tại.");
         }
 
         var existingAssignments = await _context.TeachingAssignments
@@ -237,14 +236,14 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId && s.SubjectCategory == dto.SubjectCategory);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} and category {dto.SubjectCategory} does not exist.");
+                throw new ArgumentException("Môn học không tồn tại.");
             }
 
             var teacherSubject = await _context.TeacherSubjects
                 .FirstOrDefaultAsync(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId);
             if (teacherSubject == null)
             {
-                throw new ArgumentException($"Teacher {teacher.FullName} is not assigned to subject {subject.SubjectName}.");
+                throw new ArgumentException("Giáo viên chưa được phân công dạy môn học này.");
             }
 
             foreach (var classAssignment in dto.ClassAssignments)
@@ -252,7 +251,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
                 var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
                 if (classEntity == null)
                 {
-                    throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
+                    throw new ArgumentException("Lớp học không tồn tại.");
                 }
 
                 var newAssignment = new Domain.Models.TeachingAssignment
@@ -274,20 +273,20 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
         if (teacher == null)
         {
-            throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+            throw new ArgumentException("Giáo viên không tồn tại.");
         }
 
         var subject = await _context.Subjects
             .FirstOrDefaultAsync(s => s.SubjectId == dto.SubjectId);
         if (subject == null)
         {
-            throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
+            throw new ArgumentException("Môn học không tồn tại.");
         }
 
         var semester = await _context.Semesters.FindAsync(dto.SemesterId);
         if (semester == null)
         {
-            throw new ArgumentException($"Semester with Id {dto.SemesterId} does not exist.");
+            throw new ArgumentException("Học kỳ không tồn tại.");
         }
 
         var homeroomAssignments = await _context.HomeroomAssignments
@@ -302,7 +301,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
             var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
             if (classEntity == null)
             {
-                throw new ArgumentException($"Class with Id {classAssignment.ClassId} does not exist.");
+                throw new ArgumentException("Lớp học không tồn tại.");
             }
 
             var homeroomTeacher = homeroomAssignments
@@ -330,13 +329,13 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         var teacher = await _context.Teachers.FindAsync(teacherId);
         if (teacher == null)
         {
-            throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+            throw new ArgumentException("Giáo viên không tồn tại.");
         }
 
         var semester = await _context.Semesters.FindAsync(semesterId);
         if (semester == null)
         {
-            throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
+            throw new ArgumentException("Học kỳ không tồn tại.");
         }
 
         var query = _context.TeachingAssignments
@@ -382,13 +381,13 @@ public class TeachingAssignmentService : ITeachingAssignmentService
         var teacher = await _context.Teachers.FindAsync(teacherId);
         if (teacher == null)
         {
-            throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+            throw new ArgumentException("Giáo viên không tồn tại.");
         }
 
         var semester = await _context.Semesters.FindAsync(semesterId);
         if (semester == null)
         {
-            throw new ArgumentException($"Semester with Id {semesterId} does not exist.");
+            throw new ArgumentException("Học kỳ không tồn tại.");
         }
 
         var assignmentsToDelete = await _context.TeachingAssignments
@@ -397,7 +396,7 @@ public class TeachingAssignmentService : ITeachingAssignmentService
 
         if (!assignmentsToDelete.Any())
         {
-            throw new ArgumentException($"No teaching assignments found for TeacherId {teacherId} in SemesterId {semesterId}.");
+            throw new ArgumentException("Không tìm thấy phân công giảng dạy nào cho giáo viên trong học kỳ này.");
         }
 
         _context.TeachingAssignments.RemoveRange(assignmentsToDelete);
