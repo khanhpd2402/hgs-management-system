@@ -44,42 +44,42 @@ namespace Application.Features.HomeRooms.Services
 
             if (dto.TeacherId <= 0)
             {
-                throw new ArgumentException("TeacherId phải là một số nguyên dương.", nameof(dto.TeacherId));
+                throw new ArgumentException("TeacherId không hợp lệ.", nameof(dto.TeacherId));
             }
 
             if (dto.ClassId <= 0)
             {
-                throw new ArgumentException("ClassId phải là một số nguyên dương.", nameof(dto.ClassId));
+                throw new ArgumentException("ClassId không hợp lệ.", nameof(dto.ClassId));
             }
 
             if (dto.SemesterId <= 0)
             {
-                throw new ArgumentException("SemesterId phải là một số nguyên dương.", nameof(dto.SemesterId));
+                throw new ArgumentException("SemesterId không hợp lệ.", nameof(dto.SemesterId));
             }
 
             var teacher = await _context.Teachers.FindAsync(dto.TeacherId);
             if (teacher == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy giáo viên với ID {dto.TeacherId}.");
+                throw new KeyNotFoundException("Không tìm thấy giáo viên.");
             }
 
             var classEntity = await _context.Classes.FindAsync(dto.ClassId);
             if (classEntity == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy lớp học với ID {dto.ClassId}.");
+                throw new KeyNotFoundException("Không tìm thấy lớp học.");
             }
 
             var semester = await _context.Semesters.FindAsync(dto.SemesterId);
             if (semester == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {dto.SemesterId}.");
+                throw new KeyNotFoundException("Không tìm thấy học kỳ.");
             }
 
             bool classAlreadyHasActive = await _context.HomeroomAssignments
                 .AnyAsync(ha => ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
             if (classAlreadyHasActive)
             {
-                throw new InvalidOperationException($"Lớp '{classEntity.ClassName}' đã có giáo viên chủ nhiệm đang hoạt động trong học kỳ '{semester.SemesterName}'.");
+                throw new InvalidOperationException("Lớp đã có giáo viên chủ nhiệm đang hoạt động trong học kỳ này.");
             }
 
             bool teacherAlreadyActiveInSemester = await _context.HomeroomAssignments
@@ -88,13 +88,7 @@ namespace Application.Features.HomeRooms.Services
                                ha.Status == "Hoạt Động");
             if (teacherAlreadyActiveInSemester)
             {
-                var existingAssignment = await _context.HomeroomAssignments
-                                            .Include(ha => ha.Class)
-                                            .FirstOrDefaultAsync(ha => ha.TeacherId == dto.TeacherId &&
-                                                                        ha.SemesterId == dto.SemesterId &&
-                                                                        ha.Status == "Hoạt Động");
-                string existingClassName = existingAssignment?.Class?.ClassName ?? "một lớp khác";
-                throw new InvalidOperationException($"Giáo viên '{teacher.FullName}' (ID: {dto.TeacherId}) đã được phân công làm giáo viên chủ nhiệm cho lớp '{existingClassName}' trong học kỳ '{semester.SemesterName}'.");
+                throw new InvalidOperationException("Giáo viên đã được phân công làm giáo viên chủ nhiệm trong học kỳ này.");
             }
 
             var newAssignment = new HomeroomAssignment
@@ -112,7 +106,7 @@ namespace Application.Features.HomeRooms.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể phân công giáo viên chủ nhiệm do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi phân công giáo viên chủ nhiệm.", ex);
             }
         }
 
@@ -137,11 +131,11 @@ namespace Application.Features.HomeRooms.Services
                .Where(d => d.TeacherId > 0)
                .GroupBy(d => new { d.ClassId, d.SemesterId })
                .Where(g => g.Count() > 1)
-               .Select(g => $"ClassId {g.Key.ClassId}, SemesterId {g.Key.SemesterId}")
+               .Select(g => "Duplicate found")
                .ToList();
             if (duplicateCheck.Any())
             {
-                throw new ArgumentException($"Phân công trùng lặp trong danh sách: {string.Join("; ", duplicateCheck)}.");
+                throw new ArgumentException("Phân công trùng lặp trong danh sách.");
             }
 
             var classIds = dtos.Select(d => d.ClassId).Distinct().ToList();
@@ -163,18 +157,18 @@ namespace Application.Features.HomeRooms.Services
             {
                 if (!existingClasses.ContainsKey(dto.ClassId))
                 {
-                    throw new KeyNotFoundException($"Không tìm thấy lớp học với ID {dto.ClassId}.");
+                    throw new KeyNotFoundException("Không tìm thấy lớp học.");
                 }
 
                 if (!existingSemesters.ContainsKey(dto.SemesterId))
                 {
-                    throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {dto.SemesterId}.");
+                    throw new KeyNotFoundException("Không tìm thấy học kỳ.");
                 }
 
                 int targetTeacherId = dto.TeacherId;
                 if (targetTeacherId > 0 && !existingTeachers.ContainsKey(targetTeacherId))
                 {
-                    throw new KeyNotFoundException($"Không tìm thấy giáo viên với ID {targetTeacherId} cho lớp ID {dto.ClassId}, học kỳ ID {dto.SemesterId}.");
+                    throw new KeyNotFoundException("Không tìm thấy giáo viên.");
                 }
 
                 var currentAssignmentsForDto = assignmentLookup[new { dto.ClassId, dto.SemesterId }].ToList();
@@ -184,7 +178,7 @@ namespace Application.Features.HomeRooms.Services
                 {
                     if (targetTeacherId <= 0)
                     {
-                        Console.WriteLine($"Bỏ qua việc tạo mới cho lớp ID {dto.ClassId}, học kỳ ID {dto.SemesterId} do thiếu TeacherId.");
+                        Console.WriteLine("Skipping creation due to missing TeacherId.");
                         continue;
                     }
 
@@ -194,34 +188,27 @@ namespace Application.Features.HomeRooms.Services
                                                 _context.HomeroomAssignments.Local.Any(ha => ha.ClassId == dto.ClassId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
                     if (targetStatusCreate == "Hoạt Động" && classAlreadyHasActive)
                     {
-                        throw new InvalidOperationException($"Lớp {existingClasses[dto.ClassId].ClassName} đã có giáo viên chủ nhiệm đang hoạt động trong học kỳ {existingSemesters[dto.SemesterId].SemesterName}.");
+                        throw new InvalidOperationException("Lớp đã có giáo viên chủ nhiệm đang hoạt động trong học kỳ này.");
                     }
 
                     bool teacherAlreadyActiveInSemester = relevantAssignments.Any(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động") ||
                                                          _context.HomeroomAssignments.Local.Any(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
                     if (teacherAlreadyActiveInSemester)
                     {
-                        var existingAssignmentOtherClass = relevantAssignments.FirstOrDefault(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động")
-                          ?? _context.HomeroomAssignments.Local.FirstOrDefault(ha => ha.TeacherId == targetTeacherId && ha.SemesterId == dto.SemesterId && ha.Status == "Hoạt Động");
-                        string existingClassName = "một lớp khác";
-                        if (existingAssignmentOtherClass != null && existingClasses.ContainsKey(existingAssignmentOtherClass.ClassId))
-                        {
-                            existingClassName = existingClasses[existingAssignmentOtherClass.ClassId].ClassName;
-                        }
-                        throw new InvalidOperationException($"Giáo viên {existingTeachers[targetTeacherId].FullName} (ID: {targetTeacherId}) đã được phân công làm giáo viên chủ nhiệm cho lớp '{existingClassName}' trong học kỳ {existingSemesters[dto.SemesterId].SemesterName}.");
+                        throw new InvalidOperationException("Giáo viên đã được phân công làm giáo viên chủ nhiệm trong học kỳ này.");
                     }
 
                     var newAssignment = new HomeroomAssignment { TeacherId = targetTeacherId, ClassId = dto.ClassId, SemesterId = dto.SemesterId, Status = targetStatusCreate };
                     _context.HomeroomAssignments.Add(newAssignment);
                     relevantAssignments.Add(newAssignment);
-                    Console.WriteLine($"Tạo mới phân công: ClassId {dto.ClassId}, SemesterId {dto.SemesterId}, TeacherId {targetTeacherId}, Status: {newAssignment.Status}.");
+                    Console.WriteLine("Created new homeroom assignment.");
                 }
                 else
                 {
                     bool teacherChanged = targetTeacherId > 0 && targetTeacherId != assignmentToUpdate.TeacherId;
                     if (!teacherChanged)
                     {
-                        Console.WriteLine($"Không cần thay đổi cho phân công {assignmentToUpdate.HomeroomAssignmentId}.");
+                        Console.WriteLine("No changes needed for this assignment.");
                         continue;
                     }
 
@@ -231,7 +218,7 @@ namespace Application.Features.HomeRooms.Services
                     {
                         assignmentToUpdate.TeacherId = finalTeacherId;
                         _context.HomeroomAssignments.Update(assignmentToUpdate);
-                        Console.WriteLine($"Cập nhật phân công {assignmentToUpdate.HomeroomAssignmentId}. TeacherId mới: {assignmentToUpdate.TeacherId}.");
+                        Console.WriteLine("Updated homeroom assignment.");
                     }
                 }
             }
@@ -242,7 +229,7 @@ namespace Application.Features.HomeRooms.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể cập nhật phân công giáo viên chủ nhiệm do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi cập nhật phân công giáo viên chủ nhiệm.", ex);
             }
         }
 
@@ -293,7 +280,7 @@ namespace Application.Features.HomeRooms.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể lấy danh sách phân công giáo viên chủ nhiệm do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi lấy danh sách phân công giáo viên chủ nhiệm.", ex);
             }
         }
     }

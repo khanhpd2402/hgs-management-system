@@ -11,7 +11,7 @@ using Application.Features.Teachers.DTOs;
 using Application.Features.Teachers.Interfaces;
 using Infrastructure.Repositories.Interfaces;
 using System.Text.Json;
-using Application.Features.Role.Interfaces; 
+using Application.Features.Role.Interfaces;
 
 namespace HGSMAPI.Controllers
 {
@@ -23,14 +23,14 @@ namespace HGSMAPI.Controllers
         private readonly ITokenService _tokenService;
         private readonly ITeacherService _teacherService;
         private readonly IAcademicYearRepository _academicYearRepository;
-        private readonly IRoleService _roleService; 
+        private readonly IRoleService _roleService;
 
         public AuthController(
             IUserService userService,
             ITokenService tokenService,
             ITeacherService teacherService,
             IAcademicYearRepository academicYearRepository,
-            IRoleService roleService) 
+            IRoleService roleService)
         {
             _userService = userService ?? throw new ArgumentNullException(nameof(userService));
             _tokenService = tokenService ?? throw new ArgumentNullException(nameof(tokenService));
@@ -44,56 +44,54 @@ namespace HGSMAPI.Controllers
         {
             if (loginDto == null || string.IsNullOrEmpty(loginDto.Username) || string.IsNullOrEmpty(loginDto.Password))
             {
+                Console.WriteLine("Invalid login input data.");
                 return BadRequest(new { message = "Vui lòng điền đầy đủ tài khoản và mật khẩu." });
             }
 
-            Console.WriteLine($"Attempting to login with username: {loginDto.Username}");
+            Console.WriteLine("Attempting to login...");
 
             var user = await _userService.GetUserByUsernameAsync(loginDto.Username);
             if (user == null)
             {
-                Console.WriteLine($"User with username {loginDto.Username} not found.");
+                Console.WriteLine("User not found.");
                 return Unauthorized(new { message = "Tài khoản không hợp lệ." });
             }
 
-            Console.WriteLine($"User found: {user.Username}, Status: {user.Status}");
+            Console.WriteLine("Checking user status...");
 
             if (user.Status == "Không hoạt động")
             {
-                Console.WriteLine($"User {user.Username} Không hoạt động.");
-                return Unauthorized(new { message = "Tài khoản của bạn không hoạt động. Liên hệ cán bộ văn thử để giải quyết." });
+                Console.WriteLine("User account is inactive.");
+                return Unauthorized(new { message = "Tài khoản của bạn không hoạt động. Liên hệ cán bộ văn thư để giải quyết." });
             }
 
-            // Kiểm tra mật khẩu
             if (!VerifyPassword(loginDto.Password, user.PasswordHash))
             {
-                Console.WriteLine($"Password verification failed for user {loginDto.Username}.");
-                Console.WriteLine($"Stored hash: {user.PasswordHash}");
+                Console.WriteLine("Password verification failed.");
                 return Unauthorized(new { message = "Mật khẩu không đúng." });
             }
 
-            Console.WriteLine($"Password verified successfully for user {loginDto.Username}.");
+            Console.WriteLine("Password verified successfully.");
 
             var userRole = await GetAndValidateUserRole(user.RoleId);
             if (string.IsNullOrEmpty(userRole))
             {
-                Console.WriteLine($"Role not found for user {user.Username} with RoleId {user.RoleId}.");
+                Console.WriteLine("Role not found for user.");
                 return StatusCode(500, new { message = "Vai trò không hợp lệ." });
             }
 
-            Console.WriteLine($"User role: {userRole}");
+            Console.WriteLine("Fetching teacher information...");
 
             var teacher = await _teacherService.GetTeacherByIdAsync(user.UserId);
             string effectiveRole = userRole;
             if (teacher != null && teacher.IsHeadOfDepartment == true)
             {
                 effectiveRole = "Trưởng bộ môn";
-                Console.WriteLine($"User {user.Username} is HeadOfDepartment. Effective role: {effectiveRole}");
+                Console.WriteLine("User is HeadOfDepartment.");
             }
 
-            // Tạo token (chỉ truyền UserDTO, không cần effectiveRole)
             var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(user);
-            Console.WriteLine($"Token generated for user {user.Username}.");
+            Console.WriteLine("Token generated successfully.");
 
             var claimsIdentity = new ClaimsIdentity(new[]
             {
@@ -104,9 +102,8 @@ namespace HGSMAPI.Controllers
             }, CookieAuthenticationDefaults.AuthenticationScheme);
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-            Console.WriteLine($"User {user.Username} signed in with cookie authentication.");
+            Console.WriteLine("User signed in with cookie authentication.");
 
-            // Lưu thông tin người dùng vào Session
             var userSessionData = new
             {
                 UserId = user.UserId,
@@ -114,10 +111,9 @@ namespace HGSMAPI.Controllers
                 Role = effectiveRole
             };
             HttpContext.Session.SetString("UserSession", JsonSerializer.Serialize(userSessionData));
-            Console.WriteLine($"User session data saved: {JsonSerializer.Serialize(userSessionData)}");
+            Console.WriteLine("User session data saved.");
 
-
-            Console.WriteLine($"Login successful for user {user.Username}.");
+            Console.WriteLine("Login successful.");
             return Ok(new
             {
                 token = tokenString,
@@ -140,35 +136,38 @@ namespace HGSMAPI.Controllers
         {
             if (assignRoleDto == null || assignRoleDto.UserId <= 0 || assignRoleDto.RoleId <= 0)
             {
-                return BadRequest(new { message = "Id phải là số dương." });
+                Console.WriteLine("Invalid role assignment data.");
+                return BadRequest(new { message = "Dữ liệu không hợp lệ." });
             }
 
             var currentUserRole = User.FindFirst(ClaimTypes.Role)?.Value;
             if (string.IsNullOrEmpty(currentUserRole) || !new[] { "Hiệu trưởng", "Cán bộ văn thư" }.Contains(currentUserRole))
             {
+                Console.WriteLine("User does not have permission to assign roles.");
                 return StatusCode(403, new { message = "Bạn không có quyền phân công vai trò người dùng." });
             }
 
-            // Kiểm tra vai trò hợp lệ dựa trên RoleName
             var role = await _roleService.GetRoleByIdAsync(assignRoleDto.RoleId);
             if (role == null)
             {
+                Console.WriteLine("Role not found.");
                 return BadRequest(new { message = "Vai trò không tồn tại." });
             }
 
             var validRoleNames = new[] { "Cán bộ văn thư", "Trưởng bộ môn", "Phụ huynh", "Hiệu trưởng", "Giáo viên", "Hiệu phó" };
             if (!validRoleNames.Contains(role.RoleName))
             {
+                Console.WriteLine("Invalid role name.");
                 return BadRequest(new { message = "Vai trò không tồn tại." });
             }
 
             var userToUpdate = await _userService.GetUserByIdAsync(assignRoleDto.UserId);
             if (userToUpdate == null)
             {
+                Console.WriteLine("User not found.");
                 return NotFound(new { message = "Không tìm thấy người dùng." });
             }
 
-            // Ánh xạ từ UserDTO sang UpdateUserDTO
             var updateUserDto = new UpdateUserDTO
             {
                 UserId = userToUpdate.UserId,
@@ -199,7 +198,7 @@ namespace HGSMAPI.Controllers
         private async Task<string> GetAndValidateUserRole(int roleId)
         {
             var userRole = await _userService.GetRoleNameByRoleIdAsync(roleId);
-            return userRole ?? throw new InvalidOperationException("Không tìm thấy người dùng.");
+            return userRole ?? throw new InvalidOperationException("Không tìm thấy vai trò.");
         }
     }
 }

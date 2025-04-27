@@ -26,6 +26,7 @@ namespace Application.Features.HomeRooms.Controllers
         {
             if (!ModelState.IsValid)
             {
+                Console.WriteLine("Invalid input data for homeroom assignment.");
                 return BadRequest(new { message = "Dữ liệu đầu vào không hợp lệ." });
             }
 
@@ -36,23 +37,28 @@ namespace Application.Features.HomeRooms.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error assigning homeroom: {ex.Message}");
+                return BadRequest(new { message = "Lỗi khi phân công giáo viên chủ nhiệm." });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error assigning homeroom: {ex.Message}");
+                return NotFound(new { message = "Không tìm thấy giáo viên, lớp học hoặc học kỳ." });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access for homeroom assignment: {ex.Message}");
+                return Forbid("Bạn không có quyền phân công giáo viên chủ nhiệm.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message });
+                Console.WriteLine($"Error assigning homeroom: {ex.Message}");
+                return Conflict(new { message = "Lỗi khi phân công giáo viên chủ nhiệm." });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình phân công giáo viên chủ nhiệm." });
+                Console.WriteLine($"Unexpected error assigning homeroom: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi phân công giáo viên chủ nhiệm." });
             }
         }
 
@@ -62,6 +68,7 @@ namespace Application.Features.HomeRooms.Controllers
         {
             if (!ModelState.IsValid)
             {
+                Console.WriteLine("Invalid input data for updating homeroom assignments.");
                 return BadRequest(new { message = "Dữ liệu đầu vào không hợp lệ." });
             }
 
@@ -72,23 +79,28 @@ namespace Application.Features.HomeRooms.Controllers
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error updating homeroom assignments: {ex.Message}");
+                return BadRequest(new { message = "Lỗi khi cập nhật phân công giáo viên chủ nhiệm." });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error updating homeroom assignments: {ex.Message}");
+                return NotFound(new { message = "Không tìm thấy giáo viên, lớp học hoặc học kỳ." });
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access for updating homeroom assignments: {ex.Message}");
+                return Forbid("Bạn không có quyền cập nhật phân công giáo viên chủ nhiệm.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { message = ex.Message });
+                Console.WriteLine($"Error updating homeroom assignments: {ex.Message}");
+                return Conflict(new { message = "Lỗi khi cập nhật phân công giáo viên chủ nhiệm." });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình cập nhật phân công giáo viên chủ nhiệm." });
+                Console.WriteLine($"Unexpected error updating homeroom assignments: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi cập nhật phân công giáo viên chủ nhiệm." });
             }
         }
 
@@ -103,11 +115,13 @@ namespace Application.Features.HomeRooms.Controllers
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error fetching homeroom assignments: {ex.Message}");
+                return BadRequest(new { message = "Lỗi khi lấy danh sách phân công giáo viên chủ nhiệm." });
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Đã xảy ra lỗi trong quá trình lấy danh sách phân công giáo viên chủ nhiệm." });
+                Console.WriteLine($"Unexpected error fetching homeroom assignments: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "Lỗi khi lấy danh sách phân công giáo viên chủ nhiệm." });
             }
         }
     }

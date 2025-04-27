@@ -21,7 +21,6 @@ namespace HGSMAPI.Controllers
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        // Lấy danh sách học sinh theo năm học
         [HttpGet("{academicYearId}")]
         public async Task<IActionResult> GetAllStudentsWithParents(int academicYearId)
         {
@@ -29,27 +28,33 @@ namespace HGSMAPI.Controllers
             return Ok(students);
         }
 
-        // Lấy chi tiết một học sinh theo ID và năm học
         [HttpGet("{id}/{academicYearId}")]
         public async Task<ActionResult<StudentDto>> GetStudent(int id, int academicYearId)
         {
             var student = await _studentService.GetStudentByIdAsync(id, academicYearId);
-            if (student == null) return NotFound(new ApiResponse(false, $"Học sinh với ID {id} không tồn tại."));
+            if (student == null)
+            {
+                Console.WriteLine("Student not found.");
+                return NotFound(new ApiResponse(false, "Không tìm thấy học sinh."));
+            }
 
             return Ok(student);
         }
 
-        // POST: api/Student
         [HttpPost]
         [Consumes("application/json")]
         public async Task<IActionResult> CreateStudent([FromBody] CreateStudentDto createStudentDto)
         {
             if (createStudentDto == null)
+            {
+                Console.WriteLine("Student data is null.");
                 return BadRequest(new ApiResponse(false, "Dữ liệu học sinh không được để trống."));
+            }
 
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
+                Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
                 return BadRequest(new ApiResponse(false, "Dữ liệu đầu vào không hợp lệ.", errors));
             }
 
@@ -60,17 +65,18 @@ namespace HGSMAPI.Controllers
                 var createdStudent = await _studentService.GetStudentByIdAsync(studentId, academicYearId);
                 if (createdStudent == null)
                 {
-                    return NotFound(new ApiResponse(false, $"Học sinh với ID {studentId} không tồn tại sau khi tạo."));
+                    Console.WriteLine("Student not found after creation.");
+                    return NotFound(new ApiResponse(false, "Không tìm thấy học sinh sau khi tạo."));
                 }
                 return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId }, createdStudent);
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error creating student: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Lỗi khi thêm học sinh."));
             }
         }
 
-        // Phương thức phụ để lấy AcademicYearId hiện tại 
         private async Task<int> GetCurrentAcademicYearIdAsync()
         {
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
@@ -80,7 +86,10 @@ namespace HGSMAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (currentAcademicYear == 0)
+            {
+                Console.WriteLine("Current academic year not found.");
                 throw new Exception("Không tìm thấy năm học hiện tại.");
+            }
 
             return currentAcademicYear;
         }
@@ -89,7 +98,10 @@ namespace HGSMAPI.Controllers
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDto updateStudentDto)
         {
             if (updateStudentDto == null)
+            {
+                Console.WriteLine("Student data is null.");
                 return BadRequest(new ApiResponse(false, "Dữ liệu học sinh không được để trống."));
+            }
 
             try
             {
@@ -98,15 +110,16 @@ namespace HGSMAPI.Controllers
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                return NotFound(new ApiResponse(false, "Không tìm thấy học sinh."));
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Lỗi khi cập nhật học sinh."));
             }
         }
 
-        // DELETE: api/Student/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
@@ -117,7 +130,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error deleting student: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Lỗi khi xóa học sinh."));
             }
         }
 
@@ -125,7 +139,10 @@ namespace HGSMAPI.Controllers
         public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)
         {
             if (file == null || file.Length == 0)
+            {
+                Console.WriteLine("Excel file is empty or not provided.");
                 return BadRequest(new ApiResponse(false, "Vui lòng chọn file Excel!"));
+            }
 
             try
             {
@@ -134,7 +151,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error importing students: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Lỗi khi nhập học sinh từ Excel."));
             }
         }
 

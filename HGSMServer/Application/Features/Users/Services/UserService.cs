@@ -174,7 +174,7 @@ namespace Application.Features.Users.Services
             }
 
             await _userRepository.AddAsync(user);
-            Console.WriteLine($"Đã tạo người dùng mới với ID: {user.UserId}");
+            Console.WriteLine("Created new user successfully.");
 
             string fullNameForUsername = roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)
                 ? (userDto.FullNameFather ?? userDto.FullNameMother ?? userDto.FullNameGuardian ?? "user")
@@ -187,7 +187,7 @@ namespace Application.Features.Users.Services
             }
             user.Username = finalUsername;
             await _userRepository.UpdateAsync(user);
-            Console.WriteLine($"Đã cập nhật người dùng với tên: {user.Username}");
+            Console.WriteLine("Updated user with new username successfully.");
 
             if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase))
             {
