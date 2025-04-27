@@ -13,5 +13,6 @@ namespace Application.Features.TeacherSubjects.Interfaces
         Task CreateAsync(CreateTeacherSubjectDto dto);
         Task UpdateAsync(UpdateTeacherSubjectDto dto);
         Task DeleteAsync(int id);
+        Task DeleteByTeacherIdAsync(int teacherId);
     }
 }

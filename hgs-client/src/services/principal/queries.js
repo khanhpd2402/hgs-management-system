@@ -7,6 +7,7 @@ import {
   getGradeBatch,
   getGradeBatches,
   getHomeroomTeachers,
+  getStudentPreviousYear,
   getSubjectConfigueDetail,
   getSubjectConfigues,
   getSubjectDetail,
@@ -152,5 +153,16 @@ export function useExams() {
     queryFn: () => {
       return getAllExams();
     },
+  });
+}
+
+//transfer data
+export function usePreviousYearStudents(academicYearId) {
+  return useQuery({
+    queryKey: ["previous-year-students", { academicYearId }],
+    queryFn: () => {
+      return getStudentPreviousYear(academicYearId);
+    },
+    enabled: !!academicYearId,
   });
 }

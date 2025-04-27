@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
 using System.Security.Claims;
 using System.Linq;
+using Microsoft.AspNetCore.Authorization;
 
 namespace HGSMAPI.Controllers
 {
@@ -25,6 +26,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("login")]
+        //[Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư,Hiệu phó,Giáo viên,Trưởng bộ môn")]
         public IActionResult Login()
         {
             var properties = new AuthenticationProperties
@@ -40,7 +42,7 @@ namespace HGSMAPI.Controllers
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
             {
-                return BadRequest(new { message = "Google authentication failed." });
+                return BadRequest(new { message = "Lỗi xác thực tài khoản Google." });
             }
 
             var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
@@ -48,7 +50,7 @@ namespace HGSMAPI.Controllers
 
             if (string.IsNullOrEmpty(email))
             {
-                return BadRequest(new { message = "Unable to retrieve email from Google." });
+                return BadRequest(new { message = "Không thể lấy email từ Google." });
             }
 
             var existingUser = (await _userService.GetAllUsersAsync())
@@ -56,14 +58,14 @@ namespace HGSMAPI.Controllers
 
             if (existingUser == null)
             {
-                return StatusCode(403, new { message = "Access denied. Please contact your admin before logging in." });
+                return StatusCode(403, new { message = "Email không có trong hệ thống. Liên hệ cán bộ văn thư để giải quyết." });
             }
 
             // Lấy và kiểm tra role
             var userRole = await GetAndValidateUserRole(existingUser.RoleId);
             if (userRole == null)
             {
-                return StatusCode(403, new { message = "Access denied. Insufficient permissions." });
+                return StatusCode(403, new { message = "Bạn không có quyền truy cập vào mục này." });
             }
 
             // Tạo token (chỉ truyền UserDTO, không cần userRole)
@@ -94,7 +96,7 @@ namespace HGSMAPI.Controllers
                 return null;
             }
 
-            var allowedRoles = new[] { "Principal", "VicePrincipal", "HeadOfDepartment", "AdministrativeOfficer" };
+            var allowedRoles = new[] { "Hiệu trưởng", "Hiệu phó", "Trưởng bộ môn", "Giáo viên", "Cán bộ văn thư" };
             return allowedRoles.Contains(userRole) ? userRole : null;
         }
     }

@@ -2,7 +2,6 @@
 using Application.Features.Exams.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Collections.Generic;
 
 namespace HGSMAPI.Controllers
 {
@@ -24,12 +23,29 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Creating exam proposal...");
                 var proposal = await _examProposalService.CreateExamProposalAsync(request);
                 return CreatedAtAction(nameof(GetExamProposal), new { id = proposal.ProposalId }, proposal);
             }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error creating exam proposal: {ex.Message}");
+                return BadRequest("Lỗi khi tạo đề thi.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error creating exam proposal: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error creating exam proposal: {ex.Message}");
+                return BadRequest("Lỗi khi tạo đề thi.");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error creating exam proposal: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo đề thi.");
             }
         }
 
@@ -38,12 +54,19 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching exam proposal...");
                 var proposal = await _examProposalService.GetExamProposalAsync(id);
                 return Ok(proposal);
             }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error fetching exam proposal: {ex.Message}");
+                return NotFound("Không tìm thấy đề thi.");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error fetching exam proposal: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin đề thi.");
             }
         }
 
@@ -53,12 +76,29 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Updating exam proposal status...");
                 await _examProposalService.UpdateExamProposalStatusAsync(id, dto.Status, dto.Comment);
-                return NoContent();
+                return Ok("Cập nhật trạng thái đề thi thành công.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error updating exam proposal status: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật trạng thái đề thi.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating exam proposal status: {ex.Message}");
+                return NotFound("Không tìm thấy đề thi.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error updating exam proposal status: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật trạng thái đề thi.");
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error updating exam proposal status: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật trạng thái đề thi.");
             }
         }
 
@@ -68,12 +108,24 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching exam proposals by status...");
                 var proposals = await _examProposalService.GetExamProposalsByStatusAsync(status);
                 return Ok(proposals);
             }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách đề thi theo trạng thái.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách đề thi theo trạng thái.");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error fetching exam proposals: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách đề thi theo trạng thái.");
             }
         }
 
@@ -83,12 +135,24 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Updating exam proposal...");
                 var updatedProposal = await _examProposalService.UpdateExamProposalAsync(id, request);
                 return Ok(updatedProposal);
             }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating exam proposal: {ex.Message}");
+                return NotFound("Không tìm thấy đề thi.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error updating exam proposal: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật đề thi.");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error updating exam proposal: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật đề thi.");
             }
         }
 
@@ -98,12 +162,19 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching all exam proposals...");
                 var proposals = await _examProposalService.GetAllAsync();
                 return Ok(proposals);
             }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách tất cả đề thi.");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error fetching exam proposals: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách tất cả đề thi.");
             }
         }
 
@@ -113,12 +184,19 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching exam proposals by teacher...");
                 var proposals = await _examProposalService.GetAllByTeacherIdAsync(teacherId);
                 return Ok(proposals);
             }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách đề thi của giáo viên.");
+            }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Unexpected error fetching exam proposals: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách đề thi của giáo viên.");
             }
         }
     }

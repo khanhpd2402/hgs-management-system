@@ -1,7 +1,5 @@
 ﻿using Application.Features.Timetables.DTOs;
 using Application.Features.Timetables.Interfaces;
-using Application.Features.Timetables.Services;
-using Domain.Models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -17,80 +15,88 @@ namespace HGSMAPI.Controllers
             _service = service;
         }
 
-        // POST: api/Timetables
         [HttpPost]
         public async Task<IActionResult> CreateTimetable([FromBody] CreateTimetableDto dto)
         {
             if (!ModelState.IsValid || dto == null)
             {
-                return BadRequest("Invalid timetable data.");
+                Console.WriteLine("Invalid timetable data.");
+                return BadRequest("Dữ liệu thời khóa biểu không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Creating timetable...");
                 var createdTimetable = await _service.CreateTimetableAsync(dto);
-                return Ok(dto);
+                return Ok(createdTimetable);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"An error occurred while creating the timetable: {ex.Message}");
+                Console.WriteLine($"Error creating timetable: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo thời khóa biểu.");
             }
         }
 
-        // GET: api/Timetables/student/{studentId}/semester/{semesterId}
         [HttpGet("student/{studentId}/semester/{semesterId}")]
         public async Task<IActionResult> GetTimetableByStudent(int studentId, int semesterId)
         {
             try
             {
+                Console.WriteLine("Fetching student timetable...");
                 var timetables = await _service.GetTimetableByStudentAsync(studentId, semesterId);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for student ID {studentId} in semester {semesterId}");
+                    Console.WriteLine("No timetables found for student.");
+                    return NotFound("Không tìm thấy thời khóa biểu cho học sinh.");
                 }
                 return Ok(timetables);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving student timetable: {ex.Message}");
+                Console.WriteLine($"Error retrieving student timetable: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thời khóa biểu học sinh.");
             }
         }
 
-        /// GET: api/Timetables/teacher/{teacherId}
         [HttpGet("teacher/{teacherId}")]
         public async Task<IActionResult> GetTimetableByTeacher(int teacherId)
         {
             try
             {
+                Console.WriteLine("Fetching teacher timetable...");
                 var timetables = await _service.GetTimetableByTeacherAsync(teacherId);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for teacher ID {teacherId}");
+                    Console.WriteLine("No timetables found for teacher.");
+                    return NotFound("Không tìm thấy thời khóa biểu cho giáo viên.");
                 }
                 return Ok(timetables);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving teacher timetable: {ex.Message}");
+                Console.WriteLine($"Error retrieving teacher timetable: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thời khóa biểu giáo viên.");
             }
         }
 
-        // GET: api/Timetables/semester/{timetableId}
         [HttpGet("TimetablesForPrincipal/{timetableId}")]
         public async Task<IActionResult> GetTimetablesForPrincipalAsync(int timetableId, [FromQuery] string? status = null)
         {
             try
             {
+                Console.WriteLine("Fetching timetables for principal...");
                 var timetables = await _service.GetTimetablesForPrincipalAsync(timetableId, status);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for semester {timetableId} with status '{status ?? "any"}'");
+                    Console.WriteLine("No timetables found for principal.");
+                    return NotFound("Không tìm thấy thời khóa biểu.");
                 }
                 return Ok(timetables);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving semester timetables: {ex.Message}");
+                Console.WriteLine($"Error retrieving semester timetables: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thời khóa biểu.");
             }
         }
 
@@ -99,38 +105,46 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching timetables by semester...");
                 var timetables = await _service.GetTimetablesBySemesterAsync(semesterId);
                 if (timetables == null || !timetables.Any())
                 {
-                    return NotFound($"No timetables found for SemesterId {semesterId}.");
+                    Console.WriteLine("No timetables found for semester.");
+                    return NotFound("Không tìm thấy thời khóa biểu cho học kỳ.");
                 }
                 return Ok(timetables);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error retrieving timetables: {ex.Message}");
+                Console.WriteLine($"Error retrieving timetables: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thời khóa biểu.");
             }
         }
+
         [HttpPut("info")]
         public async Task<IActionResult> UpdateTimetableInfo([FromBody] UpdateTimetableInfoDto dto)
         {
             if (!ModelState.IsValid || dto == null)
             {
-                return BadRequest("Invalid timetable data.");
+                Console.WriteLine("Invalid timetable data.");
+                return BadRequest("Dữ liệu thời khóa biểu không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Updating timetable info...");
                 var updatedTimetable = await _service.UpdateTimetableInfoAsync(dto);
                 return Ok(updatedTimetable);
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error updating timetable: {ex.Message}");
+                return NotFound("Không tìm thấy thời khóa biểu.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error updating timetable info: {ex.Message}");
+                Console.WriteLine($"Error updating timetable info: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật thời khóa biểu.");
             }
         }
 
@@ -139,68 +153,78 @@ namespace HGSMAPI.Controllers
         {
             if (!ModelState.IsValid || dto == null || !dto.Details.Any())
             {
-                return BadRequest("Invalid timetable details data.");
+                Console.WriteLine("Invalid timetable details data.");
+                return BadRequest("Dữ liệu chi tiết thời khóa biểu không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Updating timetable details...");
                 var success = await _service.UpdateMultipleDetailsAsync(dto);
                 if (!success)
                 {
-                    return BadRequest("No details were updated.");
+                    Console.WriteLine("No details were updated.");
+                    return BadRequest("Không có chi tiết nào được cập nhật.");
                 }
-                return Ok("Timetable details updated successfully.");
+                return Ok("Cập nhật chi tiết thời khóa biểu thành công.");
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error updating timetable details: {ex.Message}");
+                return NotFound("Không tìm thấy thời khóa biểu.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message); // Conflict
+                Console.WriteLine($"Error updating timetable details: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật chi tiết thời khóa biểu.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error updating timetable details: {ex.Message}");
+                Console.WriteLine($"Error updating timetable details: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật chi tiết thời khóa biểu.");
             }
         }
 
-        // DELETE: api/Timetables/detail/{detailId}
         [HttpDelete("detail/{detailId}")]
         public async Task<IActionResult> DeleteDetail(int detailId)
         {
             try
             {
+                Console.WriteLine("Deleting timetable detail...");
                 var success = await _service.DeleteDetailAsync(detailId);
                 if (!success)
                 {
-                    return NotFound($"Timetable detail with ID {detailId} not found.");
+                    Console.WriteLine("Timetable detail not found.");
+                    return NotFound("Không tìm thấy chi tiết thời khóa biểu.");
                 }
-                return Ok("Timetable detail deleted successfully.");
+                return Ok("Xóa chi tiết thời khóa biểu thành công.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error deleting timetable detail: {ex.Message}");
+                Console.WriteLine($"Error deleting timetable detail: {ex.Message}");
+                return StatusCode(500, "Lỗi khi xóa chi tiết thời khóa biểu.");
             }
         }
 
-        // POST: api/Timetables/check-conflict
         [HttpPost("check-conflict")]
         public async Task<IActionResult> CheckConflict([FromBody] TimetableDetailDto dto)
         {
             if (!ModelState.IsValid || dto == null)
             {
-                return BadRequest("Invalid timetable detail data.");
+                Console.WriteLine("Invalid timetable detail data.");
+                return BadRequest("Dữ liệu chi tiết thời khóa biểu không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Checking timetable conflict...");
                 var conflict = await _service.IsConflictAsync(dto);
                 return Ok(new { Conflict = conflict });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Error checking conflict: {ex.Message}");
+                Console.WriteLine($"Error checking conflict: {ex.Message}");
+                return StatusCode(500, "Lỗi khi kiểm tra xung đột thời khóa biểu.");
             }
         }
     }

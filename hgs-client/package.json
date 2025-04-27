@@ -41,6 +41,7 @@
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.475.0",
     "react": "19.0.0",
+    "react-beautiful-dnd": "^13.1.1",
     "react-compiler-runtime": "^19.0.0-beta-21e868a-20250216",
     "react-day-picker": "^8.10.1",
     "react-dom": "19.0.0",

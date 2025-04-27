@@ -4,7 +4,6 @@ using System.Net.Mail;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Text.RegularExpressions;
-using DocumentFormat.OpenXml.Bibliography;
 
 namespace Common.Utils
 {
@@ -45,10 +44,24 @@ namespace Common.Utils
 
         public async Task SendEmailAsync(string toEmail, string subject, string body, bool isHtml = false)
         {
+            if (string.IsNullOrWhiteSpace(toEmail))
+            {
+                throw new ArgumentException("Email người nhận không được để trống.");
+            }
+
             if (!IsValidEmail(toEmail))
             {
-                Console.WriteLine($"Email không hợp lệ: {toEmail}. Bỏ qua việc gửi email.");
-                return;
+                throw new ArgumentException($"Email không hợp lệ: {toEmail}.");
+            }
+
+            if (string.IsNullOrWhiteSpace(subject))
+            {
+                throw new ArgumentException("Tiêu đề email không được để trống.");
+            }
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                throw new ArgumentException("Nội dung email không được để trống.");
             }
 
             try
@@ -70,9 +83,13 @@ namespace Common.Utils
                     await smtpClient.SendMailAsync(mailMessage);
                 }
             }
+            catch (SmtpException ex)
+            {
+                throw new InvalidOperationException($"Không thể gửi email đến {toEmail}: Lỗi SMTP.", ex);
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Không thể gửi email đến {toEmail}: {ex.Message}");
+                throw new InvalidOperationException($"Không thể gửi email đến {toEmail}: Lỗi hệ thống.", ex);
             }
         }
 
@@ -80,8 +97,17 @@ namespace Common.Utils
         {
             if (toEmails == null || !toEmails.Any())
             {
-                Console.WriteLine("Danh sách email người nhận rỗng. Bỏ qua việc gửi email.");
-                return;
+                throw new ArgumentException("Danh sách email người nhận không được để trống.");
+            }
+
+            if (string.IsNullOrWhiteSpace(subject))
+            {
+                throw new ArgumentException("Tiêu đề email không được để trống.");
+            }
+
+            if (string.IsNullOrWhiteSpace(body))
+            {
+                throw new ArgumentException("Nội dung email không được để trống.");
             }
 
             try
@@ -113,19 +139,23 @@ namespace Common.Utils
 
                     if (mailMessage.To.Count == 0)
                     {
-                        Console.WriteLine("Không có email người nhận hợp lệ nào để gửi. Bỏ qua việc gửi email.");
-                        return;
+                        throw new ArgumentException("Không có email người nhận hợp lệ nào để gửi.");
                     }
 
                     await smtpClient.SendMailAsync(mailMessage);
                     Console.WriteLine($"Đã gửi email thành công đến {mailMessage.To.Count} người nhận.");
                 }
             }
+            catch (SmtpException ex)
+            {
+                throw new InvalidOperationException("Không thể gửi email đến nhiều người nhận: Lỗi SMTP.", ex);
+            }
             catch (Exception ex)
             {
-                Console.WriteLine($"Không thể gửi email đến nhiều người nhận: {ex.Message}");
+                throw new InvalidOperationException("Không thể gửi email đến nhiều người nhận: Lỗi hệ thống.", ex);
             }
         }
+
         public async Task SendAbsenceNotificationAsync(string parentEmail, string studentName, string className, DateTime absenceDate, string reason = null, string teacherName = null, string teacherEmail = null, string teacherPhone = null)
         {
             string subject = $"Thông báo tình trạng điểm danh học sinh {studentName}";
@@ -149,7 +179,7 @@ namespace Common.Utils
 
             return $@"
         <p>Kính gửi phụ huynh học sinh {studentName},</p>
-        <p>Chúng tôi xin thông báo rằng anh/chị đã nghỉ học vào ngày <strong>{absenceDate:dd/MM/yyyy}</strong>.</p>
+        <p>Chúng tôi xin thông báo rằng học sinh đã nghỉ học vào ngày <strong>{absenceDate:dd/MM/yyyy}</strong>.</p>
         <p>Lớp: <strong>{className}</strong></p>
         {(string.IsNullOrEmpty(reason) ? "" : $"<p>Lý do: {reason}</p>")}
         {contactInfo}
@@ -177,6 +207,7 @@ namespace Common.Utils
                 <p>Vui lòng truy cập hệ thống để xem chi tiết và bắt đầu thực hiện.</p>
                 <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
         }
+
         public async Task SendLessonPlanStatusUpdateAsync(string teacherEmail, string teacherName, string planTitle, string subjectName, int semesterId, string status, string feedback = null)
         {
             string subject = $"Cập nhật trạng thái kế hoạch bài giảng: {planTitle}";

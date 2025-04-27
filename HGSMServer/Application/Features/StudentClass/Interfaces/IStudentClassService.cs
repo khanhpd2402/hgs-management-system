@@ -15,10 +15,11 @@ namespace Application.Features.StudentClass.Interfaces
         Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos);
         Task DeleteStudentClassAsync(int id);
         Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null);
-        Task<BulkTransferResultDto> BulkTransferClassAsync(BulkClassTransferDto dto); 
+        Task<BulkTransferResultDto> BulkTransferClassAsync(BulkClassTransferDto dto);
         Task ProcessGraduationAsync(int academicYearId);
         Task<List<StudentClass.DTOs.ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
         Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassesAsync();
         Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassByLastAcademicYearAsync(int currentAcademicYearId);
+        Task<IEnumerable<StudentClassResponseDto>> GetRepeatStudentsByAcademicYearAsync(int academicYearId);
     }
 }

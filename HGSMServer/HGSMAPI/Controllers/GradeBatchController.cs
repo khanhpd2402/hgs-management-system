@@ -1,6 +1,5 @@
 ﻿using Application.Features.GradeBatchs.DTOs;
 using Application.Features.GradeBatchs.Interfaces;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -15,29 +14,56 @@ namespace HGSMAPI.Controllers
         {
             _gradeBatchService = gradeBatchService;
         }
-        // GET: api/GradeBatch/{id}
+
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var result = await _gradeBatchService.GetByIdAsync(id);
-            if (result == null) return NotFound();
-            return Ok(result);
+            try
+            {
+                Console.WriteLine("Fetching grade batch...");
+                var result = await _gradeBatchService.GetByIdAsync(id);
+                if (result == null)
+                {
+                    Console.WriteLine("Grade batch not found.");
+                    return NotFound("Không tìm thấy đợt nhập điểm.");
+                }
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching grade batch: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin đợt nhập điểm.");
+            }
         }
 
-        // GET: api/GradeBatch/by-academicyear/{academicYearId}
         [HttpGet("by-academicyear/{academicYearId}")]
         public async Task<IActionResult> GetByAcademicYear(int academicYearId)
         {
-            var result = await _gradeBatchService.GetByAcademicYearIdAsync(academicYearId);
-            return Ok(result);
+            try
+            {
+                Console.WriteLine("Fetching grade batches by academic year...");
+                var result = await _gradeBatchService.GetByAcademicYearIdAsync(academicYearId);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching grade batches: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách đợt nhập điểm theo năm học.");
+            }
         }
+
         [HttpPost("create")]
         public async Task<IActionResult> CreateBatch([FromBody] GradeBatchToCreateDto request)
         {
-            if (request == null) return BadRequest("Request is null.");
-
             try
             {
+                if (request == null)
+                {
+                    Console.WriteLine("Grade batch data is null.");
+                    return BadRequest("Dữ liệu đợt nhập điểm không được để trống.");
+                }
+
+                Console.WriteLine("Creating grade batch...");
                 var batchId = await _gradeBatchService.CreateBatchAndInsertGradesAsync(
                     request.BatchName,
                     request.SemesterId,
@@ -45,22 +71,34 @@ namespace HGSMAPI.Controllers
                     request.EndDate,
                     request.Status
                 );
-
                 return Ok(new { BatchId = batchId });
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Lỗi tạo đợt nhập điểm: {ex.Message}");
+                Console.WriteLine($"Error creating grade batch: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo đợt nhập điểm.");
             }
         }
+
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateGradeBatch(int id, [FromBody] UpdateGradeBatchDto dto)
         {
-            var updated = await _gradeBatchService.UpdateAsync(id, dto);
-            if (updated == null) return NotFound();
-
-            return Ok(updated);
+            try
+            {
+                Console.WriteLine("Updating grade batch...");
+                var updated = await _gradeBatchService.UpdateAsync(id, dto);
+                if (updated == null)
+                {
+                    Console.WriteLine("Grade batch not found.");
+                    return NotFound("Không tìm thấy đợt nhập điểm.");
+                }
+                return Ok(updated);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating grade batch: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật đợt nhập điểm.");
+            }
         }
     }
 }
-

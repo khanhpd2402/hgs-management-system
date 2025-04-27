@@ -1,6 +1,5 @@
 ﻿using Application.Features.Classes.DTOs;
 using Application.Features.Classes.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -19,14 +18,33 @@ namespace HGSMAPI.Controllers
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ClassDto>>> GetAll()
         {
-            var classes = await _classService.GetAllClassesAsync();
-            return Ok(classes);
+            try
+            {
+                Console.WriteLine("Fetching all classes...");
+                var classes = await _classService.GetAllClassesAsync();
+                return Ok(classes);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching classes: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách lớp học.");
+            }
         }
+
         [HttpGet("GetActiveAll")]
         public async Task<ActionResult<IEnumerable<ClassDto>>> GetActiveAll([FromQuery] string? status = null)
         {
-            var classes = await _classService.GetAllClassesActiveAsync(status);
-            return Ok(classes);
+            try
+            {
+                Console.WriteLine("Fetching active classes...");
+                var classes = await _classService.GetAllClassesActiveAsync(status);
+                return Ok(classes);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching active classes: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách lớp học đang hoạt động.");
+            }
         }
 
         [HttpGet("{id}")]
@@ -34,12 +52,19 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching class...");
                 var classDto = await _classService.GetClassByIdAsync(id);
+                if (classDto == null)
+                {
+                    Console.WriteLine("Class not found.");
+                    return NotFound("Không tìm thấy lớp học.");
+                }
                 return Ok(classDto);
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error fetching class: {ex.Message}");
+                return NotFound("Không tìm thấy lớp học.");
             }
         }
 
@@ -48,12 +73,25 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                if (classDto == null)
+                {
+                    Console.WriteLine("Class data is null.");
+                    return BadRequest("Dữ liệu lớp học không được để trống.");
+                }
+
+                Console.WriteLine("Creating class...");
                 var createdClass = await _classService.CreateClassAsync(classDto);
                 return CreatedAtAction(nameof(GetById), new { id = createdClass.ClassId }, createdClass);
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error creating class: {ex.Message}");
+                return BadRequest("Lỗi khi tạo lớp học.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error creating class: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo lớp học.");
             }
         }
 
@@ -62,12 +100,19 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Updating class...");
                 var updatedClass = await _classService.UpdateClassAsync(id, classDto);
+                if (updatedClass == null)
+                {
+                    Console.WriteLine("Class not found.");
+                    return NotFound("Không tìm thấy lớp học.");
+                }
                 return Ok(updatedClass);
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error updating class: {ex.Message}");
+                return NotFound("Không tìm thấy lớp học.");
             }
         }
 
@@ -76,12 +121,14 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Deleting class...");
                 await _classService.DeleteClassAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error deleting class: {ex.Message}");
+                return NotFound("Không tìm thấy lớp học.");
             }
         }
     }

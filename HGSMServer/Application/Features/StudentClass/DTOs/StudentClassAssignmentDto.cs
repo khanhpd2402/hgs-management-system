@@ -10,6 +10,6 @@ namespace Application.Features.StudentClass.DTOs
     {
         public int StudentId { get; set; }
         public int ClassId { get; set; }
-        public int AcademicYearId { get; set; }
+        public int? AcademicYearId { get; set; }
     }
 }

@@ -129,7 +129,7 @@ export default function UpdateClassModal({
       gradeLevelId: values.gradeLevelId
         ? Number(values.gradeLevelId)
         : undefined,
-      status: classStatus ? "Hoạt Động" : "Không Hoạt Động",
+      status: classStatus ? "Hoạt động" : "Không hoạt động",
       homerooms,
     };
     console.log(data);

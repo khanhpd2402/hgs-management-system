@@ -1,6 +1,5 @@
 ﻿using Application.Features.GradeLevels.DTOs;
 using Application.Features.GradeLevels.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -16,41 +15,43 @@ namespace HGSMAPI.Controllers
             _service = service;
         }
 
-        // GET: api/GradeLevels
         [HttpGet]
         public async Task<ActionResult<IEnumerable<GradeLevelDto>>> GetAll()
         {
             try
             {
+                Console.WriteLine("Fetching all grade levels...");
                 var gradeLevels = await _service.GetAllAsync();
                 return Ok(gradeLevels);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Error fetching grade levels: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách khối lớp.");
             }
         }
 
-        // GET: api/GradeLevels/5
         [HttpGet("{id}")]
         public async Task<ActionResult<GradeLevelDto>> GetById(int id)
         {
             try
             {
+                Console.WriteLine("Fetching grade level...");
                 var gradeLevel = await _service.GetByIdAsync(id);
                 if (gradeLevel == null)
                 {
-                    return NotFound($"GradeLevel with ID {id} not found");
+                    Console.WriteLine("Grade level not found.");
+                    return NotFound("Không tìm thấy khối lớp.");
                 }
                 return Ok(gradeLevel);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Error fetching grade level: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin khối lớp.");
             }
         }
 
-        // POST: api/GradeLevels
         [HttpPost]
         public async Task<ActionResult<GradeLevelCreateAndUpdateDto>> Create([FromBody] GradeLevelCreateAndUpdateDto dto)
         {
@@ -58,19 +59,21 @@ namespace HGSMAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    Console.WriteLine("Invalid grade level data.");
+                    return BadRequest("Dữ liệu không hợp lệ.");
                 }
 
+                Console.WriteLine("Creating grade level...");
                 var createdDto = await _service.CreateAsync(dto);
                 return CreatedAtAction(nameof(GetById), new { id = createdDto.GradeName }, createdDto);
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Error creating grade level: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo khối lớp.");
             }
         }
 
-        // PUT: api/GradeLevels/5
         [HttpPut("{id}")]
         public async Task<ActionResult<GradeLevelCreateAndUpdateDto>> Update(int id, [FromBody] GradeLevelCreateAndUpdateDto dto)
         {
@@ -78,38 +81,47 @@ namespace HGSMAPI.Controllers
             {
                 if (!ModelState.IsValid)
                 {
-                    return BadRequest(ModelState);
+                    Console.WriteLine("Invalid grade level data.");
+                    return BadRequest("Dữ liệu không hợp lệ.");
                 }
 
+                Console.WriteLine("Updating grade level...");
                 var updatedDto = await _service.UpdateAsync(id, dto);
+                if (updatedDto == null)
+                {
+                    Console.WriteLine("Grade level not found.");
+                    return NotFound("Không tìm thấy khối lớp.");
+                }
                 return Ok(updatedDto);
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error updating grade level: {ex.Message}");
                 if (ex.Message.Contains("not found"))
                 {
-                    return NotFound(ex.Message);
+                    return NotFound("Không tìm thấy khối lớp.");
                 }
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật khối lớp.");
             }
         }
 
-        // DELETE: api/GradeLevels/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                Console.WriteLine("Deleting grade level...");
                 await _service.DeleteAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Error deleting grade level: {ex.Message}");
                 if (ex.Message.Contains("not found"))
                 {
-                    return NotFound(ex.Message);
+                    return NotFound("Không tìm thấy khối lớp.");
                 }
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                return StatusCode(500, "Lỗi khi xóa khối lớp.");
             }
         }
     }

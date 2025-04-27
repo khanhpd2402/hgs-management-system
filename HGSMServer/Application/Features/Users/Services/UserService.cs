@@ -47,7 +47,7 @@ namespace Application.Features.Users.Services
                     Email = u.Email,
                     PhoneNumber = u.PhoneNumber,
                     RoleId = u.RoleId,
-                    RoleName = role?.RoleName, 
+                    RoleName = role?.RoleName,
                     Status = u.Status,
                     PasswordHash = u.PasswordHash,
                     FullName = u.Teacher?.FullName ?? u.Parent?.FullNameFather ?? u.Parent?.FullNameMother ?? u.Parent?.FullNameGuardian
@@ -61,7 +61,7 @@ namespace Application.Features.Users.Services
             var user = await _userRepository.GetUserWithTeacherAndParentInfoAsync(id);
             if (user == null) return null;
 
-            var role = await _roleRepository.GetRoleByIdAsync(user.RoleId); // Lấy RoleName
+            var role = await _roleRepository.GetRoleByIdAsync(user.RoleId);
             return new UserDTO
             {
                 UserId = user.UserId,
@@ -123,31 +123,27 @@ namespace Application.Features.Users.Services
             if (userDto == null)
                 throw new ArgumentNullException(nameof(userDto));
 
-            // Mật khẩu mặc định "12345678"
             string passwordHash = BCrypt.Net.BCrypt.HashPassword("12345678");
 
-            // Lấy RoleName từ RoleId
             string? roleName = await GetRoleNameByRoleIdAsync(userDto.RoleId);
             if (string.IsNullOrEmpty(roleName))
-                throw new ArgumentException($"Role with ID {userDto.RoleId} not found.");
+                throw new ArgumentException("Vai trò không tồn tại.");
 
-            // Kiểm tra các trường bắt buộc cho Teacher và các role khác
-            if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)) // Không phải Parent
+            if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase))
             {
                 if (string.IsNullOrEmpty(userDto.FullName))
-                    throw new ArgumentException("FullName is required for non-Parent roles.");
+                    throw new ArgumentException("Họ và tên là bắt buộc cho các vai trò không phải phụ huynh.");
                 if (!userDto.DOB.HasValue)
-                    throw new ArgumentException("DOB is required for non-Parent roles.");
+                    throw new ArgumentException("Ngày sinh là bắt buộc cho các vai trò không phải phụ huynh.");
                 if (string.IsNullOrEmpty(userDto.Gender))
-                    throw new ArgumentException("Gender is required for non-Parent roles.");
+                    throw new ArgumentException("Giới tính là bắt buộc cho các vai trò không phải phụ huynh.");
                 if (!userDto.SchoolJoinDate.HasValue)
-                    throw new ArgumentException("SchoolJoinDate is required for non-Parent roles.");
+                    throw new ArgumentException("Ngày vào trường là bắt buộc cho các vai trò không phải phụ huynh.");
             }
 
-            
             var user = new User
             {
-                Username = "tempuser", 
+                Username = "tempuser",
                 PasswordHash = passwordHash,
                 Email = roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)
                     ? (userDto.Email ?? userDto.EmailFather ?? userDto.EmailMother ?? userDto.EmailGuardian)
@@ -159,31 +155,27 @@ namespace Application.Features.Users.Services
                 Status = "Hoạt động"
             };
 
-            // Kiểm tra trùng lặp Email nếu có
             if (!string.IsNullOrEmpty(user.Email))
             {
                 var existingUserByEmail = await _userRepository.GetByEmailAsync(user.Email);
                 if (existingUserByEmail != null)
                 {
-                    throw new Exception($"Email {user.Email} đã được sử dụng bởi một người dùng khác (UserID: {existingUserByEmail.UserId}).");
+                    throw new Exception("Email đã được sử dụng.");
                 }
             }
 
-            // Kiểm tra trùng lặp PhoneNumber nếu có
             if (!string.IsNullOrEmpty(user.PhoneNumber))
             {
                 var existingUserByPhone = await _userRepository.GetByPhoneNumberAsync(user.PhoneNumber);
                 if (existingUserByPhone != null)
                 {
-                    throw new Exception($"Số điện thoại {user.PhoneNumber} đã được sử dụng bởi một người dùng khác (UserID: {existingUserByPhone.UserId}).");
+                    throw new Exception("Số điện thoại đã được sử dụng.");
                 }
             }
 
-            // Thêm User để lấy UserId
             await _userRepository.AddAsync(user);
-            Console.WriteLine($"Created new user with UserID: {user.UserId}");
+            Console.WriteLine("Created new user successfully.");
 
-            // Sinh Username bằng FormatUserName dựa trên FullName và UserId
             string fullNameForUsername = roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)
                 ? (userDto.FullNameFather ?? userDto.FullNameMother ?? userDto.FullNameGuardian ?? "user")
                 : userDto.FullName;
@@ -191,14 +183,13 @@ namespace Application.Features.Users.Services
             var existingUserByUsername = await _userRepository.GetByUsernameAsync(finalUsername);
             if (existingUserByUsername != null)
             {
-                throw new Exception($"Username {finalUsername} đã tồn tại (UserID: {existingUserByUsername.UserId}).");
+                throw new Exception("Tên người dùng đã tồn tại.");
             }
             user.Username = finalUsername;
             await _userRepository.UpdateAsync(user);
-            Console.WriteLine($"Updated user with Username: {user.Username}");
+            Console.WriteLine("Updated user with new username successfully.");
 
-            // Tạo bản ghi Teacher hoặc Parent
-            if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase)) // Tất cả role ngoài Parent đều vào bảng Teacher
+            if (!roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase))
             {
                 var teacher = new Teacher
                 {
@@ -225,7 +216,7 @@ namespace Application.Features.Users.Services
                 };
                 await _teacherRepository.AddAsync(teacher);
             }
-            else // Parent
+            else
             {
                 var parent = new Parent
                 {
@@ -252,7 +243,6 @@ namespace Application.Features.Users.Services
                 await _parentRepository.AddAsync(parent);
             }
 
-            // Trả về thông tin người dùng vừa tạo
             return await GetUserByIdAsync(user.UserId);
         }
 
@@ -263,19 +253,16 @@ namespace Application.Features.Users.Services
 
             var user = await _userRepository.GetByIdForUpdateAsync(userDto.UserId);
             if (user == null)
-                throw new ArgumentException($"User with ID {userDto.UserId} not found.");
+                throw new ArgumentException("Người dùng không tồn tại.");
 
-            // Lấy RoleName của vai trò mới
             var newRoleName = await GetRoleNameByRoleIdAsync(userDto.RoleId);
             if (string.IsNullOrEmpty(newRoleName))
-                throw new ArgumentException($"Role with ID {userDto.RoleId} not found.");
+                throw new ArgumentException("Vai trò không tồn tại.");
 
-            // Cập nhật thông tin người dùng
             user.Email = userDto.Email;
             user.PhoneNumber = userDto.PhoneNumber;
             user.RoleId = userDto.RoleId;
 
-            // Kiểm tra và cập nhật IsHeadOfDepartment nếu người dùng là giáo viên
             if (!newRoleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase))
             {
                 var teacher = await _teacherRepository.GetByUserIdAsync(userDto.UserId);
@@ -286,7 +273,6 @@ namespace Application.Features.Users.Services
                 }
             }
 
-            // Lưu thay đổi vào bảng Users
             await _userRepository.UpdateAsync(user);
         }
 
@@ -294,7 +280,7 @@ namespace Application.Features.Users.Services
         {
             var user = await _userRepository.GetByIdAsync(id);
             if (user == null)
-                throw new ArgumentException($"User with ID {id} not found.");
+                throw new ArgumentException("Người dùng không tồn tại.");
 
             await _userRepository.DeleteAsync(id);
         }
@@ -311,17 +297,17 @@ namespace Application.Features.Users.Services
                 throw new ArgumentNullException(nameof(changePasswordDto));
 
             if (string.IsNullOrEmpty(changePasswordDto.OldPassword) || string.IsNullOrEmpty(changePasswordDto.NewPassword))
-                throw new ArgumentException("Old password and new password are required.");
+                throw new ArgumentException("Mật khẩu cũ và mới là bắt buộc.");
 
             if (changePasswordDto.NewPassword.Length < 8)
-                throw new ArgumentException("New password must be at least 8 characters long.");
+                throw new ArgumentException("Mật khẩu mới phải có ít nhất 8 ký tự.");
 
             var user = await _userRepository.GetByIdForUpdateAsync(userId);
             if (user == null)
-                throw new ArgumentException($"User with ID {userId} not found.");
+                throw new ArgumentException("Người dùng không tồn tại.");
 
             if (!BCrypt.Net.BCrypt.Verify(changePasswordDto.OldPassword, user.PasswordHash))
-                throw new UnauthorizedAccessException("Old password is incorrect.");
+                throw new UnauthorizedAccessException("Mật khẩu cũ không đúng.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(changePasswordDto.NewPassword);
             await _userRepository.UpdateAsync(user);
@@ -330,14 +316,14 @@ namespace Application.Features.Users.Services
         public async Task AdminChangePasswordAsync(int userId, string newPassword)
         {
             if (string.IsNullOrEmpty(newPassword))
-                throw new ArgumentException("New password is required.");
+                throw new ArgumentException("Mật khẩu mới là bắt buộc.");
 
             if (newPassword.Length < 8)
-                throw new ArgumentException("New password must be at least 8 characters long.");
+                throw new ArgumentException("Mật khẩu mới phải có ít nhất 8 ký tự.");
 
             var user = await _userRepository.GetByIdForUpdateAsync(userId);
             if (user == null)
-                throw new ArgumentException($"User with ID {userId} not found.");
+                throw new ArgumentException("Người dùng không tồn tại.");
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             await _userRepository.UpdateAsync(user);
@@ -347,11 +333,10 @@ namespace Application.Features.Users.Services
         {
             var user = await _userRepository.GetByIdForUpdateAsync(userId);
             if (user == null)
-                throw new ArgumentException($"User with ID {userId} not found.");
+                throw new ArgumentException("Người dùng không tồn tại.");
 
             user.Status = newStatus;
             await _userRepository.UpdateAsync(user);
-            //check conflict
         }
     }
 }
