@@ -31,12 +31,14 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching teacher subject...");
                 var result = await _service.GetByIdAsync(id);
-                return Ok(new ApiResponse(true, $"Lấy thông tin phân công môn học với ID {id} thành công.", result));
+                return Ok(new ApiResponse(true, "Lấy thông tin phân công môn học thành công.", result));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error fetching teacher subject: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Không tìm thấy phân công môn học."));
             }
         }
 
@@ -46,12 +48,14 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching subjects by teacher...");
                 var result = await _service.GetByTeacherIdAsync(teacherId);
-                return Ok(new ApiResponse(true, $"Lấy danh sách môn học của giáo viên với ID {teacherId} thành công.", result));
+                return Ok(new ApiResponse(true, "Lấy danh sách môn học của giáo viên thành công.", result));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error fetching subjects by teacher: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Không tìm thấy giáo viên."));
             }
         }
 
@@ -61,12 +65,14 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Fetching teachers by subject...");
                 var result = await _service.GetBySubjectIdAsync(subjectId);
-                return Ok(new ApiResponse(true, $"Lấy danh sách giáo viên dạy môn học với ID {subjectId} thành công.", result));
+                return Ok(new ApiResponse(true, "Lấy danh sách giáo viên dạy môn học thành công.", result));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error fetching teachers by subject: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Không tìm thấy môn học."));
             }
         }
 
@@ -77,14 +83,19 @@ namespace HGSMAPI.Controllers
             try
             {
                 if (dto == null)
+                {
+                    Console.WriteLine("Teacher subject data is null.");
                     return BadRequest(new ApiResponse(false, "Dữ liệu phân công môn học không được để trống."));
+                }
 
+                Console.WriteLine("Creating teacher subject assignment...");
                 await _service.CreateAsync(dto);
                 return Ok(new ApiResponse(true, "Thêm phân công môn học thành công."));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error creating teacher subject: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Lỗi khi thêm phân công môn học."));
             }
         }
 
@@ -95,16 +106,24 @@ namespace HGSMAPI.Controllers
             try
             {
                 if (dto == null)
+                {
+                    Console.WriteLine("Update teacher subject data is null.");
                     return BadRequest(new ApiResponse(false, "Dữ liệu cập nhật phân công môn học không được để trống."));
+                }
                 if (teacherId != dto.TeacherId)
+                {
+                    Console.WriteLine("Teacher ID mismatch.");
                     return BadRequest(new ApiResponse(false, "ID giáo viên không khớp."));
+                }
 
+                Console.WriteLine("Updating teacher subject assignment...");
                 await _service.UpdateAsync(dto);
                 return Ok(new ApiResponse(true, "Cập nhật phân công môn học thành công."));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error updating teacher subject: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Lỗi khi cập nhật phân công môn học."));
             }
         }
 
@@ -114,12 +133,14 @@ namespace HGSMAPI.Controllers
         {
             try
             {
+                Console.WriteLine("Deleting teacher subject assignment...");
                 await _service.DeleteAsync(id);
                 return Ok(new ApiResponse(true, "Xóa phân công môn học thành công."));
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new ApiResponse(false, ex.Message));
+                Console.WriteLine($"Error deleting teacher subject: {ex.Message}");
+                return BadRequest(new ApiResponse(false, "Không tìm thấy phân công môn học."));
             }
         }
 
