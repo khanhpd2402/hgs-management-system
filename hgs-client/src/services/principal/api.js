@@ -81,6 +81,10 @@ export const getTeacherSubjects = async () => {
   return (await axiosInstance.get(`TeachingAssignment/filter-data`)).data;
 };
 
+export const deleteTeacherSubjects = async (id) => {
+  return (await axiosInstance.delete(`TeacherSubject/by-teacher/${id}`)).data;
+};
+
 export const getTeachingAssignments = async (semesterID) => {
   return (
     await axiosInstance.get(`TeachingAssignment/all?semesterId=${semesterID}`)
@@ -104,7 +108,10 @@ export const getTeachingAssignmentsByTeacher = async (
 
 export const updateTeachingAssignment = async (data) => {
   return (
-    await axiosInstance.put(`TeachingAssignment/teaching-assignments`, data)
+    await axiosInstance.put(
+      `TeachingAssignment/teacher/${data[0].teacherId}/semester/${data[0].semesterId}`,
+      data,
+    )
   ).data;
 };
 

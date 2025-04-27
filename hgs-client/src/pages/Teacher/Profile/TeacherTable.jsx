@@ -89,13 +89,11 @@ export default function TeacherTable() {
 
   const { data, isPending, error, isError } = useTeachers();
   const teacherMutation = useDeleteTeacher();
-  console.log(data);
-
   //phan trang
   const { page, pageSize, department, contract, search } = filter;
 
   const filteredData =
-    data?.teachers.filter((teacher) => {
+    data?.teachers?.filter((teacher) => {
       // Filter by department
       if (department && teacher.department !== department) {
         return false;

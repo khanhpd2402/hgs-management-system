@@ -145,11 +145,17 @@ export default function UpdateClassModal({
       const classData = classQuery.data;
       // Find homeroom teachers for each semester
       const homeroomHK1 = homeroomTeachers?.data?.find(
-        (t) => t.semesterName === "Học kỳ 1" && t.classId === classId,
+        (t) =>
+          t.semesterName === "Học kỳ 1" &&
+          t.classId === classId &&
+          t.semesterId === semester1?.semesterID,
       );
 
       const homeroomHK2 = homeroomTeachers?.data?.find(
-        (t) => (t.semesterName === "Học kỳ 2") & (t.classId === classId),
+        (t) =>
+          t.semesterName === "Học kỳ 2" &&
+          t.classId === classId &&
+          t.semesterId === semester2?.semesterID,
       );
 
       console.log(homeroomHK2);

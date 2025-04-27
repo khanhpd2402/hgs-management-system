@@ -9,7 +9,7 @@ import {
 } from "@/components/ui/table";
 import { useTeacherSubjects } from "@/services/principal/queries";
 import { Button } from "@/components/ui/button";
-import { Settings } from "lucide-react";
+import { Settings, Trash2 } from "lucide-react";
 import UpdateTeacherSubjectModal from "./UpdateTeacherSubjectModal";
 import PaginationControls from "@/components/PaginationControls";
 import MyPagination from "@/components/MyPagination";
@@ -21,6 +21,16 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { Card, CardContent } from "@/components/ui/card";
+import { useDeleteTeacherSubject } from "@/services/principal/mutation";
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 function SkeletonRow() {
   return (
@@ -44,6 +54,9 @@ function SkeletonRow() {
 export default function SubjectConfigForTeacher() {
   const [openUpdateModal, setOpenUpdateModal] = useState(false);
   const [selectedTeacher, setSelectedTeacher] = useState(null);
+  const [openDeleteModal, setOpenDeleteModal] = useState(false);
+  const [teacherToDelete, setTeacherToDelete] = useState(null);
+  const deleteTeacherSubjectsMutation = useDeleteTeacherSubject();
 
   const teacherSubjectQuery = useTeacherSubjects();
   const teachers = teacherSubjectQuery.data?.teachers || [];
@@ -177,7 +190,7 @@ export default function SubjectConfigForTeacher() {
                             </span>
                           ))}
                       </TableCell>
-                      <TableCell className="border border-gray-200 text-center">
+                      <TableCell className="flex items-center gap-2 border border-gray-200 text-center">
                         <Button
                           variant="outline"
                           size="icon"
@@ -188,6 +201,16 @@ export default function SubjectConfigForTeacher() {
                           }}
                         >
                           <Settings className="h-4 w-4 text-blue-600" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="destructive"
+                          onClick={() => {
+                            setTeacherToDelete(teacher.teacherId);
+                            setOpenDeleteModal(true);
+                          }}
+                        >
+                          <Trash2 className="h-4 w-4" />
                         </Button>
                       </TableCell>
                     </TableRow>
@@ -207,6 +230,41 @@ export default function SubjectConfigForTeacher() {
         }}
         teacherId={selectedTeacher}
       />
+
+      <Dialog open={openDeleteModal} onOpenChange={setOpenDeleteModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Xác nhận xoá</DialogTitle>
+            <DialogDescription>
+              Bạn có chắc chắn muốn xoá tất cả môn học của giáo viên này không?
+              Hành động này không thể hoàn tác.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter className="flex justify-end gap-2 pt-4">
+            <DialogClose asChild>
+              <Button variant="outline">Huỷ</Button>
+            </DialogClose>
+            <Button
+              variant="destructive"
+              onClick={() => {
+                if (teacherToDelete) {
+                  deleteTeacherSubjectsMutation.mutate(teacherToDelete, {
+                    onSuccess: () => {
+                      setOpenDeleteModal(false);
+                      setTeacherToDelete(null);
+                    },
+                    onError: () => {
+                      // Có thể show toast lỗi nếu muốn
+                    },
+                  });
+                }
+              }}
+            >
+              Xoá
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
       <div className="flex flex-col items-center justify-between gap-4 sm:flex-row">
         <PaginationControls
           pageSize={pageSize}
