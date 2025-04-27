@@ -94,5 +94,20 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi cập nhật điểm.");
             }
         }
+
+        [HttpGet("summary/{studentId}/{semesterId}")]
+        public async Task<IActionResult> GetGradeSummaryForStudent(int studentId, int semesterId)
+        {
+            try
+            {
+                var summaries = await _gradeService.GetGradeSummaryByStudentAsync(studentId, semesterId);
+                return Ok(summaries);
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+        }
+
     }
 }

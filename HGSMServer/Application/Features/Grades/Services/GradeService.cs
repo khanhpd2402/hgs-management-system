@@ -13,13 +13,15 @@ namespace Application.Features.Grades.Services
         private readonly IGradeRepository _gradeRepository;
         private readonly IStudentClassRepository _studentClassRepository;
         private readonly ITeachingAssignmentRepository _teachingAssignmentRepository;
+        private readonly ISemesterRepository _semesterRepository;
         private readonly IMapper _mapper;
 
-        public GradeService(IGradeRepository gradeRepository, IStudentClassRepository studentClassRepository, ITeachingAssignmentRepository teachingAssignmentRepository, IMapper mapper)
+        public GradeService(ISemesterRepository semesterRepository,IGradeRepository gradeRepository, IStudentClassRepository studentClassRepository, ITeachingAssignmentRepository teachingAssignmentRepository, IMapper mapper)
         {
             _gradeRepository = gradeRepository;
             _studentClassRepository = studentClassRepository;
             _teachingAssignmentRepository = teachingAssignmentRepository;
+            _semesterRepository = semesterRepository;
             _mapper = mapper;
         }
 
@@ -98,6 +100,80 @@ namespace Application.Features.Grades.Services
 
             return await _gradeRepository.UpdateMultipleGradesAsync(gradeEntities);
         }
+        public async Task<List<GradeSummaryDto>> GetGradeSummaryByStudentAsync(int studentId, int semesterId)
+        {
+            var semester = await _semesterRepository.GetByIdAsync(semesterId);
+            if (semester == null)
+                throw new Exception("Semester not found");
 
+            var allGrades = await _gradeRepository.GetGradesByStudentAsync(studentId, semesterId);
+
+            var groupedGrades = allGrades.GroupBy(g => g.Assignment.Subject.SubjectName);
+
+            var result= new List<GradeSummaryDto>();
+
+            foreach (var group in groupedGrades)
+            {
+                var subjectName = group.Key;
+                var semester1Grades = group.Where(x => x.Batch.Semester.SemesterName == "Học kì 1").ToList();
+                var semester2Grades = group.Where(x => x.Batch.Semester.SemesterName == "Học kì 2").ToList();
+
+                double? semester1Average = semester1Grades.Any() ? CalculateSemesterAverage(semester1Grades) : null;
+                double? semester2Average = semester2Grades.Any() ? CalculateSemesterAverage(semester2Grades) : null;
+
+                double? yearAverage = null;
+
+                if (semester.SemesterName == "Học kì 1")
+                {
+                    yearAverage = null; // Chỉ tính HK1
+                }
+                else if (semester.SemesterName == "Học kì 2")
+                {
+                    if (semester1Average != null && semester2Average != null)
+                        yearAverage = CalculateYearAverage(semester1Average, semester2Average);
+                    else
+                        yearAverage = null;
+                }
+
+                result.Add(new GradeSummaryDto
+                {
+                    StudentId = group.First().StudentClass.StudentId,
+                    StudentName = group.First().StudentClass.Student.FullName,
+                    SubjectName = subjectName,
+                    Semester1Average = semester1Average,
+                    Semester2Average = semester2Average,
+                    YearAverage = yearAverage
+                });
+            }
+
+            return result;
+        }
+       
+        private double? CalculateSemesterAverage(List<Grade> grades)
+        {
+            // Tính TB môn học kì theo công thức
+            var txScores = grades.Where(x => x.AssessmentsTypeName.Contains("ĐĐG TX")).Select(x => double.Parse(x.Score)).ToList();
+            var gkScore = grades.FirstOrDefault(x => x.AssessmentsTypeName == "ĐĐG GK")?.Score;
+            var ckScore = grades.FirstOrDefault(x => x.AssessmentsTypeName == "ĐĐG CK")?.Score;
+
+            if (!txScores.Any() || gkScore == null || ckScore == null)
+                return null;
+
+            double tongDiemTx = txScores.Sum();
+            double diemGk = double.Parse(gkScore);
+            double diemCk = double.Parse(ckScore);
+
+            double tb = (tongDiemTx + 2 * diemGk + 3 * diemCk) / (txScores.Count + 5);
+            return Math.Round(tb, 2);
+        }
+
+        private double? CalculateYearAverage(double? semester1Average, double? semester2Average)
+        {
+            if (semester1Average == null || semester2Average == null)
+                return null;
+
+            double tb = (semester1Average.Value + 2 * semester2Average.Value) / 3;
+            return Math.Round(tb, 2);
+        }
     }
 }
