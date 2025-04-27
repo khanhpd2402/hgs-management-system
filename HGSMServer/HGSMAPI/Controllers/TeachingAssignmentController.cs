@@ -29,7 +29,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error creating teaching assignments: {ex.Message}");
-                return BadRequest("Lỗi khi phân công giảng dạy.");
+                return BadRequest($"Lỗi khi phân công giảng dạy: {ex.Message}");
             }
         }
 
@@ -46,41 +46,24 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching filter data: {ex.Message}");
-                return BadRequest("Lỗi khi lấy dữ liệu lọc.");
+                return BadRequest($"Lỗi khi lấy dữ liệu lọc: {ex.Message}");
             }
         }
 
-        [HttpPost("get-assignments-for-creation")]
+        [HttpPut("teacher/{teacherId}/semester/{semesterId}")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> GetAssignmentsForCreation([FromBody] TeachingAssignmentCreateDto dto)
-        {
-            try
-            {
-                Console.WriteLine("Fetching assignments for creation...");
-                var result = await _teachingAssignmentService.GetAssignmentsForCreationAsync(dto);
-                return Ok(result);
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error fetching assignments for creation: {ex.Message}");
-                return BadRequest("Lỗi khi lấy dữ liệu phân công giảng dạy.");
-            }
-        }
-
-        [HttpPut("teaching-assignments")]
-        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
-        public async Task<IActionResult> UpdateTeachingAssignments([FromBody] List<TeachingAssignmentUpdateDto> dtos)
+        public async Task<IActionResult> UpdateTeachingAssignments(int teacherId, int semesterId, [FromBody] List<TeachingAssignmentUpdateDto> dtos)
         {
             try
             {
                 Console.WriteLine("Updating teaching assignments...");
-                await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(dtos);
+                await _teachingAssignmentService.UpdateTeachingAssignmentsAsync(teacherId, semesterId, dtos);
                 return Ok("Cập nhật phân công giảng dạy thành công.");
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating teaching assignments: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật phân công giảng dạy.");
+                return BadRequest($"Lỗi khi cập nhật phân công giảng dạy: {ex.Message}");
             }
         }
 
@@ -97,7 +80,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching all teaching assignments: {ex.Message}");
-                return BadRequest("Lỗi khi lấy danh sách phân công giảng dạy.");
+                return BadRequest($"Lỗi khi lấy danh sách phân công giảng dạy: {ex.Message}");
             }
         }
 
@@ -114,7 +97,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching teaching assignments: {ex.Message}");
-                return BadRequest("Lỗi khi lấy phân công giảng dạy.");
+                return BadRequest($"Lỗi khi lấy phân công giảng dạy: {ex.Message}");
             }
         }
 
@@ -131,7 +114,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error deleting teaching assignments: {ex.Message}");
-                return BadRequest("Lỗi khi xóa phân công giảng dạy.");
+                return BadRequest($"Lỗi khi xóa phân công giảng dạy: {ex.Message}");
             }
         }
     }

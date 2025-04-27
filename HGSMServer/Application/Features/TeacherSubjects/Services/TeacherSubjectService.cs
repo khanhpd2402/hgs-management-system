@@ -107,7 +107,19 @@ namespace Application.Features.TeacherSubjects.Services
             }
 
             var existingTeacherSubjects = await _repository.GetByTeacherIdAsync(dto.TeacherId);
+            var newSubjectIds = dto.Subjects.Select(s => s.SubjectId).ToList();
 
+            // Xóa các môn học không còn trong danh sách mới
+            var subjectsToRemove = existingTeacherSubjects
+                .Where(ts => ts.SubjectId.HasValue && !newSubjectIds.Contains(ts.SubjectId.Value))
+                .ToList();
+
+            foreach (var subjectToRemove in subjectsToRemove)
+            {
+                await _repository.DeleteAsync(subjectToRemove.Id);
+            }
+
+            // Thêm hoặc cập nhật các môn học trong danh sách mới
             foreach (var subjectInfo in dto.Subjects)
             {
                 var subject = await _subjectRepository.GetByIdAsync(subjectInfo.SubjectId);
@@ -121,11 +133,13 @@ namespace Application.Features.TeacherSubjects.Services
 
                 if (teacherSubject != null)
                 {
+                    // Cập nhật IsMainSubject nếu môn học đã tồn tại
                     teacherSubject.IsMainSubject = subjectInfo.IsMainSubject;
                     await _repository.UpdateAsync(teacherSubject);
                 }
                 else
                 {
+                    // Thêm môn học mới
                     var newTeacherSubject = new TeacherSubject
                     {
                         TeacherId = dto.TeacherId,
