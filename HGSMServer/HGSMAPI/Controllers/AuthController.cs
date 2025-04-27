@@ -118,11 +118,7 @@ namespace HGSMAPI.Controllers
 
             // Lưu năm học vào Session
             var currentAcademicYear = await _academicYearRepository.GetCurrentAcademicYearAsync();
-            if (currentAcademicYear == null)
-            {
-                Console.WriteLine("Current academic year not found.");
-                return StatusCode(500, new { message = "Current academic year not found." });
-            }
+           
             HttpContext.Session.SetString("AcademicYear", currentAcademicYear.YearName ?? "Unknown");
             Console.WriteLine($"Academic year saved in session: {currentAcademicYear.YearName ?? "Unknown"}");
 
