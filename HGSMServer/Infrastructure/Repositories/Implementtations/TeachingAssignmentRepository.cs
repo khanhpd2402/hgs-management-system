@@ -24,7 +24,8 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.TeachingAssignments
         .Where(t => t.SemesterId == semesterId)
         .Include(t => t.Class)
-        .Include(t => t.Teacher) 
+        .Include(t => t.Teacher)
+        .Include(ta => ta.Subject)
         .ToListAsync();
         }
         public async Task<bool> IsTeacherAssignedAsync(int teacherId, int classId, int semesterId)

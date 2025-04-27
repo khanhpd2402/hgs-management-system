@@ -128,7 +128,7 @@ namespace Common.Utils
         }
         public async Task SendAbsenceNotificationAsync(string parentEmail, string studentName, string className, DateTime absenceDate, string reason = null, string teacherName = null, string teacherEmail = null, string teacherPhone = null)
         {
-            string subject = $"Thông báo tình trạng điểm danh học sinh {studentName}c";
+            string subject = $"Thông báo tình trạng điểm danh học sinh {studentName}";
             string body = GetAbsenceNotificationBody(studentName, className, absenceDate, reason, teacherName, teacherEmail, teacherPhone);
 
             await SendEmailAsync(parentEmail, subject, body, isHtml: true);

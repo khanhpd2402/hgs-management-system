@@ -213,7 +213,6 @@ export default function AttendanceTable() {
     }
   }, [students, studentAttendances, date, session]);
 
-  console.log(studentsData);
   const debounceTimeout = useRef({});
 
   // Debounce cho lý do
@@ -352,7 +351,6 @@ export default function AttendanceTable() {
             <SelectContent>
               <SelectItem value="day">Xem theo ngày</SelectItem>
               <SelectItem value="week">Xem theo tuần</SelectItem>
-              <SelectItem value="month">Xem theo tháng</SelectItem>
             </SelectContent>
           </Select>
         </div>

@@ -24,7 +24,7 @@ namespace Infrastructure.Repositories.Implementtations
                           join gb in _context.GradeBatches on g.BatchId equals gb.BatchId
                           join sem in _context.Semesters on gb.SemesterId equals sem.SemesterId
                           where g.StudentClass.StudentId == studentId
-                                && sem.SemesterId == semesterId
+                                && gb.SemesterId == semesterId
                           select g)
                           .Include(g => g.StudentClass.Student) 
                           .Include(g => g.Assignment.Subject)
@@ -39,7 +39,7 @@ namespace Infrastructure.Repositories.Implementtations
                           join ta in _context.TeachingAssignments on g.AssignmentId equals ta.AssignmentId
                           where g.StudentClass.ClassId == classId
                                 && ta.SubjectId == subjectId
-                                && sem.SemesterId == semesterId
+                                && gb.SemesterId == semesterId
                           select g)
                           .Include(g => g.StudentClass.Student)
                           .Include(g => g.Batch)
@@ -54,7 +54,7 @@ namespace Infrastructure.Repositories.Implementtations
                           where ta.TeacherId == teacherId 
                                 && g.StudentClass.ClassId == classId
                                 && ta.SubjectId == subjectId
-                                && sem.SemesterId == semesterId
+                                && gb.SemesterId == semesterId
                           select g)
                           .Include(g => g.StudentClass.Student)
                           .Include(g => g.Batch)
