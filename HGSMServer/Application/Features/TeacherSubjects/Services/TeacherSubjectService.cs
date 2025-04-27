@@ -54,12 +54,8 @@ namespace Application.Features.TeacherSubjects.Services
                 throw new ArgumentException("Teacher does not exist.");
             }
 
-            var teacherSubjects = await _repository.GetAllAsync();
-            var filteredTeacherSubjects = teacherSubjects
-                .Where(ts => ts.TeacherId == teacherId)
-                .ToList();
-
-            return _mapper.Map<List<TeacherSubjectDto>>(filteredTeacherSubjects);
+            var teacherSubjects = await _repository.GetByTeacherIdAsync(teacherId);
+            return _mapper.Map<List<TeacherSubjectDto>>(teacherSubjects);
         }
 
         public async Task<List<TeacherSubjectDto>> GetBySubjectIdAsync(int subjectId)
@@ -92,8 +88,8 @@ namespace Application.Features.TeacherSubjects.Services
                 throw new ArgumentException("Subject does not exist.");
             }
 
-            var existingTeacherSubject = await _repository.GetAllAsync();
-            if (existingTeacherSubject.Any(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId))
+            var existingTeacherSubject = await _repository.GetByTeacherIdAsync(dto.TeacherId);
+            if (existingTeacherSubject.Any(ts => ts.SubjectId == dto.SubjectId))
             {
                 throw new ArgumentException("Teacher is already assigned to this subject.");
             }
@@ -110,7 +106,7 @@ namespace Application.Features.TeacherSubjects.Services
                 throw new ArgumentException("Teacher does not exist.");
             }
 
-            var existingTeacherSubjects = await _repository.GetAllAsync();
+            var existingTeacherSubjects = await _repository.GetByTeacherIdAsync(dto.TeacherId);
 
             foreach (var subjectInfo in dto.Subjects)
             {
@@ -150,6 +146,23 @@ namespace Application.Features.TeacherSubjects.Services
             }
 
             await _repository.DeleteAsync(id);
+        }
+
+        public async Task DeleteByTeacherIdAsync(int teacherId)
+        {
+            var teacher = await _teacherRepository.GetByIdAsync(teacherId);
+            if (teacher == null)
+            {
+                throw new ArgumentException("Teacher does not exist.");
+            }
+
+            var teacherSubjects = await _repository.GetByTeacherIdAsync(teacherId);
+            if (!teacherSubjects.Any())
+            {
+                throw new ArgumentException("No teacher subjects found for this teacher.");
+            }
+
+            await _repository.DeleteByTeacherIdAsync(teacherId);
         }
     }
 }

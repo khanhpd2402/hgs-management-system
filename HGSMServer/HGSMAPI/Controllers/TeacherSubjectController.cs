@@ -144,5 +144,22 @@ namespace HGSMAPI.Controllers
                 return BadRequest("Không tìm thấy phân công môn học.");
             }
         }
+
+        [HttpDelete("by-teacher/{teacherId}")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> DeleteByTeacherId(int teacherId)
+        {
+            try
+            {
+                Console.WriteLine("Deleting all teacher subject assignments for teacher...");
+                await _service.DeleteByTeacherIdAsync(teacherId);
+                return Ok("Xóa tất cả phân công môn học của giáo viên thành công.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error deleting teacher subjects: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+        }
     }
 }
