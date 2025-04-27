@@ -2,9 +2,8 @@
 using Application.Features.AcademicYears.Interfaces;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using System; // Thêm using System nếu chưa có
-using System.Threading.Tasks; // Thêm using Task nếu chưa có
-
+using System;
+using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -26,41 +25,52 @@ namespace HGSMAPI.Controllers
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _service.GetByIdAsync(id);
-            return result != null ? Ok(result) : NotFound($"Không tìm thấy năm học với ID {id}.");
+            if (result == null)
+            {
+                Console.WriteLine("Academic year not found.");
+                return NotFound("Không tìm thấy năm học.");
+            }
+            return Ok(result);
         }
 
         [HttpPost]
-        public async Task<IActionResult> Create([FromBody] CreateAcademicYearDto academicYearDto) 
+        public async Task<IActionResult> Create([FromBody] CreateAcademicYearDto academicYearDto)
         {
             try
             {
                 if (academicYearDto.StartDate >= academicYearDto.EndDate)
                 {
+                    Console.WriteLine("Invalid academic year date range.");
                     return BadRequest("Ngày bắt đầu năm học phải trước ngày kết thúc.");
                 }
                 if (academicYearDto.Semester1StartDate >= academicYearDto.Semester1EndDate)
                 {
+                    Console.WriteLine("Invalid semester 1 date range.");
                     return BadRequest("Ngày bắt đầu của Học kỳ 1 phải trước ngày kết thúc.");
                 }
                 if (academicYearDto.Semester2StartDate >= academicYearDto.Semester2EndDate)
                 {
+                    Console.WriteLine("Invalid semester 2 date range.");
                     return BadRequest("Ngày bắt đầu của Học kỳ 2 phải trước ngày kết thúc.");
                 }
                 if (academicYearDto.Semester1EndDate >= academicYearDto.Semester2StartDate)
                 {
+                    Console.WriteLine("Invalid semester date overlap.");
                     return BadRequest("Ngày kết thúc của Học kỳ 1 phải trước ngày bắt đầu của Học kỳ 2.");
                 }
 
                 await _service.AddAsync(academicYearDto);
                 return Ok(new { message = "Năm học đã được tạo thành công!" });
             }
-            catch (ArgumentException ex) // Bắt lỗi validation từ Service
+            catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error creating academic year: {ex.Message}");
+                return BadRequest("Lỗi khi tạo năm học.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.");
+                Console.WriteLine($"Unexpected error creating academic year: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi khi tạo năm học.");
             }
         }
 
@@ -69,47 +79,55 @@ namespace HGSMAPI.Controllers
         {
             if (id != academicYearDto.AcademicYearId)
             {
-                return BadRequest("ID trong URL không khớp với ID của năm học trong dữ liệu gửi lên.");
+                Console.WriteLine("ID mismatch in update request.");
+                return BadRequest("ID không khớp.");
             }
 
             try
             {
-                
                 if (academicYearDto.StartDate >= academicYearDto.EndDate)
                 {
+                    Console.WriteLine("Invalid academic year date range.");
                     return BadRequest("Ngày bắt đầu năm học phải trước ngày kết thúc.");
                 }
                 if (academicYearDto.Semester1StartDate >= academicYearDto.Semester1EndDate)
                 {
+                    Console.WriteLine("Invalid semester 1 date range.");
                     return BadRequest("Ngày bắt đầu của Học kỳ 1 phải trước ngày kết thúc.");
                 }
                 if (academicYearDto.Semester2StartDate >= academicYearDto.Semester2EndDate)
                 {
+                    Console.WriteLine("Invalid semester 2 date range.");
                     return BadRequest("Ngày bắt đầu của Học kỳ 2 phải trước ngày kết thúc.");
                 }
                 if (academicYearDto.Semester1EndDate >= academicYearDto.Semester2StartDate)
                 {
+                    Console.WriteLine("Invalid semester date overlap.");
                     return BadRequest("Ngày kết thúc của Học kỳ 1 phải trước ngày bắt đầu của Học kỳ 2.");
                 }
-                
-                await _service.UpdateAsync(academicYearDto); 
-                return Ok(new { message = "Năm học đã được cập nhật thành công!" }); 
+
+                await _service.UpdateAsync(academicYearDto);
+                return Ok(new { message = "Năm học đã được cập nhật thành công!" });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error updating academic year: {ex.Message}");
+                return NotFound("Không tìm thấy năm học.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error updating academic year: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật năm học.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error updating academic year: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật năm học.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Đã xảy ra lỗi trong quá trình xử lý yêu cầu.");
+                Console.WriteLine($"Unexpected error updating academic year: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi khi cập nhật năm học.");
             }
         }
 
@@ -119,15 +137,17 @@ namespace HGSMAPI.Controllers
             try
             {
                 await _service.DeleteAsync(id);
-                return Ok(new { message = $"Xóa năm học thành công!" }); 
+                return Ok(new { message = "Xóa năm học thành công!" });
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error deleting academic year: {ex.Message}");
+                return NotFound("Không tìm thấy năm học.");
             }
             catch (Exception ex)
             {
-                return StatusCode(StatusCodes.Status500InternalServerError, "Đã xảy ra lỗi trong quá trình xóa năm học.");
+                Console.WriteLine($"Unexpected error deleting academic year: {ex.Message}");
+                return StatusCode(StatusCodes.Status500InternalServerError, "Lỗi khi xóa năm học.");
             }
         }
     }

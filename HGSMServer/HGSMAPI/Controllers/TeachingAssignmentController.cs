@@ -27,7 +27,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error creating teaching assignments: {ex.Message}");
+                return BadRequest("Lỗi khi phân công giảng dạy.");
             }
         }
 
@@ -42,7 +43,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error fetching filter data: {ex.Message}");
+                return BadRequest("Lỗi khi lấy dữ liệu lọc.");
             }
         }
 
@@ -57,7 +59,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error fetching assignments for creation: {ex.Message}");
+                return BadRequest("Lỗi khi lấy dữ liệu phân công giảng dạy.");
             }
         }
 
@@ -72,7 +75,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error updating teaching assignments: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật phân công giảng dạy.");
             }
         }
 
@@ -87,7 +91,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error fetching all teaching assignments: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách phân công giảng dạy.");
             }
         }
 
@@ -102,7 +107,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error fetching teaching assignments: {ex.Message}");
+                return BadRequest("Lỗi khi lấy phân công giảng dạy.");
             }
         }
 
@@ -117,7 +123,8 @@ namespace HGSMAPI.Controllers
             }
             catch (Exception ex)
             {
-                return BadRequest(ex.Message);
+                Console.WriteLine($"Error deleting teaching assignments: {ex.Message}");
+                return BadRequest("Lỗi khi xóa phân công giảng dạy.");
             }
         }
     }

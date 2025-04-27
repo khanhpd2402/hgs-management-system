@@ -36,7 +36,7 @@ namespace Application.Features.Semesters.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể lấy danh sách học kỳ theo năm học do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi lấy danh sách học kỳ.", ex);
             }
         }
 
@@ -45,7 +45,7 @@ namespace Application.Features.Semesters.Services
             var semester = await _repository.GetByIdAsync(id);
             if (semester == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {id}.");
+                throw new KeyNotFoundException("Không tìm thấy học kỳ.");
             }
             return _mapper.Map<SemesterDto>(semester);
         }
@@ -59,7 +59,7 @@ namespace Application.Features.Semesters.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể lấy danh sách học kỳ do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi lấy danh sách học kỳ.", ex);
             }
         }
 
@@ -73,7 +73,7 @@ namespace Application.Features.Semesters.Services
             var academicYear = await _academicYearRepository.GetByIdAsync(semesterDto.AcademicYearID);
             if (academicYear == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {semesterDto.AcademicYearID}.");
+                throw new KeyNotFoundException("Không tìm thấy năm học.");
             }
 
             var semester = _mapper.Map<Semester>(semesterDto);
@@ -86,7 +86,7 @@ namespace Application.Features.Semesters.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể thêm học kỳ do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi thêm học kỳ.", ex);
             }
         }
 
@@ -100,13 +100,13 @@ namespace Application.Features.Semesters.Services
             var existingSemester = await _repository.GetByIdAsync(semesterDto.SemesterID);
             if (existingSemester == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterDto.SemesterID} để cập nhật.");
+                throw new KeyNotFoundException("Không tìm thấy học kỳ.");
             }
 
             var academicYear = await _academicYearRepository.GetByIdAsync(semesterDto.AcademicYearID);
             if (academicYear == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy năm học với ID {semesterDto.AcademicYearID}.");
+                throw new KeyNotFoundException("Không tìm thấy năm học.");
             }
 
             var semester = _mapper.Map<Semester>(semesterDto);
@@ -119,7 +119,7 @@ namespace Application.Features.Semesters.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể cập nhật học kỳ do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi cập nhật học kỳ.", ex);
             }
         }
 
@@ -128,7 +128,7 @@ namespace Application.Features.Semesters.Services
             var semester = await _repository.GetByIdAsync(id);
             if (semester == null)
             {
-                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {id} để xóa.");
+                throw new KeyNotFoundException("Không tìm thấy học kỳ.");
             }
 
             try
@@ -137,7 +137,7 @@ namespace Application.Features.Semesters.Services
             }
             catch (Exception ex)
             {
-                throw new InvalidOperationException("Không thể xóa học kỳ do lỗi hệ thống.", ex);
+                throw new InvalidOperationException("Lỗi khi xóa học kỳ.", ex);
             }
         }
 
