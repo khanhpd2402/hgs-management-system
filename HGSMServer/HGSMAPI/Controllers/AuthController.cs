@@ -116,11 +116,6 @@ namespace HGSMAPI.Controllers
             HttpContext.Session.SetString("UserSession", JsonSerializer.Serialize(userSessionData));
             Console.WriteLine($"User session data saved: {JsonSerializer.Serialize(userSessionData)}");
 
-            // Lưu năm học vào Session
-            var currentAcademicYear = await _academicYearRepository.GetCurrentAcademicYearAsync();
-           
-            HttpContext.Session.SetString("AcademicYear", currentAcademicYear.YearName ?? "Unknown");
-            Console.WriteLine($"Academic year saved in session: {currentAcademicYear.YearName ?? "Unknown"}");
 
             Console.WriteLine($"Login successful for user {user.Username}.");
             return Ok(new
