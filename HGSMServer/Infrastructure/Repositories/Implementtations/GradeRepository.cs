@@ -28,7 +28,7 @@ namespace Infrastructure.Repositories.Implementtations
                           select g)
                           .Include(g => g.StudentClass.Student) 
                           .Include(g => g.Assignment.Subject)
-                          .Include(g => g.Batch)
+                          .Include(g => g.Batch).ThenInclude(b => b.Semester)
                           .ToListAsync();
         }
         public async Task<List<Grade>> GetGradesByClassAsync(int classId, int subjectId, int semesterId)
