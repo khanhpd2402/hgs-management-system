@@ -51,7 +51,7 @@ namespace HGSMAPI.Controllers
 
         [HttpGet("last-academic-year")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh")]
-        public async Task<ActionResult<IEnumerable<StudentClassResponseDto>>> GetAllStudentClassByLastAcademicYear([FromQuery] int currentAcademicYearId)
+        public async Task<ActionResult<StudentClassByLastAcademicYearResponseDto>> GetAllStudentClassByLastAcademicYear([FromQuery] int currentAcademicYearId)
         {
             try
             {
@@ -62,8 +62,8 @@ namespace HGSMAPI.Controllers
                 }
 
                 Console.WriteLine("Fetching student classes by last academic year...");
-                var studentClasses = await _studentClassService.GetAllStudentClassByLastAcademicYearAsync(currentAcademicYearId);
-                return Ok(studentClasses);
+                var result = await _studentClassService.GetAllStudentClassByLastAcademicYearAsync(currentAcademicYearId);
+                return Ok(result);
             }
             catch (UnauthorizedAccessException ex)
             {
@@ -79,6 +79,39 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"Unexpected error fetching student classes: {ex.Message}");
                 return StatusCode(500, "Lỗi khi lấy danh sách phân công lớp năm học vừa kết thúc.");
+            }
+        }
+
+        [HttpGet("non-eligible-students")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh")]
+        public async Task<ActionResult<IEnumerable<StudentClassResponseDto>>> GetNonEligibleStudentsByLastAcademicYear([FromQuery] int currentAcademicYearId)
+        {
+            try
+            {
+                if (currentAcademicYearId <= 0)
+                {
+                    Console.WriteLine("Invalid AcademicYearId.");
+                    return BadRequest("AcademicYearId phải là một số nguyên dương.");
+                }
+
+                Console.WriteLine("Fetching non-eligible students by last academic year...");
+                var nonEligibleStudents = await _studentClassService.GetNonEligibleStudentsByLastAcademicYearAsync(currentAcademicYearId);
+                return Ok(nonEligibleStudents);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching non-eligible students: {ex.Message}");
+                return NotFound("Không tìm thấy học sinh không đủ điều kiện lên lớp.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching non-eligible students: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách học sinh không đủ điều kiện lên lớp.");
             }
         }
 
