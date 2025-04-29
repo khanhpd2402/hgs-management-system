@@ -13,6 +13,8 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
+import { toast } from 'react-toastify';  // Thêm import này ở đầu file
+import { useDeleteTimeTableDetail } from '@/services/schedule/mutation';
 
 const Schedule = () => {
     const daysOfWeek = [
@@ -90,7 +92,8 @@ const Schedule = () => {
             periodId,
             className,
             currentSubject: schedule?.subjectId || '',
-            currentTeacher: schedule?.teacherId || ''
+            currentTeacher: schedule?.teacherId || '',
+            timetableDetailId: schedule?.timetableDetailId || null  // Thêm dòng này
         });
         setSelectedSubjectId(schedule?.subjectId || '');
         setSelectedTeacherId(schedule?.teacherId || '');
@@ -146,29 +149,49 @@ const Schedule = () => {
         setShowEditDialog(false);
     };
 
-    const handleDelete = () => {
+    const deleteTimeTableDetailMutation = useDeleteTimeTableDetail();
+
+    const handleDelete = async () => {
         if (!selectedSchedule) return;
 
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         if (!scheduleToUse?.details) return;
 
-        const updatedDetails = scheduleToUse.details.filter(
+        const scheduleDetail = scheduleToUse.details.find(
             item =>
-                !(item.dayOfWeek === selectedSchedule.day &&
-                    item.periodId === selectedSchedule.periodId &&
-                    item.className === selectedSchedule.className)
+                item.dayOfWeek === selectedSchedule.day &&
+                item.periodId === selectedSchedule.periodId &&
+                item.className === selectedSchedule.className
         );
 
-        if (filteredSchedule) {
-            setFilteredSchedule({
-                ...filteredSchedule,
-                details: updatedDetails
-            });
-        } else {
-            scheduleData[0].details = updatedDetails;
+        if (!scheduleDetail) {
+            toast.error('Không tìm thấy chi tiết thời khóa biểu');
+            return;
         }
 
-        setShowEditDialog(false);
+        try {
+            await deleteTimeTableDetailMutation.mutateAsync(scheduleDetail.timetableDetailId);
+
+            toast.success('Xóa thời khóa biểu thành công');
+
+            const updatedDetails = scheduleToUse.details.filter(
+                item => item.timetableDetailId !== scheduleDetail.timetableDetailId
+            );
+
+            if (filteredSchedule) {
+                setFilteredSchedule({
+                    ...filteredSchedule,
+                    details: updatedDetails
+                });
+            } else {
+                scheduleData[0].details = updatedDetails;
+            }
+
+            setShowEditDialog(false);
+        } catch (error) {
+            console.error('Lỗi khi xóa thời khóa biểu:', error);
+            toast.error('Có lỗi xảy ra khi xóa thời khóa biểu');
+        }
     };
 
     // Fetch semesters from localStorage
@@ -597,8 +620,8 @@ const Schedule = () => {
 
 
             {/* Tách riêng phần Dialog ra khỏi phần filter */}
-            <Dialog 
-                open={showEditDialog} 
+            <Dialog
+                open={showEditDialog}
                 onOpenChange={setShowEditDialog}
                 className="schedule-edit-dialog"
             >
@@ -608,8 +631,13 @@ const Schedule = () => {
                             Chỉnh sửa thời khóa biểu
                         </DialogTitle>
                     </DialogHeader>
-                    
+
                     <div className="schedule-edit-info">
+                        <div className="info-row">
+                            <span className="info-label">Detail:</span>
+                            <span className="info-value">{selectedSchedule?.timetableDetailId}</span>
+                        </div>
+
                         <div className="info-row">
                             <span className="info-label">Thứ:</span>
                             <span className="info-value">{selectedSchedule?.day}</span>
@@ -627,8 +655,8 @@ const Schedule = () => {
                     <div className="schedule-edit-form">
                         <div className="form-group">
                             <label>Môn học:</label>
-                            <select 
-                                value={selectedSubjectId} 
+                            <select
+                                value={selectedSubjectId}
                                 onChange={(e) => setSelectedSubjectId(e.target.value)}
                                 className="form-select"
                             >
@@ -643,7 +671,7 @@ const Schedule = () => {
 
                         <div className="form-group">
                             <label>Giáo viên:</label>
-                            <select 
+                            <select
                                 value={selectedTeacherId}
                                 onChange={(e) => setSelectedTeacherId(e.target.value)}
                                 className="form-select"
@@ -658,14 +686,14 @@ const Schedule = () => {
                         </div>
 
                         <div className="schedule-edit-actions">
-                            <button 
+                            <button
                                 onClick={handleScheduleUpdate}
                                 className="btn-save"
                             >
                                 <Save size={16} />
                                 Lưu thay đổi
                             </button>
-                            <button 
+                            <button
                                 onClick={handleDelete}
                                 className="btn-delete"
                             >
@@ -683,6 +711,9 @@ const Schedule = () => {
                     <DialogHeader>
                         <DialogTitle>Chỉnh sửa thời khóa biểu - {selectedSchedule?.className}</DialogTitle>
                         <div className="schedule-info">
+
+                            <p>Detail id: {selectedSchedule?.timetableDetailId}</p>
+
                             <p>Tiết: {selectedSchedule?.periodId}</p>
                             <p>Thứ: {selectedSchedule?.day}</p>
                             <p>Lớp: {selectedSchedule?.className}</p>

@@ -50,9 +50,16 @@ export const getStudentNameAndClass = async (id, academicYearId) => {
   return response.data;
 };
 
-
-
 export const getSemesterByYear = async (academicYearId) => {
-  const response = await axiosInstance.get(`Semester/by-academic-year/${academicYearId}`);
+  const response = await axiosInstance.get(
+    `Semester/by-academic-year/${academicYearId}`,
+  );
+  return response.data;
+};
+
+export const deleteTimeTableDetail = async (timetableDetailId) => {
+  const response = await axiosInstance.delete(
+    `Timetables/detail/${timetableDetailId}`,
+  );
   return response.data;
 };
