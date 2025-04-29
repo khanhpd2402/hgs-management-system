@@ -3,10 +3,16 @@ import { useTimetableForPrincipal } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects } from '@/services/common/queries';
 import './Schedule.scss';
-import { Calendar, Save, Trash2 } from "lucide-react";
+import { Calendar, Save, Trash2, Edit } from "lucide-react";
 import ExportSchedule from './ExportSchedule';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
 import { useQueryClient } from '@tanstack/react-query';
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog";
 
 const Schedule = () => {
     const daysOfWeek = [
@@ -33,6 +39,11 @@ const Schedule = () => {
         });
     };
 
+
+    const [selectedTeacherId, setSelectedTeacherId] = useState('');
+    const [selectedSubjectId, setSelectedSubjectId] = useState('');
+    const [selectedSchedule, setSelectedSchedule] = useState(null);
+    const [showEditDialog, setShowEditDialog] = useState(false);
     // State declarations (moved selectedSemester here and removed duplicate)
     const [selectedSemester, setSelectedSemester] = useState(() => {
         const savedSemester = localStorage.getItem('selectedSemester');
@@ -58,6 +69,106 @@ const Schedule = () => {
     const syncScroll = (sourceRef, targetRef) => {
         if (!sourceRef.current || !targetRef.current) return;
         targetRef.current.scrollLeft = sourceRef.current.scrollLeft;
+    };
+
+
+
+
+    const handleCellClick = (day, periodId, className) => {
+        const scheduleToUse = filteredSchedule || scheduleData?.[0];
+        if (!scheduleToUse?.details) return;
+
+        const schedule = scheduleToUse.details.find(
+            item =>
+                item.dayOfWeek === day &&
+                item.periodId === periodId &&
+                item.className === className
+        );
+
+        setSelectedSchedule({
+            day,
+            periodId,
+            className,
+            currentSubject: schedule?.subjectId || '',
+            currentTeacher: schedule?.teacherId || ''
+        });
+        setSelectedSubjectId(schedule?.subjectId || '');
+        setSelectedTeacherId(schedule?.teacherId || '');
+        setShowEditDialog(true);
+    };
+
+    const handleScheduleUpdate = () => {
+        if (!selectedSchedule) return;
+
+        const scheduleToUse = filteredSchedule || scheduleData?.[0];
+        if (!scheduleToUse?.details) return;
+
+        const updatedDetails = [...scheduleToUse.details];
+        const scheduleIndex = updatedDetails.findIndex(
+            item =>
+                item.dayOfWeek === selectedSchedule.day &&
+                item.periodId === selectedSchedule.periodId &&
+                item.className === selectedSchedule.className
+        );
+
+        const selectedSubject = subjects.find(s => s.subjectId === parseInt(selectedSubjectId));
+        const selectedTeacher = teachers.find(t => t.teacherId === parseInt(selectedTeacherId));
+
+        if (scheduleIndex !== -1) {
+            updatedDetails[scheduleIndex] = {
+                ...updatedDetails[scheduleIndex],
+                subjectId: selectedSubjectId,
+                teacherId: selectedTeacherId,
+                subjectName: selectedSubject?.subjectName || '',
+                teacherName: selectedTeacher?.fullName || ''
+            };
+        } else {
+            updatedDetails.push({
+                dayOfWeek: selectedSchedule.day,
+                periodId: selectedSchedule.periodId,
+                className: selectedSchedule.className,
+                subjectId: selectedSubjectId,
+                teacherId: selectedTeacherId,
+                subjectName: selectedSubject?.subjectName || '',
+                teacherName: selectedTeacher?.fullName || ''
+            });
+        }
+
+        if (filteredSchedule) {
+            setFilteredSchedule({
+                ...filteredSchedule,
+                details: updatedDetails
+            });
+        } else {
+            scheduleData[0].details = updatedDetails;
+        }
+
+        setShowEditDialog(false);
+    };
+
+    const handleDelete = () => {
+        if (!selectedSchedule) return;
+
+        const scheduleToUse = filteredSchedule || scheduleData?.[0];
+        if (!scheduleToUse?.details) return;
+
+        const updatedDetails = scheduleToUse.details.filter(
+            item =>
+                !(item.dayOfWeek === selectedSchedule.day &&
+                    item.periodId === selectedSchedule.periodId &&
+                    item.className === selectedSchedule.className)
+        );
+
+        if (filteredSchedule) {
+            setFilteredSchedule({
+                ...filteredSchedule,
+                details: updatedDetails
+            });
+        } else {
+            scheduleData[0].details = updatedDetails;
+        }
+
+        setShowEditDialog(false);
     };
 
     // Fetch semesters from localStorage
@@ -184,6 +295,10 @@ const Schedule = () => {
                             ref={provided.innerRef}
                             {...provided.draggableProps}
                             {...provided.dragHandleProps}
+                            onClick={(e) => {
+                                e.stopPropagation();
+                                handleCellClick(day, periodId, className);
+                            }}
                         >
                             <div className="subject">{schedule.subjectName}</div>
                             {showTeacherName && <div className="teacher">{schedule.teacherName}</div>}
@@ -462,7 +577,7 @@ const Schedule = () => {
                                                     {(provided) => (
                                                         <td
                                                             ref={provided.innerRef}
-                                                            {...provided.droppableProps}
+                                                            {...provided.draggableProps}
                                                         >
                                                             {getSchedule(day, period, className, classIndex)}
                                                             {provided.placeholder}
@@ -478,6 +593,61 @@ const Schedule = () => {
                     </table>
                 </div>
             </DragDropContext>
+
+
+            <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+                <DialogContent className="edit-schedule-dialog">
+                    <DialogHeader>
+                        <DialogTitle>Chỉnh sửa thời khóa biểu - {selectedSchedule?.className}</DialogTitle>
+                        <div className="schedule-info">
+                            <p>Tiết: {selectedSchedule?.periodId}</p>
+                            <p>Thứ: {selectedSchedule?.day}</p>
+                            <p>Lớp: {selectedSchedule?.className}</p>
+                        </div>
+                    </DialogHeader>
+                    <div className="edit-schedule-form">
+                        <div className="form-group">
+                            <label>Môn học</label>
+                            <select
+                                value={selectedSubjectId}
+                                onChange={(e) => setSelectedSubjectId(e.target.value)}
+                            >
+                                <option value="">Chọn môn học</option>
+                                {subjects.map(subject => (
+                                    <option key={subject.subjectId} value={subject.subjectId}>
+                                        {subject.subjectName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-group">
+                            <label>Giáo viên</label>
+                            <select
+                                value={selectedTeacherId}
+                                onChange={(e) => setSelectedTeacherId(e.target.value)}
+                            >
+                                <option value="">Chọn giáo viên</option>
+                                {teachers.map(teacher => (
+                                    <option key={teacher.teacherId} value={teacher.teacherId}>
+                                        {teacher.fullName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+                        <div className="form-actions">
+                            <button onClick={handleScheduleUpdate} className="save-btn">
+                                Lưu thay đổi
+                            </button>
+                            <button onClick={handleDelete} className="delete-btn">
+                                Xóa môn học
+                            </button>
+                            <button onClick={() => setShowEditDialog(false)} className="cancel-btn">
+                                Hủy
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
         </div>
     );
 };

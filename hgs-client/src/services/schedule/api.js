@@ -49,3 +49,10 @@ export const getStudentNameAndClass = async (id, academicYearId) => {
   const response = await axiosInstance.get(`Student/${id}/${academicYearId}`);
   return response.data;
 };
+
+
+
+export const getSemesterByYear = async (academicYearId) => {
+  const response = await axiosInstance.get(`Semester/by-academic-year/${academicYearId}`);
+  return response.data;
+};

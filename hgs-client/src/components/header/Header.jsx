@@ -18,6 +18,8 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { getSemesterByYear } from "../../services/schedule/api";
+
 
 const Header = ({ setCurrentYear }) => {
   const navigate = useNavigate();
@@ -75,7 +77,7 @@ const Header = ({ setCurrentYear }) => {
           <div className="flex items-center gap-4">
             <Select
               value={selectedYear?.academicYearID}
-              onValueChange={(value) => {
+              onValueChange={async (value) => {
                 const year = academicYears.data.find(
                   (y) => y.academicYearID === value,
                 );
@@ -93,14 +95,8 @@ const Header = ({ setCurrentYear }) => {
                 localStorage.setItem("selectedYearName", year.yearName);
 
                 // Gọi API để lấy thông tin học kỳ
-                fetch(`https://localhost:8386/api/Semester/by-academic-year/${year.academicYearID}`)
-                  .then(res => res.json())
-                  .then(semesters => {
-                    // Lưu danh sách học kỳ vào localStorage
-                    localStorage.setItem("semesters", JSON.stringify(semesters));
-                    // Load lại trang sau khi lưu xong
-
-                  });
+                const semesters = await getSemesterByYear(year.academicYearID);
+                localStorage.setItem("semesters", JSON.stringify(semesters));
               }}
             >
               <SelectTrigger className="w-[130px]">

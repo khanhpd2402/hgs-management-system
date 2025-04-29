@@ -612,3 +612,227 @@ button {
     padding: 0 16px;
     margin-top: 16px;
 }
+
+.schedule-cell {
+    cursor: pointer;
+    transition: background-color 0.2s;
+    
+    &:hover {
+        background-color: rgba(0, 0, 0, 0.05);
+    }
+}
+
+.edit-schedule-dialog {
+    min-width: 400px;
+    
+    .schedule-info {
+        margin: 10px 0;
+        padding: 10px;
+        background-color: #f5f5f5;
+        border-radius: 4px;
+        
+        p {
+            margin: 5px 0;
+            color: #666;
+        }
+    }
+
+    .edit-schedule-form {
+        margin-top: 20px;
+
+        .form-group {
+            margin-bottom: 20px;
+
+            label {
+                display: block;
+                margin-bottom: 8px;
+                font-weight: 500;
+                color: #333;
+            }
+
+            select {
+                width: 100%;
+                padding: 8px 12px;
+                border: 1px solid #ddd;
+                border-radius: 4px;
+                background-color: white;
+                
+                &:focus {
+                    border-color: #2196F3;
+                    outline: none;
+                }
+            }
+        }
+
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 24px;
+
+            button {
+                padding: 8px 16px;
+                border-radius: 4px;
+                border: none;
+                cursor: pointer;
+                font-weight: 500;
+                transition: all 0.2s;
+
+                &.save-btn {
+                    background-color: #2196F3;
+                    color: white;
+
+                    &:hover {
+                        background-color: #1976D2;
+                    }
+                }
+
+                &.delete-btn {
+                    background-color: #F44336;
+                    color: white;
+
+                    &:hover {
+                        background-color: #D32F2F;
+                    }
+                }
+
+                &.cancel-btn {
+                    background-color: #E0E0E0;
+                    color: #333;
+
+                    &:hover {
+                        background-color: #BDBDBD;
+                    }
+                }
+            }
+        }
+    }
+}
+
+.drop-target {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.btn-edit {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    padding: 8px 16px;
+    border: none;
+    border-radius: 4px;
+    background-color: #4CAF50;
+    color: white;
+    cursor: pointer;
+    
+    &:hover {
+        background-color: #45a049;
+    }
+}
+
+.empty-cell {
+    cursor: pointer;
+    padding: 8px;
+    text-align: center;
+    color: #666;
+    
+    &:hover {
+        background-color: #f5f5f5;
+    }
+}
+
+.floating-trash {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #f44336;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    cursor: pointer;
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    z-index: 1000;
+
+    &.trash-visible {
+        opacity: 1;
+        visibility: visible;
+    }
+
+    &.trash-active {
+        transform: scale(1.2);
+        background-color: #d32f2f;
+    }
+
+    svg {
+        transition: transform 0.3s ease;
+    }
+
+    &:hover svg {
+        transform: scale(1.1);
+    }
+
+    &.trash-active svg {
+        animation: shake 0.5s ease-in-out infinite;
+    }
+}
+
+@keyframes shake {
+    0%, 100% {
+        transform: rotate(0);
+    }
+    25% {
+        transform: rotate(10deg);
+    }
+    75% {
+        transform: rotate(-10deg);
+    }
+}
+.timetable-wrapper {
+    overflow-x: auto;
+    overflow-y: hidden;
+    white-space: nowrap;
+    width: 100%;
+}
+
+.timetable-wrapper.top-scroll {
+    height: 20px; // chỉ để hiển thị thanh cuộn
+    margin-bottom: 8px;
+}
+
+.timetable-table.dummy-scroll {
+    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+    height: 1px; // để nội dung không hiển thị
+}
+
+.schedule-container {
+    width: 100%;
+    max-width: calc(100vw - 20rem);
+    position: relative;
+    margin-top: 50px;
+    overflow: hidden; /* Changed from overflow-x: auto to hidden */
+}
+
+.sticky-filter {
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    background-color: #fff;
+    width: 100%;
+    padding: 16px;
+    border-bottom: 1px solid #ddd;
+}
+
+.table-container {
+    width: 100%;
+    overflow-x: auto; /* Move the horizontal scroll to table container */
+    padding: 0 16px;
+    margin-top: 16px;
+}
