@@ -82,10 +82,24 @@ const Header = ({ setCurrentYear }) => {
                 setSelectedYear(year);
                 setCurrentYear(year);
 
+                // Lưu vào sessionStorage cho việc duy trì trạng thái khi refresh
                 sessionStorage.setItem(
                   "currentAcademicYear",
                   JSON.stringify(year),
                 );
+
+                // Lưu thêm vào localStorage cho academicYearID và yearName
+                localStorage.setItem("selectedAcademicYearID", year.academicYearID);
+                localStorage.setItem("selectedYearName", year.yearName);
+
+                // Gọi API để lấy thông tin học kỳ
+                fetch(`https://localhost:8386/api/Semester/by-academic-year/${year.academicYearID}`)
+                  .then(res => res.json())
+                  .then(semesters => {
+                    // Lưu danh sách học kỳ vào localStorage
+                    localStorage.setItem("semesters", JSON.stringify(semesters));
+
+                  });
               }}
             >
               <SelectTrigger className="w-[130px]">

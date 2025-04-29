@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useTimetableForPrincipal } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects } from '@/services/common/queries';
@@ -6,9 +6,9 @@ import './Schedule.scss';
 import { Calendar, Save, Trash2 } from "lucide-react";
 import ExportSchedule from './ExportSchedule';
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { useQueryClient } from '@tanstack/react-query';
 
 const Schedule = () => {
-    // Add daysOfWeek array at the top
     const daysOfWeek = [
         'Thứ Hai',
         'Thứ Ba',
@@ -33,33 +33,62 @@ const Schedule = () => {
         });
     };
 
+    // State declarations (moved selectedSemester here and removed duplicate)
+    const [selectedSemester, setSelectedSemester] = useState(() => {
+        const savedSemester = localStorage.getItem('selectedSemester');
+        return savedSemester ? parseInt(savedSemester) : null;
+    });
     const [selectedGrade, setSelectedGrade] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
-
-    // Add new state variables
     const [selectedTeacher, setSelectedTeacher] = useState('');
     const [selectedSubject, setSelectedSubject] = useState('');
     const [selectedSession, setSelectedSession] = useState('');
     const [showTeacherName, setShowTeacherName] = useState(true);
-
     const [tempTeacher, setTempTeacher] = useState('');
     const [tempGrade, setTempGrade] = useState('');
     const [tempClass, setTempClass] = useState('');
     const [tempSubject, setTempSubject] = useState('');
     const [tempSession, setTempSession] = useState('');
+    const [filteredSchedule, setFilteredSchedule] = useState(null);
+
     const topScrollRef = useRef(null);
     const bottomScrollRef = useRef(null);
+    const queryClient = useQueryClient();
+
     const syncScroll = (sourceRef, targetRef) => {
         if (!sourceRef.current || !targetRef.current) return;
         targetRef.current.scrollLeft = sourceRef.current.scrollLeft;
     };
 
-    // Add dummy data (replace with actual data from your API)
-    const subjectData = []; // Replace with actual subject data
-    const grades = ['6', '7', '8', '9']; // Replace with actual grades
+    // Fetch semesters from localStorage
+    const getSemesters = () => {
+        try {
+            const storedSemesters = localStorage.getItem('semesters');
+            return storedSemesters ? JSON.parse(storedSemesters) : [];
+        } catch (e) {
+            console.error('Failed to parse semesters from localStorage:', e);
+            return [];
+        }
+    };
 
-    // Add filtered state
-    const [filteredSchedule, setFilteredSchedule] = useState(null);
+    const semesters = getSemesters();
+    const subjectData = [];
+    const grades = ['6', '7', '8', '9'];
+
+    // Set default semester if none selected
+    useEffect(() => {
+        if (!selectedSemester && semesters.length > 0) {
+            setSelectedSemester(semesters[0].semesterID);
+        }
+    }, [selectedSemester, semesters]);
+
+    // Save selected semester to localStorage and refetch data
+    useEffect(() => {
+        if (selectedSemester) {
+            localStorage.setItem('selectedSemester', selectedSemester);
+            queryClient.invalidateQueries(['timetable', selectedSemester]);
+        }
+    }, [selectedSemester, queryClient]);
 
     const handleSearch = () => {
         if (!scheduleData?.[0]?.details) return;
@@ -117,24 +146,20 @@ const Schedule = () => {
         } : null);
     };
 
-    // Update handleReset function
     const handleReset = () => {
         setTempTeacher('');
         setTempGrade('');
         setTempClass('');
         setTempSubject('');
         setTempSession('');
-
         setSelectedTeacher('');
         setSelectedGrade('');
         setSelectedClass('');
         setSelectedSubject('');
         setSelectedSession('');
-
         setFilteredSchedule(null);
     };
 
-    // Update getSchedule function
     const getSchedule = (day, periodId, className, classIndex) => {
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         if (!scheduleToUse?.details) return null;
@@ -170,11 +195,9 @@ const Schedule = () => {
         return <div className="schedule-cell"></div>;
     };
 
-    // Handle drag and drop
     const onDragEnd = (result, className) => {
         const { source, destination } = result;
 
-        // If no destination or dropped in the same position, do nothing
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
             return;
         }
@@ -182,10 +205,7 @@ const Schedule = () => {
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         if (!scheduleToUse?.details) return;
 
-        // Create a copy of the details array
         const updatedDetails = [...scheduleToUse.details];
-
-        // Find the source and destination items
         const sourceItem = updatedDetails.find(
             item => item.dayOfWeek === daysOfWeek[source.droppableId.split('-')[1]] &&
                 item.periodId === source.index &&
@@ -197,52 +217,48 @@ const Schedule = () => {
                 item.className === className
         );
 
-        // Swap periodId of the source and destination items
         if (sourceItem && destItem) {
             const sourcePeriodId = sourceItem.periodId;
             sourceItem.periodId = destItem.periodId;
             destItem.periodId = sourcePeriodId;
         } else if (sourceItem) {
-            // Move source item to empty destination
             sourceItem.periodId = destination.index;
         }
 
-        // Update the schedule state
         if (filteredSchedule) {
             setFilteredSchedule({
                 ...filteredSchedule,
                 details: updatedDetails
             });
         } else {
-            // Update the original schedule data (this assumes scheduleData is mutable)
             scheduleData[0].details = updatedDetails;
         }
     };
 
-    // Hook usage
-    const { data: scheduleData, isLoading: scheduleLoading } = useTimetableForPrincipal(3);
+    // Fetch timetable data with selected semester
+    const { data: scheduleData, isLoading: scheduleLoading } = useTimetableForPrincipal(selectedSemester);
     const { data: teachersResponse = { teachers: [] }, isLoading: teachersLoading } = useTeachers();
     const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
-
     const teachers = Array.isArray(teachersResponse) ? teachersResponse : teachersResponse.teachers || [];
 
-    // Update the loading check
+    // Get startDate and endDate for the selected semester
+    const selectedSemesterData = semesters.find(s => s.semesterID === selectedSemester);
+
     if (scheduleLoading || teachersLoading || subjectsLoading) {
         return <div className="loading">Đang tải...</div>;
     }
 
     const currentSchedule = scheduleData?.[0];
 
-    // Move getUniqueClasses function before its usage
     const getUniqueClasses = () => {
         if (!scheduleData?.[0]?.details) return [];
         const classes = scheduleData[0].details.map(detail => detail.className);
         return [...new Set(classes)].sort();
     };
+
     const getFilteredClasses = () => {
         if (!scheduleData?.[0]?.details) return [];
         const allClasses = [...new Set(scheduleData[0].details.map(detail => detail.className))].sort();
-
         if (tempGrade) {
             return allClasses.filter(className => className.startsWith(tempGrade));
         }
@@ -267,7 +283,6 @@ const Schedule = () => {
         }, {});
     };
 
-    // Modify the shifts based on tempSession
     const getFilteredShifts = () => {
         if (!filteredSchedule?.selectedSession) return shifts;
         return shifts.filter(shift =>
@@ -283,20 +298,27 @@ const Schedule = () => {
                     <div className="filter-row">
                         <div className="filter-column">
                             <label>Học kỳ</label>
-                            <input
-                                type="text"
-                                value={scheduleData?.[0]?.semesterId === 1 ? "Học kỳ I" : "Học kỳ II"}
-                                readOnly
-                            />
+                            <select
+                                value={selectedSemester || ''}
+                                onChange={(e) => setSelectedSemester(parseInt(e.target.value))}
+                                disabled={semesters.length === 0}
+                            >
+                                {semesters.length === 0 && <option value="">Không có học kỳ</option>}
+                                {semesters.map(semester => (
+                                    <option key={semester.semesterID} value={semester.semesterID}>
+                                        {semester.semesterName}
+                                    </option>
+                                ))}
+                            </select>
                         </div>
                         <div className="filter-column">
                             <label>Ngày áp dụng</label>
                             <input
                                 type="text"
                                 value={
-                                    scheduleData?.[0]?.effectiveDate && scheduleData?.[0]?.endDate
-                                        ? `Từ ${formatDate(scheduleData[0].effectiveDate)} đến ${formatDate(scheduleData[0].endDate)}`
-                                        : ""
+                                    selectedSemesterData?.startDate && selectedSemesterData?.endDate
+                                        ? `Từ ${formatDate(selectedSemesterData.startDate)} đến ${formatDate(selectedSemesterData.endDate)}`
+                                        : "Đang tải..."
                                 }
                                 readOnly
                             />
@@ -395,8 +417,8 @@ const Schedule = () => {
             }}>
                 <div className="table-container" ref={topScrollRef} onScroll={() => syncScroll(topScrollRef, bottomScrollRef)}>
                     <div className="timetable-table dummy-scroll" />
-                    <br></br>
-                    <br></br>
+                    <br />
+                    <br />
                     <table className="schedule-table">
                         <thead>
                             <tr>
