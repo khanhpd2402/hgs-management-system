@@ -98,6 +98,7 @@ const Header = ({ setCurrentYear }) => {
                   .then(semesters => {
                     // Lưu danh sách học kỳ vào localStorage
                     localStorage.setItem("semesters", JSON.stringify(semesters));
+                    // Load lại trang sau khi lưu xong
 
                   });
               }}
