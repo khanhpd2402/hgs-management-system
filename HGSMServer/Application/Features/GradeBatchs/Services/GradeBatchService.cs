@@ -1,6 +1,7 @@
 ﻿using Application.Features.GradeBatchs.DTOs;
 using Application.Features.GradeBatchs.Interfaces;
 using AutoMapper;
+using Common.Constants;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Infrastructure.Repositories.UnitOfWork;
@@ -29,30 +30,29 @@ namespace Application.Services
             var result = list.Where(b => b.Semester!.AcademicYearId == academicYearId);
             return _mapper.Map<IEnumerable<GradeBatchDto>>(result);
         }
-
         public async Task<int> CreateBatchAndInsertGradesAsync(string batchName, int semesterId, DateOnly start, DateOnly end, string status)
         {
-            // 1. Tạo đợt nhập điểm
-            var newBatch = new GradeBatch
+            // Validate status trước
+            if (!AppConstants.Status.All.Contains(status))
             {
-                BatchName = batchName,
-                SemesterId = semesterId,
-                StartDate = start,
-                EndDate = end,
-                Status = status
-            };
+                throw new ArgumentException($"Trạng thái '{status}' không hợp lệ. Các trạng thái hợp lệ: {string.Join(", ", AppConstants.Status.All)}");
+            }
 
-            await _unitOfWork.GradeBatchRepository.AddAsync(newBatch);
-            var batchId = newBatch.BatchId;
-
-            // 2. Lấy danh sách phân công giảng dạy
+            // 1. Lấy dữ liệu cần thiết
             var assignments = await _unitOfWork.TeachingAssignmentRepository.GetBySemesterIdAsync(semesterId);
             var semester = await _unitOfWork.SemesterRepository.GetByIdAsync(semesterId);
-            var academicYearId = 0;
-            if (semester != null)
+
+            if (semester == null)
             {
-                academicYearId = semester.AcademicYearId;
+                throw new ArgumentException($"Không tìm thấy học kỳ với ID {semesterId}");
             }
+
+            if (assignments == null || !assignments.Any())
+            {
+                throw new InvalidOperationException($"Không có phân công giảng dạy cho học kỳ ID {semesterId}, không thể tạo đợt nhập điểm.");
+            }
+
+            var academicYearId = semester.AcademicYearId;
             var allGrades = new List<Grade>();
 
             foreach (var assignment in assignments)
@@ -62,9 +62,13 @@ namespace Application.Services
 
                 var studentClasses = await _unitOfWork.StudentClassRepository.GetByClassIdAndAcademicYearAsync(classId, academicYearId);
                 var gls = await _unitOfWork.GradeLevelSubjectRepository.GetByGradeAndSubjectAsync(assignment.Class.GradeLevelId, subjectId);
-                if (gls == null) continue;
 
-                // Sinh các loại đầu điểm dựa vào tên học kỳ
+                if (gls == null || studentClasses == null || !studentClasses.Any())
+                {
+                    continue; // Không có học sinh hoặc không có cấu hình môn học => skip
+                }
+
+                // Sinh đầu điểm
                 var assessments = new List<string>();
                 bool isSemester1 = semester.SemesterName.Contains("1");
 
@@ -78,14 +82,12 @@ namespace Application.Services
                 if (gls.FinalAssessments > 0)
                     assessments.Add("ĐĐG CK");
 
-                // Tạo điểm rỗng
                 foreach (var sc in studentClasses)
                 {
                     foreach (var assess in assessments)
                     {
                         allGrades.Add(new Grade
                         {
-                            BatchId = batchId,
                             AssignmentId = assignment.AssignmentId,
                             StudentClassId = sc.Id,
                             AssessmentsTypeName = assess,
@@ -95,11 +97,46 @@ namespace Application.Services
                     }
                 }
             }
+
+            // 2. Nếu không sinh được điểm nào thì không cho tạo batch
+            if (!allGrades.Any())
+            {
+                throw new InvalidOperationException($"Không thể tạo đợt nhập điểm vì không có học sinh hoặc cấu hình đầu điểm phù hợp cho học kỳ ID {semesterId}.");
+            }
+
+            // 3. Tạo batch + Insert điểm
+            var newBatch = new GradeBatch
+            {
+                BatchName = batchName,
+                SemesterId = semesterId,
+                StartDate = start,
+                EndDate = end,
+                Status = status
+            };
+
+            await _unitOfWork.GradeBatchRepository.AddAsync(newBatch);
+            var batchId = newBatch.BatchId;
+
+            // Gán batchId cho từng grade
+            foreach (var grade in allGrades)
+            {
+                grade.BatchId = batchId;
+            }
+
             await _unitOfWork.GradeRepository.AddRangeAsync(allGrades);
+
             return batchId;
         }
+
+
         public async Task<UpdateGradeBatchDto?> UpdateAsync(int id, UpdateGradeBatchDto dto)
         {
+            // Validate status trước
+            if (!AppConstants.Status.All.Contains(dto.Status))
+            {
+                throw new ArgumentException($"Trạng thái '{dto.Status}' không hợp lệ. Các trạng thái hợp lệ: {string.Join(", ", AppConstants.Status.All)}");
+            }
+
             var existing = await _unitOfWork.GradeBatchRepository.GetByIdAsync(id);
             if (existing == null) return null;
 

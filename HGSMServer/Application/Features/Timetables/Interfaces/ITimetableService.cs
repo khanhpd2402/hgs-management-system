@@ -1,5 +1,6 @@
 ﻿using Application.Features.Timetables.DTOs;
 using Domain.Models;
+using Microsoft.AspNetCore.Http;
 
 namespace Application.Features.Timetables.Interfaces
 {
@@ -14,6 +15,8 @@ namespace Application.Features.Timetables.Interfaces
         Task<TimetableDto> UpdateTimetableInfoAsync(UpdateTimetableInfoDto dto);
         Task<bool> DeleteDetailAsync(int detailId);
         Task<bool> IsConflictAsync(TimetableDetailDto detailDto);
+
+        Task<int> ImportTimetableFromExcelAsync(IFormFile file, int semesterId, DateOnly effectiveDate);
     }
 
 }

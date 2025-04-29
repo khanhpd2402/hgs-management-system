@@ -41,7 +41,7 @@ namespace Application.Features.TeacherSubjects.Services
             var teacherSubject = await _repository.GetByIdAsync(id);
             if (teacherSubject == null)
             {
-                throw new ArgumentException($"TeacherSubject with Id {id} does not exist.");
+                throw new ArgumentException("TeacherSubject does not exist.");
             }
             return _mapper.Map<TeacherSubjectDto>(teacherSubject);
         }
@@ -51,15 +51,11 @@ namespace Application.Features.TeacherSubjects.Services
             var teacher = await _teacherRepository.GetByIdAsync(teacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {teacherId} does not exist.");
+                throw new ArgumentException("Teacher does not exist.");
             }
 
-            var teacherSubjects = await _repository.GetAllAsync();
-            var filteredTeacherSubjects = teacherSubjects
-                .Where(ts => ts.TeacherId == teacherId)
-                .ToList();
-
-            return _mapper.Map<List<TeacherSubjectDto>>(filteredTeacherSubjects);
+            var teacherSubjects = await _repository.GetByTeacherIdAsync(teacherId);
+            return _mapper.Map<List<TeacherSubjectDto>>(teacherSubjects);
         }
 
         public async Task<List<TeacherSubjectDto>> GetBySubjectIdAsync(int subjectId)
@@ -67,7 +63,7 @@ namespace Application.Features.TeacherSubjects.Services
             var subject = await _subjectRepository.GetByIdAsync(subjectId);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {subjectId} does not exist.");
+                throw new ArgumentException("Subject does not exist.");
             }
 
             var teacherSubjects = await _repository.GetAllAsync();
@@ -83,19 +79,19 @@ namespace Application.Features.TeacherSubjects.Services
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+                throw new ArgumentException("Teacher does not exist.");
             }
 
             var subject = await _subjectRepository.GetByIdAsync(dto.SubjectId);
             if (subject == null)
             {
-                throw new ArgumentException($"Subject with Id {dto.SubjectId} does not exist.");
+                throw new ArgumentException("Subject does not exist.");
             }
 
-            var existingTeacherSubject = await _repository.GetAllAsync();
-            if (existingTeacherSubject.Any(ts => ts.TeacherId == dto.TeacherId && ts.SubjectId == dto.SubjectId))
+            var existingTeacherSubject = await _repository.GetByTeacherIdAsync(dto.TeacherId);
+            if (existingTeacherSubject.Any(ts => ts.SubjectId == dto.SubjectId))
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} is already assigned to Subject with Id {dto.SubjectId}.");
+                throw new ArgumentException("Teacher is already assigned to this subject.");
             }
 
             var teacherSubject = _mapper.Map<TeacherSubject>(dto);
@@ -107,17 +103,29 @@ namespace Application.Features.TeacherSubjects.Services
             var teacher = await _teacherRepository.GetByIdAsync(dto.TeacherId);
             if (teacher == null)
             {
-                throw new ArgumentException($"Teacher with Id {dto.TeacherId} does not exist.");
+                throw new ArgumentException("Teacher does not exist.");
             }
 
-            var existingTeacherSubjects = await _repository.GetAllAsync();
+            var existingTeacherSubjects = await _repository.GetByTeacherIdAsync(dto.TeacherId);
+            var newSubjectIds = dto.Subjects.Select(s => s.SubjectId).ToList();
 
+            // Xóa các môn học không còn trong danh sách mới
+            var subjectsToRemove = existingTeacherSubjects
+                .Where(ts => ts.SubjectId.HasValue && !newSubjectIds.Contains(ts.SubjectId.Value))
+                .ToList();
+
+            foreach (var subjectToRemove in subjectsToRemove)
+            {
+                await _repository.DeleteAsync(subjectToRemove.Id);
+            }
+
+            // Thêm hoặc cập nhật các môn học trong danh sách mới
             foreach (var subjectInfo in dto.Subjects)
             {
                 var subject = await _subjectRepository.GetByIdAsync(subjectInfo.SubjectId);
                 if (subject == null)
                 {
-                    throw new ArgumentException($"Subject with Id {subjectInfo.SubjectId} does not exist.");
+                    throw new ArgumentException("Subject does not exist.");
                 }
 
                 var teacherSubject = existingTeacherSubjects
@@ -125,11 +133,13 @@ namespace Application.Features.TeacherSubjects.Services
 
                 if (teacherSubject != null)
                 {
+                    // Cập nhật IsMainSubject nếu môn học đã tồn tại
                     teacherSubject.IsMainSubject = subjectInfo.IsMainSubject;
                     await _repository.UpdateAsync(teacherSubject);
                 }
                 else
                 {
+                    // Thêm môn học mới
                     var newTeacherSubject = new TeacherSubject
                     {
                         TeacherId = dto.TeacherId,
@@ -146,10 +156,27 @@ namespace Application.Features.TeacherSubjects.Services
             var teacherSubject = await _repository.GetByIdAsync(id);
             if (teacherSubject == null)
             {
-                throw new ArgumentException($"TeacherSubject with Id {id} does not exist.");
+                throw new ArgumentException("TeacherSubject does not exist.");
             }
 
             await _repository.DeleteAsync(id);
+        }
+
+        public async Task DeleteByTeacherIdAsync(int teacherId)
+        {
+            var teacher = await _teacherRepository.GetByIdAsync(teacherId);
+            if (teacher == null)
+            {
+                throw new ArgumentException("Teacher does not exist.");
+            }
+
+            var teacherSubjects = await _repository.GetByTeacherIdAsync(teacherId);
+            if (!teacherSubjects.Any())
+            {
+                throw new ArgumentException("No teacher subjects found for this teacher.");
+            }
+
+            await _repository.DeleteByTeacherIdAsync(teacherId);
         }
     }
 }

@@ -16,7 +16,7 @@ import {
 } from "@/components/ui/select";
 import { Input } from "@/components/ui/input";
 import { DialogDescription } from "@radix-ui/react-dialog";
-import { useSubjects } from "@/services/common/queries";
+import { cleanString } from "@/helpers/removeWhiteSpace";
 
 // const departments = [
 //   { value: "natural_science", label: "Khoa học tự nhiên" },
@@ -41,6 +41,21 @@ const contracts = [
   { value: "Hợp đồng thuê khoán", label: "Hợp đồng thuê khoán" },
 ];
 
+const subjects = [
+  {
+    value: "Khoa học tự nhiên",
+    label: "Khoa học tự nhiên",
+  },
+  {
+    value: "Khoa học xã hội",
+    label: "Khoa học xã hội",
+  },
+  {
+    value: "Toàn trường",
+    label: "Toàn trường",
+  },
+];
+
 TeacherFilter.propTypes = {
   setFilter: PropTypes.func.isRequired,
 };
@@ -52,7 +67,7 @@ export default function TeacherFilter({ setFilter }) {
   const [department, setDepartment] = useState("");
   const [contract, setContract] = useState("");
 
-  const subjectsQuery = useSubjects();
+  // const subjectsQuery = useSubjects();
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -60,7 +75,7 @@ export default function TeacherFilter({ setFilter }) {
       ...options,
       page: 1,
 
-      search: search.trim(),
+      search: cleanString(search.trim()),
       department,
       contract,
     }));
@@ -75,7 +90,12 @@ export default function TeacherFilter({ setFilter }) {
 
   return (
     <>
-      <Button onClick={() => setOpen(true)}>Lọc</Button>
+      <Button
+        onClick={() => setOpen(true)}
+        className="cursor-pointer bg-blue-600 font-semibold hover:bg-blue-700"
+      >
+        Lọc
+      </Button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent>
           <DialogHeader>
@@ -89,9 +109,9 @@ export default function TeacherFilter({ setFilter }) {
                 <SelectValue placeholder="Chọn tổ bộ môn" />
               </SelectTrigger>
               <SelectContent>
-                {subjectsQuery?.data?.map((s) => (
-                  <SelectItem key={s.subjectId} value={s.subjectName}>
-                    {s.subjectName}
+                {subjects.map((s) => (
+                  <SelectItem key={s.value} value={s.value}>
+                    {s.label}
                   </SelectItem>
                 ))}
               </SelectContent>
@@ -120,9 +140,14 @@ export default function TeacherFilter({ setFilter }) {
 
             <div className="flex justify-end space-x-2">
               <Button type="button" variant="outline" onClick={handleReset}>
-                Reset
+                Đặt lại
               </Button>
-              <Button type="submit">Xác nhận</Button>
+              <Button
+                type="submit"
+                className="cursor-pointer bg-blue-600 font-semibold hover:bg-blue-700"
+              >
+                Xác nhận
+              </Button>
             </div>
           </form>
         </DialogContent>

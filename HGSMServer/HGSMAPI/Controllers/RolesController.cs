@@ -2,7 +2,6 @@
 using Application.Features.Users.DTOs;
 using Application.Features.Users.Interfaces;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -23,66 +22,136 @@ namespace HGSMAPI.Controllers
         [HttpGet]
         public async Task<IActionResult> GetRoles()
         {
-            var roles = await _roleService.GetAllRolesAsync();
-            return Ok(roles);
+            try
+            {
+                Console.WriteLine("Fetching all roles...");
+                var roles = await _roleService.GetAllRolesAsync();
+                return Ok(roles);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching roles: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách vai trò.");
+            }
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> GetRoleById(int id)
         {
-            var role = await _roleService.GetRoleByIdAsync(id);
-            if (role == null) return NotFound();
-            return Ok(role);
+            try
+            {
+                Console.WriteLine("Fetching role...");
+                var role = await _roleService.GetRoleByIdAsync(id);
+                if (role == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return NotFound("Không tìm thấy vai trò.");
+                }
+                return Ok(role);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching role: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin vai trò.");
+            }
         }
 
         [HttpPost]
         [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> AddRole([FromBody] string roleName)
         {
-            var newRole = await _roleService.AddRoleAsync(roleName);
-            return CreatedAtAction(nameof(GetRoleById), new { id = newRole.RoleID }, newRole);
+            try
+            {
+                if (string.IsNullOrWhiteSpace(roleName))
+                {
+                    Console.WriteLine("Invalid role name.");
+                    return BadRequest("Tên vai trò không được để trống.");
+                }
+
+                Console.WriteLine("Adding role...");
+                var newRole = await _roleService.AddRoleAsync(roleName);
+                return CreatedAtAction(nameof(GetRoleById), new { id = newRole.RoleID }, newRole);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error adding role: {ex.Message}");
+                return BadRequest("Lỗi khi thêm vai trò.");
+            }
         }
 
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateRole(int id, [FromBody] string roleName)
         {
-            var originalRole = await _roleService.GetRoleByIdAsync(id);
-            if (originalRole == null)
-                return NotFound();
-
-            var updatedRole = await _roleService.UpdateRoleAsync(id, roleName);
-            if (updatedRole == null)
-                return NotFound();
-
-            // Nếu vai trò liên quan đến "Trưởng bộ môn", cập nhật IsHeadOfDepartment cho người dùng
-            if (originalRole.RoleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase) ||
-                roleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase))
+            try
             {
-                var usersWithRole = await _userService.GetAllUsersAsync();
-                foreach (var user in usersWithRole.Where(u => u.RoleId == id))
+                if (string.IsNullOrWhiteSpace(roleName))
                 {
-                    var updateUserDto = new UpdateUserDTO
-                    {
-                        UserId = user.UserId,
-                        Username = user.Username,
-                        Email = user.Email,
-                        PhoneNumber = user.PhoneNumber,
-                        RoleId = id
-                    };
-                    await _userService.UpdateUserAsync(updateUserDto); // Gọi UpdateUserAsync để cập nhật IsHeadOfDepartment
+                    Console.WriteLine("Invalid role name.");
+                    return BadRequest("Tên vai trò không được để trống.");
                 }
-            }
 
-            return Ok(updatedRole);
+                Console.WriteLine("Updating role...");
+                var originalRole = await _roleService.GetRoleByIdAsync(id);
+                if (originalRole == null)
+                {
+                    Console.WriteLine("Role not found.");
+                    return NotFound("Không tìm thấy vai trò.");
+                }
+
+                var updatedRole = await _roleService.UpdateRoleAsync(id, roleName);
+                if (updatedRole == null)
+                {
+                    Console.WriteLine("Role update failed.");
+                    return NotFound("Không tìm thấy vai trò.");
+                }
+
+                if (originalRole.RoleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase) ||
+                    roleName.Equals("Trưởng bộ môn", StringComparison.OrdinalIgnoreCase))
+                {
+                    Console.WriteLine("Updating users with role...");
+                    var usersWithRole = await _userService.GetAllUsersAsync();
+                    foreach (var user in usersWithRole.Where(u => u.RoleId == id))
+                    {
+                        var updateUserDto = new UpdateUserDTO
+                        {
+                            UserId = user.UserId,
+                            Username = user.Username,
+                            Email = user.Email,
+                            PhoneNumber = user.PhoneNumber,
+                            RoleId = id
+                        };
+                        await _userService.UpdateUserAsync(updateUserDto);
+                    }
+                }
+
+                return Ok(updatedRole);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error updating role: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật vai trò.");
+            }
         }
 
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteRole(int id)
         {
-            var success = await _roleService.DeleteRoleAsync(id);
-            if (!success) return NotFound();
-            return NoContent();
+            try
+            {
+                Console.WriteLine("Deleting role...");
+                var success = await _roleService.DeleteRoleAsync(id);
+                if (!success)
+                {
+                    Console.WriteLine("Role not found.");
+                    return NotFound("Không tìm thấy vai trò.");
+                }
+                return NoContent();
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error deleting role: {ex.Message}");
+                return StatusCode(500, "Lỗi khi xóa vai trò.");
+            }
         }
     }
-
 }

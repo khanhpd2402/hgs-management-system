@@ -15,5 +15,6 @@ namespace Application.Features.StudentClass.DTOs
         public string ClassName { get; set; }
         public int AcademicYearId { get; set; }
         public string YearName { get; set; }
+        public bool? RepeatingYear { get; set; }
     }
 }

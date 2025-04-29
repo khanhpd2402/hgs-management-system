@@ -1,10 +1,6 @@
 ﻿using Application.Features.StudentClass.DTOs;
-using Application.Features.Students.DTOs;
-using Application.Features.Classes.DTOs;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Application.Features.StudentClass.Interfaces
@@ -15,10 +11,12 @@ namespace Application.Features.StudentClass.Interfaces
         Task UpdateStudentClassesAsync(List<StudentClassAssignmentDto> dtos);
         Task DeleteStudentClassAsync(int id);
         Task<StudentClassFilterDataDto> GetFilterDataAsync(int? classId = null, int? semesterId = null);
-        Task<BulkTransferResultDto> BulkTransferClassAsync(BulkClassTransferDto dto); 
+        Task<BulkTransferResultDto> BulkTransferClassAsync(BulkClassTransferDto dto);
         Task ProcessGraduationAsync(int academicYearId);
-        Task<List<StudentClass.DTOs.ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
+        Task<List<ClassDto>> GetClassesWithStudentCountAsync(int? academicYearId = null);
         Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassesAsync();
-        Task<IEnumerable<StudentClassResponseDto>> GetAllStudentClassByLastAcademicYearAsync(int currentAcademicYearId);
+        Task<StudentClassByLastAcademicYearResponseDto> GetAllStudentClassByLastAcademicYearAsync(int currentAcademicYearId);
+        Task<IEnumerable<StudentClassResponseDto>> GetNonEligibleStudentsByLastAcademicYearAsync(int currentAcademicYearId);
+        Task<IEnumerable<StudentClassResponseDto>> GetRepeatStudentsByAcademicYearAsync(int academicYearId);
     }
 }

@@ -13,6 +13,8 @@ public partial class StudentClass
 
     public int AcademicYearId { get; set; }
 
+    public bool? RepeatingYear { get; set; }
+
     public virtual AcademicYear AcademicYear { get; set; } = null!;
 
     public virtual ICollection<Attendance> Attendances { get; set; } = new List<Attendance>();

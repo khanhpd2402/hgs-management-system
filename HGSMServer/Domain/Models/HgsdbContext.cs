@@ -78,7 +78,6 @@ public partial class HgsdbContext : DbContext
         IConfigurationRoot configuration = builder.Build();
         optionsBuilder.UseSqlServer(configuration.GetConnectionString("MyCnn"));
     }
-
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<AcademicYear>(entity =>
@@ -424,7 +423,6 @@ public partial class HgsdbContext : DbContext
             entity.Property(e => e.ParentId).HasColumnName("ParentID");
             entity.Property(e => e.PermanentAddress).HasMaxLength(255);
             entity.Property(e => e.Religion).HasMaxLength(50);
-            entity.Property(e => e.RepeatingYear).HasDefaultValue(false);
             entity.Property(e => e.Status)
                 .HasMaxLength(50)
                 .HasDefaultValue("Đang học");

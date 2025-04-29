@@ -15,7 +15,7 @@ public class TokenService : ITokenService
 {
     private readonly IConfiguration _configuration;
     private readonly IRoleRepository _roleRepository;
-    private readonly ITeacherRepository _teacherRepository; 
+    private readonly ITeacherRepository _teacherRepository;
     private readonly HgsdbContext _context;
 
     public TokenService(
@@ -27,14 +27,14 @@ public class TokenService : ITokenService
         _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
         _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
-        _context = context ?? throw new ArgumentNullException( nameof(context));
+        _context = context ?? throw new ArgumentNullException(nameof(context));
     }
 
     public async Task<(string tokenString, Dictionary<string, string> tokenPayload)> GenerateTokenAsync(UserDTO user)
     {
         var role = await _roleRepository.GetByIdAsync(user.RoleId);
         if (role == null)
-            throw new ArgumentException($"Role with ID {user.RoleId} not found.");
+            throw new ArgumentException("Vai trò không tồn tại.");
         string userRole = role.RoleName;
 
         var claims = new List<Claim>
@@ -70,7 +70,7 @@ public class TokenService : ITokenService
         var secretKey = _configuration["JWT:SecretKey"];
         if (string.IsNullOrEmpty(secretKey))
         {
-            throw new InvalidOperationException("JWT SecretKey is not configured.");
+            throw new InvalidOperationException("Khóa bí mật JWT chưa được cấu hình.");
         }
 
         var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey));

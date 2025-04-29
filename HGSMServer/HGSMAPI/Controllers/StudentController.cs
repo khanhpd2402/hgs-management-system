@@ -12,7 +12,8 @@ namespace HGSMAPI.Controllers
     [ApiController]
     public class StudentController : ControllerBase
     {
-        private readonly IStudentService _studentService; private readonly HgsdbContext _context;
+        private readonly IStudentService _studentService;
+        private readonly HgsdbContext _context;
 
         public StudentController(IStudentService studentService, HgsdbContext context)
         {
@@ -20,57 +21,80 @@ namespace HGSMAPI.Controllers
             _context = context ?? throw new ArgumentNullException(nameof(context));
         }
 
-        // Lấy danh sách học sinh theo năm học
         [HttpGet("{academicYearId}")]
         public async Task<IActionResult> GetAllStudentsWithParents(int academicYearId)
         {
-            var students = await _studentService.GetAllStudentsWithParentsAsync(academicYearId);
-            return Ok(students);
+            try
+            {
+                Console.WriteLine("Fetching all students with parents...");
+                var students = await _studentService.GetAllStudentsWithParentsAsync(academicYearId);
+                return Ok(students);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching students: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách học sinh.");
+            }
         }
 
-        // Lấy chi tiết một học sinh theo ID và năm học
         [HttpGet("{id}/{academicYearId}")]
         public async Task<ActionResult<StudentDto>> GetStudent(int id, int academicYearId)
         {
-            var student = await _studentService.GetStudentByIdAsync(id, academicYearId);
-            if (student == null) return NotFound();
-
-            return Ok(student);
+            try
+            {
+                Console.WriteLine("Fetching student...");
+                var student = await _studentService.GetStudentByIdAsync(id, academicYearId);
+                if (student == null)
+                {
+                    Console.WriteLine("Student not found.");
+                    return NotFound("Không tìm thấy học sinh.");
+                }
+                return Ok(student);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error fetching student: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thông tin học sinh.");
+            }
         }
-
-        // POST: api/Student
 
         [HttpPost]
         [Consumes("application/json")]
         public async Task<IActionResult> CreateStudent([FromBody] CreateStudentDto createStudentDto)
         {
-            if (createStudentDto == null) return BadRequest("Student data cannot be null.");
+            if (createStudentDto == null)
+            {
+                Console.WriteLine("Student data is null.");
+                return BadRequest("Dữ liệu học sinh không được để trống.");
+            }
 
             if (!ModelState.IsValid)
             {
                 var errors = ModelState.Values.SelectMany(v => v.Errors).Select(e => e.ErrorMessage).ToList();
-                return BadRequest(new { message = "Invalid input data.", errors });
+                Console.WriteLine($"Validation errors: {string.Join(", ", errors)}");
+                return BadRequest("Dữ liệu đầu vào không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Creating student...");
                 var studentId = await _studentService.AddStudentAsync(createStudentDto);
-                // Sử dụng AcademicYearId từ DTO nếu có, nếu không lấy từ GetCurrentAcademicYearIdAsync
                 var academicYearId = createStudentDto.AcademicYearId ?? await GetCurrentAcademicYearIdAsync();
                 var createdStudent = await _studentService.GetStudentByIdAsync(studentId, academicYearId);
                 if (createdStudent == null)
                 {
-                    return NotFound(new { message = $"Student with ID {studentId} not found after creation." });
+                    Console.WriteLine("Student not found after creation.");
+                    return NotFound("Không tìm thấy học sinh sau khi tạo.");
                 }
                 return CreatedAtAction(nameof(GetStudent), new { id = studentId, academicYearId }, createdStudent);
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error creating student: {ex.Message}");
+                return BadRequest("Lỗi khi thêm học sinh.");
             }
         }
 
-        // Phương thức phụ để lấy AcademicYearId hiện tại 
         private async Task<int> GetCurrentAcademicYearIdAsync()
         {
             var currentDate = DateOnly.FromDateTime(DateTime.Now);
@@ -80,7 +104,10 @@ namespace HGSMAPI.Controllers
                 .FirstOrDefaultAsync();
 
             if (currentAcademicYear == 0)
+            {
+                Console.WriteLine("Current academic year not found.");
                 throw new Exception("Không tìm thấy năm học hiện tại.");
+            }
 
             return currentAcademicYear;
         }
@@ -88,36 +115,43 @@ namespace HGSMAPI.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> UpdateStudent(int id, [FromBody] UpdateStudentDto updateStudentDto)
         {
-            if (updateStudentDto == null) return BadRequest("Student data cannot be null.");
+            if (updateStudentDto == null)
+            {
+                Console.WriteLine("Student data is null.");
+                return BadRequest("Dữ liệu học sinh không được để trống.");
+            }
 
             try
             {
-                // Truyền id từ URL trực tiếp vào UpdateStudentAsync
+                Console.WriteLine("Updating student...");
                 await _studentService.UpdateStudentAsync(id, updateStudentDto);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(new { message = ex.Message });
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                return NotFound("Không tìm thấy học sinh.");
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error updating student: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật học sinh.");
             }
         }
 
-        // DELETE: api/Student/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> DeleteStudent(int id)
         {
             try
             {
+                Console.WriteLine("Deleting student...");
                 await _studentService.DeleteStudentAsync(id);
                 return NoContent();
             }
             catch (Exception ex)
             {
-                return BadRequest(new { message = ex.Message });
+                Console.WriteLine($"Error deleting student: {ex.Message}");
+                return BadRequest("Lỗi khi xóa học sinh.");
             }
         }
 
@@ -125,35 +159,22 @@ namespace HGSMAPI.Controllers
         public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)
         {
             if (file == null || file.Length == 0)
+            {
+                Console.WriteLine("Excel file is empty or not provided.");
                 return BadRequest("Vui lòng chọn file Excel!");
+            }
 
             try
             {
+                Console.WriteLine("Importing students from Excel...");
                 var results = await _studentService.ImportStudentsFromExcelAsync(file);
-                return Ok(new ApiResponse(true, "Import danh sách học sinh hoàn tất", results));
+                return Ok(results);
             }
             catch (Exception ex)
             {
-                return BadRequest(new ApiResponse(false, $"Lỗi khi import: {ex.Message}"));
+                Console.WriteLine($"Error importing students: {ex.Message}");
+                return BadRequest("Lỗi khi nhập học sinh từ Excel.");
             }
         }
-
-        public class ApiResponse
-        {
-            public bool Success { get; set; }
-            public string Message { get; set; }
-            public object Data { get; set; }
-
-            public ApiResponse(bool success, string message, object data = null)
-            {
-                Success = success;
-                Message = message;
-                Data = data;
-            }
-        }
-        
-
-
-
     }
 }

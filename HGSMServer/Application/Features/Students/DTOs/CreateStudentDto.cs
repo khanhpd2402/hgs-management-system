@@ -31,9 +31,6 @@ namespace Application.Features.Students.DTOs
         public string? BirthPlace { get; set; }
         public string? Religion { get; set; }
 
-        [Required(ErrorMessage = "RepeatingYear is required.")]
-        public bool? RepeatingYear { get; set; }
-
         public string? IdcardNumber { get; set; }
         public string? Status { get; set; }
         public int? ParentId { get; set; }

@@ -1,7 +1,7 @@
 ﻿using Application.Features.Subjects.DTOs;
 using Application.Features.Subjects.Interfaces;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -13,111 +13,107 @@ namespace HGSMAPI.Controllers
 
         public SubjectsController(ISubjectService service)
         {
-            _service = service;
+            _service = service ?? throw new ArgumentNullException(nameof(service));
         }
 
-        // GET: api/Subjects
         [HttpGet]
         public async Task<IActionResult> GetAll()
         {
-            try
-            {
-                var subjects = await _service.GetAllAsync();
-                return Ok(subjects);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            Console.WriteLine("Fetching all subjects...");
+            var subjects = await _service.GetAllAsync();
+            return Ok(subjects);
         }
 
-        // GET: api/Subjects/5
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(int id)
         {
-            try
+            Console.WriteLine("Fetching subject...");
+            var subject = await _service.GetByIdAsync(id);
+            if (subject == null)
             {
-                var subject = await _service.GetByIdAsync(id);
-                return Ok(subject);
+                Console.WriteLine("Subject not found.");
+                return NotFound("Không tìm thấy môn học.");
             }
-            catch (KeyNotFoundException ex)
-            {
-                return NotFound(ex.Message);
-            }
-            catch (Exception ex)
-            {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
-            }
+            return Ok(subject);
         }
 
-        // POST: api/Subjects
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] SubjectCreateAndUpdateDto dto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                Console.WriteLine("Invalid subject data.");
+                return BadRequest("Dữ liệu không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Creating subject...");
                 var createdSubject = await _service.CreateAsync(dto);
-                return CreatedAtAction(nameof(GetById), new { id = createdSubject.SubjectName }, createdSubject);
+                return CreatedAtAction(nameof(GetById), new { id = createdSubject.SubjectID }, createdSubject);
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message); // Xử lý lỗi UNIQUE constraint
+                Console.WriteLine($"Error creating subject: {ex.Message}");
+                return BadRequest("Tên môn học đã tồn tại.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Unexpected error creating subject: {ex.Message}");
+                return StatusCode(500, "Lỗi khi tạo môn học.");
             }
         }
 
-        // PUT: api/Subjects/5
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(int id, [FromBody] SubjectCreateAndUpdateDto dto)
         {
             if (!ModelState.IsValid)
             {
-                return BadRequest(ModelState);
+                Console.WriteLine("Invalid subject data.");
+                return BadRequest("Dữ liệu không hợp lệ.");
             }
 
             try
             {
+                Console.WriteLine("Updating subject...");
                 var updatedSubject = await _service.UpdateAsync(id, dto);
                 return Ok(updatedSubject);
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error updating subject: {ex.Message}");
+                return NotFound("Không tìm thấy môn học.");
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(ex.Message); // Xử lý lỗi UNIQUE constraint
+                Console.WriteLine($"Error updating subject: {ex.Message}");
+                return BadRequest("Tên môn học đã tồn tại.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Unexpected error updating subject: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật môn học.");
             }
         }
 
-        // DELETE: api/Subjects/5
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             try
             {
+                Console.WriteLine("Deleting subject...");
                 await _service.DeleteAsync(id);
                 return NoContent();
             }
             catch (KeyNotFoundException ex)
             {
-                return NotFound(ex.Message);
+                Console.WriteLine($"Error deleting subject: {ex.Message}");
+                return NotFound("Không tìm thấy môn học.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, $"Internal server error: {ex.Message}");
+                Console.WriteLine($"Unexpected error deleting subject: {ex.Message}");
+                return StatusCode(500, "Lỗi khi xóa môn học.");
             }
         }
     }

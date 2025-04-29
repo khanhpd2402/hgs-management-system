@@ -11,8 +11,10 @@ namespace Infrastructure.Repositories.Interfaces
     {
         Task<List<TeacherSubject>> GetAllAsync();
         Task<TeacherSubject> GetByIdAsync(int id);
+        Task<List<TeacherSubject>> GetByTeacherIdAsync(int teacherId);
         Task AddAsync(TeacherSubject teacherSubject);
         Task UpdateAsync(TeacherSubject teacherSubject);
         Task DeleteAsync(int id);
+        Task DeleteByTeacherIdAsync(int teacherId);
     }
 }

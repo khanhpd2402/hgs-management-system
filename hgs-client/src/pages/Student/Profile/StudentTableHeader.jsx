@@ -20,7 +20,7 @@ const StudentTableHeader = ({
   const navigate = useNavigate();
   return (
     <div className="mb-4 flex items-center justify-between">
-      <h2 className="text-lg font-semibold">Danh sách học sinh</h2>
+      <h2 className="text-2xl font-semibold">Danh sách học sinh</h2>
       <div className="flex gap-2">
         <StudentFilter setFilter={setFilter} />
         <ExcelImportModal type={type} />

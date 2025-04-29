@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using Application.Features.HomeRooms.DTOs;
+﻿using Application.Features.HomeRooms.DTOs;
 using Application.Features.HomeRooms.Interfaces;
-using Application.Features.TeachingAssignments.DTOs;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -20,90 +16,112 @@ namespace Application.Features.HomeRooms.Controllers
             _assignHomeRoomService = assignHomeRoomService;
         }
 
-        /// <summary>
-        /// Gán giáo viên chủ nhiệm cho một lớp trong một học kỳ.
-        /// </summary>
-        /// <param name="dto">Thông tin phân công giáo viên chủ nhiệm.</param>
-        /// <returns>Trạng thái thành công hoặc lỗi.</returns>
         [HttpPost("assign")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> AssignHomeroom([FromBody] AssignHomeroomDto dto)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    Console.WriteLine("Invalid input data for homeroom assignment.");
+                    return BadRequest("Dữ liệu đầu vào không hợp lệ.");
+                }
+
+                Console.WriteLine("Assigning homeroom...");
                 await _assignHomeRoomService.AssignHomeroomAsync(dto);
-                return Ok(new { Message = "Homeroom teacher assigned successfully." });
+                return Ok("Phân công giáo viên chủ nhiệm thành công.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                Console.WriteLine($"Error assigning homeroom: {ex.Message}");
+                return BadRequest("Lỗi khi phân công giáo viên chủ nhiệm.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error assigning homeroom: {ex.Message}");
+                return NotFound("Không tìm thấy giáo viên, lớp học hoặc học kỳ.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access for homeroom assignment: {ex.Message}");
+                return Unauthorized("Bạn không có quyền phân công giáo viên chủ nhiệm.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                Console.WriteLine($"Error assigning homeroom: {ex.Message}");
+                return Conflict("Lỗi khi phân công giáo viên chủ nhiệm.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An error occurred while assigning homeroom teacher.", Detail = ex.Message });
+                Console.WriteLine($"Unexpected error assigning homeroom: {ex.Message}");
+                return StatusCode(500, "Lỗi khi phân công giáo viên chủ nhiệm.");
             }
         }
 
-        /// <summary>
-        /// Cập nhật danh sách phân công giáo viên chủ nhiệm.
-        /// </summary>
-        /// <param name="dtos">Danh sách thông tin cập nhật phân công.</param>
-        /// <returns>Trạng thái thành công hoặc lỗi.</returns>
         [HttpPut("update")]
         [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
         public async Task<IActionResult> UpdateHomeroomAssignments([FromBody] List<UpdateHomeroomDto> dtos)
         {
-            if (!ModelState.IsValid)
-            {
-                return BadRequest(ModelState);
-            }
-
             try
             {
+                if (!ModelState.IsValid)
+                {
+                    Console.WriteLine("Invalid input data for updating homeroom assignments.");
+                    return BadRequest("Dữ liệu đầu vào không hợp lệ.");
+                }
+
+                Console.WriteLine("Updating homeroom assignments...");
                 await _assignHomeRoomService.UpdateHomeroomAssignmentsAsync(dtos);
-                return Ok(new { Message = "Homeroom assignments updated successfully." });
+                return Ok("Cập nhật phân công giáo viên chủ nhiệm thành công.");
             }
             catch (ArgumentException ex)
             {
-                return BadRequest(new { Message = ex.Message });
+                Console.WriteLine($"Error updating homeroom assignments: {ex.Message}");
+                return BadRequest("Lỗi khi cập nhật phân công giáo viên chủ nhiệm.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error updating homeroom assignments: {ex.Message}");
+                return NotFound("Không tìm thấy giáo viên, lớp học hoặc học kỳ.");
             }
             catch (UnauthorizedAccessException ex)
             {
-                return Forbid(ex.Message);
+                Console.WriteLine($"Unauthorized access for updating homeroom assignments: {ex.Message}");
+                return Unauthorized("Bạn không có quyền cập nhật phân công giáo viên chủ nhiệm.");
             }
             catch (InvalidOperationException ex)
             {
-                return Conflict(new { Message = ex.Message });
+                Console.WriteLine($"Error updating homeroom assignments: {ex.Message}");
+                return Conflict("Lỗi khi cập nhật phân công giáo viên chủ nhiệm.");
             }
             catch (Exception ex)
             {
-                return StatusCode(500, new { Message = "An error occurred while updating homeroom assignments.", Detail = ex.Message });
+                Console.WriteLine($"Unexpected error updating homeroom assignments: {ex.Message}");
+                return StatusCode(500, "Lỗi khi cập nhật phân công giáo viên chủ nhiệm.");
             }
         }
 
-        /// <summary>
-        /// Lấy danh sách tất cả các phân công giáo viên chủ nhiệm.
-        /// </summary>
-        /// <returns>Danh sách phân công giáo viên chủ nhiệm.</returns>
         [HttpGet("all")]
         [Authorize]
         public async Task<IActionResult> GetAllHomeroomAssignments()
         {
+            try
+            {
+                Console.WriteLine("Fetching all homeroom assignments...");
                 var assignments = await _assignHomeRoomService.GetAllHomeroomAssignmentsAsync();
                 return Ok(assignments);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching homeroom assignments: {ex.Message}");
+                return BadRequest("Lỗi khi lấy danh sách phân công giáo viên chủ nhiệm.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching homeroom assignments: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách phân công giáo viên chủ nhiệm.");
+            }
         }
     }
 }

@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 public class TeacherService : ITeacherService
 {
     private readonly ITeacherRepository _teacherRepository;
-    private readonly IUserRepository _userRepository; 
+    private readonly IUserRepository _userRepository;
     private readonly ISubjectRepository _subjectRepository;
     private readonly IRoleRepository _roleRepository;
     private readonly IMapper _mapper;
@@ -81,23 +81,24 @@ public class TeacherService : ITeacherService
 
         return teacherDto;
     }
+
     public async Task<string?> GetEmailByTeacherIdAsync(int teacherId)
     {
         var teacher = await _teacherRepository.GetByIdAsync(teacherId);
         if (teacher == null)
         {
-            throw new KeyNotFoundException($"Không tìm thấy giáo viên với ID {teacherId}.");
+            throw new KeyNotFoundException("Không tìm thấy giáo viên.");
         }
 
         if (!teacher.UserId.HasValue)
         {
-            throw new Exception($"Giáo viên với ID {teacherId} không có UserId liên kết.");
+            throw new InvalidOperationException("Giáo viên không có UserId liên kết.");
         }
 
         var user = await _userRepository.GetByIdAsync(teacher.UserId.Value);
         if (user == null)
         {
-            throw new KeyNotFoundException($"Không tìm thấy user với UserId {teacher.UserId} liên kết với giáo viên.");
+            throw new KeyNotFoundException("Không tìm thấy user liên kết với giáo viên.");
         }
 
         return user.Email;
@@ -110,17 +111,17 @@ public class TeacherService : ITeacherService
             string.IsNullOrEmpty(teacherDto.InsuranceNumber) || string.IsNullOrEmpty(teacherDto.Department) ||
             teacherDto.SchoolJoinDate == default)
         {
-            throw new Exception("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
+            throw new ArgumentException("Thiếu thông tin bắt buộc. Vui lòng kiểm tra dữ liệu.");
         }
 
         if (await _teacherRepository.ExistsAsync(teacherDto.IdcardNumber))
         {
-            throw new Exception($"Giáo viên với CMND/CCCD {teacherDto.IdcardNumber} đã tồn tại.");
+            throw new ArgumentException("Giáo viên với CMND/CCCD đã tồn tại.");
         }
 
         if (await _teacherRepository.IsEmailOrPhoneExistsAsync(teacherDto.Email, teacherDto.PhoneNumber))
         {
-            throw new Exception($"Email {teacherDto.Email} hoặc số điện thoại {teacherDto.PhoneNumber} đã tồn tại.");
+            throw new ArgumentException("Email hoặc số điện thoại đã tồn tại.");
         }
 
         using var transaction = _context.Database.BeginTransaction();
@@ -130,7 +131,7 @@ public class TeacherService : ITeacherService
                 teacherDto.IsHeadOfDepartment == true ? "Trưởng bộ môn" : "Giáo viên");
             if (teacherRole == null)
             {
-                throw new Exception("Vai trò không tồn tại trong hệ thống.");
+                throw new InvalidOperationException("Vai trò không tồn tại trong hệ thống.");
             }
 
             var teacher = _mapper.Map<Teacher>(teacherDto);
@@ -158,13 +159,13 @@ public class TeacherService : ITeacherService
                 {
                     if (string.IsNullOrEmpty(subjectDto.SubjectName))
                     {
-                        throw new Exception("Tên môn học không được để trống.");
+                        throw new ArgumentException("Tên môn học không được để trống.");
                     }
 
                     var subject = await _subjectRepository.GetByNameAsync(subjectDto.SubjectName);
                     if (subject == null)
                     {
-                        throw new Exception($"Môn học với tên '{subjectDto.SubjectName}' không tồn tại.");
+                        throw new ArgumentException("Môn học không tồn tại.");
                     }
 
                     teacherSubjects.Add(new TeacherSubject
@@ -179,10 +180,10 @@ public class TeacherService : ITeacherService
 
             await transaction.CommitAsync();
         }
-        catch (Exception ex)
+        catch
         {
             await transaction.RollbackAsync();
-            throw new Exception("Lỗi khi thêm giáo viên. " + ex.Message);
+            throw;
         }
     }
 
@@ -206,12 +207,12 @@ public class TeacherService : ITeacherService
             var existingTeacher = await _teacherRepository.GetByIdWithUserAsync(id);
             if (existingTeacher == null)
             {
-                throw new Exception($"Không tìm thấy giáo viên với ID {id}.");
+                throw new KeyNotFoundException("Không tìm thấy giáo viên.");
             }
 
             if (teacherDto.TeacherId != id)
             {
-                throw new Exception($"TeacherId trong DTO ({teacherDto.TeacherId}) không khớp với TeacherId trong URL ({id}).");
+                throw new ArgumentException("TeacherId không khớp.");
             }
 
             _mapper.Map(teacherDto, existingTeacher);
@@ -224,7 +225,7 @@ public class TeacherService : ITeacherService
                     teacherDto.IsHeadOfDepartment == true ? "Trưởng bộ môn" : "Giáo viên");
                 if (teacherRole == null)
                 {
-                    throw new Exception("Vai trò không tồn tại trong hệ thống.");
+                    throw new InvalidOperationException("Vai trò không tồn tại trong hệ thống.");
                 }
 
                 existingTeacher.User.Email = teacherDto.Email;
@@ -248,13 +249,13 @@ public class TeacherService : ITeacherService
             {
                 if (string.IsNullOrEmpty(subjectDto.SubjectName))
                 {
-                    throw new Exception("Tên môn học không được để trống.");
+                    throw new ArgumentException("Tên môn học không được để trống.");
                 }
 
                 var subject = await _subjectRepository.GetByNameAsync(subjectDto.SubjectName);
                 if (subject == null)
                 {
-                    throw new Exception($"Môn học với tên '{subjectDto.SubjectName}' không tồn tại.");
+                    throw new ArgumentException("Môn học không tồn tại.");
                 }
 
                 var existingSubject = existingSubjects.FirstOrDefault(es => es.Subject.SubjectName == subjectDto.SubjectName);
@@ -277,10 +278,10 @@ public class TeacherService : ITeacherService
 
             await transaction.CommitAsync();
         }
-        catch (Exception ex)
+        catch
         {
             await transaction.RollbackAsync();
-            throw new Exception("Lỗi khi cập nhật giáo viên. " + ex.Message);
+            throw;
         }
     }
 
@@ -289,32 +290,40 @@ public class TeacherService : ITeacherService
         using var transaction = _context.Database.BeginTransaction();
         try
         {
+            Console.WriteLine("Attempting to delete teacher...");
+
             var teacher = await _teacherRepository.GetByIdWithUserAsync(id);
             if (teacher == null)
             {
+                Console.WriteLine("Teacher not found.");
                 return false;
             }
 
             var teacherSubjects = await _teacherRepository.GetTeacherSubjectsAsync(id);
             if (teacherSubjects?.Any() == true)
             {
+                Console.WriteLine("Deleting teacher subjects...");
                 await _teacherRepository.DeleteTeacherSubjectsRangeAsync(teacherSubjects);
             }
 
+            Console.WriteLine("Deleting teacher...");
             await _teacherRepository.DeleteAsync(id);
 
             if (teacher.UserId.HasValue)
             {
+                Console.WriteLine("Deleting associated user...");
                 await _teacherRepository.DeleteUserAsync(teacher.UserId.Value);
             }
 
             await transaction.CommitAsync();
+            Console.WriteLine("Teacher deleted successfully.");
             return true;
         }
         catch (Exception ex)
         {
             await transaction.RollbackAsync();
-            return false;
+            Console.WriteLine($"Error deleting teacher: {ex.Message}");
+            throw new Exception("Lỗi khi xóa giáo viên.");
         }
     }
 
@@ -348,7 +357,7 @@ public class TeacherService : ITeacherService
                     string.IsNullOrEmpty(row["Giới tính"]) || string.IsNullOrEmpty(row["CMND/CCCD"]) ||
                     string.IsNullOrEmpty(row["Ngày vào trường"]))
                 {
-                    errors.Add($"Dòng dữ liệu cho giáo viên với CMND/CCCD {row["CMND/CCCD"]} thiếu thông tin bắt buộc.");
+                    errors.Add("Dòng dữ liệu thiếu thông tin bắt buộc.");
                     continue;
                 }
 
@@ -358,12 +367,12 @@ public class TeacherService : ITeacherService
                 {
                     if (await _teacherRepository.ExistsAsync(idCardNumber))
                     {
-                        errors.Add($"Giáo viên với CMND/CCCD {idCardNumber} đã tồn tại trong hệ thống.");
+                        errors.Add("Giáo viên với CMND/CCCD đã tồn tại trong hệ thống.");
                     }
 
                     if (await _teacherRepository.IsEmailOrPhoneExistsAsync(row["Email"], row["Số điện thoại"]))
                     {
-                        errors.Add($"Email {row["Email"]} hoặc số điện thoại {row["Số điện thoại"]} đã tồn tại.");
+                        errors.Add("Email hoặc số điện thoại đã tồn tại.");
                     }
 
                     var username = await GenerateUniqueUsernameAsync(row["Họ và tên"]);
@@ -420,7 +429,7 @@ public class TeacherService : ITeacherService
                         var subject = await _subjectRepository.GetByNameAsync(subjectName);
                         if (subject == null)
                         {
-                            errors.Add($"Môn học '{subjectName}' không tồn tại trong bảng Subjects cho giáo viên với CMND/CCCD {idCardNumber}.");
+                            errors.Add("Môn học không tồn tại trong hệ thống.");
                             continue;
                         }
 
@@ -457,11 +466,10 @@ public class TeacherService : ITeacherService
             await transaction.CommitAsync();
             return (true, errors);
         }
-        catch (Exception ex)
+        catch
         {
             await transaction.RollbackAsync();
-            errors.Add("Lỗi trong quá trình nhập dữ liệu từ Excel: " + ex.Message);
-            return (false, errors);
+            throw;
         }
     }
 }
