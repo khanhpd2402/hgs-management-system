@@ -410,6 +410,7 @@ const Schedule = () => {
         <div className="schedule-container">
             <div className="sticky-filter">
                 <div className="filter-container">
+                    {/* Phần filter giữ nguyên */}
                     <div className="filter-row">
                         <div className="filter-column">
                             <label>Học kỳ</label>
@@ -595,6 +596,88 @@ const Schedule = () => {
             </DragDropContext>
 
 
+            {/* Tách riêng phần Dialog ra khỏi phần filter */}
+            <Dialog 
+                open={showEditDialog} 
+                onOpenChange={setShowEditDialog}
+                className="schedule-edit-dialog"
+            >
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="schedule-edit-title">
+                            Chỉnh sửa thời khóa biểu
+                        </DialogTitle>
+                    </DialogHeader>
+                    
+                    <div className="schedule-edit-info">
+                        <div className="info-row">
+                            <span className="info-label">Thứ:</span>
+                            <span className="info-value">{selectedSchedule?.day}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="info-label">Tiết:</span>
+                            <span className="info-value">{selectedSchedule?.periodId}</span>
+                        </div>
+                        <div className="info-row">
+                            <span className="info-label">Lớp:</span>
+                            <span className="info-value">{selectedSchedule?.className}</span>
+                        </div>
+                    </div>
+
+                    <div className="schedule-edit-form">
+                        <div className="form-group">
+                            <label>Môn học:</label>
+                            <select 
+                                value={selectedSubjectId} 
+                                onChange={(e) => setSelectedSubjectId(e.target.value)}
+                                className="form-select"
+                            >
+                                <option value="">Chọn môn học</option>
+                                {subjects.map(subject => (
+                                    <option key={subject.subjectId} value={subject.subjectId}>
+                                        {subject.subjectName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="form-group">
+                            <label>Giáo viên:</label>
+                            <select 
+                                value={selectedTeacherId}
+                                onChange={(e) => setSelectedTeacherId(e.target.value)}
+                                className="form-select"
+                            >
+                                <option value="">Chọn giáo viên</option>
+                                {teachers.map(teacher => (
+                                    <option key={teacher.teacherId} value={teacher.teacherId}>
+                                        {teacher.fullName}
+                                    </option>
+                                ))}
+                            </select>
+                        </div>
+
+                        <div className="schedule-edit-actions">
+                            <button 
+                                onClick={handleScheduleUpdate}
+                                className="btn-save"
+                            >
+                                <Save size={16} />
+                                Lưu thay đổi
+                            </button>
+                            <button 
+                                onClick={handleDelete}
+                                className="btn-delete"
+                            >
+                                <Trash2 size={16} />
+                                Xóa
+                            </button>
+                        </div>
+                    </div>
+                </DialogContent>
+            </Dialog>
+
+            {/* Phần còn lại của component */}
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
                 <DialogContent className="edit-schedule-dialog">
                     <DialogHeader>
