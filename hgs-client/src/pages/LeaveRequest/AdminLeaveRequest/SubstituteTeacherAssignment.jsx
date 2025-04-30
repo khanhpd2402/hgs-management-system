@@ -6,6 +6,7 @@ import { useTeachers } from '../../../services/teacher/queries';
 import { useGetSubstituteTeachings, useCreateSubstituteTeaching } from '../../../services/schedule/queries';
 import toast from "react-hot-toast";
 import { getSubstituteTeachings } from "../../../services/schedule/api";
+import { sendMailLeaveRequest } from './sendMailLeaveRequest'; // đường dẫn đúng
 
 const { Option } = Select;
 
@@ -103,11 +104,26 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
 
       toast.success('Phân công giáo viên dạy thay thành công!')
       message.success('Phân công giáo viên dạy thay thành công!');
+
+
+
+
+
+      // sendmailLeaverequest
+
+
+
+
     } catch (error) {
       toast.error(`Giáo viên dạy thay không được trùng với giáo viên xin nghỉ`)
       console.error('Error saving assignment:', error);
       message.error(`Có lỗi khi lưu phân công: ${error.message}`);
     }
+
+
+
+    await sendMailLeaveRequest(record, teacherId, note, schedule);
+
   };
 
   // Process schedules for display
