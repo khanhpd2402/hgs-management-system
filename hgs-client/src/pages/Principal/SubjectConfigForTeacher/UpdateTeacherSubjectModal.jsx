@@ -43,7 +43,7 @@ export default function UpdateTeacherSubjectModal({
   useEffect(() => {
     // Initialize state from teacherSubjects when modal opens
     if (open) {
-      setSelectedSubjects(teacherSubjects.map((s) => s.subjectId));
+      setSelectedSubjects(teacherSubjects?.map((s) => s.subjectId));
       const main = teacherSubjects.find((s) => s.isMainSubject);
       setMainSubjectId(main ? main.subjectId : null);
     }

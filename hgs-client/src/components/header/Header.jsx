@@ -33,12 +33,17 @@ const Header = ({ setCurrentYear }) => {
         setCurrentYear(parsedYear);
       } else {
         const now = new Date();
-        // Tìm năm học phù hợp với thời gian hiện tại
-        const currentYear =
-          academicYears.data.find(
-            (year) =>
-              new Date(year.startDate) <= now && now <= new Date(year.endDate),
-          ) || academicYears.data[0];
+        let currentYear = academicYears.data.find(
+          (year) =>
+            new Date(year.startDate) <= now && now <= new Date(year.endDate),
+        );
+
+        if (!currentYear) {
+          // Nếu không tìm được năm phù hợp, chọn năm có endDate mới nhất
+          currentYear = academicYears.data
+            .slice()
+            .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
+        }
         console.log(currentYear);
         setSelectedYear(currentYear);
         setCurrentYear(currentYear);

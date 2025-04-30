@@ -100,7 +100,7 @@ export const UpdateSubjectModal = ({
         subjectName: (subjectInfo.subjectName || "").trim(),
         subjectCategory: (subjectInfo.subjectCategory || "").trim(),
         typeOfGrade: (subjectInfo.typeOfGrade || "").trim(),
-        gradesData: gradeLevelsQuery.data.map((gradeLevel) => {
+        gradesData: gradeLevelsQuery.data?.map((gradeLevel) => {
           const gradeData = subjectConfigDetailQuery?.data?.find(
             (item) => item.gradeLevelId === gradeLevel.gradeLevelId,
           );
