@@ -95,19 +95,27 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpGet("summary/{studentId}/{semesterId}")]
-        public async Task<IActionResult> GetGradeSummaryForStudent(int studentId, int semesterId)
+        [HttpGet("student/{studentId}/grades-by-subject")]
+        public async Task<IActionResult> GetGradeSummaryEachSubjectByStudentAsync(int studentId, [FromQuery] int semesterId)
         {
-            try
-            {
-                var summaries = await _gradeService.GetGradeSummaryByStudentAsync(studentId, semesterId);
-                return Ok(summaries);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(new { message = ex.Message });
-            }
+            var result = await _gradeService.GetGradeSummaryEachSubjectByStudentAsync(studentId, semesterId);
+
+            if (result == null || !result.Any())
+                return NotFound("No grades found for the given student and semester.");
+
+            return Ok(result);
         }
+        [HttpGet("student/{studentId}/grade-summary")]
+        public async Task<IActionResult> GetTotalGradeSummaryByStudentAsync(int studentId, [FromQuery] int semesterId)
+        {
+            var result = await _gradeService.GetTotalGradeSummaryByStudentAsync(studentId, semesterId);
+
+            if (result == null)
+                return NotFound("No grade summary found for the given student and semester.");
+
+            return Ok(result);
+        }
+
 
     }
 }
