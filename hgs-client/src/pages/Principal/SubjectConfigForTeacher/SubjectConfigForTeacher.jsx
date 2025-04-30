@@ -85,9 +85,7 @@ export default function SubjectConfigForTeacher() {
   return (
     <div className="py-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <h2 className="text-2xl font-bold text-blue-700">
-          Cấu hình môn học cho giáo viên
-        </h2>
+        <h2 className="text-2xl font-bold">Cấu hình môn học cho giáo viên</h2>
         <div className="flex items-center gap-2">
           <Select
             value={filter.teacher ?? "all"}
@@ -99,7 +97,7 @@ export default function SubjectConfigForTeacher() {
               }))
             }
           >
-            <SelectTrigger className="w-56 border-blue-400 focus:ring-2 focus:ring-blue-500">
+            <SelectTrigger className="w-56">
               <SelectValue placeholder="Lọc theo giáo viên" />
             </SelectTrigger>
             <SelectContent>

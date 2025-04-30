@@ -57,7 +57,8 @@ export default function TransferData() {
   const classQuery = useClasses();
   const classes = classQuery.data || [];
   const studentQuery = usePreviousYearStudents(currentYear?.academicYearID);
-  const students = studentQuery.data || [];
+  const students = studentQuery.data?.students || [];
+  // console.log(students);
   if (studentQuery.error) {
     toast.error(
       "Không tìm thấy bản ghi học sinh cho năm học trước, vui lòng chọn năm mới",
