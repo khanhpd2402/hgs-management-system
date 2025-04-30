@@ -1,4 +1,5 @@
-﻿using Application.Features.Timetables.DTOs;
+﻿using Application.Features.Timetables;
+using Application.Features.Timetables.DTOs;
 using Application.Features.Timetables.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 
@@ -225,6 +226,21 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"Error checking conflict: {ex.Message}");
                 return StatusCode(500, "Lỗi khi kiểm tra xung đột thời khóa biểu.");
+            }
+        }
+        [HttpPost]
+        public async Task<IActionResult> Create([FromBody] CreateTimetableDetailRequest request)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            try
+            {
+                await _service.CreateDetailAsync(request);
+                return Ok(new { message = "Tạo tiết học thành công" });
+            }
+            catch (Exception ex)
+            {
+                return BadRequest(new { error = ex.Message });
             }
         }
     }
