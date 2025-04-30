@@ -46,7 +46,10 @@ namespace Application.Services
             {
                 throw new ArgumentException($"Không tìm thấy học kỳ với ID {semesterId}");
             }
-
+            if (start < semester.StartDate || end > semester.EndDate)
+            {
+                throw new ArgumentException($"Khoảng thời gian của đợt nhập điểm ({start:dd/MM/yyyy} - {end:dd/MM/yyyy}) phải nằm trong khoảng thời gian của học kỳ ({semester.StartDate:dd/MM/yyyy} - {semester.EndDate:dd/MM/yyyy}).");
+            }
             if (assignments == null || !assignments.Any())
             {
                 throw new InvalidOperationException($"Không có phân công giảng dạy cho học kỳ ID {semesterId}, không thể tạo đợt nhập điểm.");
