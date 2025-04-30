@@ -17,6 +17,8 @@ namespace Application.Features.Timetables.Interfaces
         Task<bool> IsConflictAsync(TimetableDetailDto detailDto);
 
         Task<int> ImportTimetableFromExcelAsync(IFormFile file, int semesterId, DateOnly effectiveDate);
+
+        Task CreateDetailAsync(CreateTimetableDetailRequest request);
     }
 
 }

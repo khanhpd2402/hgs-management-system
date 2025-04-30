@@ -11,11 +11,13 @@ namespace Application.Features.Timetables.Services
     public class TimetableService : ITimetableService
     {
         private readonly ITimetableRepository _repository;
+        private readonly ITimetableDetailRepository _timetableDetailRepository;
         private readonly IMapper _mapper;
 
-        public TimetableService(ITimetableRepository repository, IMapper mapper)
+        public TimetableService(ITimetableRepository repository, ITimetableDetailRepository timetableDetailRepository, IMapper mapper)
         {
             _repository = repository;
+            _timetableDetailRepository = timetableDetailRepository;
             _mapper = mapper;
         }
 
@@ -304,6 +306,27 @@ namespace Application.Features.Timetables.Services
             }
 
             return importedCount;
+        }
+        public async Task CreateDetailAsync(CreateTimetableDetailRequest request)
+        {
+            var conflict = await _timetableDetailRepository.IsConflictAsync(request.ClassId, request.DayOfWeek, request.PeriodId);
+            if (conflict)
+            {
+                throw new Exception("Lớp này đã có tiết học vào thời điểm này.");
+            }
+
+            var detail = new TimetableDetail
+            {
+                TimetableId = request.TimetableId,
+                ClassId = request.ClassId,
+                SubjectId = request.SubjectId,
+                TeacherId = request.TeacherId,
+                DayOfWeek = request.DayOfWeek,
+                PeriodId = request.PeriodId
+            };
+
+            await _timetableDetailRepository.AddAsync(detail);
+            await _timetableDetailRepository.SaveChangesAsync();
         }
     }
 
