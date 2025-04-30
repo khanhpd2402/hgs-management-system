@@ -212,3 +212,11 @@ export const transferClassData = async (data) => {
 export const transferStudentData = async (data) => {
   return (await axiosInstance.put(`StudentClass`, data)).data;
 };
+
+export const getNonEligibleStudents = async (id) => {
+  return (
+    await axiosInstance.get(
+      `StudentClass/non-eligible-students?currentAcademicYearId=${id}`,
+    )
+  ).data;
+};

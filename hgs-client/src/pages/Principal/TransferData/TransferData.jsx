@@ -26,7 +26,10 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useAcademicYears, useClasses } from "@/services/common/queries";
-import { usePreviousYearStudents } from "@/services/principal/queries";
+import {
+  useNonEligibleStudents,
+  usePreviousYearStudents,
+} from "@/services/principal/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import {
   useTransferClassData,
@@ -42,13 +45,15 @@ export default function TransferData() {
     (a, b) => new Date(a.startDate) - new Date(b.startDate),
   );
   const currentIndex = sortedYears.findIndex(
-    (y) => y.academicYearID === currentYear.academicYearID,
+    (y) => y.academicYearID === currentYear?.academicYearID,
   );
   const previousYear = currentIndex > 0 ? sortedYears[currentIndex - 1] : null;
   const [mode, setMode] = useState("class"); // "class" hoặc "student"
   const [open, setOpen] = useState(false);
   const [selectedClasses, setSelectedClasses] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
+  const [selectedRepeatStudents, setSelectedRepeatStudents] = useState([]);
+
   const [pendingGrade, setPendingGrade] = useState(""); // Khối chờ xác nhận
   const [confirmChangeGrade, setConfirmChangeGrade] = useState(false);
   const [pendingClassName, setPendingClassName] = useState(""); // Lớp chờ xác nhận
@@ -58,12 +63,10 @@ export default function TransferData() {
   const classes = classQuery.data || [];
   const studentQuery = usePreviousYearStudents(currentYear?.academicYearID);
   const students = studentQuery.data?.students || [];
+  const NEStudentQuery = useNonEligibleStudents(currentYear?.academicYearID);
+  const NEStudents = NEStudentQuery.data || [];
+  // console.log(NEStudents);
   // console.log(students);
-  if (studentQuery.error) {
-    toast.error(
-      "Không tìm thấy bản ghi học sinh cho năm học trước, vui lòng chọn năm mới",
-    );
-  }
 
   const transferClassDataMutation = useTransferClassData();
   const transferStudentDataMutation = useTransferStudentData();
@@ -144,6 +147,7 @@ export default function TransferData() {
           <SelectContent>
             <SelectItem value="class">Chuyển cả lớp</SelectItem>
             <SelectItem value="student">Chuyển lẻ học sinh</SelectItem>
+            <SelectItem value="repeat">Chuyển học sinh lưu ban</SelectItem>
           </SelectContent>
         </Select>
         <Select
@@ -176,7 +180,10 @@ export default function TransferData() {
         <Select
           value={className}
           onValueChange={(val) => {
-            if (mode === "student" && selectedStudents.length > 0) {
+            if (
+              (mode === "student" && selectedStudents.length > 0) ||
+              (mode === "repeat" && selectedRepeatStudents.length > 0)
+            ) {
               setPendingClassName(val);
               setConfirmChangeClass(true);
             } else {
@@ -184,7 +191,7 @@ export default function TransferData() {
               setSelectedStudents([]);
             }
           }}
-          disabled={mode !== "student" || !grade}
+          disabled={!["student", "repeat"].includes(mode) || !grade}
         >
           <SelectTrigger className="w-[200px]">
             <SelectValue placeholder="Chọn lớp" />
@@ -260,84 +267,98 @@ export default function TransferData() {
                   </TableRow>
                 </TableHeader>
                 <TableBody>
-                  {classes
-                    .filter((c) => c.className[0] == grade)
-                    .map((cls, idx) => (
-                      <TableRow key={cls.classId}>
-                        <TableCell className="text-center">
-                          <Checkbox
-                            checked={selectedClasses.some(
-                              (s) => s.classId === cls.classId,
-                            )}
-                            onCheckedChange={(checked) => {
-                              if (checked) {
-                                setSelectedClasses([
-                                  ...selectedClasses,
-                                  { classId: cls.classId, targetClassId: "" },
-                                ]);
-                              } else {
-                                setSelectedClasses(
-                                  selectedClasses.filter(
-                                    (s) => s.classId !== cls.classId,
+                  {students.length === 0 ? (
+                    <TableRow className="p-4 text-gray-500">
+                      <TableCell colSpan={5}>
+                        Không có dữ liệu học sinh năm trước đó, vui lòng chọn
+                        năm mới
+                      </TableCell>
+                    </TableRow>
+                  ) : (
+                    classes
+                      .filter((c) => c.className[0] == grade)
+                      .map((cls, idx) => (
+                        <TableRow key={cls.classId}>
+                          <TableCell className="text-center">
+                            <Checkbox
+                              checked={selectedClasses.some(
+                                (s) => s.classId === cls.classId,
+                              )}
+                              onCheckedChange={(checked) => {
+                                if (checked) {
+                                  setSelectedClasses([
+                                    ...selectedClasses,
+                                    { classId: cls.classId, targetClassId: "" },
+                                  ]);
+                                } else {
+                                  setSelectedClasses(
+                                    selectedClasses.filter(
+                                      (s) => s.classId !== cls.classId,
+                                    ),
+                                  );
+                                }
+                              }}
+                            />
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {idx + 1}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {cls.className}
+                          </TableCell>
+                          <TableCell className="text-center">
+                            {
+                              students?.filter(
+                                (s) => s.className == cls.className,
+                              ).length
+                            }
+                          </TableCell>
+                          <TableCell className="text-center">
+                            <Select
+                              value={
+                                selectedClasses.find(
+                                  (s) => s.classId === cls.classId,
+                                )?.targetClassId || ""
+                              }
+                              onValueChange={(val) => {
+                                setSelectedClasses((prev) =>
+                                  prev.map((s) =>
+                                    s.classId === cls.classId
+                                      ? { ...s, targetClassId: val }
+                                      : s,
                                   ),
                                 );
-                              }
-                            }}
-                          />
-                        </TableCell>
-                        <TableCell className="text-center">{idx + 1}</TableCell>
-                        <TableCell className="text-center">
-                          {cls.className}
-                        </TableCell>
-                        <TableCell className="text-center">
-                          {
-                            students?.filter(
-                              (s) => s.className == cls.className,
-                            ).length
-                          }
-                        </TableCell>
-                        <TableCell className="text-center">
-                          <Select
-                            value={
-                              selectedClasses.find(
-                                (s) => s.classId === cls.classId,
-                              )?.targetClassId || ""
-                            }
-                            onValueChange={(val) => {
-                              setSelectedClasses((prev) =>
-                                prev.map((s) =>
-                                  s.classId === cls.classId
-                                    ? { ...s, targetClassId: val }
-                                    : s,
-                                ),
-                              );
-                            }}
-                            disabled={
-                              !selectedClasses.some(
-                                (s) => s.classId === cls.classId,
-                              )
-                            }
-                          >
-                            <SelectTrigger className="w-[120px]">
-                              <SelectValue placeholder="Chọn lớp" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              {classes
-                                .filter(
-                                  (c) =>
-                                    c.className[0] == +grade + 1 &&
-                                    c.status === "Hoạt động",
+                              }}
+                              disabled={
+                                !selectedClasses.some(
+                                  (s) => s.classId === cls.classId,
                                 )
-                                .map((c) => (
-                                  <SelectItem key={c.classId} value={c.classId}>
-                                    {c.className}
-                                  </SelectItem>
-                                ))}
-                            </SelectContent>
-                          </Select>
-                        </TableCell>
-                      </TableRow>
-                    ))}
+                              }
+                            >
+                              <SelectTrigger className="w-[120px]">
+                                <SelectValue placeholder="Chọn lớp" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                {classes
+                                  .filter(
+                                    (c) =>
+                                      c.className[0] == +grade + 1 &&
+                                      c.status === "Hoạt động",
+                                  )
+                                  .map((c) => (
+                                    <SelectItem
+                                      key={c.classId}
+                                      value={c.classId}
+                                    >
+                                      {c.className}
+                                    </SelectItem>
+                                  ))}
+                              </SelectContent>
+                            </Select>
+                          </TableCell>
+                        </TableRow>
+                      ))
+                  )}
                 </TableBody>
               </Table>
             </CardContent>
@@ -360,81 +381,202 @@ export default function TransferData() {
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {students
-                      .filter((s) => s.className === className)
-                      .map((student) => (
-                        <TableRow key={student.studentId}>
-                          <TableCell>
-                            <Checkbox
-                              checked={selectedStudents.some(
-                                (s) => s.studentId === student.studentId,
-                              )}
-                              onCheckedChange={(checked) => {
-                                if (checked) {
-                                  setSelectedStudents([
-                                    ...selectedStudents,
-                                    {
-                                      studentId: student.studentId,
-                                      classId: student.classId,
-                                      toClass: "",
-                                    },
-                                  ]);
-                                } else {
-                                  setSelectedStudents(
-                                    selectedStudents.filter(
-                                      (s) => s.studentId !== student.studentId,
+                    {students.length === 0 ? (
+                      <TableRow className="p-4 text-gray-500">
+                        <TableCell colSpan={5}>
+                          Không có dữ liệu học sinh năm trước đó, vui lòng chọn
+                          năm mới
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      students
+                        .filter((s) => s.className === className)
+                        .map((student) => (
+                          <TableRow key={student.studentId}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedStudents.some(
+                                  (s) => s.studentId === student.studentId,
+                                )}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedStudents([
+                                      ...selectedStudents,
+                                      {
+                                        studentId: student.studentId,
+                                        classId: student.classId,
+                                        toClass: "",
+                                      },
+                                    ]);
+                                  } else {
+                                    setSelectedStudents(
+                                      selectedStudents.filter(
+                                        (s) =>
+                                          s.studentId !== student.studentId,
+                                      ),
+                                    );
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>{student.studentName}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={
+                                  selectedStudents.find(
+                                    (s) => s.studentId === student.studentId,
+                                  )?.toClass || ""
+                                }
+                                onValueChange={(val) => {
+                                  setSelectedStudents((prev) =>
+                                    prev.map((s) =>
+                                      s.studentId === student.studentId
+                                        ? { ...s, toClass: val }
+                                        : s,
                                     ),
                                   );
-                                }
-                              }}
-                            />
-                          </TableCell>
-                          <TableCell>{student.studentName}</TableCell>
-                          <TableCell>
-                            <Select
-                              value={
-                                selectedStudents.find(
-                                  (s) => s.studentId === student.studentId,
-                                )?.toClass || ""
-                              }
-                              onValueChange={(val) => {
-                                setSelectedStudents((prev) =>
-                                  prev.map((s) =>
-                                    s.studentId === student.studentId
-                                      ? { ...s, toClass: val }
-                                      : s,
-                                  ),
-                                );
-                              }}
-                              disabled={
-                                !selectedStudents.some(
-                                  (s) => s.studentId === student.studentId,
-                                )
-                              }
-                            >
-                              <SelectTrigger className="w-[120px]">
-                                <SelectValue placeholder="Chọn lớp" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                {classes
-                                  .filter(
-                                    (c) =>
-                                      c.status === "Hoạt động" &&
-                                      c.className[0] == +grade + 1,
+                                }}
+                                disabled={
+                                  !selectedStudents.some(
+                                    (s) => s.studentId === student.studentId,
                                   )
-                                  .map((c) => (
-                                    <SelectItem
-                                      key={c.classId}
-                                      value={c.classId}
-                                    >
-                                      {c.className}
-                                    </SelectItem>
-                                  ))}
-                              </SelectContent>
-                            </Select>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                                }
+                              >
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue placeholder="Chọn lớp" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {classes
+                                    .filter(
+                                      (c) =>
+                                        c.status === "Hoạt động" &&
+                                        c.className[0] == +grade + 1,
+                                    )
+                                    .map((c) => (
+                                      <SelectItem
+                                        key={c.classId}
+                                        value={c.classId}
+                                      >
+                                        {c.className}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                        ))
+                    )}
+                  </TableBody>
+                </Table>
+              </CardContent>
+            </Card>
+          </div>
+        </div>
+      )}
+
+      {mode === "repeat" && grade && className && (
+        <div>
+          <div className="mt-4 font-medium">
+            Chọn học sinh lưu ban cần chuyển:
+          </div>
+          <div className="overflow-x-auto">
+            <Card className="mt-4 border shadow">
+              <CardContent className="p-0">
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead className="w-12"></TableHead>
+                      <TableHead>Họ và tên</TableHead>
+                      <TableHead>Lớp hiện tại</TableHead>
+                      <TableHead>Lớp mới</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {NEStudents.length === 0 ? (
+                      <TableRow className="p-4 text-gray-500">
+                        <TableCell colSpan={5}>
+                          Không có dữ liệu học sinh lưu ban
+                        </TableCell>
+                      </TableRow>
+                    ) : (
+                      NEStudents.filter((s) => s.className === className).map(
+                        (student) => (
+                          <TableRow key={student.studentId}>
+                            <TableCell>
+                              <Checkbox
+                                checked={selectedStudents.some(
+                                  (s) => s.studentId === student.studentId,
+                                )}
+                                onCheckedChange={(checked) => {
+                                  if (checked) {
+                                    setSelectedStudents([
+                                      ...selectedStudents,
+                                      {
+                                        studentId: student.studentId,
+                                        classId: student.classId,
+                                        toClass: "",
+                                      },
+                                    ]);
+                                  } else {
+                                    setSelectedStudents(
+                                      selectedStudents.filter(
+                                        (s) =>
+                                          s.studentId !== student.studentId,
+                                      ),
+                                    );
+                                  }
+                                }}
+                              />
+                            </TableCell>
+                            <TableCell>{student.studentName}</TableCell>
+                            <TableCell>{student.className}</TableCell>
+                            <TableCell>
+                              <Select
+                                value={
+                                  selectedStudents.find(
+                                    (s) => s.studentId === student.studentId,
+                                  )?.toClass || ""
+                                }
+                                onValueChange={(val) => {
+                                  setSelectedStudents((prev) =>
+                                    prev.map((s) =>
+                                      s.studentId === student.studentId
+                                        ? { ...s, toClass: val }
+                                        : s,
+                                    ),
+                                  );
+                                }}
+                                disabled={
+                                  !selectedStudents.some(
+                                    (s) => s.studentId === student.studentId,
+                                  )
+                                }
+                              >
+                                <SelectTrigger className="w-[120px]">
+                                  <SelectValue placeholder="Chọn lớp" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                  {classes
+                                    .filter(
+                                      (c) =>
+                                        c.status === "Hoạt động" &&
+                                        c.className[0] == grade, // Lưu ban thì vẫn ở lại khối cũ
+                                    )
+                                    .map((c) => (
+                                      <SelectItem
+                                        key={c.classId}
+                                        value={c.classId}
+                                      >
+                                        {c.className}
+                                      </SelectItem>
+                                    ))}
+                                </SelectContent>
+                              </Select>
+                            </TableCell>
+                          </TableRow>
+                        ),
+                      )
+                    )}
                   </TableBody>
                 </Table>
               </CardContent>
