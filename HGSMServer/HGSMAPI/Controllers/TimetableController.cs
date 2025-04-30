@@ -16,7 +16,7 @@ namespace HGSMAPI.Controllers
             _service = service;
         }
 
-        [HttpPost]
+        [HttpPost("create-timetable")]
         public async Task<IActionResult> CreateTimetable([FromBody] CreateTimetableDto dto)
         {
             if (!ModelState.IsValid || dto == null)
@@ -228,7 +228,7 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi kiểm tra xung đột thời khóa biểu.");
             }
         }
-        [HttpPost]
+        [HttpPost("create-timetable-detail")]
         public async Task<IActionResult> Create([FromBody] CreateTimetableDetailRequest request)
         {
             if (!ModelState.IsValid) return BadRequest(ModelState);
