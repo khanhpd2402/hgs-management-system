@@ -25,10 +25,11 @@ export default function GradeBatch() {
     (batch) => batch.semesterId === semester?.semesterID,
   );
   const getStatusBadge = (status) => {
-    switch (status) {
-      case "Hoạt động":
+    const newStatus = status.toLowerCase();
+    switch (newStatus) {
+      case "hoạt động":
         return <Badge className="bg-green-500">Đang mở</Badge>;
-      case "Không hoạt động":
+      case "không hoạt động":
         return <Badge className="bg-gray-500">Đã đóng</Badge>;
 
       default:

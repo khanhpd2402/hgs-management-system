@@ -108,7 +108,6 @@ export default function TAModal({ open, onOpenChange, semester }) {
         const data = {
           teacherId: selectedTeacher,
           subjectId: subject.subjectID,
-          subjectCategory: subject.subjectCategory || "",
           classAssignments: assignedClassIds.map((classId) => ({
             classId,
           })),
@@ -205,7 +204,7 @@ export default function TAModal({ open, onOpenChange, semester }) {
   }, [selectedTeacher, subjects]);
 
   const handleTeacherChange = (value) => {
-    if (hasAssignments()) {
+    if (hasAssignments() && selectedTeacher) {
       setPendingTeacher(value);
       setShowConfirmModal(true);
     } else {

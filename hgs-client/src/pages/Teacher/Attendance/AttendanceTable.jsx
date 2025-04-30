@@ -163,7 +163,7 @@ export default function AttendanceTable() {
     }
   };
 
-  console.log(studentsData);
+  // console.log(studentsData);
   useEffect(() => {
     if (semesters?.length > 0) {
       const now = new Date();
@@ -214,7 +214,7 @@ export default function AttendanceTable() {
     }
   }, [students, studentAttendances, date, session]);
 
-  console.log(students);
+  // console.log(students);
 
   const debounceTimeout = useRef({});
 
