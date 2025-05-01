@@ -609,7 +609,7 @@ export function useTransferClassData() {
     mutationFn: (data) => {
       return transferClassData(data);
     },
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         if (error.response?.data) {
@@ -620,7 +620,18 @@ export function useTransferClassData() {
       } else {
         console.log(data);
         toast.success("Chuyển dữ liệu thành công");
-        queryClient.invalidateQueries({ queryKey: ["classes"] });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "previous-year-students",
+            { academicYearId: variables[0].targetAcademicYearId },
+          ],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "non-eligible-students",
+            { academicYearId: variables[0].targetAcademicYearId },
+          ],
+        });
       }
     },
   });
@@ -632,7 +643,7 @@ export function useTransferStudentData() {
     mutationFn: (data) => {
       return transferStudentData(data);
     },
-    onSettled: (data, error) => {
+    onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
         if (error.response?.data) {
@@ -643,6 +654,18 @@ export function useTransferStudentData() {
       } else {
         console.log(data);
         toast.success("Chuyển dữ liệu thành công");
+        queryClient.invalidateQueries({
+          queryKey: [
+            "previous-year-students",
+            { academicYearId: variables[0].academicYearId },
+          ],
+        });
+        queryClient.invalidateQueries({
+          queryKey: [
+            "non-eligible-students",
+            { academicYearId: variables[0].academicYearId },
+          ],
+        });
       }
     },
   });
