@@ -46,12 +46,32 @@ namespace Application.Features.Students.Services
 
         public async Task<StudentListResponseDto> GetAllStudentsWithParentsAsync(int academicYearId)
         {
+            Console.WriteLine($"Fetching all students for AcademicYearId: {academicYearId}...");
+
             var students = await _studentRepository.GetAllWithParentsAsync(academicYearId);
             var studentDtos = new List<StudentDto>();
 
             foreach (var student in students)
             {
                 var studentDto = _mapper.Map<StudentDto>(student);
+
+                // Lấy thông tin lớp và khối từ StudentClass cho academicYearId
+                var studentClass = student.StudentClasses?.FirstOrDefault(sc => sc.AcademicYearId == academicYearId);
+                if (studentClass != null && studentClass.Class != null)
+                {
+                    studentDto.ClassName = studentClass.Class.ClassName;
+                    studentDto.GradeId = studentClass.Class.GradeLevelId;
+                    studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
+                }
+                else
+                {
+                    Console.WriteLine($"Warning: No StudentClass found for StudentId {student.StudentId} in AcademicYearId {academicYearId}.");
+                    studentDto.ClassName = "N/A";
+                    studentDto.GradeId = 0;
+                    studentDto.GradeName = "N/A";
+                }
+
+                // Lấy thông tin phụ huynh
                 if (student.ParentId.HasValue)
                 {
                     var parent = await _parentRepository.GetByIdAsync(student.ParentId.Value);
@@ -59,10 +79,16 @@ namespace Application.Features.Students.Services
                     {
                         studentDto.Parent = _mapper.Map<ParentDto>(parent);
                     }
+                    else
+                    {
+                        Console.WriteLine($"Warning: ParentId {student.ParentId} not found for StudentId {student.StudentId}.");
+                    }
                 }
+
                 studentDtos.Add(studentDto);
             }
 
+            Console.WriteLine($"Fetched {studentDtos.Count} students for AcademicYearId: {academicYearId}.");
             return new StudentListResponseDto
             {
                 Students = studentDtos,
@@ -72,11 +98,34 @@ namespace Application.Features.Students.Services
 
         public async Task<StudentDto?> GetStudentByIdAsync(int id, int academicYearId)
         {
+            Console.WriteLine($"Fetching student with StudentId: {id} for AcademicYearId: {academicYearId}...");
+
             var student = await _studentRepository.GetByIdWithParentsAsync(id, academicYearId);
             if (student == null)
+            {
+                Console.WriteLine($"StudentId {id} not found for AcademicYearId {academicYearId}.");
                 return null;
+            }
 
             var studentDto = _mapper.Map<StudentDto>(student);
+
+            // Lấy thông tin lớp và khối từ StudentClass cho academicYearId
+            var studentClass = student.StudentClasses?.FirstOrDefault(sc => sc.AcademicYearId == academicYearId);
+            if (studentClass != null && studentClass.Class != null)
+            {
+                studentDto.ClassName = studentClass.Class.ClassName;
+                studentDto.GradeId = studentClass.Class.GradeLevelId;
+                studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
+            }
+            else
+            {
+                Console.WriteLine($"Warning: No StudentClass found for StudentId {id} in AcademicYearId {academicYearId}.");
+                studentDto.ClassName = "N/A";
+                studentDto.GradeId = 0;
+                studentDto.GradeName = "N/A";
+            }
+
+            // Lấy thông tin phụ huynh
             if (student.ParentId.HasValue)
             {
                 var parent = await _parentRepository.GetByIdAsync(student.ParentId.Value);
@@ -84,10 +133,17 @@ namespace Application.Features.Students.Services
                 {
                     studentDto.Parent = _mapper.Map<ParentDto>(parent);
                 }
+                else
+                {
+                    Console.WriteLine($"Warning: ParentId {student.ParentId} not found for StudentId {id}.");
+                }
             }
 
+            Console.WriteLine($"Fetched student with StudentId: {id} successfully.");
             return studentDto;
         }
+
+        
 
         public async Task<int> AddStudentAsync(CreateStudentDto createStudentDto)
         {
