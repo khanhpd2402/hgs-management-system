@@ -5,7 +5,7 @@ import { useSubjects } from '@/services/common/queries';
 import './Schedule.scss';
 import { Calendar, Save, Trash2 } from 'lucide-react';
 import ExportSchedule from './ExportSchedule';
-import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd';
+import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
 import { useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from 'react-toastify';
@@ -314,26 +314,27 @@ const Schedule = () => {
         return <div className="schedule-cell"></div>;
     };
 
-    const onDragEnd = (result, className) => {
+    const onDragEnd = (result) => {
         const { source, destination } = result;
 
         if (!destination || (source.droppableId === destination.droppableId && source.index === destination.index)) {
             return;
         }
 
+        const className = source.droppableId.split('-')[0];
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         if (!scheduleToUse?.details) return;
 
         const updatedDetails = [...scheduleToUse.details];
         const sourceItem = updatedDetails.find(
             (item) =>
-                item.dayOfWeek === daysOfWeek[source.droppableId.split('-')[1]] &&
+                item.dayOfWeek === daysOfWeek[parseInt(source.droppableId.split('-')[1])] &&
                 item.periodId === source.index &&
                 item.className === className
         );
         const destItem = updatedDetails.find(
             (item) =>
-                item.dayOfWeek === daysOfWeek[destination.droppableId.split('-')[1]] &&
+                item.dayOfWeek === daysOfWeek[parseInt(destination.droppableId.split('-')[1])] &&
                 item.periodId === destination.index &&
                 item.className === className
         );
@@ -504,12 +505,7 @@ const Schedule = () => {
                     </div>
                 </div>
             </div>
-            <DragDropContext
-                onDragEnd={(result) => {
-                    const className = result.source.droppableId.split('-')[0];
-                    onDragEnd(result, className);
-                }}
-            >
+            <DragDropContext onDragEnd={onDragEnd}>
                 <div
                     className="table-container"
                     ref={topScrollRef}
@@ -590,35 +586,37 @@ const Schedule = () => {
                 </div>
             </DragDropContext>
             <Dialog open={showEditDialog} onOpenChange={setShowEditDialog} className="schedule-edit-dialog">
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle className="schedule-edit-title">Chỉnh sửa thời khóa biểu</DialogTitle>
+                <DialogContent className="schedule-edit-content p-6">
+                    <DialogHeader className="schedule-edit-header mb-6">
+                        <DialogTitle className="schedule-edit-title text-2xl font-semibold text-center text-primary border-b pb-4">
+                            Chỉnh sửa thời khóa biểu
+                        </DialogTitle>
                     </DialogHeader>
-                    <div className="schedule-edit-info">
-                        <div className="info-row">
-                            <span className="info-label">Detail:</span>
-                            <span className="info-value">{selectedSchedule?.timetableDetailId}</span>
+                    <div className="schedule-edit-info bg-gray-50 rounded-lg p-6 mb-6 space-y-4">
+                        <div className="info-row flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+                            <span className="info-label font-medium text-gray-600">Detail:</span>
+                            <span className="info-value font-medium text-gray-900">{selectedSchedule?.timetableDetailId}</span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">Thứ:</span>
-                            <span className="info-value">{selectedSchedule?.day}</span>
+                        <div className="info-row flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+                            <span className="info-label font-medium text-gray-600">Thứ:</span>
+                            <span className="info-value font-medium text-gray-900">{selectedSchedule?.day}</span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">Tiết:</span>
-                            <span className="info-value">{selectedSchedule?.periodId}</span>
+                        <div className="info-row flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+                            <span className="info-label font-medium text-gray-600">Tiết:</span>
+                            <span className="info-value font-medium text-gray-900">{selectedSchedule?.periodId}</span>
                         </div>
-                        <div className="info-row">
-                            <span className="info-label">Lớp:</span>
-                            <span className="info-value">{selectedSchedule?.className}</span>
+                        <div className="info-row flex justify-between items-center py-3 border-b border-gray-200 last:border-0">
+                            <span className="info-label font-medium text-gray-600">Lớp:</span>
+                            <span className="info-value font-medium text-gray-900">{selectedSchedule?.className}</span>
                         </div>
                     </div>
-                    <div className="schedule-edit-form">
+                    <div className="schedule-edit-form space-y-6">
                         <div className="form-group">
-                            <label>Môn học:</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Môn học:</label>
                             <select
                                 value={selectedSubjectId}
                                 onChange={(e) => setSelectedSubjectId(e.target.value)}
-                                className="form-select"
+                                className="form-select w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                             >
                                 <option value="">Chọn môn học</option>
                                 {subjects.map((subject) => (
@@ -629,11 +627,11 @@ const Schedule = () => {
                             </select>
                         </div>
                         <div className="form-group">
-                            <label>Giáo viên:</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-2">Giáo viên:</label>
                             <select
                                 value={selectedTeacherId}
                                 onChange={(e) => setSelectedTeacherId(e.target.value)}
-                                className="form-select"
+                                className="form-select w-full rounded-md border border-gray-300 py-2 px-3 shadow-sm focus:border-primary focus:ring focus:ring-primary focus:ring-opacity-50"
                             >
                                 <option value="">Chọn giáo viên</option>
                                 {teachers.map((teacher) => (
@@ -643,11 +641,17 @@ const Schedule = () => {
                                 ))}
                             </select>
                         </div>
-                        <div className="schedule-edit-actions">
-                            <button onClick={handleScheduleUpdate} className="btn-save">
+                        <div className="schedule-edit-actions flex gap-4 mt-8">
+                            <button
+                                onClick={handleScheduleUpdate}
+                                className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+                            >
                                 <Save size={16} /> Lưu thay đổi
                             </button>
-                            <button onClick={handleDelete} className="btn-delete">
+                            <button
+                                onClick={handleDelete}
+                                className="btn-delete flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors"
+                            >
                                 <Trash2 size={16} /> Xóa
                             </button>
                         </div>
