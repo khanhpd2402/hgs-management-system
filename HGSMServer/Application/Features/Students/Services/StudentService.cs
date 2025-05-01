@@ -59,13 +59,16 @@ namespace Application.Features.Students.Services
                 var studentClass = student.StudentClasses?.FirstOrDefault(sc => sc.AcademicYearId == academicYearId);
                 if (studentClass != null && studentClass.Class != null)
                 {
+                    studentDto.ClassId = studentClass.ClassId;
                     studentDto.ClassName = studentClass.Class.ClassName;
                     studentDto.GradeId = studentClass.Class.GradeLevelId;
                     studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
+                    Console.WriteLine($"StudentId: {student.StudentId}, ClassId: {studentDto.ClassId}, ClassName: {studentDto.ClassName}, GradeId: {studentDto.GradeId}");
                 }
                 else
                 {
                     Console.WriteLine($"Warning: No StudentClass found for StudentId {student.StudentId} in AcademicYearId {academicYearId}.");
+                    studentDto.ClassId = 0;
                     studentDto.ClassName = "N/A";
                     studentDto.GradeId = 0;
                     studentDto.GradeName = "N/A";
@@ -113,13 +116,16 @@ namespace Application.Features.Students.Services
             var studentClass = student.StudentClasses?.FirstOrDefault(sc => sc.AcademicYearId == academicYearId);
             if (studentClass != null && studentClass.Class != null)
             {
+                studentDto.ClassId = studentClass.ClassId;
                 studentDto.ClassName = studentClass.Class.ClassName;
                 studentDto.GradeId = studentClass.Class.GradeLevelId;
                 studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
+                Console.WriteLine($"StudentId: {id}, ClassId: {studentDto.ClassId}, ClassName: {studentDto.ClassName}, GradeId: {studentDto.GradeId}");
             }
             else
             {
                 Console.WriteLine($"Warning: No StudentClass found for StudentId {id} in AcademicYearId {academicYearId}.");
+                studentDto.ClassId = 0;
                 studentDto.ClassName = "N/A";
                 studentDto.GradeId = 0;
                 studentDto.GradeName = "N/A";
@@ -143,7 +149,7 @@ namespace Application.Features.Students.Services
             return studentDto;
         }
 
-        
+
 
         public async Task<int> AddStudentAsync(CreateStudentDto createStudentDto)
         {

@@ -8,6 +8,7 @@ namespace Application.Features.Students.DTOs
         public string FullName { get; set; } = null!;
         public DateOnly Dob { get; set; }
         public string Gender { get; set; } = null!;
+        public int ClassId { get; set; }
         public string ClassName { get; set; } = null!;
         public int GradeId { get; set; }
         public string GradeName { get; set; } = null!;
