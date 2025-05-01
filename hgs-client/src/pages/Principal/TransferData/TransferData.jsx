@@ -25,8 +25,13 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { useAcademicYears, useClasses } from "@/services/common/queries";
 import {
+  useAcademicYears,
+  useClasses,
+  useSemestersByAcademicYear,
+} from "@/services/common/queries";
+import {
+  useAllSemesters,
   useNonEligibleStudents,
   usePreviousYearStudents,
 } from "@/services/principal/queries";
@@ -36,6 +41,7 @@ import {
   useTransferStudentData,
 } from "@/services/principal/mutation";
 import toast from "react-hot-toast";
+import { useStudents } from "@/services/student/queries";
 
 export default function TransferData() {
   const tabs = [
@@ -54,10 +60,12 @@ export default function TransferData() {
     (y) => y.academicYearID === currentYear?.academicYearID,
   );
   const previousYear = currentIndex > 0 ? sortedYears[currentIndex - 1] : null;
+
   const [mode, setMode] = useState("class"); // "class" hoặc "student"
   const [selectedClasses, setSelectedClasses] = useState([]);
   const [selectedStudents, setSelectedStudents] = useState([]);
   const [selectedRepeatStudents, setSelectedRepeatStudents] = useState([]);
+  const [selectedAdjustStudents, setSelectedAdjustStudents] = useState([]);
 
   const [pendingGrade, setPendingGrade] = useState(""); // Khối chờ xác nhận
   const [confirmChangeGrade, setConfirmChangeGrade] = useState(false);
@@ -70,39 +78,69 @@ export default function TransferData() {
   const students = studentQuery.data?.students || [];
   const NEStudentQuery = useNonEligibleStudents(currentYear?.academicYearID);
   const NEStudents = NEStudentQuery.data || [];
-  // console.log(students);
+  const currentStudentQuery = useStudents(currentYear?.academicYearID);
+  const studentList = currentStudentQuery.data?.students || [];
+  // console.log(studentList);
 
   const transferClassDataMutation = useTransferClassData();
   const transferStudentDataMutation = useTransferStudentData();
 
-  console.log(selectedRepeatStudents);
+  // console.log(selectedRepeatStudents);
 
   const [grade, setGrade] = useState("");
   const [className, setClassName] = useState("");
 
   // Xử lý chuyển dữ liệu
   const handleTransfer = () => {
-    if (mode === "class") {
-      if (selectedClasses.length === 0) {
-        toast.error("Vui lòng chọn ít nhất một lớp để chuyển");
-        return;
+    if (activeTab === "promotion") {
+      if (mode === "class") {
+        if (selectedClasses.length === 0) {
+          toast.error("Vui lòng chọn ít nhất một lớp để chuyển");
+          return;
+        }
+        const data = selectedClasses.map((cls) => ({
+          classId: cls.classId,
+          targetClassId: cls.targetClassId,
+          academicYearId: previousYear?.academicYearID,
+          targetAcademicYearId: currentYear?.academicYearID,
+        }));
+        console.log(data);
+        transferClassDataMutation.mutate(data);
       }
-      const data = selectedClasses.map((cls) => ({
-        classId: cls.classId,
-        targetClassId: cls.targetClassId,
-        academicYearId: previousYear?.academicYearID,
-        targetAcademicYearId: currentYear?.academicYearID,
-      }));
-      console.log(data);
-      transferClassDataMutation.mutate(data);
+      if (mode === "student") {
+        if (selectedStudents.length === 0) {
+          toast.error("Vui lòng chọn ít nhất một học sinh để chuyển");
+          return;
+        }
+        // console.log(selectedStudents);
+        const data = selectedStudents.map((student) => ({
+          studentId: student.studentId,
+          classId: student.toClass,
+          academicYearId: currentYear?.academicYearID,
+        }));
+        console.log(data);
+        transferStudentDataMutation.mutate(data);
+      }
     }
-    if (mode === "student") {
-      if (selectedStudents.length === 0) {
+    if (activeTab === "repeat") {
+      if (selectedRepeatStudents.length === 0) {
         toast.error("Vui lòng chọn ít nhất một học sinh để chuyển");
         return;
       }
-      // console.log(selectedStudents);
-      const data = selectedStudents.map((student) => ({
+      const data = selectedRepeatStudents.map((student) => ({
+        studentId: student.studentId,
+        classId: student.toClass,
+        academicYearId: currentYear?.academicYearID,
+      }));
+      console.log(data);
+      transferStudentDataMutation.mutate(data);
+    }
+    if (activeTab === "adjust") {
+      if (selectedAdjustStudents.length === 0) {
+        toast.error("Vui lòng chọn ít nhất một học sinh để chuyển");
+        return;
+      }
+      const data = selectedAdjustStudents.map((student) => ({
         studentId: student.studentId,
         classId: student.toClass,
         academicYearId: currentYear?.academicYearID,
@@ -112,8 +150,12 @@ export default function TransferData() {
     }
   };
 
-  // console.log(selectedStudents);
+  // console.log(currentYear);
 
+  console.log(selectedAdjustStudents);
+
+  // console.log(className);
+  // console.log(classes);
   // UI loading skeleton
   if (classQuery.isLoading) {
     return (
@@ -154,6 +196,7 @@ export default function TransferData() {
               setSelectedClasses([]);
               setSelectedStudents([]);
               setSelectedRepeatStudents([]);
+              setSelectedAdjustStudents([]);
             }}
             type="button"
           >
@@ -186,7 +229,9 @@ export default function TransferData() {
           onValueChange={(val) => {
             if (
               (mode === "class" && selectedClasses.length > 0) ||
-              (mode === "student" && selectedStudents.length > 0)
+              (mode === "student" && selectedStudents.length > 0) ||
+              (activeTab === "repeat" && selectedRepeatStudents.length > 0) ||
+              (activeTab === "adjust" && selectedAdjustStudents.length > 0)
             ) {
               setPendingGrade(val);
               setConfirmChangeGrade(true);
@@ -195,6 +240,8 @@ export default function TransferData() {
               setClassName("");
               setSelectedClasses([]);
               setSelectedStudents([]);
+              setSelectedRepeatStudents([]);
+              setSelectedAdjustStudents([]);
             }
           }}
         >
@@ -205,6 +252,7 @@ export default function TransferData() {
             <SelectItem value="6">Khối 6</SelectItem>
             <SelectItem value="7">Khối 7</SelectItem>
             <SelectItem value="8">Khối 8</SelectItem>
+            {}
             <SelectItem value="9">Khối 9</SelectItem>
           </SelectContent>
         </Select>
@@ -213,13 +261,17 @@ export default function TransferData() {
           onValueChange={(val) => {
             if (
               (mode === "student" && selectedStudents.length > 0) ||
-              (mode === "repeat" && selectedRepeatStudents.length > 0)
+              (mode === "repeat" && selectedRepeatStudents.length > 0) ||
+              (activeTab === "adjust" && selectedAdjustStudents.length > 0) ||
+              (activeTab === "repeat" && selectedRepeatStudents.length > 0)
             ) {
               setPendingClassName(val);
               setConfirmChangeClass(true);
             } else {
               setClassName(val);
               setSelectedStudents([]);
+              setSelectedRepeatStudents([]);
+              setSelectedAdjustStudents([]);
             }
           }}
           disabled={(activeTab === "promotion" && mode === "class") || !grade}
@@ -425,7 +477,11 @@ export default function TransferData() {
                           </TableRow>
                         ) : (
                           students
-                            .filter((s) => s.className === className)
+                            .filter(
+                              (s) =>
+                                s.className === className &&
+                                s.repeatingYear == false,
+                            )
                             .map((student) => (
                               <TableRow key={student.studentId}>
                                 <TableCell>
@@ -627,6 +683,123 @@ export default function TransferData() {
           )}
         </>
       )}
+      {activeTab === "adjust" && (
+        <>
+          {grade && className && (
+            <div>
+              <div className="mt-4 font-medium">
+                Chọn học sinh lưu ban cần chuyển:
+              </div>
+              <div className="overflow-x-auto">
+                <Card className="mt-4 border shadow">
+                  <CardContent className="p-0">
+                    <Table>
+                      <TableHeader>
+                        <TableRow>
+                          <TableHead className="w-12"></TableHead>
+                          <TableHead>Họ và tên</TableHead>
+                          <TableHead>Lớp hiện tại</TableHead>
+                          <TableHead>Lớp mới</TableHead>
+                        </TableRow>
+                      </TableHeader>
+                      <TableBody>
+                        {studentList.length === 0 ? (
+                          <TableRow className="p-4 text-gray-500">
+                            <TableCell colSpan={5}>
+                              Không có dữ liệu học sinh lưu ban
+                            </TableCell>
+                          </TableRow>
+                        ) : (
+                          studentList
+                            .filter((s) => s.className === className)
+                            .map((student) => (
+                              <TableRow key={student.studentId}>
+                                <TableCell>
+                                  <Checkbox
+                                    checked={selectedAdjustStudents.some(
+                                      (s) => s.studentId === student.studentId,
+                                    )}
+                                    onCheckedChange={(checked) => {
+                                      if (checked) {
+                                        setSelectedAdjustStudents([
+                                          ...selectedAdjustStudents,
+                                          {
+                                            studentId: student.studentId,
+                                            classId: student.classId,
+                                            toClass: "",
+                                          },
+                                        ]);
+                                      } else {
+                                        setSelectedAdjustStudents(
+                                          selectedAdjustStudents.filter(
+                                            (s) =>
+                                              s.studentId !== student.studentId,
+                                          ),
+                                        );
+                                      }
+                                    }}
+                                  />
+                                </TableCell>
+                                <TableCell>{student.fullName}</TableCell>
+                                <TableCell>{student.className}</TableCell>
+                                <TableCell>
+                                  <Select
+                                    value={
+                                      selectedAdjustStudents.find(
+                                        (s) =>
+                                          s.studentId === student.studentId,
+                                      )?.toClass || ""
+                                    }
+                                    onValueChange={(val) => {
+                                      setSelectedAdjustStudents((prev) =>
+                                        prev.map((s) =>
+                                          s.studentId === student.studentId
+                                            ? { ...s, toClass: val }
+                                            : s,
+                                        ),
+                                      );
+                                    }}
+                                    disabled={
+                                      !selectedAdjustStudents.some(
+                                        (s) =>
+                                          s.studentId === student.studentId,
+                                      )
+                                    }
+                                  >
+                                    <SelectTrigger className="w-[120px]">
+                                      <SelectValue placeholder="Chọn lớp" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                      {classes
+                                        .filter(
+                                          (c) =>
+                                            c.status === "Hoạt động" &&
+                                            c.className[0] == grade &&
+                                            c.className !== className,
+                                        )
+                                        .map((c) => (
+                                          <SelectItem
+                                            key={c.classId}
+                                            value={c.classId}
+                                          >
+                                            {c.className}
+                                          </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                  </Select>
+                                </TableCell>
+                              </TableRow>
+                            ))
+                        )}
+                      </TableBody>
+                    </Table>
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Bảng danh sách các lớp */}
 
@@ -661,6 +834,8 @@ export default function TransferData() {
                 setClassName("");
                 setSelectedClasses([]);
                 setSelectedStudents([]);
+                setSelectedRepeatStudents([]);
+                setSelectedAdjustStudents([]);
                 setConfirmChangeGrade(false);
               }}
             >
@@ -695,6 +870,8 @@ export default function TransferData() {
               onClick={() => {
                 setClassName(pendingClassName);
                 setSelectedStudents([]);
+                setSelectedRepeatStudents([]);
+                setSelectedAdjustStudents([]);
                 setConfirmChangeClass(false);
               }}
             >
