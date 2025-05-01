@@ -159,16 +159,16 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.SaveChangesAsync() > 0;
         }
 
-        public async Task<bool> IsConflictAsync(TimetableDetail detail)
-        {
-            return await _context.TimetableDetails.AnyAsync(x =>
-                x.ClassId == detail.ClassId &&
-                x.PeriodId == detail.PeriodId &&
-                x.DayOfWeek == detail.DayOfWeek &&
-                x.TimetableId == detail.TimetableId &&
-                x.Timetable.EffectiveDate == detail.Timetable.EffectiveDate &&
-                x.Timetable.SemesterId == detail.Timetable.SemesterId);
-        }
+        //public async Task<bool> IsConflictAsync(TimetableDetail detail)
+        //{
+        //    return await _context.TimetableDetails.AnyAsync(x =>
+        //        x.ClassId == detail.ClassId &&
+        //        x.PeriodId == detail.PeriodId &&
+        //        x.DayOfWeek == detail.DayOfWeek &&
+        //        x.TimetableId == detail.TimetableId &&
+        //        x.Timetable.EffectiveDate == detail.Timetable.EffectiveDate &&
+        //        x.Timetable.SemesterId == detail.Timetable.SemesterId);
+        //}
 
         public async Task<Timetable> CreateTimetableAsync(Timetable timetable)
         {

@@ -207,27 +207,27 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPost("check-conflict")]
-        public async Task<IActionResult> CheckConflict([FromBody] TimetableDetailDto dto)
-        {
-            if (!ModelState.IsValid || dto == null)
-            {
-                Console.WriteLine("Invalid timetable detail data.");
-                return BadRequest("Dữ liệu chi tiết thời khóa biểu không hợp lệ.");
-            }
+        //[HttpPost("check-conflict")]
+        //public async Task<IActionResult> CheckConflict([FromBody] TimetableDetailDto dto)
+        //{
+        //    if (!ModelState.IsValid || dto == null)
+        //    {
+        //        Console.WriteLine("Invalid timetable detail data.");
+        //        return BadRequest("Dữ liệu chi tiết thời khóa biểu không hợp lệ.");
+        //    }
 
-            try
-            {
-                Console.WriteLine("Checking timetable conflict...");
-                var conflict = await _service.IsConflictAsync(dto);
-                return Ok(new { Conflict = conflict });
-            }
-            catch (Exception ex)
-            {
-                Console.WriteLine($"Error checking conflict: {ex.Message}");
-                return StatusCode(500, "Lỗi khi kiểm tra xung đột thời khóa biểu.");
-            }
-        }
+        //    try
+        //    {
+        //        Console.WriteLine("Checking timetable conflict...");
+        //        var conflict = await _service.IsConflictAsync(dto);
+        //        return Ok(new { Conflict = conflict });
+        //    }
+        //    catch (Exception ex)
+        //    {
+        //        Console.WriteLine($"Error checking conflict: {ex.Message}");
+        //        return StatusCode(500, "Lỗi khi kiểm tra xung đột thời khóa biểu.");
+        //    }
+        //}
         [HttpPost("create-timetable-detail")]
         public async Task<IActionResult> Create([FromBody] CreateTimetableDetailRequest request)
         {
