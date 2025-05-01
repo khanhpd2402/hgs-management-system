@@ -183,7 +183,7 @@
     
     button {
       padding: 8px 16px; /* Tăng padding cho nút, làm nút nhỏ hơn */
-      background-color: #00786F;
+      background-color: #0084D1;
       color: white;
       border: none;
       border-radius: 6px; /* Làm tròn góc */
@@ -193,7 +193,7 @@
       transition: background-color 0.3s ease;
       
       &:hover {
-        background-color: #00786F;
+        background-color: #0084D1;
       }
     }
   }
@@ -366,12 +366,26 @@ button {
 
 .empty-cell {
     cursor: pointer;
-    padding: 8px;
-    text-align: center;
-    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
-    &:hover {
-        background-color: #f5f5f5;
+    .add-schedule-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: none;
+        background-color: #e0e0e0;
+        color: #666;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        
+        &:hover {
+            background-color: #d0d0d0;
+        }
     }
 }
 
@@ -501,12 +515,26 @@ button {
 
 .empty-cell {
     cursor: pointer;
-    padding: 8px;
-    text-align: center;
-    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
-    &:hover {
-        background-color: #f5f5f5;
+    .add-schedule-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: none;
+        background-color: #e0e0e0;
+        color: #666;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        
+        &:hover {
+            background-color: #d0d0d0;
+        }
     }
 }
 
@@ -725,12 +753,26 @@ button {
 
 .empty-cell {
     cursor: pointer;
-    padding: 8px;
-    text-align: center;
-    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
-    &:hover {
-        background-color: #f5f5f5;
+    .add-schedule-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: none;
+        background-color: #e0e0e0;
+        color: #666;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        
+        &:hover {
+            background-color: #d0d0d0;
+        }
     }
 }
 
@@ -971,12 +1013,26 @@ button {
 
 .empty-cell {
     cursor: pointer;
-    padding: 8px;
-    text-align: center;
-    color: #666;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     
-    &:hover {
-        background-color: #f5f5f5;
+    .add-schedule-btn {
+        width: 24px;
+        height: 24px;
+        border-radius: 50%;
+        border: none;
+        background-color: #e0e0e0;
+        color: #666;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        
+        &:hover {
+            background-color: #d0d0d0;
+        }
     }
 }
 
@@ -1048,3 +1104,75 @@ button {
     width: 1500px; // cùng chiều rộng với bảng thật bên dưới
     height: 1px; // để nội dung không hiển thị
 }
+.schedule-container {
+    // Giữ nguyên các style hiện có
+    // (Tôi giả định file Schedule.scss đã có các style cho các thành phần khác như sticky-filter, filter-container, schedule-table, v.v.)
+  }
+  
+  .schedule-toast-container {
+    .Toastify__toast {
+      z-index: 9999; // Đảm bảo toast nổi lên trên các thành phần khác
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15); // Thêm shadow để nổi bật
+      border-radius: 8px; // Bo góc nhẹ
+      font-size: 16px; // Kích thước chữ
+      font-weight: 500; // Độ đậm chữ
+      padding: 12px 16px; // Padding bên trong
+      min-height: 60px; // Chiều cao tối thiểu
+    }
+  
+    .Toastify__toast--success {
+      background-color: #28a745; // Màu xanh cho thông báo thành công
+      color: #ffffff;
+    }
+  
+    .Toastify__toast--error {
+      background-color: #dc3545; // Màu đỏ cho thông báo lỗi
+      color: #ffffff;
+    }
+  
+    .Toastify__close-button {
+      color: #ffffff; // Màu nút đóng
+      opacity: 0.8;
+      &:hover {
+        opacity: 1;
+      }
+    }
+  
+    .Toastify__progress-bar {
+      background-color: rgba(255, 255, 255, 0.7); // Thanh tiến trình màu trắng mờ
+    }
+  }
+
+
+  .btn-schedule {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 16px;
+    background-color: #727cf5; // màu chính bạn hay dùng
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+  
+    svg {
+      stroke: #fff;
+    }
+  
+    &:hover {
+      background-color: darken(#0084D1, 10%);
+    }
+  
+    &:active {
+      transform: scale(0.98);
+    }
+  
+    &:disabled {
+      background-color: #ccc;
+      cursor: not-allowed;
+    }
+  }
+  
