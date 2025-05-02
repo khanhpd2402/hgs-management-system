@@ -12,9 +12,19 @@ import { createBrowserRouter, Navigate, RouterProvider } from "react-router";
 import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
-import ScheduleTeacher from "@/pages/Schedule/ScheduleTeacher/ScheduleTeacher";
-import ScheduleStudent from "@/pages/Schedule/ScheduleStudent/ScheduleStudent";
 import { Spinner } from "@/components/Spinner";
+
+
+const ScheduleTeacher = lazy(
+  () => import("@/pages/Schedule/ScheduleTeacher/ScheduleTeacher"),
+)
+const ScheduleStudent = lazy(
+  () => import("@/pages/Schedule/ScheduleStudent/ScheduleStudent"),
+)
+const TimetableManagement = lazy(
+  () => import("@/pages/Schedule/ScheduleSymtem/TimetableManagement"),
+);
+
 const AddDocument = lazy(
   () => import("@/pages/RequestLessonPlan/AddDocument/AddDocument"),
 );
@@ -275,6 +285,16 @@ const adminRouter = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/system/timetable-manager",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<Spinner />}>
+          <TimetableManagement />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  }
 ];
 
 const teacherRouter = [

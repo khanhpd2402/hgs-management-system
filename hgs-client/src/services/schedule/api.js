@@ -12,9 +12,9 @@ export const getScheduleByStudent = async ({ studentId, semesterId }) => {
   return response.data;
 };
 
-export const getTimetableForPrincipal = async (timetableId) => {
+export const getTimetableForPrincipal = async (timetableId, status) => {
   const response = await axiosInstance.get(
-    `Timetables/TimetablesForPrincipal/${timetableId}`,
+    `Timetables/TimetablesForPrincipal/${timetableId}?status=${status}`,
   );
   return response.data;
 };

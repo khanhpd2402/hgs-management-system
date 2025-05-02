@@ -4,15 +4,15 @@ import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects } from '@/services/common/queries';
 import { useAcademicYears } from '@/services/common/queries';
 import './Schedule.scss';
-import { Calendar, Save, Trash2 } from 'lucide-react';
+import { Calendar, Save, Trash2, Plus } from 'lucide-react';
 import ExportSchedule from './ExportSchedule';
 import { DragDropContext, Droppable, Draggable } from '@hello-pangea/dnd';
-import { useQueryClient } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { toast, ToastContainer } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import toast from 'react-hot-toast';
 import { useDeleteTimeTableDetail } from '@/services/schedule/mutation';
 import { getSemesterByYear } from '../../../services/schedule/api';
+import { Link } from 'react-router-dom';
 
 // Constants
 const DAYS_OF_WEEK = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
@@ -22,36 +22,92 @@ const SHIFTS = [
 ];
 const GRADES = ['6', '7', '8', '9'];
 
+// Fetch classes from API
+const fetchClasses = async () => {
+    const response = await fetch('https://localhost:8386/api/Classes', {
+        headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Không thể lấy danh sách lớp');
+    return response.json();
+};
+
+// Fetch timetables from API
+const fetchTimetables = async (semesterId) => {
+    const response = await fetch(`https://localhost:8386/api/Timetables/semester/${semesterId}`, {
+        headers: { 'Content-Type': 'application/json' },
+    });
+    if (!response.ok) throw new Error('Không thể lấy danh sách thời khóa biểu');
+    return response.json();
+};
+
 const FilterSection = memo(({
     selectedYear, setSelectedYear, selectedSemester, setSelectedSemester, semesters,
     tempTeacher, setTempTeacher, tempGrade, setTempGrade, tempClass, setTempClass,
     tempSubject, setTempSubject, tempSession, setTempSession,
-    academicYears, teachers, subjects, getFilteredClasses, handleSearch, handleReset
-}) => (
-    <div className="sticky-filter">
-        <div className="filter-container">
-            <div className="filter-row">
-                <FilterSelect label="Năm học" value={selectedYear} onChange={(e) => setSelectedYear(parseInt(e.target.value))} options={academicYears?.map(year => ({ value: year.academicYearID, label: year.yearName }))} />
-                <FilterSelect label="Học kỳ" value={selectedSemester} onChange={(e) => setSelectedSemester(parseInt(e.target.value))} options={semesters.map(semester => ({ value: semester.semesterID, label: semester.semesterName }))} disabled={!selectedYear || !semesters.length} />
-                <FilterInput label="Ngày áp dụng" value={semesters.find(s => s.semesterID === selectedSemester)?.startDate ?
-                    `Từ ${formatDate(semesters.find(s => s.semesterID === selectedSemester).startDate)} đến ${formatDate(semesters.find(s => s.semesterID === selectedSemester).endDate)}` : 'Đang tải...'} readOnly />
-                <FilterSelect label="Giáo viên" value={tempTeacher} onChange={(e) => setTempTeacher(e.target.value)} options={teachers.map(teacher => ({ value: teacher.teacherId, label: teacher.fullName }))} />
-            </div>
-            <div className="filter-row">
-                <FilterSelect label="Khối" value={tempGrade} onChange={(e) => setTempGrade(e.target.value)} options={GRADES.map(grade => ({ value: grade, label: `Khối ${grade}` }))} />
-                <FilterSelect label="Lớp" value={tempClass} onChange={(e) => setTempClass(e.target.value)} options={getFilteredClasses().map(className => ({ value: className, label: className }))} disabled={!tempGrade} />
-                <FilterSelect label="Môn học" value={tempSubject} onChange={(e) => setTempSubject(e.target.value)} options={subjects.map(subject => ({ value: subject.subjectID, label: subject.subjectName }))} />
-                <FilterSelect label="Chọn buổi" value={tempSession} onChange={(e) => setTempSession(e.target.value)} options={[{ value: 'Morning', label: 'Sáng' }, { value: 'Afternoon', label: 'Chiều' }]} />
-            </div>
-            <div className="filter-row">
-                <div className="filter-column search-button">
-                    <button onClick={handleSearch}>Tìm kiếm</button>
-                    <button onClick={handleReset} className="reset-button">Reset</button>
+    academicYears, teachers, subjects, getFilteredClasses, handleSearch, handleReset,
+    selectedTimetable, setSelectedTimetable
+}) => {
+    const { data: timetables = [], isLoading: timetablesLoading } = useQuery({
+        queryKey: ['timetables', selectedSemester],
+        queryFn: () => fetchTimetables(selectedSemester),
+        enabled: !!selectedSemester,
+    });
+
+    return (
+        <div className="sticky-filter">
+            <div className="filter-container">
+                <div className="filter-row">
+                    <FilterSelect
+                        label="Năm học"
+                        value={selectedYear}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                        options={academicYears?.map(year => ({ value: year.academicYearID, label: year.yearName }))}
+                    />
+                    <FilterSelect
+                        label="Học kỳ"
+                        value={selectedSemester}
+                        onChange={(e) => setSelectedSemester(parseInt(e.target.value))}
+                        options={semesters.map(semester => ({ value: semester.semesterID, label: semester.semesterName }))}
+                        disabled={!selectedYear || !semesters.length}
+                    />
+                    <div className="filter-column">
+                        <label>Ngày áp dụng</label>
+                        <div className="flex gap-2">
+                            <FilterSelect
+                                label=""
+                                value={selectedTimetable}
+                                onChange={(e) => setSelectedTimetable(e.target.value)}
+                                options={timetables.map(timetable => ({
+                                    value: timetable.timetableId,
+                                    label: `[${timetable.timetableId}] - ${timetable.status} (${formatDate(timetable.effectiveDate)} - ${formatDate(timetable.endDate)})`
+                                }))}
+                                disabled={!selectedSemester || timetablesLoading}
+                            />
+                        </div>
+                    </div>
+                    <FilterSelect
+                        label="Giáo viên"
+                        value={tempTeacher}
+                        onChange={(e) => setTempTeacher(e.target.value)}
+                        options={teachers.map(teacher => ({ value: teacher.teacherId, label: teacher.fullName }))}
+                    />
+                </div>
+                <div className="filter-row">
+                    <FilterSelect label="Khối" value={tempGrade} onChange={(e) => setTempGrade(e.target.value)} options={GRADES.map(grade => ({ value: grade, label: `Khối ${grade}` }))} />
+                    <FilterSelect label="Lớp" value={tempClass} onChange={(e) => setTempClass(e.target.value)} options={getFilteredClasses().map(cls => ({ value: cls.className, label: cls.className }))} disabled={!tempGrade} />
+                    <FilterSelect label="Môn học" value={tempSubject} onChange={(e) => setTempSubject(e.target.value)} options={subjects.map(subject => ({ value: subject.subjectID, label: subject.subjectName }))} />
+                    <FilterSelect label="Chọn buổi" value={tempSession} onChange={(e) => setTempSession(e.target.value)} options={[{ value: 'Morning', label: 'Sáng' }, { value: 'Afternoon', label: 'Chiều' }]} />
+                </div>
+                <div className="filter-row">
+                    <div className="filter-column search-button">
+                        <button onClick={handleSearch}>Tìm kiếm</button>
+                        <button onClick={handleReset} className="reset-button">Reset</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-));
+    );
+});
 
 const ScheduleTable = memo(({
     selectedClass, getClassesByGrade, getUniqueClasses, getFilteredShifts,
@@ -72,7 +128,7 @@ const ScheduleTable = memo(({
                     <th className="sticky-col col-1">Thứ</th>
                     <th className="sticky-col col-2">Buổi</th>
                     <th className="sticky-col col-3">Tiết</th>
-                    {(selectedClass ? [selectedClass] : getUniqueClasses()).map(className => (
+                    {(selectedClass ? [selectedClass] : getUniqueClasses().map(cls => cls.className)).map(className => (
                         <th key={className}>{className}</th>
                     ))}
                 </tr>
@@ -91,7 +147,7 @@ const ScheduleTable = memo(({
                                     <td className="sticky-col col-2" rowSpan={shift.periods.length}>{shift.name}</td>
                                 )}
                                 <td className="sticky-col col-3">{scheduleData?.[0]?.details.find(item => item.periodId === period)?.periodName || `Tiết ${period}`}</td>
-                                {(selectedClass ? [selectedClass] : getUniqueClasses()).map((className, classIndex) => (
+                                {(selectedClass ? [selectedClass] : getUniqueClasses().map(cls => cls.className)).map((className, classIndex) => (
                                     <Droppable key={`${className}-${dayIndex}`} droppableId={`${className}-${dayIndex}`}>
                                         {(provided) => (
                                             <td ref={provided.innerRef} {...provided.droppableProps}>
@@ -153,6 +209,94 @@ const EditDialog = memo(({
     </Dialog>
 ));
 
+const AddDetailDialog = memo(({
+    showAddDialog, setShowAddDialog, classes, days, periods, subjects, teachers,
+    handleAddDetail
+}) => {
+    const [selectedClass, setSelectedClass] = useState('');
+    const [selectedDay, setSelectedDay] = useState('');
+    const [selectedPeriod, setSelectedPeriod] = useState('');
+    const [selectedSubject, setSelectedSubject] = useState('');
+    const [selectedTeacher, setSelectedTeacher] = useState('');
+
+    const handleSubmit = () => {
+        if (!selectedClass || !selectedDay || !selectedPeriod || !selectedSubject || !selectedTeacher) {
+            toast.error('Vui lòng chọn đầy đủ thông tin');
+            return;
+        }
+        const [className, classId] = selectedClass.split('---');
+        handleAddDetail({
+            classId,
+            className,
+            dayOfWeek: selectedDay,
+            periodId: parseInt(selectedPeriod),
+            subjectId: selectedSubject,
+            teacherId: selectedTeacher
+        });
+        setShowAddDialog(false);
+        setSelectedClass('');
+        setSelectedDay('');
+        setSelectedPeriod('');
+        setSelectedSubject('');
+        setSelectedTeacher('');
+    };
+
+    return (
+        <Dialog open={showAddDialog} onOpenChange={setShowAddDialog}>
+            <DialogContent className="add-dialog-content">
+                <DialogHeader className="schedule-add-header mb-6">
+                    <DialogTitle className="schedule-add-title text-2xl font-semibold text-center text-primary border-b pb-4">
+                        Thêm tiết học mới
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="schedule-add-form space-y-6">
+                    <FilterSelect
+                        label="Lớp"
+                        value={selectedClass}
+                        onChange={(e) => setSelectedClass(e.target.value)}
+                        options={classes.map(cls => ({
+                            value: `${cls.className}---${cls.classId}`,
+                            label: cls.className
+                        }))}
+                    />
+                    <FilterSelect
+                        label="Thứ"
+                        value={selectedDay}
+                        onChange={(e) => setSelectedDay(e.target.value)}
+                        options={days.map(day => ({ value: day, label: day }))}
+                    />
+                    <FilterSelect
+                        label="Tiết"
+                        value={selectedPeriod}
+                        onChange={(e) => setSelectedPeriod(e.target.value)}
+                        options={periods.map(period => ({ value: period, label: `Tiết ${period}` }))}
+                    />
+                    <FilterSelect
+                        label="Môn học"
+                        value={selectedSubject}
+                        onChange={(e) => setSelectedSubject(e.target.value)}
+                        options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName} --${subject.subjectID}` }))}
+                    />
+                    <FilterSelect
+                        label="Giáo viên"
+                        value={selectedTeacher}
+                        onChange={(e) => setSelectedTeacher(e.target.value)}
+                        options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}---${teacher.teacherId}` }))}
+                    />
+                    <div className="schedule-add-actions flex gap-4 mt-8">
+                        <button onClick={handleSubmit} className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
+                            <Save size={16} /> Thêm tiết học
+                        </button>
+                        <button onClick={() => setShowAddDialog(false)} className="btn-cancel flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition-colors">
+                            Hủy
+                        </button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+});
+
 const FilterSelect = ({ label, value, onChange, options, disabled }) => (
     <div className="filter-column">
         <label>{label}</label>
@@ -188,11 +332,13 @@ const Schedule = () => {
     // State
     const [selectedYear, setSelectedYear] = useState('');
     const [selectedSemester, setSelectedSemester] = useState(() => localStorage.getItem('selectedSemester') ? parseInt(localStorage.getItem('selectedSemester')) : null);
+    const [selectedTimetable, setSelectedTimetable] = useState('');
     const [semesters, setSemesters] = useState([]);
     const [selectedTeacherId, setSelectedTeacherId] = useState('');
     const [selectedSubjectId, setSelectedSubjectId] = useState('');
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [showEditDialog, setShowEditDialog] = useState(false);
+    const [showAddDialog, setShowAddDialog] = useState(false);
     const [selectedGrade, setSelectedGrade] = useState('');
     const [selectedClass, setSelectedClass] = useState('');
     const [selectedTeacher, setSelectedTeacher] = useState('');
@@ -213,10 +359,25 @@ const Schedule = () => {
     const queryClient = useQueryClient();
 
     // Data Fetching
-    const { data: scheduleData = [{ details: [] }], isLoading: scheduleLoading } = useTimetableForPrincipal(selectedSemester);
+    const { data: timetables = [], isLoading: timetablesLoading } = useQuery({
+        queryKey: ['timetables', selectedSemester],
+        queryFn: () => fetchTimetables(selectedSemester),
+        enabled: !!selectedSemester,
+    });
+    const { data: scheduleData = [{ details: [] }], isLoading: scheduleLoading } = useTimetableForPrincipal(
+        selectedTimetable,
+        timetables?.find(t => t.timetableId === parseInt(selectedTimetable))?.status
+    );
+    console.log("scheduleData", scheduleData);
+
     const { data: teachersResponse = { teachers: [] }, isLoading: teachersLoading } = useTeachers();
     const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
     const { data: academicYears } = useAcademicYears();
+    const { data: classes = [], isLoading: classesLoading } = useQuery({
+        queryKey: ['classes'],
+        queryFn: fetchClasses,
+        enabled: true,
+    });
     const teachers = Array.isArray(teachersResponse) ? teachersResponse : teachersResponse.teachers || [];
     const deleteTimeTableDetailMutation = useDeleteTimeTableDetail();
 
@@ -229,18 +390,31 @@ const Schedule = () => {
 
     const getUniqueClasses = () => {
         if (!scheduleData?.[0]?.details) return [];
-        return [...new Set(scheduleData[0].details.map(detail => detail.className))].sort();
+        const classMap = new Map();
+        scheduleData[0].details.forEach(detail => {
+            if (detail.className && detail.classId) {
+                classMap.set(detail.className, {
+                    className: detail.className,
+                    classId: detail.classId
+                });
+            } else {
+                console.warn('Invalid class data in scheduleData:', detail);
+            }
+        });
+        return Array.from(classMap.values()).sort((a, b) => a.className.localeCompare(b.className));
     };
 
     const getFilteredClasses = () => {
-        return tempGrade ? getUniqueClasses().filter(className => className.startsWith(tempGrade)) : getUniqueClasses();
+        return tempGrade
+            ? getUniqueClasses().filter(cls => cls.className.startsWith(tempGrade))
+            : getUniqueClasses();
     };
 
     const getClassesByGrade = () => {
-        return getUniqueClasses().reduce((acc, className) => {
-            const grade = className.charAt(0);
+        return getUniqueClasses().reduce((acc, cls) => {
+            const grade = cls.className.charAt(0);
             acc[grade] = acc[grade] || [];
-            acc[grade].push(className);
+            acc[grade].push(cls.className);
             return acc;
         }, {});
     };
@@ -253,19 +427,25 @@ const Schedule = () => {
         );
     };
 
+    const getPeriods = () => {
+        return SHIFTS.reduce((acc, shift) => [...acc, ...shift.periods], []);
+    };
+
     // Handlers
-    const handleCellClick = (day, periodId, className, classId) => {
+    const handleCellClick = (day, periodId, className, classIndex) => {
         if (isViewMode) return;
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         const schedule = scheduleToUse.details.find(
             item => item.dayOfWeek === day && item.periodId === periodId && item.className === className
         );
+        const classDetail = classes.find(cls => cls.className === className);
+        const classId = classDetail?.classId || getUniqueClasses().find(cls => cls.className === className)?.classId;
 
         setSelectedSchedule({
             day,
             periodId,
             className,
-            classId: schedule?.classId || classId, // Sử dụng classId được truyền vào nếu không có schedule
+            classId,
             currentSubject: schedule?.subjectId || '',
             currentTeacher: schedule?.teacherId || '',
             timetableDetailId: schedule?.timetableDetailId || null,
@@ -321,6 +501,37 @@ const Schedule = () => {
         }
     };
 
+    const handleAddDetail = async (detail) => {
+        const payload = {
+            timetableId: parseInt(selectedTimetable) || 0,
+            classId: detail.classId,
+            subjectId: parseInt(detail.subjectId) || 0,
+            teacherId: parseInt(detail.teacherId) || 0,
+            dayOfWeek: detail.dayOfWeek,
+            periodId: detail.periodId
+        };
+
+        console.log("payload: ", payload);
+
+        try {
+            const response = await fetch('https://localhost:8386/api/Timetables/create-timetable-detail', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload),
+            });
+
+            if (!response.ok) throw new Error('Không thể tạo tiết học');
+
+            toast.success('Tạo tiết học thành công');
+            await queryClient.invalidateQueries(['timetable', selectedSemester]);
+
+            if (filteredSchedule) handleSearch();
+        } catch (error) {
+            console.error('Lỗi khi tạo tiết học:', error);
+            toast.error('Có lỗi xảy ra khi tạo tiết học');
+        }
+    };
+
     const handleDelete = async () => {
         if (!selectedSchedule?.timetableDetailId) {
             toast.error('Không có thời khóa biểu để xóa');
@@ -329,6 +540,7 @@ const Schedule = () => {
 
         try {
             await deleteTimeTableDetailMutation.mutateAsync(selectedSchedule.timetableDetailId);
+            toast.success('Xóa thời khóa biểu thành công');
 
             const updatedDetails = (filteredSchedule || scheduleData[0]).details.filter(
                 item => item.timetableDetailId !== selectedSchedule.timetableDetailId
@@ -394,9 +606,8 @@ const Schedule = () => {
             item => item.dayOfWeek === day && item.periodId === periodId && item.className === className
         );
 
-        // Tìm classId từ scheduleData dựa trên className
-        const classDetail = scheduleToUse.details.find(item => item.className === className);
-        const classId = classDetail?.classId || className; // Nếu không tìm thấy classId, sử dụng className làm dự phòng
+        const classDetail = classes.find(cls => cls.className === className);
+        const classId = classDetail?.classId || getUniqueClasses().find(cls => cls.className === className)?.classId || className;
 
         if (schedule) {
             return (
@@ -415,7 +626,7 @@ const Schedule = () => {
                             onClick={(e) => {
                                 if (!isViewMode) {
                                     e.stopPropagation();
-                                    handleCellClick(day, periodId, className, classId);
+                                    handleCellClick(day, periodId, className, classIndex);
                                 }
                             }}
                         >
@@ -431,7 +642,7 @@ const Schedule = () => {
             return (
                 <div
                     className="schedule-cell empty-cell"
-                    onClick={() => handleCellClick(day, periodId, className, classId)}
+                    onClick={() => handleCellClick(day, periodId, className, classIndex)}
                 >
                     <button className="add-schedule-btn">+</button>
                 </div>
@@ -508,24 +719,12 @@ const Schedule = () => {
         handleYearChange();
     }, [selectedYear]);
 
-    if (scheduleLoading || teachersLoading || subjectsLoading) {
+    if (scheduleLoading || teachersLoading || subjectsLoading || classesLoading || timetablesLoading) {
         return <div className="loading">Đang tải...</div>;
     }
 
     return (
         <div className="schedule-container">
-            <ToastContainer
-                className="schedule-toast-container"
-                position="top-right"
-                autoClose={3000}
-                hideProgressBar={false}
-                newestOnTop={false}
-                closeOnClick
-                rtl={false}
-                pauseOnFocusLoss
-                draggable
-                pauseOnHover
-            />
             <FilterSection
                 selectedYear={selectedYear}
                 setSelectedYear={setSelectedYear}
@@ -548,6 +747,8 @@ const Schedule = () => {
                 getFilteredClasses={getFilteredClasses}
                 handleSearch={handleSearch}
                 handleReset={handleReset}
+                selectedTimetable={selectedTimetable}
+                setSelectedTimetable={setSelectedTimetable}
             />
             <div className="filter-row-table" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -562,10 +763,16 @@ const Schedule = () => {
                     <button className="btn-save" onClick={() => setIsViewMode(!isViewMode)}>
                         <Save size={16} /> {isViewMode ? 'Sửa' : 'Xem'}
                     </button>
-
-                    <button className="btn-schedule">
-                        <Calendar size={16} /> Quản lý thời khóa biểu
-                    </button>
+                    {!isViewMode && (
+                        <button className="btn-add-detail" onClick={() => setShowAddDialog(true)}>
+                            <Plus size={16} /> Thêm tiết học
+                        </button>
+                    )}
+                    <Link to="/system/timetable-manager">
+                        <button className="btn-schedule">
+                            <Calendar size={16} /> Quản lý thời khóa biểu
+                        </button>
+                    </Link>
                 </div>
             </div>
             <DragDropContext onDragEnd={onDragEnd}>
@@ -600,6 +807,16 @@ const Schedule = () => {
                 teachers={teachers}
                 handleScheduleUpdate={handleScheduleUpdate}
                 handleDelete={handleDelete}
+            />
+            <AddDetailDialog
+                showAddDialog={showAddDialog}
+                setShowAddDialog={setShowAddDialog}
+                classes={classes}
+                days={DAYS_OF_WEEK}
+                periods={getPeriods()}
+                subjects={subjects}
+                teachers={teachers}
+                handleAddDetail={handleAddDetail}
             />
         </div>
     );

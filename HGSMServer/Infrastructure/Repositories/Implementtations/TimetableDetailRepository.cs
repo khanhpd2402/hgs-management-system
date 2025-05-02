@@ -22,13 +22,13 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.TimetableDetails.AddAsync(detail);
         }
 
-        public async Task<bool> IsConflictAsync(int classId, string dayOfWeek, int periodId)
-        {
-            return await _context.TimetableDetails.AnyAsync(x =>
-                x.ClassId == classId &&
-                x.DayOfWeek == dayOfWeek &&
-                x.PeriodId == periodId);
-        }
+        //public async Task<bool> IsConflictAsync(int classId, string dayOfWeek, int periodId)
+        //{
+        //    return await _context.TimetableDetails.AnyAsync(x =>
+        //        x.ClassId == classId &&
+        //        x.DayOfWeek == dayOfWeek &&
+        //        x.PeriodId == periodId);
+        //}
         public async Task<TimetableDetail> GetByIdAsync(int timetableDetailId)
         {
             return await _context.TimetableDetails

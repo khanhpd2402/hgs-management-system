@@ -23,10 +23,16 @@ export function useScheduleStudent(studentId, semesterId) {
     enabled: !!studentId && !!semesterId,
   });
 }
-export function useTimetableForPrincipal(timetableId) {
+export function useTimetableForPrincipal(timetableId, status) {
+  // Chuyển đổi status sang giá trị API chấp nhận
+  console.log("timetableId", timetableId);
+
+  const apiStatus =
+    status === "Không hoạt động" ? "Không hoạt động" : "Hoạt động";
+  console.log("status", status);
   return useQuery({
     queryKey: ["schedule", "principal", timetableId],
-    queryFn: () => getTimetableForPrincipal(timetableId),
+    queryFn: () => getTimetableForPrincipal(timetableId, apiStatus),
     enabled: !!timetableId,
   });
 }
