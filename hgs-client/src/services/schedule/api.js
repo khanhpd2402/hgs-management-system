@@ -63,3 +63,34 @@ export const deleteTimeTableDetail = async (timetableDetailId) => {
   );
   return response.data;
 };
+
+export const getClasses = async () => {
+  const response = await axiosInstance.get("Classes");
+  return response.data;
+};
+
+export const getTimetables = async (semesterId) => {
+  const response = await axiosInstance.get(`Timetables/semester/${semesterId}`);
+  return response.data;
+};
+
+// export const createTimeTableDetail = async (payload) => {
+//   const response = await axiosInstance.post(
+//     "Timetables/create-timetable-detail",
+//     payload,
+//   );
+//   return response.data;
+// };
+
+export const updateTimeTableDetail = async (payload) => {
+  const response = await axiosInstance.put("Timetables/details", payload);
+  return response.data;
+};
+
+export const createTimeTableDetail = async (payload) => {
+  const response = await axiosInstance.post(
+    "Timetables/create-timetable-detail",
+    payload,
+  );
+  return response.data;
+};

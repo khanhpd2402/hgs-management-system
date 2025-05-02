@@ -1,13 +1,13 @@
 .schedule-container {
     width: 100%;
-    max-width: calc(100vw - 20rem); /* Điều chỉnh linh hoạt theo màn hình */
-    overflow-x: auto; /* Cuộn ngang nếu bảng quá rộng */
+    max-width: calc(100vw - 20rem);
+    position: relative;
+    margin-top: 50px;
     border: 0.1rem solid #ddd;
     border-radius: 0.5rem;
     padding: 0;
     background-color: #fff;
-    position: relative; /* Tránh phần thừa do sticky */
-    margin-top: 50px;
+    overflow: hidden; /* Thay đổi từ overflow-x: auto thành hidden */
 }
 
 /* Bảng chính */
@@ -448,15 +448,15 @@ button {
     width: 100%;
 }
 
-.timetable-wrapper.top-scroll {
-    height: 20px; // chỉ để hiển thị thanh cuộn
-    margin-bottom: 8px;
-}
+// .timetable-wrapper.top-scroll {
+//     height: 20px; // chỉ để hiển thị thanh cuộn
+//     margin-bottom: 8px;
+// }
 
-.timetable-table.dummy-scroll {
-    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
-    height: 1px; // để nội dung không hiển thị
-}
+// .timetable-table.dummy-scroll {
+//     width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+//     height: 1px; // để nội dung không hiển thị
+// }
 
 .schedule-container {
     width: 100%;
@@ -479,7 +479,7 @@ button {
 
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Move the horizontal scroll to table container */
+    overflow-x: auto; /* Di chuyển cuộn ngang xuống container con */
     padding: 0 16px;
     margin-top: 16px;
 }
@@ -597,15 +597,15 @@ button {
     width: 100%;
 }
 
-.timetable-wrapper.top-scroll {
-    height: 20px; // chỉ để hiển thị thanh cuộn
-    margin-bottom: 8px;
-}
+// .timetable-wrapper.top-scroll {
+//     height: 20px; // chỉ để hiển thị thanh cuộn
+//     margin-bottom: 8px;
+// }
 
-.timetable-table.dummy-scroll {
-    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
-    height: 1px; // để nội dung không hiển thị
-}
+// .timetable-table.dummy-scroll {
+//     width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+//     height: 1px; // để nội dung không hiển thị
+// }
 
 .schedule-container {
     width: 100%;
@@ -628,7 +628,7 @@ button {
 
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Move the horizontal scroll to table container */
+    overflow-x: auto; /* Di chuyển cuộn ngang xuống container con */
     padding: 0 16px;
     margin-top: 16px;
 }
@@ -835,15 +835,15 @@ button {
     width: 100%;
 }
 
-.timetable-wrapper.top-scroll {
-    height: 20px; // chỉ để hiển thị thanh cuộn
-    margin-bottom: 8px;
-}
+// .timetable-wrapper.top-scroll {
+//     height: 20px; // chỉ để hiển thị thanh cuộn
+//     margin-bottom: 8px;
+// }
 
-.timetable-table.dummy-scroll {
-    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
-    height: 1px; // để nội dung không hiển thị
-}
+// .timetable-table.dummy-scroll {
+//     width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+//     height: 1px; // để nội dung không hiển thị
+// }
 
 .schedule-container {
     width: 100%;
@@ -866,7 +866,7 @@ button {
 
 .table-container {
     width: 100%;
-    overflow-x: auto; /* Move the horizontal scroll to table container */
+    overflow-x: auto; /* Di chuyển cuộn ngang xuống container con */
     padding: 0 16px;
     margin-top: 16px;
 }
@@ -1095,15 +1095,15 @@ button {
     width: 100%;
 }
 
-.timetable-wrapper.top-scroll {
-    height: 20px; // chỉ để hiển thị thanh cuộn
-    margin-bottom: 8px;
-}
+// .timetable-wrapper.top-scroll {
+//     height: 20px; // chỉ để hiển thị thanh cuộn
+//     margin-bottom: 8px;
+// }
 
-.timetable-table.dummy-scroll {
-    width: 1500px; // cùng chiều rộng với bảng thật bên dưới
-    height: 1px; // để nội dung không hiển thị
-}
+// .timetable-table.dummy-scroll {
+//     width: 1500px; // cùng chiều rộng với bảng thật bên dưới
+//     height: 1px; // để nội dung không hiển thị
+// }
 .schedule-container {
     // Giữ nguyên các style hiện có
     // (Tôi giả định file Schedule.scss đã có các style cho các thành phần khác như sticky-filter, filter-container, schedule-table, v.v.)
