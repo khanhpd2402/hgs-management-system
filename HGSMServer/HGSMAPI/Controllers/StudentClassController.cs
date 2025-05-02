@@ -182,22 +182,22 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating student classes: {ex.Message}");
-                return NotFound("Không tìm thấy dữ liệu liên quan.");
+                return NotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error updating student classes: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật phân công lớp.");
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating student classes: {ex.Message}");
-                return Conflict("Lỗi khi cập nhật phân công lớp.");
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error updating student classes: {ex.Message}");
-                return StatusCode(500, "Lỗi khi cập nhật phân công lớp.");
+                return StatusCode(500, "Lỗi hệ thống khi cập nhật phân công lớp.");
             }
         }
 

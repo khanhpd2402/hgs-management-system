@@ -1,9 +1,9 @@
 import Header from "@/components/header/Header";
 import "./DefaultLayout.scss";
-import Sidebar from "@/components/sidebar/Sidebar";
 import { useState } from "react";
 import { Outlet, useOutletContext } from "react-router";
 import Footer from "@/components/footer/Footer";
+import Sidebar from "@/components/sidebar/Sidebar";
 
 const DefaultLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(true);

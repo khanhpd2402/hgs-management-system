@@ -11,7 +11,11 @@ export function useUpdateStudent() {
     onSettled: (data, error, inputData) => {
       if (error) {
         console.log(error);
-        toast.error("Đã có lỗi xảy ra");
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
         console.log(inputData);

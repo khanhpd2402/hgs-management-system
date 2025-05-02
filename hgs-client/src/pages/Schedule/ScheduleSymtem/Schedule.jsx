@@ -166,7 +166,7 @@ const ScheduleTable = memo(({
                                 )}
                                 <td className="sticky-col col-3">{scheduleData?.[0]?.details.find(item => item.periodId === period)?.periodName || `Tiết ${period}`}</td>
                                 {(selectedClass ? [selectedClass] : getUniqueClasses().map(cls => cls.className)).map((className, classIndex) => (
-                                    <Droppable key={`${className}-${dayIndex}`} droppableId={`${className}-${dayIndex}-${period}`}>
+                                    <Droppable key={`${className}`} droppableId={`${className}-${dayIndex}-${period}`}>
                                         {(provided) => (
                                             <td ref={provided.innerRef} {...provided.droppableProps}>
                                                 {getSchedule(day, period, className, classIndex)}
@@ -660,10 +660,11 @@ const Schedule = () => {
         const className = sourceParts[0];
         const sourceDayIndex = parseInt(sourceParts[1]);
         const sourcePeriodId = parseInt(sourceParts[2]);
+        const destDayIndex = parseInt(destParts[1]);
         const destPeriodId = parseInt(destParts[2]);
 
-        // Only handle drag-and-drop within the same column (same class and day)
-        if (className !== destParts[0] || sourceDayIndex !== parseInt(destParts[1])) {
+        // Only handle drag-and-drop within the same class column
+        if (className !== destParts[0]) {
             return;
         }
 
@@ -680,7 +681,7 @@ const Schedule = () => {
                 item.className === className
         );
         const destItem = updatedDetails.find(
-            item => item.dayOfWeek === DAYS_OF_WEEK[sourceDayIndex] &&
+            item => item.dayOfWeek === DAYS_OF_WEEK[destDayIndex] &&
                 item.periodId === destPeriodId &&
                 item.className === className
         );
@@ -689,10 +690,12 @@ const Schedule = () => {
 
         // Update TimetableDetails
         if (sourceItem && destItem) {
-            // Swap periodId between source and destination
+            // Swap dayOfWeek and periodId between source and destination
+            [sourceItem.dayOfWeek, destItem.dayOfWeek] = [destItem.dayOfWeek, sourceItem.dayOfWeek];
             [sourceItem.periodId, destItem.periodId] = [destItem.periodId, sourceItem.periodId];
         } else if (sourceItem) {
-            // Move source to new periodId
+            // Move source to new day and period
+            sourceItem.dayOfWeek = DAYS_OF_WEEK[destDayIndex];
             sourceItem.periodId = destPeriodId;
         }
 
@@ -702,7 +705,7 @@ const Schedule = () => {
             classId: sourceItem.classId,
             subjectId: sourceItem.subjectId,
             teacherId: sourceItem.teacherId,
-            dayOfWeek: sourceItem.dayOfWeek,
+            dayOfWeek: DAYS_OF_WEEK[destDayIndex],
             periodId: destPeriodId,
             subjectName: sourceItem.subjectName,
         };
@@ -730,7 +733,7 @@ const Schedule = () => {
                 classId: destItem.classId,
                 subjectId: destItem.subjectId,
                 teacherId: destItem.teacherId,
-                dayOfWeek: destItem.dayOfWeek,
+                dayOfWeek: DAYS_OF_WEEK[sourceDayIndex],
                 periodId: sourcePeriodId,
                 subjectName: destItem.subjectName,
             };
@@ -754,7 +757,6 @@ const Schedule = () => {
 
         if (!isSourceTeacherValid || !isSourceSubjectValid || !isDestValid) {
             // Revert to original state if validation fails
-            toast.error('Không thể di chuyển: Lịch không hợp lệ');
             if (filteredSchedule) {
                 setFilteredSchedule({ ...filteredSchedule, details: originalDetails });
             } else {
@@ -783,7 +785,7 @@ const Schedule = () => {
                     classId: sourceItem.classId,
                     subjectId: sourceItem.subjectId,
                     teacherId: sourceItem.teacherId,
-                    dayOfWeek: sourceItem.dayOfWeek,
+                    dayOfWeek: DAYS_OF_WEEK[destDayIndex],
                     periodId: destPeriodId
                 }
             ]
@@ -795,7 +797,7 @@ const Schedule = () => {
                 classId: destItem.classId,
                 subjectId: destItem.subjectId,
                 teacherId: destItem.teacherId,
-                dayOfWeek: destItem.dayOfWeek,
+                dayOfWeek: DAYS_OF_WEEK[sourceDayIndex],
                 periodId: sourcePeriodId
             });
         }
@@ -822,6 +824,7 @@ const Schedule = () => {
             }
         }
     }, [filteredSchedule, scheduleData, selectedSemester, selectedTimetable, queryClient, updateTimeTableMutation, handleSearch]);
+
     useEffect(() => {
         if (!selectedSemester && semesters.length > 0) {
             setSelectedSemester(semesters[0].semesterID);
@@ -906,8 +909,6 @@ const Schedule = () => {
                     </Link>
                 </div>
             </div>
-
-
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="table-container" ref={topScrollRef} onScroll={syncScroll}>
                     <div className="timetable-table dummy-scroll" />
@@ -937,6 +938,7 @@ const Schedule = () => {
                 setSelectedTeacherId={setSelectedTeacherId}
                 subjects={subjects}
                 teachers={teachers}
+                bullsEye
                 handleScheduleUpdate={handleScheduleUpdate}
                 handleDelete={handleDelete}
             />
