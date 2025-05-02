@@ -1,15 +1,11 @@
-import { Link } from "react-router-dom";
-import { Button } from "@/components/ui/button";
-import { Facebook, Youtube } from "lucide-react";
-
 export default function Footer() {
   return (
-    <footer className="mt-12 border-t bg-white py-10">
-      <div className="container mx-auto grid grid-cols-1 gap-8 px-4 md:grid-cols-3">
+    <footer className="mt-12 border-t bg-white">
+      <div className="mx-auto grid grid-cols-1 gap-8 md:grid-cols-3">
         <div className="space-y-3">
           <div className="flex items-center gap-2">
             <img
-              src="https://picsum.photos/200/300"
+              src="/icon/logo.webp"
               alt="Logo trường THCS Hải Giang"
               className="h-10 rounded-md object-cover"
             />
