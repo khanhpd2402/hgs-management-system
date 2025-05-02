@@ -166,7 +166,7 @@ const ScheduleTable = memo(({
                                 )}
                                 <td className="sticky-col col-3">{scheduleData?.[0]?.details.find(item => item.periodId === period)?.periodName || `Tiết ${period}`}</td>
                                 {(selectedClass ? [selectedClass] : getUniqueClasses().map(cls => cls.className)).map((className, classIndex) => (
-                                    <Droppable key={`${className}-${dayIndex}`} droppableId={`${className}-${dayIndex}`}>
+                                    <Droppable key={`${className}-${dayIndex}`} droppableId={`${className}-${dayIndex}-${period}`}>
                                         {(provided) => (
                                             <td ref={provided.innerRef} {...provided.droppableProps}>
                                                 {getSchedule(day, period, className, classIndex)}
@@ -181,7 +181,7 @@ const ScheduleTable = memo(({
                 })}
             </tbody>
         </table>
-    </div >
+    </div>
 ));
 
 const EditDialog = memo(({
@@ -650,31 +650,122 @@ const Schedule = () => {
         return <div className="schedule-cell empty-cell"></div>;
     }, [filteredSchedule, scheduleData, classes, getUniqueClasses, isViewMode, showTeacherName, handleCellClick]);
 
-    const onDragEnd = useCallback((result) => {
+    const onDragEnd = useCallback(async (result) => {
         if (!result.destination || (result.source.droppableId === result.destination.droppableId && result.source.index === result.destination.index)) {
             return;
         }
 
-        const className = result.source.droppableId.split('-')[0];
+        const sourceParts = result.source.droppableId.split('-');
+        const destParts = result.destination.droppableId.split('-');
+        const className = sourceParts[0];
+        const sourceDayIndex = parseInt(sourceParts[1]);
+        const sourcePeriodId = parseInt(sourceParts[2]);
+        const destPeriodId = parseInt(destParts[2]);
+
+        // Only handle drag-and-drop within the same column (same class and day)
+        if (className !== destParts[0] || sourceDayIndex !== parseInt(destParts[1])) {
+            return;
+        }
+
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
         if (!scheduleToUse?.details) return;
 
-        const updatedDetails = [...scheduleToUse.details];
+        // Create a deep copy of the current details to revert if needed
+        const originalDetails = JSON.parse(JSON.stringify(scheduleToUse.details));
+        const updatedDetails = JSON.parse(JSON.stringify(scheduleToUse.details));
+
         const sourceItem = updatedDetails.find(
-            item => item.dayOfWeek === DAYS_OF_WEEK[parseInt(result.source.droppableId.split('-')[1])] &&
-                item.periodId === result.source.index && item.className === className
+            item => item.dayOfWeek === DAYS_OF_WEEK[sourceDayIndex] &&
+                item.periodId === sourcePeriodId &&
+                item.className === className
         );
         const destItem = updatedDetails.find(
-            item => item.dayOfWeek === DAYS_OF_WEEK[parseInt(result.destination.droppableId.split('-')[1])] &&
-                item.periodId === result.destination.index && item.className === className
+            item => item.dayOfWeek === DAYS_OF_WEEK[sourceDayIndex] &&
+                item.periodId === destPeriodId &&
+                item.className === className
         );
 
+        if (!sourceItem) return;
+
+        // Update TimetableDetails
         if (sourceItem && destItem) {
+            // Swap periodId between source and destination
             [sourceItem.periodId, destItem.periodId] = [destItem.periodId, sourceItem.periodId];
         } else if (sourceItem) {
-            sourceItem.periodId = result.destination.index;
+            // Move source to new periodId
+            sourceItem.periodId = destPeriodId;
         }
 
+        // Validate the updated timetable details
+        const sourceValidationDetail = {
+            timetableId: scheduleToUse.timetableId || 0,
+            classId: sourceItem.classId,
+            subjectId: sourceItem.subjectId,
+            teacherId: sourceItem.teacherId,
+            dayOfWeek: sourceItem.dayOfWeek,
+            periodId: destPeriodId,
+            subjectName: sourceItem.subjectName,
+        };
+
+        const isSourceTeacherValid = validateTeacherAssignment(
+            sourceValidationDetail,
+            updatedDetails,
+            true,
+            sourceItem.timetableDetailId
+        );
+
+        const isSourceSubjectValid = validateSubjectAssignment(
+            sourceValidationDetail,
+            updatedDetails,
+            true,
+            sourceItem.timetableDetailId
+        );
+
+        let isDestValid = true;
+        let destValidationDetail = null;
+
+        if (destItem) {
+            destValidationDetail = {
+                timetableId: scheduleToUse.timetableId || 0,
+                classId: destItem.classId,
+                subjectId: destItem.subjectId,
+                teacherId: destItem.teacherId,
+                dayOfWeek: destItem.dayOfWeek,
+                periodId: sourcePeriodId,
+                subjectName: destItem.subjectName,
+            };
+
+            const isDestTeacherValid = validateTeacherAssignment(
+                destValidationDetail,
+                updatedDetails,
+                true,
+                destItem.timetableDetailId
+            );
+
+            const isDestSubjectValid = validateSubjectAssignment(
+                destValidationDetail,
+                updatedDetails,
+                true,
+                destItem.timetableDetailId
+            );
+
+            isDestValid = isDestTeacherValid && isDestSubjectValid;
+        }
+
+        if (!isSourceTeacherValid || !isSourceSubjectValid || !isDestValid) {
+            // Revert to original state if validation fails
+            toast.error('Không thể di chuyển: Lịch không hợp lệ');
+            if (filteredSchedule) {
+                setFilteredSchedule({ ...filteredSchedule, details: originalDetails });
+            } else {
+                queryClient.setQueryData(['timetable', selectedSemester], oldData =>
+                    oldData?.[0] ? [{ ...oldData[0], details: originalDetails }] : oldData
+                );
+            }
+            return;
+        }
+
+        // Optimistically update local state
         if (filteredSchedule) {
             setFilteredSchedule({ ...filteredSchedule, details: updatedDetails });
         } else {
@@ -682,8 +773,55 @@ const Schedule = () => {
                 oldData?.[0] ? [{ ...oldData[0], details: updatedDetails }] : oldData
             );
         }
-    }, [filteredSchedule, scheduleData, selectedSemester, queryClient]);
 
+        // Construct payload for API call
+        const payload = {
+            timetableId: parseInt(selectedTimetable),
+            details: [
+                {
+                    timetableDetailId: sourceItem.timetableDetailId,
+                    classId: sourceItem.classId,
+                    subjectId: sourceItem.subjectId,
+                    teacherId: sourceItem.teacherId,
+                    dayOfWeek: sourceItem.dayOfWeek,
+                    periodId: destPeriodId
+                }
+            ]
+        };
+
+        if (destItem) {
+            payload.details.push({
+                timetableDetailId: destItem.timetableDetailId,
+                classId: destItem.classId,
+                subjectId: destItem.subjectId,
+                teacherId: destItem.teacherId,
+                dayOfWeek: destItem.dayOfWeek,
+                periodId: sourcePeriodId
+            });
+        }
+
+        try {
+            // Call API to update timetable
+            await updateTimeTableMutation.mutateAsync(payload);
+            toast.success('Cập nhật thời khóa biểu thành công');
+
+            // Invalidate queries to refresh data
+            await queryClient.invalidateQueries(['timetable', selectedSemester]);
+            if (filteredSchedule) handleSearch();
+        } catch (error) {
+            console.error('Lỗi khi cập nhật thời khóa biểu:', error);
+            toast.error('Có lỗi xảy ra khi cập nhật thời khóa biểu');
+
+            // Revert to original state on API failure
+            if (filteredSchedule) {
+                setFilteredSchedule({ ...filteredSchedule, details: originalDetails });
+            } else {
+                queryClient.setQueryData(['timetable', selectedSemester], oldData =>
+                    oldData?.[0] ? [{ ...oldData[0], details: originalDetails }] : oldData
+                );
+            }
+        }
+    }, [filteredSchedule, scheduleData, selectedSemester, selectedTimetable, queryClient, updateTimeTableMutation, handleSearch]);
     useEffect(() => {
         if (!selectedSemester && semesters.length > 0) {
             setSelectedSemester(semesters[0].semesterID);
@@ -768,6 +906,8 @@ const Schedule = () => {
                     </Link>
                 </div>
             </div>
+
+
             <DragDropContext onDragEnd={onDragEnd}>
                 <div className="table-container" ref={topScrollRef} onScroll={syncScroll}>
                     <div className="timetable-table dummy-scroll" />
