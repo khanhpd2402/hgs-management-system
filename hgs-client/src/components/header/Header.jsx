@@ -20,7 +20,6 @@ import {
 } from "../ui/dropdown-menu";
 import { getSemesterByYear } from "../../services/schedule/api";
 
-
 const Header = ({ setCurrentYear }) => {
   const navigate = useNavigate();
   const academicYears = useAcademicYears();
@@ -69,7 +68,7 @@ const Header = ({ setCurrentYear }) => {
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-4">
             <img
-              src="https://picsum.photos/200/300"
+              src="/icon/logo.webp"
               alt="School Logo"
               className="h-12 w-12 object-cover"
             />
@@ -96,7 +95,10 @@ const Header = ({ setCurrentYear }) => {
                 );
 
                 // Lưu thêm vào localStorage cho academicYearID và yearName
-                localStorage.setItem("selectedAcademicYearID", year.academicYearID);
+                localStorage.setItem(
+                  "selectedAcademicYearID",
+                  year.academicYearID,
+                );
                 localStorage.setItem("selectedYearName", year.yearName);
 
                 // Gọi API để lấy thông tin học kỳ
