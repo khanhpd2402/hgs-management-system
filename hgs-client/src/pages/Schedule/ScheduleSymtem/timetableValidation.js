@@ -1,6 +1,7 @@
 import toast from "react-hot-toast";
 
-// Validates that a teacher is not assigned to multiple classes in the same period and day
+// Validates that a teacher is not assigned to multiple classes in the same period and day,
+// and that a teacher does not exceed 19 periods in total
 export const validateTeacherAssignment = (
   newDetail,
   existingDetails,
@@ -27,6 +28,19 @@ export const validateTeacherAssignment = (
   if (conflict) {
     toast.error(
       `Giáo viên đã được phân công cho lớp ${conflict.className} vào ${dayOfWeek}, tiết ${periodId}`,
+    );
+    return false;
+  }
+
+  // Check if teacher exceeds 19 periods
+  const teacherPeriods = filteredDetails.filter(
+    (detail) => detail.teacherId === teacherId,
+  ).length;
+  const totalPeriods = isUpdate ? teacherPeriods : teacherPeriods + 1;
+
+  if (totalPeriods > 19) {
+    toast.error(
+      `Giáo viên không được phân công quá 19 tiết. Hiện tại đã có ${teacherPeriods} tiết.`,
     );
     return false;
   }
