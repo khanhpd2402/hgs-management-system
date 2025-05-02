@@ -14,7 +14,6 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { useCreateTimeTableDetail, useUpdateTimeTableDetail } from '../../../services/schedule/mutation';
 import { validateTeacherAssignment, validateSubjectAssignment } from './timetableValidation';
-
 // Constants
 const DAYS_OF_WEEK = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
 const SHIFTS = [
@@ -339,6 +338,7 @@ const Schedule = () => {
     const { data: classes = [], isLoading: classesLoading } = useGetClasses();
     const { data: timetables = [], isLoading: timetablesLoading } = useTimetables(selectedSemester);
     const teachers = useMemo(() => Array.isArray(teachersResponse) ? teachersResponse : teachersResponse.teachers || [], [teachersResponse]);
+    const createTimeTableMutation = useCreateTimeTableDetail();
 
     const timetableStatus = useMemo(() => {
         const timetableId = parseInt(selectedTimetable);
@@ -351,7 +351,6 @@ const Schedule = () => {
     );
 
     const deleteTimeTableDetailMutation = useDeleteTimeTableDetail();
-    const createTimeTableMutation = useCreateTimeTableDetail();
     const updateTimeTableMutation = useUpdateTimeTableDetail();
 
     const syncScroll = useCallback(() => {
@@ -517,7 +516,6 @@ const Schedule = () => {
             toast.error('Có lỗi xảy ra khi cập nhật thời khóa biểu');
         }
     }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedTimetable, subjects, createTimeTableMutation, updateTimeTableMutation]);
-
     const handleAddDetail = useCallback(async (detail) => {
         // Find subjectName for validation
         const subject = subjects.find(s => s.subjectID === parseInt(detail.subjectId));
@@ -549,12 +547,7 @@ const Schedule = () => {
         }
 
         try {
-            const response = await fetch('https://localhost:8386/api/Timetables/create-timetable-detail', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload),
-            });
-
+            const response = await createTimeTableMutation.mutateAsync(payload);
             if (!response.ok) throw new Error('Không thể tạo tiết học');
 
             toast.success('Tạo tiết học thành công');
