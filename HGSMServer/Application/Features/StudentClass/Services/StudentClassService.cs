@@ -17,6 +17,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using ClassDto = Application.Features.StudentClass.DTOs.ClassDto;
+using Application.Features.Subjects.DTOs;
+using Application.Features.Teachers.DTOs;
 
 namespace Application.Features.StudentClass.Services
 {
@@ -1189,6 +1191,139 @@ namespace Application.Features.StudentClass.Services
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Không thể lấy danh sách học sinh lưu ban do lỗi hệ thống.", ex);
+            }
+        }
+        public async Task<IEnumerable<SubjectDto>> GetSubjectsByClassIdAsync(int classId, int semesterId)
+        {
+            if (!await HasReadPermissionAsync())
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
+            }
+
+            var classEntity = await _classRepository.GetByIdAsync(classId);
+            if (classEntity == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy lớp với ID {classId}.");
+            }
+
+            var semester = await _semesterRepository.GetByIdAsync(semesterId);
+            if (semester == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId}.");
+            }
+
+            try
+            {
+                var teachingAssignments = await _teachingAssignmentRepository.GetBySemesterIdAsync(semesterId);
+                var subjects = teachingAssignments
+                    .Where(ta => ta.ClassId == classId)
+                    .Select(ta => ta.Subject)
+                    .Distinct()
+                    .Select(s => new SubjectDto
+                    {
+                        SubjectID = s.SubjectId,
+                        SubjectName = s.SubjectName
+                    })
+                    .ToList();
+
+                if (!subjects.Any())
+                {
+                    throw new InvalidOperationException($"Không tìm thấy môn học nào cho lớp với ID {classId} trong học kỳ {semester.SemesterName}.");
+                }
+
+                return subjects;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách môn học do lỗi hệ thống.", ex);
+            }
+        }
+        public async Task<TeacherListDto> GetTeacherByClassAndSubjectAsync(int classId, int subjectId, int semesterId)
+        {
+            if (!await HasReadPermissionAsync())
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
+            }
+
+            var classEntity = await _classRepository.GetByIdAsync(classId);
+            if (classEntity == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy lớp với ID {classId}.");
+            }
+
+            var semester = await _semesterRepository.GetByIdAsync(semesterId);
+            if (semester == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId}.");
+            }
+
+            try
+            {
+                var teachingAssignment = await _teachingAssignmentRepository.GetAssignmentByClassSubjectTeacherAsync(classId, subjectId, semesterId);
+                if (teachingAssignment == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy phân công giảng dạy cho môn học với ID {subjectId} trong lớp với ID {classId} và học kỳ {semester.SemesterName}.");
+                }
+
+                if (teachingAssignment.Teacher == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy giáo viên với ID {teachingAssignment.TeacherId} được phân công cho môn học với ID {subjectId} trong lớp với ID {classId} và học kỳ {semester.SemesterName}.");
+                }
+
+                if (teachingAssignment.Teacher.User == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy thông tin tài khoản người dùng (User) cho giáo viên với ID {teachingAssignment.TeacherId}.");
+                }
+
+                // Lấy danh sách môn học mà giáo viên này dạy trong học kỳ này
+                var teacherAssignments = await _teachingAssignmentRepository.GetBySemesterIdAsync(semesterId);
+                var subjects = teacherAssignments
+                    .Where(ta => ta.TeacherId == teachingAssignment.TeacherId)
+                    .Select(ta => new SubjectTeacherDto
+                    {
+                        SubjectId = ta.Subject.SubjectId,
+                        SubjectName = ta.Subject.SubjectName,
+                        IsMainSubject = false // Có thể cần logic để xác định môn chính
+                    })
+                    .DistinctBy(s => s.SubjectId)
+                    .ToList();
+
+                return new TeacherListDto
+                {
+                    TeacherId = teachingAssignment.Teacher.TeacherId,
+                    FullName = teachingAssignment.Teacher.FullName,
+                    Dob = teachingAssignment.Teacher.Dob,
+                    Gender = teachingAssignment.Teacher.Gender,
+                    Ethnicity = teachingAssignment.Teacher.Ethnicity,
+                    Religion = teachingAssignment.Teacher.Religion,
+                    MaritalStatus = teachingAssignment.Teacher.MaritalStatus,
+                    IdcardNumber = teachingAssignment.Teacher.IdcardNumber,
+                    InsuranceNumber = teachingAssignment.Teacher.InsuranceNumber,
+                    EmploymentType = teachingAssignment.Teacher.EmploymentType,
+                    Position = teachingAssignment.Teacher.Position,
+                    Department = teachingAssignment.Teacher.Department,
+                    IsHeadOfDepartment = teachingAssignment.Teacher.IsHeadOfDepartment,
+                    EmploymentStatus = teachingAssignment.Teacher.EmploymentStatus,
+                    RecruitmentAgency = teachingAssignment.Teacher.RecruitmentAgency,
+                    HiringDate = teachingAssignment.Teacher.HiringDate,
+                    PermanentEmploymentDate = teachingAssignment.Teacher.PermanentEmploymentDate,
+                    SchoolJoinDate = teachingAssignment.Teacher.SchoolJoinDate,
+                    PermanentAddress = teachingAssignment.Teacher.PermanentAddress,
+                    Hometown = teachingAssignment.Teacher.Hometown,
+                    Email = teachingAssignment.Teacher.User.Email,
+                    PhoneNumber = teachingAssignment.Teacher.User.PhoneNumber ?? "Không có số điện thoại",
+                    Subjects = subjects
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error in GetTeacherByClassAndSubjectAsync: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"InnerException: {ex.InnerException.Message}");
+                }
+                throw new InvalidOperationException("Không thể lấy thông tin giáo viên do lỗi hệ thống.", ex);
             }
         }
     }
