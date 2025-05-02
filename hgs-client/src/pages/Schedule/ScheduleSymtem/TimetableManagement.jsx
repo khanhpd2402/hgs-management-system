@@ -6,6 +6,7 @@ import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";  // Add this import
 import 'react-toastify/dist/ReactToastify.css';
 import './TimetableManagement.scss';
+import { useUpdateTimetableInfo } from '../../../services/schedule/mutation';
 
 // Hàm định dạng ngày
 const formatDate = (dateString) => {
@@ -13,14 +14,6 @@ const formatDate = (dateString) => {
     return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
 };
 
-// Hàm gọi API lấy danh sách thời khóa biểu
-const fetchTimetables = async (semesterId) => {
-    const response = await fetch(`https://localhost:8386/api/Timetables/semester/${semesterId}`, {
-        headers: { 'Content-Type': 'application/json' },
-    });
-    if (!response.ok) throw new Error('Không thể lấy danh sách thời khóa biểu');
-    return response.json();
-};
 
 // Component FilterSelect (tái sử dụng từ Schedule.jsx)
 const FilterSelect = ({ label, value, onChange, options, disabled }) => (
@@ -43,22 +36,20 @@ import {
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 
+// Xóa hàm fetchTimetables vì chúng ta sẽ sử dụng hook useTimetables
+
+import { useTimetables } from '../../../services/schedule/queries';
+
 const TimetableManagement = () => {
     const queryClient = useQueryClient();
-    // State
     const [selectedYear, setSelectedYear] = useState('');
     const [selectedSemester, setSelectedSemester] = useState('');
     const [semesters, setSemesters] = useState([]);
 
-    // Lấy danh sách năm học
     const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
 
-    // Lấy danh sách thời khóa biểu dựa trên semesterId
-    const { data: timetables = [], isLoading: timetablesLoading, error } = useQuery({
-        queryKey: ['timetables', selectedSemester],
-        queryFn: () => fetchTimetables(selectedSemester),
-        enabled: !!selectedSemester, // Chỉ gọi API khi selectedSemester có giá trị
-    });
+    // Thay thế useQuery bằng hook useTimetables
+    const { data: timetables = [], isLoading: timetablesLoading, error } = useTimetables(selectedSemester);
 
     // Effect để lấy học kỳ khi năm học thay đổi
     useEffect(() => {
@@ -90,26 +81,14 @@ const TimetableManagement = () => {
     const [openUpdateModal, setOpenUpdateModal] = useState(false);
     const [selectedTimetable, setSelectedTimetable] = useState(null);
 
+    const updateTimetableMutation = useUpdateTimetableInfo();
+
     const handleUpdate = async (timetableData) => {
         try {
-            const response = await fetch('https://localhost:8386/api/Timetables/info', {
-                method: 'PUT',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(timetableData)
-            });
-
-            if (!response.ok) {
-                throw new Error('Cập nhật thất bại');
-            }
-
-            toast.success('Cập nhật thành công');
+            await updateTimetableMutation.mutateAsync(timetableData);
             setOpenUpdateModal(false);
-            // Refresh data
-            queryClient.invalidateQueries(['timetables', selectedSemester]);
         } catch (error) {
-            toast.error('Lỗi khi cập nhật: ' + error.message);
+            console.error('Lỗi khi cập nhật:', error);
         }
     };
 

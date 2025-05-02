@@ -94,3 +94,8 @@ export const createTimeTableDetail = async (payload) => {
   );
   return response.data;
 };
+
+export const updateTimetableInfo = async (timetableData) => {
+  const response = await axiosInstance.put("Timetables/info", timetableData);
+  return response.data;
+};

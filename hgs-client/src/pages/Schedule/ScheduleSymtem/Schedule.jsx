@@ -13,6 +13,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { useCreateTimeTableDetail, useUpdateTimeTableDetail } from '../../../services/schedule/mutation';
+import { validateTeacherAssignment, validateSubjectAssignment } from './timetableValidation';
+
 // Constants
 const DAYS_OF_WEEK = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
 const SHIFTS = [
@@ -179,7 +181,7 @@ const ScheduleTable = memo(({
                 })}
             </tbody>
         </table>
-    </div>
+    </div >
 ));
 
 const EditDialog = memo(({
@@ -349,6 +351,8 @@ const Schedule = () => {
     );
 
     const deleteTimeTableDetailMutation = useDeleteTimeTableDetail();
+    const createTimeTableMutation = useCreateTimeTableDetail();
+    const updateTimeTableMutation = useUpdateTimeTableDetail();
 
     const syncScroll = useCallback(() => {
         if (topScrollRef.current && bottomScrollRef.current) {
@@ -437,9 +441,6 @@ const Schedule = () => {
         setShowEditDialog(true);
     }, [isViewMode, filteredSchedule, scheduleData, classes, getUniqueClasses]);
 
-
-    const createTimeTableMutation = useCreateTimeTableDetail();
-    const updateTimeTableMutation = useUpdateTimeTableDetail();
     const handleScheduleUpdate = useCallback(async () => {
         if (!selectedSchedule) {
             toast.error('Không có thời khóa biểu được chọn để cập nhật');
@@ -452,14 +453,43 @@ const Schedule = () => {
             return;
         }
 
-        const payload = {
+        // Find subjectName for validation
+        const subject = subjects.find(s => s.subjectID === parseInt(selectedSubjectId));
+        const subjectName = subject ? subject.subjectName : '';
+
+        const newDetail = {
             timetableId: scheduleToUse.timetableId || 0,
             classId: selectedSchedule.classId,
             subjectId: parseInt(selectedSubjectId) || 0,
             teacherId: parseInt(selectedTeacherId) || 0,
             dayOfWeek: selectedSchedule.day,
             periodId: selectedSchedule.periodId,
+            subjectName: subjectName,
         };
+
+        // Validate teacher assignment
+        const isTeacherValid = validateTeacherAssignment(
+            newDetail,
+            scheduleToUse.details,
+            !!selectedSchedule.timetableDetailId,
+            selectedSchedule.timetableDetailId
+        );
+
+        if (!isTeacherValid) {
+            return; // Stop if validation fails
+        }
+
+        // Validate subject assignment
+        const isSubjectValid = validateSubjectAssignment(
+            newDetail,
+            scheduleToUse.details,
+            !!selectedSchedule.timetableDetailId,
+            selectedSchedule.timetableDetailId
+        );
+
+        if (!isSubjectValid) {
+            return; // Stop if validation fails
+        }
 
         const payloadUpdate = {
             timetableId: parseInt(selectedTimetable),
@@ -474,12 +504,11 @@ const Schedule = () => {
         };
 
         try {
-
             if (selectedSchedule.timetableDetailId) {
                 await updateTimeTableMutation.mutateAsync(payloadUpdate);
                 toast.success('Cập nhật thời khóa biểu thành công');
             } else {
-                await createTimeTableMutation.mutateAsync(payload);
+                await createTimeTableMutation.mutateAsync(newDetail);
                 toast.success('Thêm mới thời khóa biểu thành công');
             }
             setShowEditDialog(false);
@@ -487,17 +516,37 @@ const Schedule = () => {
             console.error('Lỗi khi cập nhật thời khóa biểu:', error);
             toast.error('Có lỗi xảy ra khi cập nhật thời khóa biểu');
         }
-    }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedSemester, queryClient, handleSearch]);
+    }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedTimetable, subjects, createTimeTableMutation, updateTimeTableMutation]);
 
     const handleAddDetail = useCallback(async (detail) => {
+        // Find subjectName for validation
+        const subject = subjects.find(s => s.subjectID === parseInt(detail.subjectId));
+        const subjectName = subject ? subject.subjectName : '';
+
         const payload = {
             timetableId: parseInt(selectedTimetable) || 0,
             classId: detail.classId,
             subjectId: parseInt(detail.subjectId) || 0,
             teacherId: parseInt(detail.teacherId) || 0,
             dayOfWeek: detail.dayOfWeek,
-            periodId: detail.periodId
+            periodId: detail.periodId,
+            subjectName: subjectName,
         };
+
+        // Validate teacher assignment
+        const scheduleToUse = filteredSchedule || scheduleData?.[0];
+        const isTeacherValid = validateTeacherAssignment(payload, scheduleToUse.details);
+
+        if (!isTeacherValid) {
+            return; // Stop if validation fails
+        }
+
+        // Validate subject assignment
+        const isSubjectValid = validateSubjectAssignment(payload, scheduleToUse.details);
+
+        if (!isSubjectValid) {
+            return; // Stop if validation fails
+        }
 
         try {
             const response = await fetch('https://localhost:8386/api/Timetables/create-timetable-detail', {
@@ -516,7 +565,7 @@ const Schedule = () => {
             console.error('Lỗi khi tạo tiết học:', error);
             toast.error('Có lỗi xảy ra khi tạo tiết học');
         }
-    }, [selectedTimetable, selectedSemester, queryClient, filteredSchedule, handleSearch]);
+    }, [selectedTimetable, selectedSemester, queryClient, filteredSchedule, scheduleData, subjects, handleSearch]);
 
     const handleDelete = useCallback(async () => {
         if (!selectedSchedule?.timetableDetailId) {

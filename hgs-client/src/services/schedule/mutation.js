@@ -5,8 +5,9 @@ import {
   deleteTimeTableDetail,
   updateTimeTableDetail,
   createTimeTableDetail,
+  updateTimetableInfo,
 } from "./api";
-import { toast } from "react-toastify";
+import toast from "react-hot-toast";
 
 export function useGetScheduleByTeacherId() {
   return useMutation({
@@ -61,6 +62,21 @@ export function useCreateTimeTableDetail() {
     onError: (error) => {
       console.error("Lỗi khi tạo thời khóa biểu:", error);
       toast.error("Có lỗi xảy ra khi tạo thời khóa biểu");
+    },
+  });
+}
+
+export function useUpdateTimetableInfo() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: updateTimetableInfo,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["timetables"]);
+      toast.success("Cập nhật thông tin thời khóa biểu thành công");
+    },
+    onError: (error) => {
+      console.error("Lỗi khi cập nhật thông tin thời khóa biểu:", error);
+      toast.error("Có lỗi xảy ra khi cập nhật thông tin thời khóa biểu");
     },
   });
 }
