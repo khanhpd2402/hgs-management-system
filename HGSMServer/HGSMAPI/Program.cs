@@ -179,6 +179,7 @@ builder.Services.AddScoped<IPeriodService, PeriodService>();
 builder.Services.AddScoped<IPeriodRepository, PeriodRepository>();
 builder.Services.AddScoped<ISubstituteTeachingRepository, SubstituteTeachingRepository>();
 builder.Services.AddScoped<ISubstituteTeachingService, SubstituteTeachingService>();
+builder.Services.AddScoped<ITimetableUnitOfWork, TimetableUnitOfWork>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
