@@ -48,7 +48,7 @@ export const getGradeLevels = async () => {
 
 //login
 export const googleLogin = async (credential) => {
-  const response = await axiosInstance.post("GoogleLogin/login", {
+  const response = await axiosInstance.post("GoogleLogin/credential", {
     credential,
   });
   return response.data;
