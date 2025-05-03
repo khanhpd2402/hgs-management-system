@@ -24,6 +24,7 @@
 	<ItemGroup>
 	  <Folder Include="Features\Parents\Interfaces\" />
 	  <Folder Include="Features\Parents\Services\" />
+	  <Folder Include="Features\Statistics\DTOs\" />
 	</ItemGroup>
 
 </Project>
