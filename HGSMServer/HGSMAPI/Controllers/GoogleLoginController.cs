@@ -26,23 +26,32 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("login")]
-        //[Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư,Hiệu phó,Giáo viên,Trưởng bộ môn")]
-        public IActionResult Login()
+        public IActionResult Login(string redirectUrl)
         {
+            if (string.IsNullOrEmpty(redirectUrl))
+            {
+                return BadRequest(new { message = "redirectUrl is required." });
+            }
+
             var properties = new AuthenticationProperties
             {
-                RedirectUri = Url.Action("Callback", "GoogleLogin", null, Request.Scheme)
+                RedirectUri = Url.Action("Callback", "GoogleLogin", new { redirectUrl }, Request.Scheme)
             };
             return Challenge(properties, "Google");
         }
 
         [HttpGet("callback")]
-        public async Task<IActionResult> Callback()
+        public async Task<IActionResult> Callback(string redirectUrl)
         {
+            if (string.IsNullOrEmpty(redirectUrl))
+            {
+                return BadRequest(new { message = "redirectUrl is required." });
+            }
+
             var authenticateResult = await HttpContext.AuthenticateAsync("Google");
             if (!authenticateResult.Succeeded)
             {
-                return BadRequest(new { message = "Lỗi xác thực tài khoản Google." });
+                return Redirect($"{redirectUrl}?error=authentication_failed");
             }
 
             var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
@@ -50,7 +59,7 @@ namespace HGSMAPI.Controllers
 
             if (string.IsNullOrEmpty(email))
             {
-                return BadRequest(new { message = "Không thể lấy email từ Google." });
+                return Redirect($"{redirectUrl}?error=email_not_found");
             }
 
             var existingUser = (await _userService.GetAllUsersAsync())
@@ -58,17 +67,17 @@ namespace HGSMAPI.Controllers
 
             if (existingUser == null)
             {
-                return StatusCode(403, new { message = "Email không có trong hệ thống. Liên hệ cán bộ văn thư để giải quyết." });
+                return Redirect($"{redirectUrl}?error=email_not_in_system");
             }
 
             // Lấy và kiểm tra role
             var userRole = await GetAndValidateUserRole(existingUser.RoleId);
             if (userRole == null)
             {
-                return StatusCode(403, new { message = "Bạn không có quyền truy cập vào mục này." });
+                return Redirect($"{redirectUrl}?error=unauthorized_role");
             }
 
-            // Tạo token (chỉ truyền UserDTO, không cần userRole)
+            // Tạo token
             var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(existingUser);
 
             // Đăng nhập bằng cookie
@@ -81,11 +90,8 @@ namespace HGSMAPI.Controllers
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
 
-            return Ok(new
-            {
-                token = tokenString,
-                decodedToken = tokenPayload
-            });
+            // Chuyển hướng về redirectUrl với token trong query string
+            return Redirect($"{redirectUrl}?token={Uri.EscapeDataString(tokenString)}");
         }
 
         private async Task<string> GetAndValidateUserRole(int roleId)
