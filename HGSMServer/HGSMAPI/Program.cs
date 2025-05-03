@@ -118,7 +118,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Thêm DbContext
 builder.Services.AddDbContext<HgsdbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyCnn")));
 
 // Thêm Session
 builder.Services.AddDistributedMemoryCache(); // Sử dụng bộ nhớ trong để lưu session (cho dev/test)
