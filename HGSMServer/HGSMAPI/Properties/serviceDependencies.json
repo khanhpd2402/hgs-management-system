@@ -1,0 +1,16 @@
+{
+  "dependencies": {
+    "identityapp1": {
+      "ignored": "true",
+      "type": "identityapp"
+    },
+    "mssql1": {
+      "ignored": "true",
+      "type": "mssql",
+      "connectionId": "ConnectionStrings:MyCnn"
+    },
+    "apis1": {
+      "type": "apis"
+    }
+  }
+}

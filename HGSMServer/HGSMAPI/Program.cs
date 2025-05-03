@@ -64,6 +64,8 @@ using Application.Features.SubstituteTeachings.Interfaces;
 using Application.Features.SubstituteTeachings.Services;
 using Application.Features.Conducts.Interfaces;
 using Application.Features.Conducts.Services;
+using Application.Features.Statistics.Interfaces;
+using Application.Features.Statistics.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -118,7 +120,7 @@ builder.Services.AddAutoMapper(typeof(MappingProfile));
 
 // Thêm DbContext
 builder.Services.AddDbContext<HgsdbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(builder.Configuration.GetConnectionString("MyCnn")));
 
 // Thêm Session
 builder.Services.AddDistributedMemoryCache(); // Sử dụng bộ nhớ trong để lưu session (cho dev/test)
@@ -161,6 +163,8 @@ builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
 builder.Services.AddScoped<IAssignHomeRoomService, AssignHomeRoomService>();
+builder.Services.AddScoped<IStatisticsRepository, StatisticsRepository>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 // Class & Timetable Management
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
@@ -175,6 +179,7 @@ builder.Services.AddScoped<IPeriodService, PeriodService>();
 builder.Services.AddScoped<IPeriodRepository, PeriodRepository>();
 builder.Services.AddScoped<ISubstituteTeachingRepository, SubstituteTeachingRepository>();
 builder.Services.AddScoped<ISubstituteTeachingService, SubstituteTeachingService>();
+builder.Services.AddScoped<ITimetableUnitOfWork, TimetableUnitOfWork>();
 // Academic Year & Semester Management
 builder.Services.AddScoped<IAcademicYearService, AcademicYearService>();
 builder.Services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
@@ -323,8 +328,8 @@ builder.Services.AddSwaggerGen(option =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(options =>
@@ -334,7 +339,7 @@ if (app.Environment.IsDevelopment())
         options.OAuthScopes("profile", "email");
         options.OAuthUsePkce();
     });
-}
+//}
 
 app.UseCors("AllowAll");
 
