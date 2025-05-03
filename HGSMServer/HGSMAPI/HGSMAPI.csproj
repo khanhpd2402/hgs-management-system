@@ -30,5 +30,8 @@
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>
+	<ItemGroup>
+		<Content Update="**\appsettings.json" CopyToPublishDirectory="Never" Condition="'$(MSBuildProjectName)' != 'HGSMAPI'" />
+	</ItemGroup>
 
 </Project>
