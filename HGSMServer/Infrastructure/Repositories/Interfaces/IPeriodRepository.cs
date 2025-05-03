@@ -9,5 +9,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<Period> CreateAsync(Period entity);
         Task UpdateAsync(Period entity);
         Task DeleteAsync(int id);
+        Task<Period?> GetByPeriodNameAndShiftAsync(string periodName, byte shift);
     }
 }
