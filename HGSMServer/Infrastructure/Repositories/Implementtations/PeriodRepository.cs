@@ -1,4 +1,5 @@
-﻿using Domain.Models;
+﻿using Common.Constants;
+using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -49,6 +50,17 @@ namespace Infrastructure.Repositories.Implementtations
                 _context.Periods.Remove(entity);
                 await _context.SaveChangesAsync();
             }
+        }
+        public async Task<Period?> GetByPeriodNameAndShiftAsync(string periodName, byte shift)
+        {
+            if (string.IsNullOrWhiteSpace(periodName) || !AppConstants.Shift.All.Contains(shift))
+            {
+                return null;
+            }
+
+            string normalizedPeriodName = periodName.Trim();
+            return await _context.Periods
+                .FirstOrDefaultAsync(p => p.PeriodName == normalizedPeriodName && p.Shift == shift);
         }
     }
 }

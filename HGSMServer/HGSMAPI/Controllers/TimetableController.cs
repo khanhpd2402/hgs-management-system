@@ -1,7 +1,9 @@
 ﻿using Application.Features.Timetables;
 using Application.Features.Timetables.DTOs;
 using Application.Features.Timetables.Interfaces;
+using Common.Constants;
 using Microsoft.AspNetCore.Mvc;
+using System.Globalization;
 
 namespace HGSMAPI.Controllers
 {
@@ -228,6 +230,52 @@ namespace HGSMAPI.Controllers
         //        return StatusCode(500, "Lỗi khi kiểm tra xung đột thời khóa biểu.");
         //    }
         //}
+        [HttpPost("import")]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)] // Sửa typeof nếu cần
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        // Đảm bảo endpoint này không yêu cầu [Authorize] nếu test qua Swagger UI mà chưa login
+        public async Task<IActionResult> ImportTimetableAsync( IFormFile file,
+           [FromForm] int semesterId,               // Giữ lại [FromForm]
+           [FromForm] string effectiveDateString)   // Giữ lại [FromForm]
+        {
+            // --- Validation đầu vào ---
+            if (file == null || file.Length == 0)
+            {
+                return BadRequest("Vui lòng chọn file Excel để import.");
+            }
+            if (semesterId <= 0)
+            {
+                return BadRequest("Học kỳ không hợp lệ.");
+            }
+            if (!DateOnly.TryParseExact(effectiveDateString, AppConstants.DATE_FORMAT, CultureInfo.InvariantCulture, DateTimeStyles.None, out var effectiveDate))
+            {
+                return BadRequest($"Định dạng ngày hiệu lực không đúng. Vui lòng sử dụng định dạng '{AppConstants.DATE_FORMAT}'.");
+            }
+            // --- Kết thúc Validation ---
+
+            // --- Gọi Service xử lý ---
+            try
+            {
+                var createdTimetable = await _service.ImportTimetableAsync(file, semesterId, effectiveDate);
+                return Ok(new { message = "Import thời khóa biểu thành công.", timetableId = createdTimetable.TimetableId });
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest($"Lỗi dữ liệu import: {ex.Message}");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return BadRequest($"Lỗi dữ liệu import: Không tìm thấy thông tin tham chiếu - {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Error importing timetable: {ex}"); // Log lỗi ra console để debug
+                return StatusCode(StatusCodes.Status500InternalServerError, "Đã xảy ra lỗi hệ thống trong quá trình import thời khóa biểu.");
+            }
+            // --- Kết thúc gọi Service ---
+        }
+
         [HttpPost("create-timetable-detail")]
         public async Task<IActionResult> Create([FromBody] CreateTimetableDetailRequest request)
         {

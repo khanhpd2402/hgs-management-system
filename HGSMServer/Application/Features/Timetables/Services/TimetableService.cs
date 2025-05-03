@@ -1,36 +1,38 @@
 ﻿using Application.Features.Timetables.DTOs;
 using Application.Features.Timetables.Interfaces;
 using AutoMapper;
+using ClosedXML.Excel;
+using Common.Constants;
 using Common.Utils;
 using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
+using Infrastructure.Repositories.UnitOfWork;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Logging;
+using System.Text;
 
 namespace Application.Features.Timetables.Services
 {
     public class TimetableService : ITimetableService
     {
-        private readonly ITimetableRepository _repository;
-        private readonly ITimetableDetailRepository _timetableDetailRepository;
         private readonly IMapper _mapper;
+        private readonly ITimetableUnitOfWork _unitOfWork;
 
-        public TimetableService(ITimetableRepository repository, ITimetableDetailRepository timetableDetailRepository, IMapper mapper)
+        public TimetableService(ITimetableUnitOfWork unitOfWork, IMapper mapper)
         {
-            _repository = repository;
-            _timetableDetailRepository = timetableDetailRepository;
+            _unitOfWork = unitOfWork ?? throw new ArgumentNullException(nameof(unitOfWork));
             _mapper = mapper;
         }
-
         public async Task<Timetable> CreateTimetableAsync(CreateTimetableDto dto)
         {
             var timetable = _mapper.Map<Timetable>(dto);
-            var createdTimetable = await _repository.CreateTimetableAsync(timetable);
+            var createdTimetable = await _unitOfWork.Timetables.CreateTimetableAsync(timetable);
 
             foreach (var detailDto in dto.Details)
             {
                 var timetableDetail = _mapper.Map<TimetableDetail>(detailDto);
                 timetableDetail.TimetableId = createdTimetable.TimetableId;
-                await _repository.AddTimetableDetailAsync(timetableDetail);
+                await _unitOfWork.Timetables.AddTimetableDetailAsync(timetableDetail);
                 createdTimetable.TimetableDetails.Add(timetableDetail);
             }
 
@@ -39,30 +41,30 @@ namespace Application.Features.Timetables.Services
 
         public async Task<IEnumerable<TimetableDto>> GetTimetableByStudentAsync(int studentId, int semesterId)
         {
-            var timetables = await _repository.GetByStudentIdAsync(studentId, semesterId);
+            var timetables = await _unitOfWork.Timetables.GetByStudentIdAsync(studentId, semesterId);
             return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
         public async Task<IEnumerable<TimetableDto>> GetTimetableByTeacherAsync(int teacherId)
         {
-            var timetables = await _repository.GetByTeacherIdAsync(teacherId);
+            var timetables = await _unitOfWork.Timetables.GetByTeacherIdAsync(teacherId);
             return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
         public async Task<IEnumerable<TimetableDto>> GetTimetablesForPrincipalAsync(int timetableId, string? status = null)
         {
-            var timetables = await _repository.GetTimetablesForPrincipalAsync(timetableId, status);
+            var timetables = await _unitOfWork.Timetables.GetTimetablesForPrincipalAsync(timetableId, status);
             return _mapper.Map<IEnumerable<TimetableDto>>(timetables);
         }
 
         public async Task<IEnumerable<TimetableListDto>> GetTimetablesBySemesterAsync(int semesterId)
         {
-            var timetables = await _repository.GetTimetablesBySemesterAsync(semesterId);
+            var timetables = await _unitOfWork.Timetables.GetTimetablesBySemesterAsync(semesterId);
             return _mapper.Map<IEnumerable<TimetableListDto>>(timetables);
         }
         public async Task<TimetableDto> UpdateTimetableInfoAsync(UpdateTimetableInfoDto dto)
         {
-            var timetable = await _repository.GetByIdAsync(dto.TimetableId);
+            var timetable = await _unitOfWork.Timetables.GetByIdAsync(dto.TimetableId);
             if (timetable == null)
             {
                 throw new KeyNotFoundException($"Timetable with ID {dto.TimetableId} not found.");
@@ -73,14 +75,14 @@ namespace Application.Features.Timetables.Services
             timetable.EndDate = dto.EndDate;
             timetable.Status = dto.Status;
 
-            await _repository.UpdateTimetableAsync(timetable);
+            await _unitOfWork.Timetables.UpdateTimetableAsync(timetable);
 
-            var updatedTimetable = await _repository.GetByIdAsync(dto.TimetableId);
+            var updatedTimetable = await _unitOfWork.Timetables.GetByIdAsync(dto.TimetableId);
             return _mapper.Map<TimetableDto>(updatedTimetable);
         }
         public async Task<bool> UpdateMultipleDetailsAsync(UpdateTimetableDetailsDto dto)
         {
-            var timetable = await _repository.GetByIdAsync(dto.TimetableId);
+            var timetable = await _unitOfWork.Timetables.GetByIdAsync(dto.TimetableId);
             if (timetable == null)
             {
                 throw new KeyNotFoundException($"Timetable with ID {dto.TimetableId} not found.");
@@ -110,12 +112,12 @@ namespace Application.Features.Timetables.Services
                 detailsToUpdate.Add(detail);
             }
 
-            return await _repository.UpdateMultipleDetailsAsync(detailsToUpdate);
+            return await _unitOfWork.Timetables.UpdateMultipleDetailsAsync(detailsToUpdate);
         }
 
         public async Task<bool> DeleteDetailAsync(int detailId)
         {
-            return await _repository.DeleteDetailAsync(detailId);
+            return await _unitOfWork.Timetables.DeleteDetailAsync(detailId);
         }
 
         //public async Task<bool> IsConflictAsync(TimetableDetailDto detailDto)
@@ -128,186 +130,7 @@ namespace Application.Features.Timetables.Services
         // using Common.Utils; // Namespace chứa ExcelImportHelper
         // using System.Globalization; // Để parse DayOfWeek
 
-        public async Task<int> ImportTimetableFromExcelAsync(IFormFile file, int semesterId, DateOnly effectiveDate)
-        {
-            if (file == null || file.Length == 0)
-            {
-                throw new ArgumentException("No file uploaded or file is empty.");
-            }
 
-            var extension = Path.GetExtension(file.FileName);
-            if (string.IsNullOrEmpty(extension) || !extension.Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
-            {
-                throw new ArgumentException("Invalid file format. Only .xlsx files are allowed.");
-            }
-
-            var excelData = ExcelImportHelper.ReadExcelData(file);
-            if (excelData == null || !excelData.Any())
-            {
-                throw new ArgumentException("Excel file is empty or could not be read.");
-            }
-
-            var existingTimetable = await _repository.FindBySemesterAndEffectiveDateAsync(semesterId, effectiveDate);
-            if (existingTimetable != null)
-            {
-                throw new InvalidOperationException($"A timetable for semester {semesterId} with effective date {effectiveDate:dd/MM/yyyy} already exists (TimetableId: {existingTimetable.TimetableId}).");
-            }
-
-            var newTimetable = new Timetable
-            {
-                SemesterId = semesterId,
-                EffectiveDate = effectiveDate,
-                Status = "PendingImport", // Trạng thái ban đầu khi import
-                TimetableDetails = new List<TimetableDetail>()
-            };
-
-            var createdTimetable = await _repository.CreateTimetableAsync(newTimetable);
-            if (createdTimetable == null || createdTimetable.TimetableId <= 0)
-            {
-                throw new Exception("Failed to create the base timetable record.");
-            }
-
-
-            int importedCount = 0;
-            var classes = await _repository.GetAllClassesAsync();
-            var subjects = await _repository.GetAllSubjectsAsync();
-            var periods = await _repository.GetAllPeriodsAsync();
-
-            if (!classes.Any() || !subjects.Any() || !periods.Any())
-            {
-                // Có thể throw lỗi hoặc trả về 0 tùy logic
-                throw new KeyNotFoundException("Essential data missing: Classes, Subjects, or Periods not found in the database.");
-            }
-
-            var headerRow = excelData.First();
-            var classColumns = headerRow.Keys
-                                     .Where(k => !string.IsNullOrWhiteSpace(k) && (k.Contains("A") || k.Contains("B") || k.Contains("C")) && !k.Equals("Buổi") && !k.Equals("Tiết") && !k.Equals("Thứ"))
-                                     .Distinct(StringComparer.OrdinalIgnoreCase)
-                                     .ToList();
-
-            if (!classColumns.Any())
-            {
-                throw new ArgumentException("Could not identify class columns in the Excel header.");
-            }
-
-
-            foreach (var row in excelData.Skip(1))
-            {
-                string dayOfWeekString = row.GetValueOrDefault("Thứ")?.Trim();
-                string sessionExcel = row.GetValueOrDefault("Buổi")?.Trim();
-                string periodNumberString = row.GetValueOrDefault("Tiết")?.Trim();
-
-                if (string.IsNullOrWhiteSpace(dayOfWeekString) || string.IsNullOrWhiteSpace(sessionExcel) || !int.TryParse(periodNumberString, out int periodNumberExcel))
-                {
-                    // _logger.LogWarning(...);
-                    continue;
-                }
-
-                // Xác thực giá trị DayOfWeek đọc từ Excel
-                bool isValidDay = dayOfWeekString switch
-                {
-                    "2" or "3" or "4" or "5" or "6" or "7" => true,
-                    _ => false
-                };
-
-                if (!isValidDay)
-                {
-                    // _logger.LogWarning($"Skipping row due to invalid DayOfWeek string: '{dayOfWeekString}'");
-                    continue; // Bỏ qua nếu không phải "2" đến "7"
-                }
-
-
-
-                byte expectedShift;
-                if (sessionExcel.Equals("Sáng", StringComparison.OrdinalIgnoreCase))
-                {
-                    expectedShift = 1;
-                }
-                else if (sessionExcel.Equals("Chiều", StringComparison.OrdinalIgnoreCase))
-                {
-                    expectedShift = 2;
-                }
-                else
-                {
-                    // _logger.LogWarning($"Skipping row due to unknown session: '{sessionExcel}'");
-                    continue;
-                }
-
-                var period = periods.FirstOrDefault(p =>
-                                        p.Shift == expectedShift &&
-                                        !string.IsNullOrEmpty(p.PeriodName) &&
-                                        p.PeriodName.Contains(periodNumberExcel.ToString()));
-
-                if (period == null)
-                {
-                    continue;
-                }
-
-                foreach (var className in classColumns)
-                {
-                    string subjectName = row.GetValueOrDefault(className)?.Trim();
-                    if (string.IsNullOrWhiteSpace(subjectName))
-                    {
-                        continue;
-                    }
-
-                    var classInfo = classes.FirstOrDefault(c => c.ClassName.Equals(className, StringComparison.OrdinalIgnoreCase));
-                    if (classInfo == null)
-                    {
-                        // _logger.LogWarning($"Class not found for name '{className}' in row. Skipping detail.");
-                        continue;
-                    }
-
-                    var subjectInfo = subjects.FirstOrDefault(s => s.SubjectName.Equals(subjectName, StringComparison.OrdinalIgnoreCase));
-                    if (subjectInfo == null)
-                    {
-                        // _logger.LogWarning($"Subject not found for name '{subjectName}' in row for class {className}. Skipping detail.");
-                        continue;
-                    }
-
-
-                    var detail = new TimetableDetail
-                    {
-                        TimetableId = createdTimetable.TimetableId,
-                        ClassId = classInfo.ClassId,
-                        SubjectId = subjectInfo.SubjectId,
-                        TeacherId = 1,
-                        DayOfWeek = dayOfWeekString, // Sử dụng dayOfWeek đã được chuyển đổi
-                        PeriodId = period.PeriodId
-                    };
-
-                    // Cân nhắc: Kiểm tra conflict tại đây trước khi thêm?
-                    // if (await _repository.IsConflictAsync(detail)) { ... }
-
-                    try
-                    {
-                        await _repository.AddTimetableDetailAsync(detail);
-                        importedCount++;
-                    }
-                    catch (Exception detailEx)
-                    {
-                        // _logger.LogError(detailEx, $"Failed to add timetable detail for Class {className}, Subject {subjectName}, Day {dayOfWeek}, Period {period.PeriodId}.");
-                        // Quyết định: Dừng import hay tiếp tục với các dòng khác?
-                        // Nếu muốn dừng toàn bộ: throw new Exception("Failed to add one or more timetable details. Import aborted.", detailEx);
-                        // Nếu muốn tiếp tục, chỉ cần log lỗi và đi tiếp vòng lặp.
-                        Console.WriteLine($"Error adding detail: {detailEx.Message}"); // Tạm thời ghi ra console
-                    }
-                }
-            }
-
-            // Cập nhật trạng thái cuối cùng cho Timetable nếu cần
-            // Ví dụ: Nếu import thành công và muốn kích hoạt ngay
-            // createdTimetable.Status = "Active"; // Chú ý Trigger có thể chuyển các TKB khác thành Inactive
-            // await _repository.UpdateTimetableAsync(createdTimetable);
-
-            if (importedCount == 0 && excelData.Count > 1)
-            {
-                // Có thể throw lỗi nếu file có dữ liệu nhưng không import được gì
-                // throw new InvalidOperationException("No valid timetable details could be imported from the provided file.");
-            }
-
-            return importedCount;
-        }
         public async Task CreateDetailAsync(CreateTimetableDetailRequest request)
         {
             //var conflict = await _timetableDetailRepository.IsConflictAsync(request.ClassId, request.DayOfWeek, request.PeriodId);
@@ -326,9 +149,233 @@ namespace Application.Features.Timetables.Services
                 PeriodId = request.PeriodId
             };
 
-            await _timetableDetailRepository.AddAsync(detail);
-            await _timetableDetailRepository.SaveChangesAsync();
+            await _unitOfWork.TimetableDetails.AddAsync(detail);
+            await _unitOfWork.TimetableDetails.SaveChangesAsync();
+        }
+
+        public async Task<Timetable> ImportTimetableAsync(IFormFile file, int semesterId, DateOnly effectiveDate)
+        {
+            // _logger?.LogInformation("Starting timetable import for Semester {SemesterId}, EffectiveDate {EffectiveDate}", semesterId, effectiveDate);
+
+            var detailsToCreate = new List<TimetableDetail>();
+            var errors = new StringBuilder();
+
+            // Cache để giảm truy vấn DB
+            var classIdCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase); // Không phân biệt hoa thường cho tên lớp
+            var subjectIdCache = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase); // Không phân biệt hoa thường cho tên môn
+            var periodIdCache = new Dictionary<(string, byte), int>(); // Key: (Tên Tiết, Ca Học)
+            var teacherIdCache = new Dictionary<(int, int, int), int?>(); // Key: (SubjectId, ClassId, SemesterId), Value: TeacherId?
+
+            using var stream = new MemoryStream();
+            await file.CopyToAsync(stream);
+            stream.Position = 0;
+
+            using var workbook = new XLWorkbook(stream);
+            var worksheet = workbook.Worksheet(1);
+            if (worksheet == null)
+            {
+                throw new ArgumentException("File Excel không hợp lệ hoặc không tìm thấy sheet đầu tiên.");
+            }
+
+            // Xác định cấu trúc file Excel
+            int headerRow = 6;
+            int firstDataRow = 7;
+            int dayOfWeekCol = 2;
+            int shiftCol = 3;
+            int periodCol = 4;
+            int firstClassCol = 5;
+
+            var lastRowUsed = worksheet.LastRowUsed()?.RowNumber() ?? 0;
+            var lastColUsed = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
+
+            if (lastRowUsed < firstDataRow || lastColUsed < firstClassCol)
+            {
+                throw new ArgumentException("File Excel không có dữ liệu hoặc cấu trúc không đúng (thiếu header lớp hoặc dòng dữ liệu).");
+            }
+
+            // Đọc Header Lớp và Cache ClassId
+            var classHeaders = new Dictionary<int, string>();
+            for (int col = firstClassCol; col <= lastColUsed; col++)
+            {
+                var className = worksheet.Cell(headerRow, col).GetString()?.Trim();
+                if (!string.IsNullOrWhiteSpace(className))
+                {
+                    classHeaders.Add(col, className);
+                    if (!classIdCache.ContainsKey(className))
+                    {
+                        var classEntity = await _unitOfWork.Classes.GetClassByNameAsync(className);
+                        if (classEntity == null)
+                        {
+                            errors.AppendLine($"Không tìm thấy lớp học với tên '{className}'.");
+                        }
+                        else
+                        {
+                            classIdCache[className] = classEntity.ClassId;
+                        }
+                    }
+                }
+            }
+            if (errors.Length > 0) throw new KeyNotFoundException($"Lỗi tìm thông tin lớp học:\n{errors}");
+
+
+            // Duyệt qua các dòng dữ liệu TKB
+            string currentDayOfWeek = string.Empty;
+            string currentShiftName = string.Empty;
+            byte currentShiftValue = 0;
+
+            for (int row = firstDataRow; row <= lastRowUsed; row++)
+            {
+                // Xác định Ngày (Thứ)
+                var dayCell = worksheet.Cell(row, dayOfWeekCol).GetString()?.Trim();
+                if (!string.IsNullOrWhiteSpace(dayCell))
+                {
+                    currentDayOfWeek = dayCell;
+                    currentShiftName = string.Empty;
+                    currentShiftValue = 0;
+                }
+                if (string.IsNullOrWhiteSpace(currentDayOfWeek)) continue;
+
+                // Xác định Buổi (Sáng/Chiều)
+                if (string.IsNullOrWhiteSpace(currentShiftName))
+                {
+                    currentShiftName = worksheet.Cell(row, shiftCol).GetString()?.Trim();
+                    if (!string.IsNullOrWhiteSpace(currentShiftName))
+                    {
+                        if (currentShiftName.Equals("Sáng", StringComparison.OrdinalIgnoreCase)) currentShiftValue = AppConstants.Shift.MORNING;
+                        else if (currentShiftName.Equals("Chiều", StringComparison.OrdinalIgnoreCase)) currentShiftValue = AppConstants.Shift.AFTERNOON;
+                        // else if (currentShiftName.Equals("Tối", ...)) currentShiftValue = 3; // Thêm nếu cần
+                        else { errors.AppendLine($"Giá trị Buổi không hợp lệ '{currentShiftName}' tại dòng {row}."); currentShiftValue = 0; }
+                    }
+                    else currentShiftValue = 0;
+                }
+                if (currentShiftValue == 0) continue; // Bỏ qua nếu buổi không hợp lệ
+
+
+                // Xác định Tiết học (PeriodId)
+                var periodCell = worksheet.Cell(row, periodCol).GetString()?.Trim();
+                if (!int.TryParse(periodCell, out int periodNumber) || periodNumber <= 0) continue;
+                string periodName = $"Tiết {periodNumber}";
+                var periodKey = (periodName, currentShiftValue);
+                int periodId;
+                if (periodIdCache.TryGetValue(periodKey, out int cachedPeriodId)) periodId = cachedPeriodId;
+                else
+                {
+                    var periodEntity = await _unitOfWork.Periods.GetByPeriodNameAndShiftAsync(periodName, currentShiftValue);
+                    if (periodEntity == null) { errors.AppendLine($"Không tìm thấy thông tin tiết học '{periodName}' cho buổi '{currentShiftName}' (Shift={currentShiftValue}). Dòng {row}"); continue; }
+                    periodId = periodEntity.PeriodId;
+                    periodIdCache[periodKey] = periodId;
+                }
+
+
+                // Duyệt qua các cột lớp học trong dòng
+                foreach (var kvp in classHeaders)
+                {
+                    int classCol = kvp.Key;
+                    string className = kvp.Value;
+                    int classId = classIdCache[className];
+
+                    var subjectName = worksheet.Cell(row, classCol).GetString()?.Trim();
+                    if (string.IsNullOrWhiteSpace(subjectName)) continue; // Bỏ qua ô môn học trống
+
+                    // Xác định Môn học (SubjectId)
+                    int subjectId;
+                    if (subjectIdCache.TryGetValue(subjectName, out int cachedSubjectId)) subjectId = cachedSubjectId;
+                    else
+                    {
+                        var subjectEntity = await _unitOfWork.Subjects.GetByNameAsync(subjectName);
+                        if (subjectEntity == null) { errors.AppendLine($"Không tìm thấy môn học '{subjectName}'. Lớp: {className}, {currentDayOfWeek}, {currentShiftName}, {periodName}. Dòng {row}"); continue; }
+                        subjectId = subjectEntity.SubjectId;
+                        subjectIdCache[subjectName] = subjectId;
+                    }
+
+
+                    // --- Xác định Giáo viên (TeacherId) bằng phương thức của bạn ---
+                    int? teacherId = null; // Khai báo biến để lưu TeacherId (nullable)
+                    var teacherKey = (subjectId, classId, semesterId); // Key cho cache
+
+                    // Kiểm tra cache TeacherId (vẫn dùng int?)
+                    if (teacherIdCache.TryGetValue(teacherKey, out int? cachedTeacherId))
+                    {
+                        teacherId = cachedTeacherId; // Lấy TeacherId? từ cache
+                    }
+                    else
+                    {
+                        // Gọi phương thức GetAssignmentByClassSubjectTeacherAsync của bạn
+                        var assignment = await _unitOfWork.TeachingAssignments.GetAssignmentByClassSubjectTeacherAsync(classId, subjectId, semesterId); // Gọi đúng tên phương thức
+
+                        if (assignment != null)
+                        {
+                            teacherId = assignment.TeacherId; // Lấy TeacherId từ đối tượng trả về
+                        }
+                        // else: assignment là null, teacherId vẫn là null
+
+                        // Lưu kết quả (TeacherId? hoặc null) vào cache
+                        teacherIdCache[teacherKey] = teacherId;
+                    }
+
+                    // Kiểm tra xem có tìm được TeacherId không
+                    if (teacherId == null)
+                    {
+                        // Không tìm thấy phân công -> ghi lỗi và bỏ qua tiết học này
+                        errors.AppendLine($"Không tìm thấy phân công giáo viên cho môn '{subjectName}' (ID:{subjectId}), lớp '{className}' (ID:{classId}), học kỳ ID:{semesterId}. {currentDayOfWeek}, {currentShiftName}, {periodName}. Dòng {row}");
+                        continue;
+                    }
+
+                    // Tạo TimetableDetail nếu mọi thứ OK
+                    var detail = new TimetableDetail
+                    {
+                        ClassId = classId,
+                        SubjectId = subjectId,
+                        TeacherId = teacherId.Value, // Đảm bảo teacherId không null ở đây
+                        DayOfWeek = currentDayOfWeek,
+                        PeriodId = periodId
+                        // TimetableId sẽ gán sau
+                    };
+                    detailsToCreate.Add(detail);
+
+                } // Kết thúc foreach duyệt lớp
+            } // Kết thúc for duyệt dòng
+
+
+            // Kiểm tra lỗi tổng hợp và Lưu dữ liệu
+            if (errors.Length > 0)
+            {
+                // _logger?.LogError("Errors during timetable import: {Errors}", errors.ToString());
+                throw new ArgumentException($"Có lỗi trong dữ liệu file Excel:\n{errors}");
+            }
+            if (!detailsToCreate.Any())
+            {
+                throw new ArgumentException("Không có dữ liệu thời khóa biểu hợp lệ nào được tạo từ file Excel.");
+            }
+
+            // Tạo Timetable chính
+            var timetable = new Timetable
+            {
+                SemesterId = semesterId,
+                EffectiveDate = effectiveDate,
+                Status = AppConstants.Status.ACTIVE // Hoặc PENDING
+            };
+            var createdTimetable = await _unitOfWork.Timetables.CreateTimetableAsync(timetable);
+            if (createdTimetable == null || createdTimetable.TimetableId <= 0)
+            {
+                // _logger?.LogError("Failed to create main timetable record.");
+                throw new Exception("Không thể tạo bản ghi thời khóa biểu chính.");
+            }
+
+            // Gán TimetableId và Lưu Details
+            foreach (var detail in detailsToCreate)
+            {
+                detail.TimetableId = createdTimetable.TimetableId;
+            }
+            // await _unitOfWork.TimetableDetails.AddRangeAsync(detailsToCreate); // Ưu tiên nếu có
+            foreach (var detail in detailsToCreate) // Hoặc dùng AddAsync
+            {
+                await _unitOfWork.TimetableDetails.AddAsync(detail); // Giả định có AddAsync
+            }
+            await _unitOfWork.SaveChangesAsync(); // Lưu tất cả thay đổi
+
+            // _logger?.LogInformation("Successfully imported timetable {TimetableId} with {DetailCount} details.", createdTimetable.TimetableId, detailsToCreate.Count);
+            return createdTimetable; // Trả về Timetable chính đã tạo
         }
     }
-
 }

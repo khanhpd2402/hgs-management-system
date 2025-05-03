@@ -79,8 +79,13 @@ namespace Infrastructure.Repositories.Implementtations
         }
         public async Task<Class> GetClassByNameAsync(string className)
         {
-            return await _context.Set<Class>()
-                .FirstOrDefaultAsync(c => c.ClassName == className);
+            if (string.IsNullOrWhiteSpace(className))
+            {
+                return null;
+            }
+            string normalizedClassName = className.Trim();
+            return await _context.Classes
+                .FirstOrDefaultAsync(c => c.ClassName.ToLower() == normalizedClassName.ToLower());
         }
     }
 }
