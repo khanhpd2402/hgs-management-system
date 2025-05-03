@@ -21,16 +21,15 @@ jobs:
       - name: Set up .NET Core
         uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '8.0' 
-
-      - name: Change working directory to HGSMServer/HGSMAPI
-        run: cd HGSMServer/HGSMAPI
+          dotnet-version: '8.0'
 
       - name: Build with dotnet
         run: dotnet build HGSMAPI.csproj --configuration Release
+        working-directory: HGSMServer/HGSMAPI
 
       - name: dotnet publish
         run: dotnet publish HGSMAPI.csproj -c Release -o "${{env.DOTNET_ROOT}}/myapp"
+        working-directory: HGSMServer/HGSMAPI
 
       - name: Upload artifact for deployment job
         uses: actions/upload-artifact@v4
