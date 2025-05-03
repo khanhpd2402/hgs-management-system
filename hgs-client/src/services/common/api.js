@@ -45,3 +45,11 @@ export const getGradeLevels = async () => {
   const response = await axiosInstance.get("/GradeLevels");
   return response.data;
 };
+
+//login
+export const googleLogin = async ({ token }) => {
+  const response = await axiosInstance.post("GoogleLogin/login", {
+    token,
+  });
+  return response.data;
+};
