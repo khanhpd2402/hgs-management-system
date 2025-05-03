@@ -99,3 +99,11 @@ export const updateTimetableInfo = async (timetableData) => {
   const response = await axiosInstance.put("Timetables/info", timetableData);
   return response.data;
 };
+
+export const createTimetable = async (data) => {
+  const response = await axiosInstance.post(
+    "Timetables/create-timetable",
+    data,
+  );
+  return response.data;
+};
