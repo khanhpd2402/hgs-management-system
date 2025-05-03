@@ -220,14 +220,6 @@ export default function TeacherTable() {
                             >
                               Xem hồ sơ
                             </DropdownMenuItem>
-                            <DropdownMenuItem
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                setTeacherToDelete(teacher);
-                              }}
-                            >
-                              Xóa
-                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </TableCell>

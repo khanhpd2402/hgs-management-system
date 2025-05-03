@@ -16,8 +16,11 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<TeachingAssignment> GetAssignmentByClassSubjectTeacherAsync(int classId, int subjectId, int semesterId)
         {
             return await _context.TeachingAssignments
-                                 .Where(ta => ta.ClassId == classId && ta.SubjectId == subjectId && ta.SemesterId == semesterId)
-                                 .FirstOrDefaultAsync();
+                .Include(ta => ta.Teacher)
+                    .ThenInclude(t => t.User) 
+                .Include(ta => ta.Subject) 
+                .Where(ta => ta.ClassId == classId && ta.SubjectId == subjectId && ta.SemesterId == semesterId)
+                .FirstOrDefaultAsync();
         }
         public async Task<IEnumerable<TeachingAssignment>> GetBySemesterIdAsync(int semesterId)
         {

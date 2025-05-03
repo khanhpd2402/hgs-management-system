@@ -182,22 +182,22 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating student classes: {ex.Message}");
-                return NotFound("Không tìm thấy dữ liệu liên quan.");
+                return NotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error updating student classes: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật phân công lớp.");
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating student classes: {ex.Message}");
-                return Conflict("Lỗi khi cập nhật phân công lớp.");
+                return Conflict(ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error updating student classes: {ex.Message}");
-                return StatusCode(500, "Lỗi khi cập nhật phân công lớp.");
+                return StatusCode(500, "Lỗi hệ thống khi cập nhật phân công lớp.");
             }
         }
 
@@ -398,6 +398,80 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"Unexpected error fetching classes: {ex.Message}");
                 return StatusCode(500, "Lỗi khi lấy thông tin lớp.");
+            }
+        }
+        [HttpGet("{classId}/subjects")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh,Trưởng bộ môn")]
+        public async Task<IActionResult> GetSubjectsByClassId(int classId, [FromQuery] int semesterId)
+        {
+            try
+            {
+                if (classId <= 0 || semesterId <= 0)
+                {
+                    Console.WriteLine("Invalid ClassId or SemesterId.");
+                    return BadRequest("ClassId và SemesterId phải là số nguyên dương.");
+                }
+
+                Console.WriteLine($"Fetching subjects for class ID {classId} in semester ID {semesterId}...");
+                var subjects = await _studentClassService.GetSubjectsByClassIdAsync(classId, semesterId);
+                return Ok(subjects);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error fetching subjects: {ex.Message}");
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching subjects: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching subjects: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy danh sách môn học.");
+            }
+        }
+        [HttpGet("{classId}/subject/{subjectId}/teacher")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Giáo viên,Phụ huynh,Trưởng bộ môn")]
+        public async Task<IActionResult> GetTeacherByClassAndSubject(int classId, int subjectId, [FromQuery] int semesterId)
+        {
+            try
+            {
+                if (classId <= 0 || subjectId <= 0 || semesterId <= 0)
+                {
+                    Console.WriteLine("Invalid ClassId, SubjectId, or SemesterId.");
+                    return BadRequest("ClassId, SubjectId và SemesterId phải là số nguyên dương.");
+                }
+
+                Console.WriteLine($"Fetching teacher for class ID {classId}, subject ID {subjectId}, semester ID {semesterId}...");
+                var teacher = await _studentClassService.GetTeacherByClassAndSubjectAsync(classId, subjectId, semesterId);
+                return Ok(teacher);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error fetching teacher: {ex.Message}");
+                return NotFound(ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching teacher: {ex.Message}");
+                return BadRequest(ex.Message);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching teacher: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin giáo viên.");
             }
         }
     }

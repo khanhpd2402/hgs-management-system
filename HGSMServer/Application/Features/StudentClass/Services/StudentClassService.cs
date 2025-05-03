@@ -17,6 +17,8 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using ClassDto = Application.Features.StudentClass.DTOs.ClassDto;
+using Application.Features.Subjects.DTOs;
+using Application.Features.Teachers.DTOs;
 
 namespace Application.Features.StudentClass.Services
 {
@@ -435,10 +437,24 @@ namespace Application.Features.StudentClass.Services
                 {
                     int academicYearId = dto.AcademicYearId ?? (await GetCurrentAcademicYearAsync()).AcademicYearId;
 
-                    if (!await IsWithinSemester1OfAcademicYearAsync(academicYearId))
+                    // Kiểm tra thời gian: sau năm học trước kết thúc, trước năm học đích bắt đầu hoặc trong học kỳ 1
+                    var academicYear = await _academicYearRepository.GetByIdAsync(academicYearId);
+                    if (academicYear == null)
                     {
-                        var academicYear = await _academicYearRepository.GetByIdAsync(academicYearId);
-                        throw new InvalidOperationException($"Chỉ có thể cập nhật phân công lớp trong thời gian Học kỳ 1 của năm học {academicYear?.YearName}.");
+                        throw new KeyNotFoundException($"Không tìm thấy năm học với ID {academicYearId}.");
+                    }
+
+                    var today = DateOnly.FromDateTime(DateTime.Now);
+                    var previousAcademicYear = await GetPreviousAcademicYearByIdAsync(academicYearId);
+                    if (today < previousAcademicYear.EndDate)
+                    {
+                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp vì năm học trước (ID: {previousAcademicYear.AcademicYearId}) chưa kết thúc.");
+                    }
+
+                    bool isBeforeAcademicYearStart = today < academicYear.StartDate;
+                    if (!isBeforeAcademicYearStart && !await IsWithinSemester1OfAcademicYearAsync(academicYearId))
+                    {
+                        throw new InvalidOperationException($"Chỉ có thể cập nhật phân công lớp trong thời gian Học kỳ 1 của năm học {academicYear.YearName} sau khi năm học bắt đầu.");
                     }
 
                     if (await IsPreviousAcademicYearAsync(academicYearId))
@@ -479,58 +495,49 @@ namespace Application.Features.StudentClass.Services
                             throw new InvalidOperationException($"Học sinh {student.FullName} đã được phân công vào lớp {classEntity.ClassName} trong năm học này. Không thể chuyển sang lớp trùng với lớp hiện tại.");
                         }
 
-                        // Trường hợp 1: Cùng AcademicYearId, chỉ cho phép chuyển lớp cùng GradeLevelId
-                        var existingClass = await _classRepository.GetByIdAsync(existingAssignment.ClassId);
-                        if (existingClass != null && classEntity.GradeLevelId != existingClass.GradeLevelId)
+                        // Nếu năm học đã bắt đầu, chỉ cho phép chuyển cùng GradeLevelId
+                        if (!isBeforeAcademicYearStart)
                         {
-                            throw new InvalidOperationException($"Học sinh {student.FullName} chỉ được chuyển sang lớp cùng khối (GradeLevelId {existingClass.GradeLevelId}) trong cùng năm học (ID: {academicYearId}).");
+                            var existingClass = await _classRepository.GetByIdAsync(existingAssignment.ClassId);
+                            if (existingClass != null && classEntity.GradeLevelId != existingClass.GradeLevelId)
+                            {
+                                throw new InvalidOperationException($"Học sinh {student.FullName} chỉ được chuyển sang lớp cùng khối (GradeLevelId {existingClass.GradeLevelId}) trong cùng năm học (ID: {academicYearId}).");
+                            }
                         }
 
                         await _studentClassRepository.DeleteAsync(existingAssignment.Id);
                     }
-                    else
+
+                    // Kiểm tra phân công trong năm học trước
+                    var previousAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, previousAcademicYear.AcademicYearId);
+                    if (previousAssignment != null)
                     {
-                        // Trường hợp 2: AcademicYearId khác, kiểm tra năm học trước
-                        var previousAcademicYear = await GetPreviousAcademicYearByIdAsync(academicYearId);
-                        var previousAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, previousAcademicYear.AcademicYearId);
-
-                        if (previousAssignment != null)
+                        var previousClass = await _classRepository.GetByIdAsync(previousAssignment.ClassId);
+                        if (previousClass != null)
                         {
-                            var previousClass = await _classRepository.GetByIdAsync(previousAssignment.ClassId);
-                            if (previousClass != null)
+                            // Không cho phép giảm GradeLevelId
+                            if (classEntity.GradeLevelId < previousClass.GradeLevelId)
                             {
-                                // Kiểm tra năm học trước đã kết thúc chưa
-                                var today = DateOnly.FromDateTime(DateTime.Now);
-                                if (previousAcademicYear.EndDate > today)
-                                {
-                                    throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} vì năm học trước (ID: {previousAcademicYear.AcademicYearId}) chưa kết thúc.");
-                                }
+                                throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} từ khối {previousClass.GradeLevelId} xuống khối {classEntity.GradeLevelId}.");
+                            }
 
-                                // Không cho phép giảm GradeLevelId
-                                if (classEntity.GradeLevelId < previousClass.GradeLevelId)
-                                {
-                                    throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} từ khối {previousClass.GradeLevelId} xuống khối {classEntity.GradeLevelId}.");
-                                }
+                            // Không cho phép nhảy cóc
+                            if (classEntity.GradeLevelId > previousClass.GradeLevelId + 1)
+                            {
+                                throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} từ khối {previousClass.GradeLevelId} lên khối {classEntity.GradeLevelId}. Không được phép nhảy cóc.");
+                            }
 
-                                // Không cho phép nhảy cóc (chỉ được tăng 1 cấp)
-                                if (classEntity.GradeLevelId > previousClass.GradeLevelId + 1)
+                            // Quy tắc RepeatingYear
+                            if (previousAssignment.RepeatingYear == true)
+                            {
+                                if (classEntity.GradeLevelId != previousClass.GradeLevelId)
                                 {
-                                    throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} từ khối {previousClass.GradeLevelId} lên khối {classEntity.GradeLevelId}. Không được phép nhảy cóc.");
+                                    throw new InvalidOperationException($"Học sinh {student.FullName} là học sinh lưu ban (RepeatingYear = true), chỉ được phép ở lại khối {previousClass.GradeLevelId}, không được chuyển lên khối {classEntity.GradeLevelId}.");
                                 }
-
-                                // Nếu RepeatingYear = true, chỉ cho phép giữ nguyên GradeLevelId
-                                if (previousAssignment.RepeatingYear == true)
-                                {
-                                    if (classEntity.GradeLevelId != previousClass.GradeLevelId)
-                                    {
-                                        throw new InvalidOperationException($"Học sinh {student.FullName} là học sinh lưu ban (RepeatingYear = true), chỉ được phép ở lại khối {previousClass.GradeLevelId}, không được chuyển lên khối {classEntity.GradeLevelId}.");
-                                    }
-                                }
-                                // Nếu RepeatingYear = false, bắt buộc phải tăng GradeLevelId
-                                else if (classEntity.GradeLevelId == previousClass.GradeLevelId)
-                                {
-                                    throw new InvalidOperationException($"Học sinh {student.FullName} không phải học sinh lưu ban (RepeatingYear = false), không được phép ở lại khối {classEntity.GradeLevelId}, phải chuyển lên khối cao hơn.");
-                                }
+                            }
+                            else if (classEntity.GradeLevelId == previousClass.GradeLevelId)
+                            {
+                                throw new InvalidOperationException($"Học sinh {student.FullName} không phải học sinh lưu ban (RepeatingYear = false), không được phép ở lại khối {classEntity.GradeLevelId}, phải chuyển lên khối cao hơn.");
                             }
                         }
                     }
@@ -555,8 +562,14 @@ namespace Application.Features.StudentClass.Services
             }
             catch (Exception ex)
             {
+                Console.WriteLine($"Lỗi khi cập nhật phân công lớp: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"InnerException: {ex.InnerException.Message}");
+                }
                 await transaction.RollbackAsync();
-                throw new InvalidOperationException("Không thể cập nhật phân công lớp do lỗi hệ thống.", ex);
+                throw new InvalidOperationException($"Không thể cập nhật phân công lớp: {ex.Message}", ex);
             }
         }
 
@@ -1178,6 +1191,139 @@ namespace Application.Features.StudentClass.Services
             catch (Exception ex)
             {
                 throw new InvalidOperationException("Không thể lấy danh sách học sinh lưu ban do lỗi hệ thống.", ex);
+            }
+        }
+        public async Task<IEnumerable<SubjectDto>> GetSubjectsByClassIdAsync(int classId, int semesterId)
+        {
+            if (!await HasReadPermissionAsync())
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
+            }
+
+            var classEntity = await _classRepository.GetByIdAsync(classId);
+            if (classEntity == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy lớp với ID {classId}.");
+            }
+
+            var semester = await _semesterRepository.GetByIdAsync(semesterId);
+            if (semester == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId}.");
+            }
+
+            try
+            {
+                var teachingAssignments = await _teachingAssignmentRepository.GetBySemesterIdAsync(semesterId);
+                var subjects = teachingAssignments
+                    .Where(ta => ta.ClassId == classId)
+                    .Select(ta => ta.Subject)
+                    .Distinct()
+                    .Select(s => new SubjectDto
+                    {
+                        SubjectID = s.SubjectId,
+                        SubjectName = s.SubjectName
+                    })
+                    .ToList();
+
+                if (!subjects.Any())
+                {
+                    throw new InvalidOperationException($"Không tìm thấy môn học nào cho lớp với ID {classId} trong học kỳ {semester.SemesterName}.");
+                }
+
+                return subjects;
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException("Không thể lấy danh sách môn học do lỗi hệ thống.", ex);
+            }
+        }
+        public async Task<TeacherListDto> GetTeacherByClassAndSubjectAsync(int classId, int subjectId, int semesterId)
+        {
+            if (!await HasReadPermissionAsync())
+            {
+                throw new UnauthorizedAccessException("Bạn không có quyền truy cập dữ liệu này.");
+            }
+
+            var classEntity = await _classRepository.GetByIdAsync(classId);
+            if (classEntity == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy lớp với ID {classId}.");
+            }
+
+            var semester = await _semesterRepository.GetByIdAsync(semesterId);
+            if (semester == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId}.");
+            }
+
+            try
+            {
+                var teachingAssignment = await _teachingAssignmentRepository.GetAssignmentByClassSubjectTeacherAsync(classId, subjectId, semesterId);
+                if (teachingAssignment == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy phân công giảng dạy cho môn học với ID {subjectId} trong lớp với ID {classId} và học kỳ {semester.SemesterName}.");
+                }
+
+                if (teachingAssignment.Teacher == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy giáo viên với ID {teachingAssignment.TeacherId} được phân công cho môn học với ID {subjectId} trong lớp với ID {classId} và học kỳ {semester.SemesterName}.");
+                }
+
+                if (teachingAssignment.Teacher.User == null)
+                {
+                    throw new InvalidOperationException($"Không tìm thấy thông tin tài khoản người dùng (User) cho giáo viên với ID {teachingAssignment.TeacherId}.");
+                }
+
+                // Lấy danh sách môn học mà giáo viên này dạy trong học kỳ này
+                var teacherAssignments = await _teachingAssignmentRepository.GetBySemesterIdAsync(semesterId);
+                var subjects = teacherAssignments
+                    .Where(ta => ta.TeacherId == teachingAssignment.TeacherId)
+                    .Select(ta => new SubjectTeacherDto
+                    {
+                        SubjectId = ta.Subject.SubjectId,
+                        SubjectName = ta.Subject.SubjectName,
+                        IsMainSubject = false // Có thể cần logic để xác định môn chính
+                    })
+                    .DistinctBy(s => s.SubjectId)
+                    .ToList();
+
+                return new TeacherListDto
+                {
+                    TeacherId = teachingAssignment.Teacher.TeacherId,
+                    FullName = teachingAssignment.Teacher.FullName,
+                    Dob = teachingAssignment.Teacher.Dob,
+                    Gender = teachingAssignment.Teacher.Gender,
+                    Ethnicity = teachingAssignment.Teacher.Ethnicity,
+                    Religion = teachingAssignment.Teacher.Religion,
+                    MaritalStatus = teachingAssignment.Teacher.MaritalStatus,
+                    IdcardNumber = teachingAssignment.Teacher.IdcardNumber,
+                    InsuranceNumber = teachingAssignment.Teacher.InsuranceNumber,
+                    EmploymentType = teachingAssignment.Teacher.EmploymentType,
+                    Position = teachingAssignment.Teacher.Position,
+                    Department = teachingAssignment.Teacher.Department,
+                    IsHeadOfDepartment = teachingAssignment.Teacher.IsHeadOfDepartment,
+                    EmploymentStatus = teachingAssignment.Teacher.EmploymentStatus,
+                    RecruitmentAgency = teachingAssignment.Teacher.RecruitmentAgency,
+                    HiringDate = teachingAssignment.Teacher.HiringDate,
+                    PermanentEmploymentDate = teachingAssignment.Teacher.PermanentEmploymentDate,
+                    SchoolJoinDate = teachingAssignment.Teacher.SchoolJoinDate,
+                    PermanentAddress = teachingAssignment.Teacher.PermanentAddress,
+                    Hometown = teachingAssignment.Teacher.Hometown,
+                    Email = teachingAssignment.Teacher.User.Email,
+                    PhoneNumber = teachingAssignment.Teacher.User.PhoneNumber ?? "Không có số điện thoại",
+                    Subjects = subjects
+                };
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error in GetTeacherByClassAndSubjectAsync: {ex.Message}");
+                Console.WriteLine($"StackTrace: {ex.StackTrace}");
+                if (ex.InnerException != null)
+                {
+                    Console.WriteLine($"InnerException: {ex.InnerException.Message}");
+                }
+                throw new InvalidOperationException("Không thể lấy thông tin giáo viên do lỗi hệ thống.", ex);
             }
         }
     }

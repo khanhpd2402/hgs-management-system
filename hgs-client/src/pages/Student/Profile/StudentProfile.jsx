@@ -12,7 +12,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-import { useParams } from "react-router";
+import { useNavigate, useParams } from "react-router";
 import { useStudent, useStudents } from "@/services/student/queries";
 import { useUpdateStudent } from "@/services/student/mutation";
 import { useForm, Controller } from "react-hook-form";
@@ -31,6 +31,7 @@ import {
 import { cleanString } from "@/helpers/removeWhiteSpace";
 
 export default function StudentProfile() {
+  const navigate = useNavigate();
   const { id } = useParams();
   const { currentYear } = useLayout();
   const academicYearId = currentYear?.academicYearID || null;
@@ -679,6 +680,12 @@ export default function StudentProfile() {
 
   return (
     <>
+      <Button
+        onClick={() => navigate("/student/profile")}
+        className="mt-2 cursor-pointer bg-blue-600 px-4 py-2 font-semibold hover:bg-blue-700"
+      >
+        Quay lại
+      </Button>
       <form
         onSubmit={handleSubmit(onSubmit)}
         className="container mx-auto space-y-6 py-6"
@@ -718,10 +725,12 @@ export default function StudentProfile() {
               label="Lớp"
               type="select"
               options={
-                classQuery.data?.map((c) => ({
-                  value: c.classId.toString(),
-                  label: c.className,
-                })) || []
+                classQuery.data
+                  ?.filter((c) => studentQuery.data?.gradeId === c.gradeLevelId)
+                  ?.map((c) => ({
+                    value: c.classId.toString(),
+                    label: c.className,
+                  })) || []
               }
             />
             <FormField

@@ -7,6 +7,8 @@ import {
   getSubstituteTeachings,
   getTimetiableSubstituteSubstituteForTeacher,
   getStudentNameAndClass,
+  getClasses,
+  getTimetables,
 } from "./api";
 
 export function useScheduleTeacher(teacherId) {
@@ -23,10 +25,12 @@ export function useScheduleStudent(studentId, semesterId) {
     enabled: !!studentId && !!semesterId,
   });
 }
-export function useTimetableForPrincipal(timetableId) {
+export function useTimetableForPrincipal(timetableId, status) {
+  const apiStatus =
+    status === "Không hoạt động" ? "Không hoạt động" : "Hoạt động";
   return useQuery({
     queryKey: ["schedule", "principal", timetableId],
-    queryFn: () => getTimetableForPrincipal(timetableId),
+    queryFn: () => getTimetableForPrincipal(timetableId, apiStatus),
     enabled: !!timetableId,
   });
 }
@@ -71,12 +75,25 @@ export function useGetTimetiableSubstituteSubstituteForTeacher(
   });
 }
 
-// ... existing code ...
-
 export function useGetStudentNameAndClass(id, academicYearId) {
   return useQuery({
     queryKey: ["student", id, academicYearId],
     queryFn: () => getStudentNameAndClass(id, academicYearId),
     enabled: !!id && !!academicYearId,
+  });
+}
+
+export function useGetClasses() {
+  return useQuery({
+    queryKey: ["classes"],
+    queryFn: getClasses,
+  });
+}
+
+export function useTimetables(semesterId) {
+  return useQuery({
+    queryKey: ["timetables", semesterId],
+    queryFn: () => getTimetables(semesterId),
+    enabled: !!semesterId,
   });
 }
