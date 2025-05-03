@@ -8,6 +8,7 @@
 
 	<ItemGroup>
 		<PackageReference Include="DocumentFormat.OpenXml" Version="3.2.0" />
+		<PackageReference Include="Google.Apis.Auth" Version="1.69.0" />
 		<PackageReference Include="Google.Apis.Drive.v3" Version="1.69.0.3703" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Abstractions" Version="2.3.0" />
 		<PackageReference Include="Microsoft.AspNetCore.Http.Features" Version="3.1.32" />

@@ -1,12 +1,10 @@
-﻿using Application.Features.Users.DTOs;
-using Application.Features.Users.Interfaces;
+﻿using Application.Features.Users.Interfaces;
+using Google.Apis.Auth;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
-using System.Threading.Tasks;
 using System.Security.Claims;
-using System.Linq;
-using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 
 namespace HGSMAPI.Controllers
 {
@@ -25,73 +23,74 @@ namespace HGSMAPI.Controllers
             _configuration = configuration ?? throw new ArgumentNullException(nameof(configuration));
         }
 
-        [HttpGet("login")]
-        public IActionResult Login(string redirectUrl)
+        // Endpoint mới để nhận credential từ frontend
+        [HttpPost("credential")]
+        public async Task<IActionResult> Credential([FromBody] GoogleCredentialDto credentialDto)
         {
-            if (string.IsNullOrEmpty(redirectUrl))
+            if (string.IsNullOrEmpty(credentialDto.Credential))
             {
-                return BadRequest(new { message = "redirectUrl is required." });
+                return BadRequest(new { message = "Credential không hợp lệ." });
             }
 
-            var properties = new AuthenticationProperties
+            try
             {
-                RedirectUri = Url.Action("Callback", "GoogleLogin", new { redirectUrl }, Request.Scheme)
-            };
-            return Challenge(properties, "Google");
-        }
+                // Validate Google ID token
+                var settings = new GoogleJsonWebSignature.ValidationSettings
+                {
+                    Audience = new[] { _configuration["Google:ClientId"] } // Lấy Client ID từ appsettings.json
+                };
 
-        [HttpGet("callback")]
-        public async Task<IActionResult> Callback(string redirectUrl)
-        {
-            if (string.IsNullOrEmpty(redirectUrl))
-            {
-                return BadRequest(new { message = "redirectUrl is required." });
+                var payload = await GoogleJsonWebSignature.ValidateAsync(credentialDto.Credential, settings);
+                var email = payload.Email;
+
+                if (string.IsNullOrEmpty(email))
+                {
+                    return BadRequest(new { message = "Không thể lấy email từ Google." });
+                }
+
+                // Kiểm tra email trong DB
+                var existingUser = (await _userService.GetAllUsersAsync())
+                    .FirstOrDefault(u => u.Email == email);
+
+                if (existingUser == null)
+                {
+                    return StatusCode(403, new { message = "Email không có trong hệ thống. Liên hệ cán bộ văn thư để giải quyết." });
+                }
+
+                // Kiểm tra role
+                var userRole = await GetAndValidateUserRole(existingUser.RoleId);
+                if (userRole == null)
+                {
+                    return StatusCode(403, new { message = "Bạn không có quyền truy cập vào mục này." });
+                }
+
+                // Tạo token
+                var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(existingUser);
+
+                // Đăng nhập bằng cookie
+                var claimsIdentity = new ClaimsIdentity(new[]
+                {
+                    new Claim(ClaimTypes.Name, existingUser.Username),
+                    new Claim(ClaimTypes.Email, existingUser.Email ?? ""),
+                    new Claim(ClaimTypes.Role, userRole)
+                }, CookieAuthenticationDefaults.AuthenticationScheme);
+
+                await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
+
+                return Ok(new
+                {
+                    token = tokenString,
+                    decodedToken = tokenPayload
+                });
             }
-
-            var authenticateResult = await HttpContext.AuthenticateAsync("Google");
-            if (!authenticateResult.Succeeded)
+            catch (InvalidJwtException)
             {
-                return Redirect($"{redirectUrl}?error=authentication_failed");
+                return BadRequest(new { message = "Token Google không hợp lệ." });
             }
-
-            var claims = authenticateResult.Principal?.Identities.FirstOrDefault()?.Claims;
-            var email = claims?.FirstOrDefault(c => c.Type == ClaimTypes.Email)?.Value;
-
-            if (string.IsNullOrEmpty(email))
+            catch (Exception ex)
             {
-                return Redirect($"{redirectUrl}?error=email_not_found");
+                return StatusCode(500, new { message = $"Lỗi khi xử lý đăng nhập: {ex.Message}" });
             }
-
-            var existingUser = (await _userService.GetAllUsersAsync())
-                .FirstOrDefault(u => u.Email == email);
-
-            if (existingUser == null)
-            {
-                return Redirect($"{redirectUrl}?error=email_not_in_system");
-            }
-
-            // Lấy và kiểm tra role
-            var userRole = await GetAndValidateUserRole(existingUser.RoleId);
-            if (userRole == null)
-            {
-                return Redirect($"{redirectUrl}?error=unauthorized_role");
-            }
-
-            // Tạo token
-            var (tokenString, tokenPayload) = await _tokenService.GenerateTokenAsync(existingUser);
-
-            // Đăng nhập bằng cookie
-            var claimsIdentity = new ClaimsIdentity(new[]
-            {
-                new Claim(ClaimTypes.Name, existingUser.Username),
-                new Claim(ClaimTypes.Email, existingUser.Email ?? ""),
-                new Claim(ClaimTypes.Role, userRole)
-            }, CookieAuthenticationDefaults.AuthenticationScheme);
-
-            await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, new ClaimsPrincipal(claimsIdentity));
-
-            // Chuyển hướng về redirectUrl với token trong query string
-            return Redirect($"{redirectUrl}?token={Uri.EscapeDataString(tokenString)}");
         }
 
         private async Task<string> GetAndValidateUserRole(int roleId)
@@ -105,5 +104,10 @@ namespace HGSMAPI.Controllers
             var allowedRoles = new[] { "Hiệu trưởng", "Hiệu phó", "Trưởng bộ môn", "Giáo viên", "Cán bộ văn thư" };
             return allowedRoles.Contains(userRole) ? userRole : null;
         }
+    }
+
+    public class GoogleCredentialDto
+    {
+        public string Credential { get; set; }
     }
 }
