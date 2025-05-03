@@ -70,6 +70,8 @@ const Login = () => {
       return;
     }
     console.log(credentialResponse);
+    // const googleUser = jwtDecode(credentialResponse.credential);
+    // console.log(googleUser);
     googleLoginMutation.mutate(
       { credential: credentialResponse.credential },
       {

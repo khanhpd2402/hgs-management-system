@@ -23,7 +23,7 @@ export const useGoogleLoginMutation = () => {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        toast.error(error?.response?.data);
+        toast.error(error?.response?.data?.message);
       } else {
         toast.success("Đăng nhập thành công");
         console.log(data);
