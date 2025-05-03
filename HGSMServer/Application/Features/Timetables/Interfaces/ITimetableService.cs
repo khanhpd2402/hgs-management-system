@@ -14,9 +14,11 @@ namespace Application.Features.Timetables.Interfaces
         Task<bool> UpdateMultipleDetailsAsync(UpdateTimetableDetailsDto dto);
         Task<TimetableDto> UpdateTimetableInfoAsync(UpdateTimetableInfoDto dto);
         Task<bool> DeleteDetailAsync(int detailId);
-        Task<bool> IsConflictAsync(TimetableDetailDto detailDto);
+        //Task<bool> IsConflictAsync(TimetableDetailDto detailDto);
 
         Task<int> ImportTimetableFromExcelAsync(IFormFile file, int semesterId, DateOnly effectiveDate);
+
+        Task CreateDetailAsync(CreateTimetableDetailRequest request);
     }
 
 }

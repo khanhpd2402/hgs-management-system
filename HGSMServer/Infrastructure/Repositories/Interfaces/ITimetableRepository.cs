@@ -13,7 +13,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task UpdateTimetableAsync(Timetable timetable);
         Task<bool> UpdateMultipleDetailsAsync(List<TimetableDetail> details);
         Task<bool> DeleteDetailAsync(int detailId);
-        Task<bool> IsConflictAsync(TimetableDetail detail);
+        //Task<bool> IsConflictAsync(TimetableDetail detail);
         Task<Timetable> CreateTimetableAsync(Timetable timetable);
         Task<TimetableDetail> AddTimetableDetailAsync(TimetableDetail detail);
 

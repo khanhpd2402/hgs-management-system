@@ -7,6 +7,7 @@ import {
   getGradeBatch,
   getGradeBatches,
   getHomeroomTeachers,
+  getNonEligibleStudents,
   getStudentPreviousYear,
   getSubjectConfigueDetail,
   getSubjectConfigues,
@@ -162,6 +163,16 @@ export function usePreviousYearStudents(academicYearId) {
     queryKey: ["previous-year-students", { academicYearId }],
     queryFn: () => {
       return getStudentPreviousYear(academicYearId);
+    },
+    enabled: !!academicYearId,
+  });
+}
+
+export function useNonEligibleStudents(academicYearId) {
+  return useQuery({
+    queryKey: ["non-eligible-students", { academicYearId }],
+    queryFn: () => {
+      return getNonEligibleStudents(academicYearId);
     },
     enabled: !!academicYearId,
   });

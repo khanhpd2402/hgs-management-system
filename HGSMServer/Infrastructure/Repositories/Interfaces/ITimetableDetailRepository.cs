@@ -9,7 +9,10 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ITimetableDetailRepository
     {
+        Task AddAsync(TimetableDetail detail);
+        //Task<bool> IsConflictAsync(int classId, string dayOfWeek, int periodId);
         Task<TimetableDetail> GetByIdAsync(int timetableDetailId);
         Task<TimetableDetail> GetByTeacherAndTimeAsync(int teacherId, string dayOfWeek, int periodId, int timetableId);
+        Task SaveChangesAsync();
     }
 }

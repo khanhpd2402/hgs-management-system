@@ -417,70 +417,7 @@ const TimetableManagement = () => {
                                     <option value="Không hoạt động">Không hoạt động</option>
                                 </select>
                             </div>
-                            <div className="grid gap-2">
-                                <label>Chi tiết thời khóa biểu</label>
-                                {newTimetable.details.map((detail, index) => (
-                                    <div key={index} className="grid grid-cols-6 gap-2 mb-2 items-center">
-                                        <input
-                                            type="number"
-                                            placeholder="Class ID"
-                                            value={detail.classId}
-                                            onChange={(e) => handleDetailChange(index, 'classId', parseInt(e.target.value))}
-                                            className="border rounded p-2"
-                                        />
-                                        <input
-                                            type="number"
-                                            placeholder="Subject ID"
-                                            value={detail.subjectId}
-                                            onChange={(e) => handleDetailChange(index, 'subjectId', parseInt(e.target.value))}
-                                            className="border rounded p-2"
-                                        />
-                                        <input
-                                            type="number"
-                                            placeholder="Teacher ID"
-                                            value={detail.teacherId}
-                                            onChange={(e) => handleDetailChange(index, 'teacherId', parseInt(e.target.value))}
-                                            className="border rounded p-2"
-                                        />
-                                        <select
-                                            value={detail.dayOfWeek}
-                                            onChange={(e) => handleDetailChange(index, 'dayOfWeek', e.target.value)}
-                                            className="border rounded p-2"
-                                        >
-                                            <option value="">Chọn ngày</option>
-                                            <option value="Thứ Hai">Thứ Hai</option>
-                                            <option value="Thứ Ba">Thứ Ba</option>
-                                            <option value="Thứ Tư">Thứ Tư</option>
-                                            <option value="Thứ Năm">Thứ Năm</option>
-                                            <option value="Thứ Sáu">Thứ Sáu</option>
-                                            <option value="Thứ Bảy">Thứ Bảy</option>
-                                            <option value="Chủ Nhật">Chủ Nhật</option>
-                                        </select>
-                                        <input
-                                            type="number"
-                                            placeholder="Period ID"
-                                            value={detail.periodId}
-                                            onChange={(e) => handleDetailChange(index, 'periodId', parseInt(e.target.value))}
-                                            className="border rounded p-2"
-                                        />
-                                        <Button
-                                            variant="outline"
-                                            className="text-red-500 hover:text-red-700"
-                                            onClick={() => handleRemoveDetail(index)}
-                                            disabled={newTimetable.details.length === 1}
-                                        >
-                                            Xóa
-                                        </Button>
-                                    </div>
-                                ))}
-                                <Button
-                                    variant="outline"
-                                    className="mt-2"
-                                    onClick={handleAddDetail}
-                                >
-                                    Thêm chi tiết
-                                </Button>
-                            </div>
+
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button

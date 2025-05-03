@@ -18,6 +18,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "../ui/dropdown-menu";
+import { getSemesterByYear } from "../../services/schedule/api";
 
 const Header = ({ setCurrentYear }) => {
   const navigate = useNavigate();
@@ -33,12 +34,17 @@ const Header = ({ setCurrentYear }) => {
         setCurrentYear(parsedYear);
       } else {
         const now = new Date();
-        // Tìm năm học phù hợp với thời gian hiện tại
-        const currentYear =
-          academicYears.data.find(
-            (year) =>
-              new Date(year.startDate) <= now && now <= new Date(year.endDate),
-          ) || academicYears.data[0];
+        let currentYear = academicYears.data.find(
+          (year) =>
+            new Date(year.startDate) <= now && now <= new Date(year.endDate),
+        );
+
+        if (!currentYear) {
+          // Nếu không tìm được năm phù hợp, chọn năm có endDate mới nhất
+          currentYear = academicYears.data
+            .slice()
+            .sort((a, b) => new Date(b.endDate) - new Date(a.endDate))[0];
+        }
         console.log(currentYear);
         setSelectedYear(currentYear);
         setCurrentYear(currentYear);
@@ -62,7 +68,7 @@ const Header = ({ setCurrentYear }) => {
         <div className="flex flex-1 items-center justify-between">
           <div className="flex items-center gap-4">
             <img
-              src="https://picsum.photos/200/300"
+              src="/icon/logo.webp"
               alt="School Logo"
               className="h-12 w-12 object-cover"
             />
@@ -75,17 +81,29 @@ const Header = ({ setCurrentYear }) => {
           <div className="flex items-center gap-4">
             <Select
               value={selectedYear?.academicYearID}
-              onValueChange={(value) => {
+              onValueChange={async (value) => {
                 const year = academicYears.data.find(
                   (y) => y.academicYearID === value,
                 );
                 setSelectedYear(year);
                 setCurrentYear(year);
 
+                // Lưu vào sessionStorage cho việc duy trì trạng thái khi refresh
                 sessionStorage.setItem(
                   "currentAcademicYear",
                   JSON.stringify(year),
                 );
+
+                // Lưu thêm vào localStorage cho academicYearID và yearName
+                localStorage.setItem(
+                  "selectedAcademicYearID",
+                  year.academicYearID,
+                );
+                localStorage.setItem("selectedYearName", year.yearName);
+
+                // Gọi API để lấy thông tin học kỳ
+                const semesters = await getSemesterByYear(year.academicYearID);
+                localStorage.setItem("semesters", JSON.stringify(semesters));
               }}
             >
               <SelectTrigger className="w-[130px]">
