@@ -327,8 +327,8 @@ builder.Services.AddSwaggerGen(option =>
 var app = builder.Build();
 
 // Configure the HTTP request pipeline
-if (app.Environment.IsDevelopment())
-{
+//if (app.Environment.IsDevelopment())
+//{
     app.UseDeveloperExceptionPage();
     app.UseSwagger();
     app.UseSwaggerUI(options =>
@@ -338,7 +338,7 @@ if (app.Environment.IsDevelopment())
         options.OAuthScopes("profile", "email");
         options.OAuthUsePkce();
     });
-}
+//}
 
 app.UseCors("AllowAll");
 
