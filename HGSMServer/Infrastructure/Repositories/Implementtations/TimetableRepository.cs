@@ -183,39 +183,5 @@ namespace Infrastructure.Repositories.Implementtations
             await _context.SaveChangesAsync();
             return detail;
         }
-
-        public async Task<IEnumerable<Class>> GetAllClassesAsync()
-        {
-            return await _context.Classes.Where(c => c.Status == "Hoạt động").ToListAsync(); // Lọc lớp đang hoạt động
-        }
-
-        public async Task<IEnumerable<Subject>> GetAllSubjectsAsync()
-        {
-            return await _context.Subjects.ToListAsync();
-        }
-
-        // Trong TimetableRepository.cs
-
-        public async Task<IEnumerable<Period>> GetAllPeriodsAsync()
-        {
-            // Lấy các cột cần thiết để xác định tiết học
-            return await _context.Periods
-                                 .Select(p => new Period
-                                 {
-                                     PeriodId = p.PeriodId,
-                                     PeriodName = p.PeriodName, // Ví dụ: "Tiết 1", "Tiết 2"
-                                     Shift = p.Shift // 1 = Sáng, 2 = Chiều (dựa trên CHECK constraint)
-                                 })
-                                 .ToListAsync();
-        }
-
-        public async Task<Timetable?> FindBySemesterAndEffectiveDateAsync(int semesterId, DateOnly effectiveDate)
-        {
-            return await _context.Timetables
-                                 .FirstOrDefaultAsync(t => t.SemesterId == semesterId && t.EffectiveDate == effectiveDate);
-        }
-
-
-        // Implement các phương thức Get...IdByNameAsync nếu cần tối ưu hiệu năng
     }
 }
