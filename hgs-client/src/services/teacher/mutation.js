@@ -15,9 +15,14 @@ export function useImportTeachers() {
     mutationFn: (fileExcel) => importTeachers(fileExcel),
     onSettled: (data, error) => {
       if (error) {
-        console.log(error);
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
+        toast.success("Import giáo viên thành công");
       }
     },
   });
@@ -32,8 +37,11 @@ export function useUpdateTeacher() {
     onSettled: (data, error, inputData) => {
       if (error) {
         console.log(error);
-        console.log("đã có lỗi xảy ra");
-        toast.error("Đã có lỗi xảy ra");
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log("cập nhật thành công");
         queryClient.invalidateQueries("teacher", inputData.id);
@@ -49,7 +57,11 @@ export function useCreateTeacher() {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        toast.error("Đã có lỗi xảy ra");
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
         console.log("tạo mới thành công");
@@ -67,7 +79,11 @@ export function useDeleteTeacher() {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        console.log("đã có lỗi xảy ra");
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
         console.log("xóa thành công");
@@ -85,7 +101,11 @@ export function useUploadExam() {
     onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
-        toast.error("đã có lỗi xảy ra");
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
         toast.success("Tải lên đề thi thành công");
@@ -103,7 +123,12 @@ export function useTakeAttendance() {
     onSettled: (data, error, variables) => {
       if (error) {
         console.log(error);
-        toast.error("đã có lỗi xảy ra");
+
+        if (error.response?.data?.message) {
+          toast.error(error.response?.data?.message);
+        } else {
+          toast.error("Đã có lỗi xảy ra");
+        }
       } else {
         console.log(data);
         toast.success("Điểm danh thành công");

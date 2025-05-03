@@ -11,11 +11,13 @@ namespace Application.Features.Timetables.Services
     public class TimetableService : ITimetableService
     {
         private readonly ITimetableRepository _repository;
+        private readonly ITimetableDetailRepository _timetableDetailRepository;
         private readonly IMapper _mapper;
 
-        public TimetableService(ITimetableRepository repository, IMapper mapper)
+        public TimetableService(ITimetableRepository repository, ITimetableDetailRepository timetableDetailRepository, IMapper mapper)
         {
             _repository = repository;
+            _timetableDetailRepository = timetableDetailRepository;
             _mapper = mapper;
         }
 
@@ -68,6 +70,7 @@ namespace Application.Features.Timetables.Services
 
             timetable.SemesterId = dto.SemesterId;
             timetable.EffectiveDate = dto.EffectiveDate;
+            timetable.EndDate = dto.EndDate;
             timetable.Status = dto.Status;
 
             await _repository.UpdateTimetableAsync(timetable);
@@ -99,10 +102,10 @@ namespace Application.Features.Timetables.Services
                 detail.DayOfWeek = detailDto.DayOfWeek;
                 detail.PeriodId = detailDto.PeriodId;
 
-                if (await _repository.IsConflictAsync(detail))
-                {
-                    throw new InvalidOperationException($"Conflict detected for timetable detail ID {detail.TimetableDetailId} on {detail.DayOfWeek} at period {detail.PeriodId}.");
-                }
+                //if (await _repository.IsConflictAsync(detail))
+                //{
+                //    throw new InvalidOperationException($"Conflict detected for timetable detail ID {detail.TimetableDetailId} on {detail.DayOfWeek} at period {detail.PeriodId}.");
+                //}
 
                 detailsToUpdate.Add(detail);
             }
@@ -115,11 +118,11 @@ namespace Application.Features.Timetables.Services
             return await _repository.DeleteDetailAsync(detailId);
         }
 
-        public async Task<bool> IsConflictAsync(TimetableDetailDto detailDto)
-        {
-            var detail = _mapper.Map<TimetableDetail>(detailDto);
-            return await _repository.IsConflictAsync(detail);
-        }
+        //public async Task<bool> IsConflictAsync(TimetableDetailDto detailDto)
+        //{
+        //    var detail = _mapper.Map<TimetableDetail>(detailDto);
+        //    return await _repository.IsConflictAsync(detail);
+        //}
 
         // using Microsoft.AspNetCore.Http; // Thêm ở đầu file nếu chưa có
         // using Common.Utils; // Namespace chứa ExcelImportHelper
@@ -304,6 +307,27 @@ namespace Application.Features.Timetables.Services
             }
 
             return importedCount;
+        }
+        public async Task CreateDetailAsync(CreateTimetableDetailRequest request)
+        {
+            //var conflict = await _timetableDetailRepository.IsConflictAsync(request.ClassId, request.DayOfWeek, request.PeriodId);
+            //if (conflict)
+            //{
+            //    throw new Exception("Lớp này đã có tiết học vào thời điểm này.");
+            //}
+
+            var detail = new TimetableDetail
+            {
+                TimetableId = request.TimetableId,
+                ClassId = request.ClassId,
+                SubjectId = request.SubjectId,
+                TeacherId = request.TeacherId,
+                DayOfWeek = request.DayOfWeek,
+                PeriodId = request.PeriodId
+            };
+
+            await _timetableDetailRepository.AddAsync(detail);
+            await _timetableDetailRepository.SaveChangesAsync();
         }
     }
 

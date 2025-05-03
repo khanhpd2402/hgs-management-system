@@ -17,7 +17,18 @@ namespace Infrastructure.Repositories.Implementtations
         {
             _context = context;
         }
+        public async Task AddAsync(TimetableDetail detail)
+        {
+            await _context.TimetableDetails.AddAsync(detail);
+        }
 
+        //public async Task<bool> IsConflictAsync(int classId, string dayOfWeek, int periodId)
+        //{
+        //    return await _context.TimetableDetails.AnyAsync(x =>
+        //        x.ClassId == classId &&
+        //        x.DayOfWeek == dayOfWeek &&
+        //        x.PeriodId == periodId);
+        //}
         public async Task<TimetableDetail> GetByIdAsync(int timetableDetailId)
         {
             return await _context.TimetableDetails
@@ -34,6 +45,10 @@ namespace Infrastructure.Repositories.Implementtations
                           && td.PeriodId == periodId
                           && td.TimetableId == timetableId)
                 .FirstOrDefaultAsync();
+        }
+        public async Task SaveChangesAsync()
+        {
+            await _context.SaveChangesAsync();
         }
     }
 }

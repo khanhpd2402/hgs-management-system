@@ -81,5 +81,14 @@ namespace Common.Constants
 
             public static readonly string[] All = { MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY };
         }
+        public static class TeacherStatus
+        {
+            public const string WORKING = "Đang làm việc";
+            public const string ON_LEAVE = "Tạm nghỉ";
+            public const string RETIRED = "Đã nghỉ hưu";
+            public const string RESIGNED = "Đã nghỉ việc";
+            public static readonly string[] All = { WORKING, ON_LEAVE, RETIRED, RESIGNED };
+        }
+
     }
 }

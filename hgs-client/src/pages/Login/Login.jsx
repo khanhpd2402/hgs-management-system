@@ -37,7 +37,7 @@ const Login = () => {
 
   useEffect(() => {
     const img = new window.Image();
-    img.src = "school.jpg";
+    img.src = "/school.jpg";
     img.onload = () => setBgLoaded(true);
   }, []);
 

@@ -64,6 +64,8 @@ using Application.Features.SubstituteTeachings.Interfaces;
 using Application.Features.SubstituteTeachings.Services;
 using Application.Features.Conducts.Interfaces;
 using Application.Features.Conducts.Services;
+using Application.Features.Statistics.Interfaces;
+using Application.Features.Statistics.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -161,6 +163,8 @@ builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();
 builder.Services.AddScoped<ILessonPlanRepository, LessonPlanRepository>();
 builder.Services.AddScoped<IAssignHomeRoomService, AssignHomeRoomService>();
+builder.Services.AddScoped<IStatisticsRepository, StatisticsRepository>();
+builder.Services.AddScoped<IStatisticsService, StatisticsService>();
 // Class & Timetable Management
 builder.Services.AddScoped<IClassService, ClassService>();
 builder.Services.AddScoped<IClassRepository, ClassRepository>();
