@@ -6,6 +6,7 @@ import {
   updateTimeTableDetail,
   createTimeTableDetail,
   updateTimetableInfo,
+  createTimetable,
 } from "./api";
 import toast from "react-hot-toast";
 
@@ -77,6 +78,21 @@ export function useUpdateTimetableInfo() {
     onError: (error) => {
       console.error("Lỗi khi cập nhật thông tin thời khóa biểu:", error);
       toast.error("Có lỗi xảy ra khi cập nhật thông tin thời khóa biểu");
+    },
+  });
+}
+
+export function useCreateTimetable() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: createTimetable,
+    onSuccess: () => {
+      queryClient.invalidateQueries(["timetables"]);
+      toast.success("Tạo thời khóa biểu thành công");
+    },
+    onError: (error) => {
+      console.error("Lỗi khi tạo thời khóa biểu:", error);
+      toast.error("Có lỗi xảy ra khi tạo thời khóa biểu");
     },
   });
 }
