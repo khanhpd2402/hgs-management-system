@@ -191,9 +191,11 @@ const Login = () => {
                 <Button
                   type="submit"
                   className="login-button w-full py-6 text-base font-medium"
-                  disabled={googleLoginMutation.isPending}
+                  disabled={
+                    loginMutation.isPending || googleLoginMutation.isPending
+                  }
                 >
-                  {googleLoginMutation.isPending
+                  {loginMutation.isPending || googleLoginMutation.isPending
                     ? "Đang đăng nhập..."
                     : "Đăng nhập"}
                 </Button>

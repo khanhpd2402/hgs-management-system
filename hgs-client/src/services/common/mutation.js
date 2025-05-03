@@ -19,7 +19,7 @@ export const useLoginMutation = () => {
 
 export const useGoogleLoginMutation = () => {
   return useMutation({
-    mutationFn: (data) => googleLogin(data),
+    mutationFn: ({ credential }) => googleLogin(credential),
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
