@@ -57,7 +57,7 @@ namespace HGSMAPI.Controllers
             }
         }
         [HttpGet("homeroom-attendance/{teacherId}/{semesterId}")]
-        [Authorize(Roles = "Giáo viên")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
         public async Task<IActionResult> GetHomeroomAttendance(int teacherId, int semesterId, [FromQuery] DateOnly weekStart)
         {
             try

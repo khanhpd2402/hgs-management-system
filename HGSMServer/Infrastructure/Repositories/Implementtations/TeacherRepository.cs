@@ -151,5 +151,11 @@ namespace Infrastructure.Repositories.Implementtations
                 await _context.SaveChangesAsync();
             }
         }
+        public async Task<List<Teacher>> GetTeachersByDepartmentAsync(string department)
+        {
+            return await _context.Teachers
+                .Where(t => t.Department == department)
+                .ToListAsync();
+        }
     }
 }

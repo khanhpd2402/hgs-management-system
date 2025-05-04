@@ -4,6 +4,7 @@ using Google.Apis.Services;
 using Google.Apis.Upload;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
+using System.IO;
 
 namespace HGSMAPI
 {
@@ -14,16 +15,24 @@ namespace HGSMAPI
 
         public GoogleDriveService(IConfiguration configuration)
         {
-            var credentialPath = Path.Combine(Directory.GetCurrentDirectory(), "Config", "service-account-credentials.json");
-            var credential = GoogleCredential.FromFile(credentialPath)
+            var credentialJson = configuration["GCP_CREDENTIALS"]
+                ?? Environment.GetEnvironmentVariable("GCP_CREDENTIALS");
+
+            if (string.IsNullOrEmpty(credentialJson))
+            {
+                throw new Exception("GCP_CREDENTIALS not found in configuration or environment variables.");
+            }
+
+            var credential = GoogleCredential.FromJson(credentialJson)
                 .CreateScoped(DriveService.Scope.DriveFile);
+
             _driveService = new DriveService(new BaseClientService.Initializer
             {
                 HttpClientInitializer = credential,
                 ApplicationName = "HGSMServer"
             });
 
-            _rootFolderId = "1cJ9S4PXMpXe99lF57coEXodkNNPIqBU1"; 
+            _rootFolderId = "1cJ9S4PXMpXe99lF57coEXodkNNPIqBU1";
         }
 
         private async Task<string> GetOrCreateFolderAsync(string folderName, string parentFolderId)
@@ -52,7 +61,7 @@ namespace HGSMAPI
             return folder.Id;
         }
 
-        public async Task<string> UploadWordFileAsync(IFormFile file, int subjectId, int grade, string subjectName)
+        public async Task<string> UploadFileAsync(IFormFile file, int subjectId, int grade, string subjectName)
         {
             var subjectFolderId = await GetOrCreateFolderAsync(subjectName, _rootFolderId);
             var gradeFolderName = $"Khối {grade}";
@@ -60,7 +69,7 @@ namespace HGSMAPI
 
             var fileMetadata = new Google.Apis.Drive.v3.Data.File
             {
-                Name = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}",
+                Name = file.FileName, 
                 MimeType = file.ContentType,
                 Parents = new List<string> { gradeFolderId }
             };
@@ -84,6 +93,7 @@ namespace HGSMAPI
 
             return $"https://drive.google.com/uc?id={fileId}";
         }
+
         public async Task DeleteFileAsync(string fileUrl)
         {
             if (string.IsNullOrEmpty(fileUrl))
@@ -114,8 +124,6 @@ namespace HGSMAPI
 
         private string ExtractFileIdFromUrl(string fileUrl)
         {
-            // This is a basic implementation and might need adjustments based on your URL format.
-            // It assumes the URL is in the format "https://drive.google.com/uc?id=FILE_ID"
             Uri uri = new Uri(fileUrl);
             var query = System.Web.HttpUtility.ParseQueryString(uri.Query);
             return query["id"];

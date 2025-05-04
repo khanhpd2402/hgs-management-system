@@ -28,6 +28,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task DeleteTeacherSubjectsRangeAsync(IEnumerable<TeacherSubject> teacherSubjects);
         Task UpdateUserAsync(User user);
         Task DeleteUserAsync(int userId);
+        Task<List<Teacher>> GetTeachersByDepartmentAsync(string department);
 
     }
 }

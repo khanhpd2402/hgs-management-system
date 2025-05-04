@@ -20,7 +20,7 @@ public class TeachersController : ControllerBase
 
     [HttpGet]
     [EnableQuery]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> GetAllTeachers()
     {
         Console.WriteLine("Fetching all teachers...");
@@ -29,7 +29,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpGet("{id}")]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> GetTeacherById(int id)
     {
         try
@@ -52,7 +52,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpGet("{id}/email")]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> GetEmailByTeacherId(int id)
     {
         try
@@ -80,7 +80,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpPost]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> AddTeacher([FromBody] TeacherListDto teacherDto)
     {
         try
@@ -108,7 +108,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpPut("{id}")]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> UpdateTeacher(int id, [FromBody] TeacherDetailDto teacherDto)
     {
         try
@@ -148,7 +148,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpDelete("{id}")]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> DeleteTeacher(int id)
     {
         try
@@ -171,7 +171,7 @@ public class TeachersController : ControllerBase
     }
 
     [HttpPost("import")]
-    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư")]
+    [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Cán bộ văn thư,Trưởng bộ môn")]
     public async Task<IActionResult> ImportTeachersFromExcel(IFormFile file)
     {
         try

@@ -78,7 +78,7 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine("Updating user...");
                 await _userService.UpdateUserAsync(userDto);
-                return NoContent();
+                return Ok("Cập nhật thành công");
             }
             catch (ArgumentException ex)
             {
@@ -187,7 +187,7 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error changing status: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật trạng thái.");
+                return BadRequest("Lỗi khi cập nhật trạng thái. " + ex.Message);
             }
             catch (Exception ex)
             {

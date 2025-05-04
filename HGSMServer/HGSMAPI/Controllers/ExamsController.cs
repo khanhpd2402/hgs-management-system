@@ -18,7 +18,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("exam-proposal")]
-        [Authorize(Roles = "Giáo viên")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
         public async Task<IActionResult> CreateExamProposal([FromForm] ExamProposalRequestDto request)
         {
             try
@@ -30,17 +30,17 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error creating exam proposal: {ex.Message}");
-                return BadRequest("Lỗi khi tạo đề thi.");
+                return BadRequest(ex.Message); // Trả về thông báo lỗi chi tiết
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error creating exam proposal: {ex.Message}");
-                return NotFound("Không tìm thấy dữ liệu liên quan.");
+                return NotFound(ex.Message); // Trả về thông báo lỗi chi tiết
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error creating exam proposal: {ex.Message}");
-                return BadRequest("Lỗi khi tạo đề thi.");
+                return BadRequest(ex.Message); // Trả về thông báo lỗi chi tiết
             }
             catch (Exception ex)
             {
@@ -61,7 +61,7 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error fetching exam proposal: {ex.Message}");
-                return NotFound("Không tìm thấy đề thi.");
+                return NotFound(ex.Message); // Trả về thông báo lỗi chi tiết
             }
             catch (Exception ex)
             {
@@ -83,17 +83,17 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error updating exam proposal status: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật trạng thái đề thi.");
+                return BadRequest(ex.Message); 
             }
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating exam proposal status: {ex.Message}");
-                return NotFound("Không tìm thấy đề thi.");
+                return NotFound(ex.Message); 
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating exam proposal status: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật trạng thái đề thi.");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
@@ -103,7 +103,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("exam-proposals/status/{status}")]
-        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Trưởng bộ môn")]
         public async Task<IActionResult> GetExamProposalsByStatus(string status)
         {
             try
@@ -115,12 +115,12 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
-                return BadRequest("Lỗi khi lấy danh sách đề thi theo trạng thái.");
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
-                return BadRequest("Lỗi khi lấy danh sách đề thi theo trạng thái.");
+                return BadRequest(ex.Message); 
             }
             catch (Exception ex)
             {
@@ -142,12 +142,12 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating exam proposal: {ex.Message}");
-                return NotFound("Không tìm thấy đề thi.");
+                return NotFound(ex.Message); 
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating exam proposal: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật đề thi.");
+                return BadRequest(ex.Message); 
             }
             catch (Exception ex)
             {
@@ -157,7 +157,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("exam-proposals")]
-        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư,Trưởng bộ môn")]
         public async Task<IActionResult> GetAllExamProposals()
         {
             try
@@ -169,7 +169,7 @@ namespace HGSMAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
-                return BadRequest("Lỗi khi lấy danh sách tất cả đề thi.");
+                return BadRequest(ex.Message); 
             }
             catch (Exception ex)
             {
@@ -179,7 +179,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("exam-proposals/teacher/{teacherId}")]
-        [Authorize(Roles = "Giáo viên,Hiệu trưởng,Cán bộ văn thư")]
+        [Authorize(Roles = "Giáo viên,Hiệu trưởng,Cán bộ văn thư,Trưởng bộ môn")]
         public async Task<IActionResult> GetExamProposalsByTeacherId(int teacherId)
         {
             try
@@ -191,7 +191,7 @@ namespace HGSMAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching exam proposals: {ex.Message}");
-                return BadRequest("Lỗi khi lấy danh sách đề thi của giáo viên.");
+                return BadRequest(ex.Message); 
             }
             catch (Exception ex)
             {
@@ -201,7 +201,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("department-head-statistics")]
-        [Authorize(Roles = "Trưởng bộ môn")]
+        [Authorize(Roles = "Trưởng bộ môn,Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> GetDepartmentHeadExamProposalStatistics()
         {
             try
@@ -213,12 +213,12 @@ namespace HGSMAPI.Controllers
             catch (UnauthorizedAccessException ex)
             {
                 Console.WriteLine($"Unauthorized access: {ex.Message}");
-                return Unauthorized("Không có quyền truy cập.");
+                return Unauthorized(ex.Message); 
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching exam proposal statistics: {ex.Message}");
-                return BadRequest("Lỗi khi lấy thống kê đề thi.");
+                return BadRequest(ex.Message); 
             }
             catch (Exception ex)
             {

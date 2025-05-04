@@ -35,7 +35,7 @@ namespace Application.Features.HomeRooms.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error assigning homeroom: {ex.Message}");
-                return BadRequest("Lỗi khi phân công giáo viên chủ nhiệm.");
+                return BadRequest(ex.Message);
             }
             catch (KeyNotFoundException ex)
             {
