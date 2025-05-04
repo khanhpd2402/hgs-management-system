@@ -109,6 +109,7 @@ namespace Application.Features.Exams.Services
                 throw new KeyNotFoundException($"Không tìm thấy đề thi với ID {proposalId}.");
             }
 
+            // Kiểm tra trạng thái hiện tại và trạng thái mới để áp dụng quy tắc chuyển trạng thái
             if (proposal.Status == "Chờ duyệt")
             {
                 if (status != "Đã duyệt" && status != "Từ chối")
@@ -120,7 +121,7 @@ namespace Application.Features.Exams.Services
             {
                 if (status != "Từ chối")
                 {
-                    throw new InvalidOperationException("Chỉ có thể chuyển từ 'Đã duyệt' sang 'Từ chối'.");
+                    throw new InvalidOperationException("Chỉ có thể chuyển từ 'Đã duyệt' sang 'Từ chối'. Không thể chuyển về 'Chờ duyệt'.");
                 }
             }
             else if (proposal.Status == "Từ chối")
@@ -128,6 +129,10 @@ namespace Application.Features.Exams.Services
                 if (status == "Đã duyệt")
                 {
                     throw new InvalidOperationException("Không thể chuyển từ 'Từ chối' sang 'Đã duyệt'.");
+                }
+                if (status == "Chờ duyệt")
+                {
+                    throw new InvalidOperationException("Không thể chuyển từ 'Từ chối' về 'Chờ duyệt'.");
                 }
             }
 
