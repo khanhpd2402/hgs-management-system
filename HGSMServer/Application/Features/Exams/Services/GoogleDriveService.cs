@@ -15,16 +15,15 @@ namespace HGSMAPI
 
         public GoogleDriveService(IConfiguration configuration)
         {
-            // Đọc chuỗi JSON từ biến môi trường hoặc configuration
             var credentialJson = configuration["GCP_CREDENTIALS"]
                 ?? Environment.GetEnvironmentVariable("GCP_CREDENTIALS");
 
             if (string.IsNullOrEmpty(credentialJson))
             {
+                Console.WriteLine("GCP_CREDENTIALS not found in configuration or environment variables.");
                 throw new Exception("GCP_CREDENTIALS not found in configuration or environment variables.");
             }
 
-            // Tạo credential từ chuỗi JSON
             var credential = GoogleCredential.FromJson(credentialJson)
                 .CreateScoped(DriveService.Scope.DriveFile);
 
