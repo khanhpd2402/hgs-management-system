@@ -207,7 +207,7 @@ const Login = () => {
                   </span>
                   {googleLoginMutation.isPending ? (
                     <div className="flex w-full justify-center">
-                      <div className="h-10 w-40 animate-pulse rounded bg-gray-200" />
+                      <p>Đang đăng nhập...</p>
                     </div>
                   ) : (
                     <GoogleLogin
