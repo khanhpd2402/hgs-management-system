@@ -1,5 +1,7 @@
 ﻿using Application.Features.Attendances.DTOs;
 using Application.Features.Attendances.Interfaces;
+using Application.Features.Attendances.Services;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace HGSMAPI.Controllers
@@ -52,6 +54,27 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine($"Error upserting attendances: {ex.Message}");
                 return StatusCode(500, "Lỗi khi điểm danh.");
+            }
+        }
+        [HttpGet("homeroom-attendance/{teacherId}/{semesterId}")]
+        [Authorize(Roles = "Giáo viên")]
+        public async Task<IActionResult> GetHomeroomAttendance(int teacherId, int semesterId, [FromQuery] DateOnly weekStart)
+        {
+            try
+            {
+                Console.WriteLine("Fetching homeroom attendance...");
+                var attendances = await _service.GetHomeroomAttendanceAsync(teacherId, semesterId, weekStart);
+                return Ok(attendances);
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching homeroom attendance: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thông tin điểm danh.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching homeroom attendance: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin điểm danh.");
             }
         }
     }

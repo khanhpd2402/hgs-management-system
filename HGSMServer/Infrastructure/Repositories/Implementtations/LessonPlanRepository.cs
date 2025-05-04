@@ -91,5 +91,12 @@ namespace Infrastructure.Repositories.Implementations
                .ToListAsync();
             return (lessonPlans, totalCount);
         }
+
+        public async Task<IEnumerable<LessonPlan>> GetAll()
+        {
+            return await GetQueryWithIncludes()
+                .OrderByDescending(lp => lp.PlanId)
+                .ToListAsync();
+        }
     }
 }

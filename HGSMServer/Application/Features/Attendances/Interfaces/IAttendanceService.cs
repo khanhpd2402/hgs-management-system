@@ -12,5 +12,6 @@ namespace Application.Features.Attendances.Interfaces
     {
         Task<List<AttendanceDto>> GetWeeklyAttendanceAsync(int teacherId, int classId, int semesterId, DateOnly weekStart);
         Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos);
+        Task<List<AttendanceDto>> GetHomeroomAttendanceAsync(int teacherId, int semesterId, DateOnly weekStart);
     }
 }

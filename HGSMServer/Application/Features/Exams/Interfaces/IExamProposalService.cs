@@ -12,5 +12,6 @@ namespace Application.Features.Exams.Interfaces
         Task<ExamProposalDto> UpdateExamProposalAsync(int proposalId, ExamProposalUpdateDto request);
         Task<IEnumerable<ExamProposalDto>> GetAllAsync();
         Task<IEnumerable<ExamProposalDto>> GetAllByTeacherIdAsync(int teacherId);
+        Task<ExamProposalStatisticsDto> GetDepartmentHeadExamProposalStatisticsAsync();
     }
 }
