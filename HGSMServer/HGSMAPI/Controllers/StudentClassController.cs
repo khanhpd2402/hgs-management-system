@@ -474,5 +474,31 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi lấy thông tin giáo viên.");
             }
         }
+        [HttpGet("homeroom-class-info/{teacherId}/{semesterId}")]
+        [Authorize(Roles = "Giáo viên")]
+        public async Task<IActionResult> GetHomeroomClassInfo(int teacherId, int semesterId)
+        {
+            try
+            {
+                Console.WriteLine("Fetching homeroom class info...");
+                var classInfo = await _studentClassService.GetHomeroomClassInfoAsync(teacherId, semesterId);
+                return Ok(classInfo);
+            }
+            catch (KeyNotFoundException ex)
+            {
+                Console.WriteLine($"Error fetching homeroom class info: {ex.Message}");
+                return NotFound("Không tìm thấy dữ liệu liên quan.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching homeroom class info: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thông tin lớp chủ nhiệm.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching homeroom class info: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thông tin lớp chủ nhiệm.");
+            }
+        }
     }
 }

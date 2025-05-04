@@ -11,6 +11,12 @@ namespace Infrastructure.Repositories.UnitOfWork
     public class AttendanceUnitOfWork : IAttendanceUnitOfWork
     {
         private readonly HgsdbContext _context;
+        private readonly IAttendanceRepository _attendanceRepository;
+        private readonly ITeachingAssignmentRepository _teachingAssignmentRepository;
+        private readonly IStudentClassRepository _studentClassRepository;
+        private readonly IParentRepository _parentRepository;
+        private readonly ITeacherRepository _teacherRepository;
+        private readonly IHomeroomAssignmentRepository _homeroomAssignmentRepository;
 
         public AttendanceUnitOfWork(
             HgsdbContext context,
@@ -18,21 +24,24 @@ namespace Infrastructure.Repositories.UnitOfWork
             ITeachingAssignmentRepository teachingAssignmentRepository,
             IStudentClassRepository studentClassRepo,
             IParentRepository parentRepo,
-            ITeacherRepository teacherRepo)
+            ITeacherRepository teacherRepo,
+            IHomeroomAssignmentRepository homeroomAssignmentRepo)
         {
             _context = context;
-            AttendanceRepository = attendanceRepo;
-            TeachingAssignmentRepository = teachingAssignmentRepository;
-            StudentClassRepository = studentClassRepo;
-            ParentRepository = parentRepo;
-            TeacherRepository = teacherRepo;
+            _attendanceRepository = attendanceRepo;
+            _teachingAssignmentRepository = teachingAssignmentRepository;
+            _studentClassRepository = studentClassRepo;
+            _parentRepository = parentRepo;
+            _teacherRepository = teacherRepo;
+            _homeroomAssignmentRepository = homeroomAssignmentRepo; 
         }
 
-        public IAttendanceRepository AttendanceRepository { get; }
-        public ITeachingAssignmentRepository TeachingAssignmentRepository { get; }
-        public IStudentClassRepository StudentClassRepository { get; }
-        public IParentRepository ParentRepository { get; }
-        public ITeacherRepository TeacherRepository { get; }
+        public IAttendanceRepository AttendanceRepository => _attendanceRepository;
+        public ITeachingAssignmentRepository TeachingAssignmentRepository => _teachingAssignmentRepository;
+        public IStudentClassRepository StudentClassRepository => _studentClassRepository;
+        public IParentRepository ParentRepository => _parentRepository;
+        public ITeacherRepository TeacherRepository => _teacherRepository;
+        public IHomeroomAssignmentRepository HomeroomAssignmentRepository => _homeroomAssignmentRepository; 
 
         public async Task SaveChangesAsync()
         {
