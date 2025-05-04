@@ -1326,5 +1326,41 @@ namespace Application.Features.StudentClass.Services
                 throw new InvalidOperationException("Không thể lấy thông tin giáo viên do lỗi hệ thống.", ex);
             }
         }
+        public async Task<HomeroomClassInfoDto> GetHomeroomClassInfoAsync(int teacherId, int semesterId)
+        {
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+            if (userRole != "Giáo viên")
+            {
+                throw new UnauthorizedAccessException("Chỉ Giáo viên có quyền truy cập thông tin lớp chủ nhiệm.");
+            }
+
+            var semester = await _semesterRepository.GetByIdAsync(semesterId);
+            if (semester == null)
+            {
+                throw new KeyNotFoundException($"Không tìm thấy học kỳ với ID {semesterId}.");
+            }
+
+            var homeroomAssignment = await _context.HomeroomAssignments
+                .Where(ha => ha.TeacherId == teacherId && ha.SemesterId == semesterId && ha.Status == "Hoạt Động")
+                .Include(ha => ha.Class)
+                .FirstOrDefaultAsync();
+
+            if (homeroomAssignment == null)
+            {
+                throw new InvalidOperationException("Giáo viên không được phân công làm chủ nhiệm lớp nào trong học kỳ này.");
+            }
+
+            var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(homeroomAssignment.ClassId, semester.AcademicYearId);
+            var studentCount = studentClasses.Count();
+
+            return new HomeroomClassInfoDto
+            {
+                ClassId = homeroomAssignment.ClassId,
+                ClassName = homeroomAssignment.Class.ClassName,
+                SemesterId = semesterId,
+                SemesterName = semester.SemesterName,
+                TotalStudents = studentCount
+            };
+        }
     }
 }

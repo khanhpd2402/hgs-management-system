@@ -15,5 +15,6 @@ namespace Infrastructure.Repositories.UnitOfWork
         IParentRepository ParentRepository { get; }
         ITeacherRepository TeacherRepository { get; }
         Task SaveChangesAsync();
+        IHomeroomAssignmentRepository HomeroomAssignmentRepository { get; }
     }
 }

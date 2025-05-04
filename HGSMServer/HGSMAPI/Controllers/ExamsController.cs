@@ -199,5 +199,32 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi lấy danh sách đề thi của giáo viên.");
             }
         }
+
+        [HttpGet("department-head-statistics")]
+        [Authorize(Roles = "Trưởng bộ môn")]
+        public async Task<IActionResult> GetDepartmentHeadExamProposalStatistics()
+        {
+            try
+            {
+                Console.WriteLine("Fetching exam proposal statistics for department head...");
+                var statistics = await _examProposalService.GetDepartmentHeadExamProposalStatisticsAsync();
+                return Ok(statistics);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching exam proposal statistics: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thống kê đề thi.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching exam proposal statistics: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thống kê đề thi.");
+            }
+        }
     }
 }

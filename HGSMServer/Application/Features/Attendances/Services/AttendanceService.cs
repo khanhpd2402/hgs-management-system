@@ -134,6 +134,17 @@ namespace Application.Features.Attendances.Services
                 //    throw new InvalidOperationException("Buổi học không hợp lệ.");
             }
         }
+        public async Task<List<AttendanceDto>> GetHomeroomAttendanceAsync(int teacherId, int semesterId, DateOnly weekStart)
+        {
+            var homeroomAssignment = await _uow.HomeroomAssignmentRepository.GetByTeacherAndSemesterAsync(teacherId, semesterId);
+            if (homeroomAssignment == null)
+            {
+                throw new InvalidOperationException("Giáo viên không được phân công làm chủ nhiệm lớp nào trong học kỳ này.");
+            }
+
+            var attendances = await _uow.AttendanceRepository.GetByWeekAsync(homeroomAssignment.ClassId, weekStart);
+            return _mapper.Map<List<AttendanceDto>>(attendances);
+        }
     }
 
 }

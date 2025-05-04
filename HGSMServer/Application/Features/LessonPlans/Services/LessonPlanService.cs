@@ -358,5 +358,25 @@ namespace Application.Features.LessonPlans.Services
 
             return teacher.TeacherId;
         }
+        public async Task<LessonPlanStatisticsDto> GetDepartmentHeadLessonPlanStatisticsAsync()
+        {
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst("role")?.Value;
+            if (userRole != "Trưởng bộ môn")
+            {
+                throw new UnauthorizedAccessException("Chỉ Trưởng bộ môn có quyền truy cập thống kê này.");
+            }
+
+            var lessonPlans = await _lessonPlanRepository.GetAll();
+            var statistics = new LessonPlanStatisticsDto
+            {
+                TotalLessonPlans = lessonPlans.Count(),
+                SubmittedCount = lessonPlans.Count(lp => lp.Status == "Đã nộp" || lp.Status == "Đã duyệt"),
+                PendingCount = lessonPlans.Count(lp => lp.Status == "Đang chờ"),
+                WaitingForApprovalCount = lessonPlans.Count(lp => lp.Status == "Chờ duyệt"),
+                RejectedCount = lessonPlans.Count(lp => lp.Status == "Từ chối")
+            };
+
+            return statistics;
+        }
     }
 }
