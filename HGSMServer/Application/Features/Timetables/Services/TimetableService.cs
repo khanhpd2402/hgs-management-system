@@ -155,8 +155,6 @@ namespace Application.Features.Timetables.Services
 
         public async Task<Timetable> ImportTimetableAsync(IFormFile file, int semesterId, DateOnly effectiveDate)
         {
-            // _logger?.LogInformation("Starting timetable import for Semester {SemesterId}, EffectiveDate {EffectiveDate}", semesterId, effectiveDate);
-
             var detailsToCreate = new List<TimetableDetail>();
             var errors = new StringBuilder();
 
@@ -235,25 +233,38 @@ namespace Application.Features.Timetables.Services
                 }
                 if (string.IsNullOrWhiteSpace(currentDayOfWeek)) continue;
 
-                // Xác định Buổi (Sáng/Chiều)
-                if (string.IsNullOrWhiteSpace(currentShiftName))
-                {
-                    currentShiftName = worksheet.Cell(row, shiftCol).GetString()?.Trim();
-                    if (!string.IsNullOrWhiteSpace(currentShiftName))
-                    {
-                        if (currentShiftName.Equals("Sáng", StringComparison.OrdinalIgnoreCase)) currentShiftValue = AppConstants.Shift.MORNING;
-                        else if (currentShiftName.Equals("Chiều", StringComparison.OrdinalIgnoreCase)) currentShiftValue = AppConstants.Shift.AFTERNOON;
-                        // else if (currentShiftName.Equals("Tối", ...)) currentShiftValue = 3; // Thêm nếu cần
-                        else { errors.AppendLine($"Giá trị Buổi không hợp lệ '{currentShiftName}' tại dòng {row}."); currentShiftValue = 0; }
-                    }
-                    else currentShiftValue = 0;
-                }
-                if (currentShiftValue == 0) continue; // Bỏ qua nếu buổi không hợp lệ
-
-
-                // Xác định Tiết học (PeriodId)
+                // Xác định Tiết học
                 var periodCell = worksheet.Cell(row, periodCol).GetString()?.Trim();
                 if (!int.TryParse(periodCell, out int periodNumber) || periodNumber <= 0) continue;
+
+                // Nếu là tiết 1 → phải kiểm tra lại shift từ file Excel
+                if (periodNumber == 1)
+                {
+                    var shiftCell = worksheet.Cell(row, shiftCol).GetString()?.Trim();
+                    if (!string.IsNullOrWhiteSpace(shiftCell))
+                    {
+                        currentShiftName = shiftCell;
+                        if (shiftCell.Equals("Sáng", StringComparison.OrdinalIgnoreCase))
+                            currentShiftValue = AppConstants.Shift.MORNING;
+                        else if (shiftCell.Equals("Chiều", StringComparison.OrdinalIgnoreCase))
+                            currentShiftValue = AppConstants.Shift.AFTERNOON;
+                        else if (shiftCell.Equals("Tối", StringComparison.OrdinalIgnoreCase))
+                            continue;
+                        else
+                        {
+                            errors.AppendLine($"Giá trị Buổi không hợp lệ '{shiftCell}' tại dòng {row}.");
+                            currentShiftValue = 0;
+                        }
+                    }
+                    else
+                    {
+                        errors.AppendLine($"Thiếu thông tin Buổi tại dòng {row} (Tiết 1).");
+                        currentShiftValue = 0;
+                    }
+                }
+
+                // Nếu không xác định được buổi → bỏ qua dòng
+                if (currentShiftValue == 0) continue;
                 string periodName = $"Tiết {periodNumber}";
                 var periodKey = (periodName, currentShiftValue);
                 int periodId;
@@ -289,7 +300,6 @@ namespace Application.Features.Timetables.Services
                     }
 
 
-                    // --- Xác định Giáo viên (TeacherId) bằng phương thức của bạn ---
                     int? teacherId = null; // Khai báo biến để lưu TeacherId (nullable)
                     var teacherKey = (subjectId, classId, semesterId); // Key cho cache
 
@@ -300,14 +310,13 @@ namespace Application.Features.Timetables.Services
                     }
                     else
                     {
-                        // Gọi phương thức GetAssignmentByClassSubjectTeacherAsync của bạn
+                        // Gọi phương thức GetAssignmentByClassSubjectTeacherAsync
                         var assignment = await _unitOfWork.TeachingAssignments.GetAssignmentByClassSubjectTeacherAsync(classId, subjectId, semesterId); // Gọi đúng tên phương thức
 
                         if (assignment != null)
                         {
                             teacherId = assignment.TeacherId; // Lấy TeacherId từ đối tượng trả về
                         }
-                        // else: assignment là null, teacherId vẫn là null
 
                         // Lưu kết quả (TeacherId? hoặc null) vào cache
                         teacherIdCache[teacherKey] = teacherId;
@@ -326,7 +335,7 @@ namespace Application.Features.Timetables.Services
                     {
                         ClassId = classId,
                         SubjectId = subjectId,
-                        TeacherId = teacherId.Value, // Đảm bảo teacherId không null ở đây
+                        TeacherId = teacherId.Value,
                         DayOfWeek = currentDayOfWeek,
                         PeriodId = periodId
                         // TimetableId sẽ gán sau
@@ -340,7 +349,6 @@ namespace Application.Features.Timetables.Services
             // Kiểm tra lỗi tổng hợp và Lưu dữ liệu
             if (errors.Length > 0)
             {
-                // _logger?.LogError("Errors during timetable import: {Errors}", errors.ToString());
                 throw new ArgumentException($"Có lỗi trong dữ liệu file Excel:\n{errors}");
             }
             if (!detailsToCreate.Any())
@@ -353,12 +361,11 @@ namespace Application.Features.Timetables.Services
             {
                 SemesterId = semesterId,
                 EffectiveDate = effectiveDate,
-                Status = AppConstants.Status.ACTIVE // Hoặc PENDING
+                Status = AppConstants.Status.PENDING
             };
             var createdTimetable = await _unitOfWork.Timetables.CreateTimetableAsync(timetable);
             if (createdTimetable == null || createdTimetable.TimetableId <= 0)
             {
-                // _logger?.LogError("Failed to create main timetable record.");
                 throw new Exception("Không thể tạo bản ghi thời khóa biểu chính.");
             }
 
@@ -367,14 +374,12 @@ namespace Application.Features.Timetables.Services
             {
                 detail.TimetableId = createdTimetable.TimetableId;
             }
-            // await _unitOfWork.TimetableDetails.AddRangeAsync(detailsToCreate); // Ưu tiên nếu có
-            foreach (var detail in detailsToCreate) // Hoặc dùng AddAsync
+            foreach (var detail in detailsToCreate) 
             {
-                await _unitOfWork.TimetableDetails.AddAsync(detail); // Giả định có AddAsync
+                await _unitOfWork.TimetableDetails.AddAsync(detail); 
             }
             await _unitOfWork.SaveChangesAsync(); // Lưu tất cả thay đổi
 
-            // _logger?.LogInformation("Successfully imported timetable {TimetableId} with {DetailCount} details.", createdTimetable.TimetableId, detailsToCreate.Count);
             return createdTimetable; // Trả về Timetable chính đã tạo
         }
     }
