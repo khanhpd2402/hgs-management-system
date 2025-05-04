@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import { useSubjects, useAcademicYears } from '@/services/common/queries';
 import { getSemesterByYear } from '../../../services/schedule/api';
@@ -6,7 +6,7 @@ import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
 import './TimetableManagement.scss';
 import { useUpdateTimetableInfo, useCreateTimetable } from '../../../services/schedule/mutation';
-import { useTimetables } from '../../../services/schedule/queries';
+import { useTimetables, useGetClasses } from '../../../services/schedule/queries';
 import { Link } from 'react-router-dom';
 import {
     Dialog,
@@ -15,17 +15,19 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
-import { useGetClasses } from "../../../services/schedule/queries";
 import { ArrowLeft, Upload } from 'lucide-react';
 import ImportSchedule from './ImportSchedule';
 
-// Hàm định dạng ngày
+// Utility to format date for display
 const formatDate = (dateString) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric' });
+    return dateString ? new Date(dateString).toLocaleDateString('vi-VN', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric'
+    }) : '';
 };
 
-// Component FilterSelect
+// FilterSelect Component
 const FilterSelect = ({ label, value, onChange, options, disabled }) => (
     <div className="filter-column">
         <label className="text-sm font-medium text-gray-700">{label}</label>
@@ -52,93 +54,90 @@ const TimetableManagement = () => {
     const [openCreateModal, setOpenCreateModal] = useState(false);
     const [openImportModal, setOpenImportModal] = useState(false);
     const [selectedTimetable, setSelectedTimetable] = useState(null);
-    const [newTimetable, setNewTimetable] = useState({
-        semesterId: '',
-        effectiveDate: '',
-        endDate: '',
-        status: 'Không hoạt động',
-        details: [],
-    });
     const [createYear, setCreateYear] = useState('');
     const [createSemesters, setCreateSemesters] = useState([]);
 
-    const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
+    const [newTimetable, setNewTimetable] = useState({
+        semesterId: 0,
+        effectiveDate: '',
+        endDate: '',
+        status: 'Không hoạt động',
+        details: []
+    });
+
+    const { data: academicYears = [], isLoading: academicYearsLoading } = useAcademicYears();
     const { data: timetables = [], isLoading: timetablesLoading, error } = useTimetables(selectedSemester);
     const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
     const { data: classes = [], isLoading: classesLoading } = useGetClasses();
     const updateTimetableMutation = useUpdateTimetableInfo();
     const createTimetableMutation = useCreateTimetable();
 
-    // Effect để lấy học kỳ khi năm học thay đổi (cho filter)
-    useEffect(() => {
-        const handleYearChange = async () => {
-            if (selectedYear) {
-                try {
-                    const semesterData = await getSemesterByYear(selectedYear);
-                    setSemesters(semesterData || []);
-                    setSelectedSemester('');
-                } catch (error) {
-                    console.error('Lỗi khi lấy dữ liệu học kỳ:', error);
-                    toast.error('Không thể lấy danh sách học kỳ');
-                }
-            } else {
-                setSemesters([]);
-                setSelectedSemester('');
-            }
-        };
-        handleYearChange();
-    }, [selectedYear]);
+    // Fetch semesters based on selected year
+    const fetchSemesters = useCallback(async (year, setSemesterState) => {
+        if (!year) {
+            setSemesterState([]);
+            return;
+        }
+        try {
+            const semesterData = await getSemesterByYear(year);
+            setSemesterState(semesterData || []);
+        } catch (error) {
+            console.error('Error fetching semesters:', error);
+            toast.error('Không thể lấy danh sách học kỳ');
+            setSemesterState([]);
+        }
+    }, []);
 
-    // Effect để lấy học kỳ khi năm học thay đổi (cho modal tạo mới)
+    // Handle year change for filter
     useEffect(() => {
-        const handleCreateYearChange = async () => {
-            if (createYear) {
-                try {
-                    const semesterData = await getSemesterByYear(createYear);
-                    setCreateSemesters(semesterData || []);
-                    setNewTimetable({ ...newTimetable, semesterId: '' });
-                } catch (error) {
-                    console.error('Lỗi khi lấy dữ liệu học kỳ:', error);
-                    toast.error('Không thể lấy danh sách học kỳ');
-                }
-            } else {
-                setCreateSemesters([]);
-                setNewTimetable({ ...newTimetable, semesterId: '' });
-            }
-        };
-        handleCreateYearChange();
-    }, [createYear]);
+        fetchSemesters(selectedYear, setSemesters);
+        setSelectedSemester('');
+    }, [selectedYear, fetchSemesters]);
 
-    // Effect để hiển thị lỗi từ API timetables
+    // Handle year change for create modal
+    useEffect(() => {
+        fetchSemesters(createYear, setCreateSemesters);
+        setNewTimetable(prev => ({ ...prev, semesterId: 0 }));
+    }, [createYear, fetchSemesters]);
+
+    // Display error from timetables API
     useEffect(() => {
         if (error) {
             toast.error('Có lỗi xảy ra khi lấy danh sách thời khóa biểu');
         }
     }, [error]);
 
-    // Effect để khởi tạo details khi classes và subjects được tải
+    // Initialize timetable details when classes and subjects are loaded
     useEffect(() => {
         if (classes.length > 0 && subjects.length > 0 && !subjectsLoading && !classesLoading) {
             const chaoCoSubject = subjects.find(subject => subject.subjectName === 'Chào cờ');
-            const teacherId = '64'; // Lấy từ decodedToken.teacherId
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            let teacherId = 1; // default value
+
+            if (token) {
+                const tokenParts = token.split('.');
+                if (tokenParts.length === 3) {
+                    const payload = JSON.parse(atob(tokenParts[1]));
+                    teacherId = Number(payload.teacherId);
+                }
+            }
+
             if (chaoCoSubject) {
                 const newDetails = classes.map(cls => ({
                     classId: cls.classId,
                     subjectId: chaoCoSubject.subjectID,
                     teacherId: teacherId,
                     dayOfWeek: 'Thứ Hai',
-                    periodId: 1,
+                    periodId: 1
                 }));
-                setNewTimetable(prev => ({
-                    ...prev,
-                    details: newDetails,
-                }));
+                setNewTimetable(prev => ({ ...prev, details: newDetails }));
             } else {
                 toast.error('Không tìm thấy môn học Chào cờ');
             }
         }
     }, [classes, subjects, subjectsLoading, classesLoading]);
 
+    // Handle timetable update
     const handleUpdate = async (timetableData) => {
         try {
             await updateTimetableMutation.mutateAsync(timetableData);
@@ -146,12 +145,14 @@ const TimetableManagement = () => {
             setOpenUpdateModal(false);
             toast.success('Cập nhật thời khóa biểu thành công');
         } catch (error) {
-            console.error('Lỗi khi cập nhật:', error);
+            console.error('Error updating timetable:', error);
             toast.error('Cập nhật thất bại');
         }
     };
 
+    // Handle timetable creation
     const handleCreate = async () => {
+        // Validate required fields
         if (!newTimetable.semesterId || !newTimetable.effectiveDate || !newTimetable.endDate) {
             toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
             return;
@@ -160,57 +161,78 @@ const TimetableManagement = () => {
             toast.error('Danh sách chi tiết thời khóa biểu không được rỗng');
             return;
         }
+
+        // Validate details
+        const invalidDetails = newTimetable.details.some(detail =>
+            !detail.classId ||
+            !detail.subjectId ||
+            !detail.teacherId ||
+            !detail.dayOfWeek ||
+            !detail.periodId
+        );
+
+        if (invalidDetails) {
+            toast.error('Chi tiết thời khóa biểu có thông tin không hợp lệ');
+            return;
+        }
+
+        // Validate dates
+        const startDate = new Date(newTimetable.effectiveDate);
+        const endDate = new Date(newTimetable.endDate);
+        if (startDate >= endDate) {
+            toast.error('Ngày bắt đầu phải nhỏ hơn ngày kết thúc');
+            return;
+        }
+
+        // Ensure numeric IDs and format dates
+        const payload = {
+            ...newTimetable,
+            semesterId: Number(newTimetable.semesterId),
+            effectiveDate: format(new Date(newTimetable.effectiveDate), 'yyyy-MM-dd'),
+            endDate: format(new Date(newTimetable.endDate), 'yyyy-MM-dd'),
+            status: newTimetable.status || 'Không hoạt động',
+            details: newTimetable.details.map(detail => ({
+                classId: Number(detail.classId),
+                subjectId: Number(detail.subjectId),
+                teacherId: Number(detail.teacherId),
+                dayOfWeek: detail.dayOfWeek,
+                periodId: Number(detail.periodId)
+            }))
+        };
+
         try {
-            await createTimetableMutation.mutateAsync(newTimetable);
+            await createTimetableMutation.mutateAsync(payload);
             queryClient.invalidateQueries(['timetables', selectedSemester]);
             setOpenCreateModal(false);
             setNewTimetable({
-                semesterId: '',
+                semesterId: 0,
                 effectiveDate: '',
                 endDate: '',
                 status: 'Không hoạt động',
                 details: classes.map(cls => ({
                     classId: cls.classId,
-                    subjectId: subjects.find(subject => subject.subjectName === 'Chào cờ')?.subjectID || 1,
-                    teacherId: '64',
+                    subjectId: subjects.find(subject => subject.subjectName === 'Chào cờ')?.subjectID || 0,
+                    teacherId: 64,
                     dayOfWeek: 'Thứ Hai',
-                    periodId: 1,
-                })),
+                    periodId: 1
+                }))
             });
             setCreateYear('');
             toast.success('Tạo thời khóa biểu thành công');
         } catch (error) {
-            console.error('Lỗi khi tạo:', error);
-            toast.error('Tạo thời khóa biểu thất bại');
+            console.error('Error creating timetable:', error);
+            const errorMessage = error.response?.data || 'Tạo thời khóa biểu thất bại';
+            toast.error(errorMessage);
+
+            // Log detailed error information
+            if (error.response) {
+                console.error('Error response:', {
+                    data: error.response.data,
+                    status: error.response.status,
+                    headers: error.response.headers
+                });
+            }
         }
-    };
-
-    const handleAddDetail = () => {
-        const chaoCoSubject = subjects.find(subject => subject.subjectName === 'Chào cờ');
-        setNewTimetable({
-            ...newTimetable,
-            details: [...newTimetable.details, {
-                classId: classes[0]?.classId || 1,
-                subjectId: chaoCoSubject?.subjectID || 1,
-                teacherId: '64',
-                dayOfWeek: 'Thứ Hai',
-                periodId: 1,
-            }],
-        });
-    };
-
-    const handleRemoveDetail = (index) => {
-        setNewTimetable({
-            ...newTimetable,
-            details: newTimetable.details.filter((_, i) => i !== index),
-        });
-    };
-
-    const handleDetailChange = (index, field, value) => {
-        const updatedDetails = newTimetable.details.map((detail, i) =>
-            i === index ? { ...detail, [field]: value } : detail
-        );
-        setNewTimetable({ ...newTimetable, details: updatedDetails });
     };
 
     return (
@@ -251,17 +273,17 @@ const TimetableManagement = () => {
                     <FilterSelect
                         label="Năm học"
                         value={selectedYear}
-                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                        options={academicYears?.map(year => ({
+                        onChange={(e) => setSelectedYear(Number(e.target.value))}
+                        options={academicYears.map(year => ({
                             value: year.academicYearID,
                             label: `${year.yearName} -- ${year.academicYearID}`
-                        })) || []}
+                        }))}
                         disabled={academicYearsLoading}
                     />
                     <FilterSelect
                         label="Học kỳ"
                         value={selectedSemester}
-                        onChange={(e) => setSelectedSemester(parseInt(e.target.value))}
+                        onChange={(e) => setSelectedSemester(Number(e.target.value))}
                         options={semesters.map(semester => ({
                             value: semester.semesterID,
                             label: `${semester.semesterName} -- ${semester.semesterID}`
@@ -305,8 +327,8 @@ const TimetableManagement = () => {
                                             <td className="px-4 py-3 text-gray-700 border-b">{formatDate(timetable.endDate)}</td>
                                             <td className="px-4 py-3 text-gray-700 border-b">
                                                 <span className={`px-2 py-1 rounded-full text-xs ${timetable.status === 'Hoạt động'
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-gray-100 text-gray-800'
+                                                    ? 'bg-green-100 text-green-800'
+                                                    : 'bg-gray-100 text-gray-800'
                                                     }`}>
                                                     {timetable.status}
                                                 </span>
@@ -339,7 +361,7 @@ const TimetableManagement = () => {
                 )}
             </div>
 
-            {/* Modal Cập nhật */}
+            {/* Update Modal */}
             <Dialog open={openUpdateModal} onOpenChange={setOpenUpdateModal}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -422,7 +444,7 @@ const TimetableManagement = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Modal Tạo mới */}
+            {/* Create Modal */}
             <Dialog open={openCreateModal} onOpenChange={setOpenCreateModal}>
                 <DialogContent className="sm:max-w-md">
                     <DialogHeader>
@@ -434,11 +456,11 @@ const TimetableManagement = () => {
                                 <label className="text-sm font-medium text-gray-700">Năm học</label>
                                 <select
                                     value={createYear}
-                                    onChange={(e) => setCreateYear(parseInt(e.target.value))}
+                                    onChange={(e) => setCreateYear(Number(e.target.value))}
                                     className="border rounded p-2 text-sm"
                                 >
                                     <option value="">Chọn năm học</option>
-                                    {academicYears?.map(year => (
+                                    {academicYears.map(year => (
                                         <option key={year.academicYearID} value={year.academicYearID}>
                                             {year.yearName} -- {year.academicYearID}
                                         </option>
@@ -449,11 +471,11 @@ const TimetableManagement = () => {
                                 <label className="text-sm font-medium text-gray-700">Học kỳ</label>
                                 <select
                                     value={newTimetable.semesterId}
-                                    onChange={(e) => setNewTimetable({ ...newTimetable, semesterId: parseInt(e.target.value) })}
+                                    onChange={(e) => setNewTimetable({ ...newTimetable, semesterId: Number(e.target.value) })}
                                     className="border rounded p-2 text-sm"
                                     disabled={!createYear || !createSemesters.length}
                                 >
-                                    <option value="">Chọn học kỳ</option>
+                                    <option value={0}>Chọn học kỳ</option>
                                     {createSemesters.map(semester => (
                                         <option key={semester.semesterID} value={semester.semesterID}>
                                             {semester.semesterName} -- {semester.semesterID}
@@ -509,7 +531,7 @@ const TimetableManagement = () => {
                 </DialogContent>
             </Dialog>
 
-            {/* Modal Import */}
+            {/* Import Modal */}
             <Dialog open={openImportModal} onOpenChange={setOpenImportModal}>
                 <DialogContent className="sm:max-w-md">
                     <ImportSchedule onClose={() => setOpenImportModal(false)} />
