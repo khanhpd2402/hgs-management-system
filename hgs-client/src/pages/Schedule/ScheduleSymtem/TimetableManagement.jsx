@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
-import { useAcademicYears } from '@/services/common/queries';
+import { useSubjects, useAcademicYears } from '@/services/common/queries';
 import { getSemesterByYear } from '../../../services/schedule/api';
 import toast from 'react-hot-toast';
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
+import { useGetClasses } from "../../../services/schedule/queries";
 
 // Hàm định dạng ngày
 const formatDate = (dateString) => {
@@ -47,13 +48,15 @@ const TimetableManagement = () => {
         effectiveDate: '',
         endDate: '',
         status: 'Không hoạt động',
-        details: [{ classId: 1, subjectId: 1, teacherId: 1, dayOfWeek: 'Thứ Hai', periodId: 1 }],
+        details: [],
     });
     const [createYear, setCreateYear] = useState('');
     const [createSemesters, setCreateSemesters] = useState([]);
 
     const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
     const { data: timetables = [], isLoading: timetablesLoading, error } = useTimetables(selectedSemester);
+    const { data: subjects = [], isLoading: subjectsLoading } = useSubjects();
+    const { data: classes = [], isLoading: classesLoading } = useGetClasses();
     const updateTimetableMutation = useUpdateTimetableInfo();
     const createTimetableMutation = useCreateTimetable();
 
@@ -104,6 +107,29 @@ const TimetableManagement = () => {
         }
     }, [error]);
 
+    // Effect để khởi tạo details khi classes và subjects được tải
+    useEffect(() => {
+        if (classes.length > 0 && subjects.length > 0 && !subjectsLoading && !classesLoading) {
+            const chaoCoSubject = subjects.find(subject => subject.subjectName === 'Chào cờ');
+            const teacherId = '64'; // Lấy từ decodedToken.teacherId
+            if (chaoCoSubject) {
+                const newDetails = classes.map(cls => ({
+                    classId: cls.classId,
+                    subjectId: chaoCoSubject.subjectID,
+                    teacherId: teacherId,
+                    dayOfWeek: 'Thứ Hai',
+                    periodId: 1,
+                }));
+                setNewTimetable(prev => ({
+                    ...prev,
+                    details: newDetails,
+                }));
+            } else {
+                toast.error('Không tìm thấy môn học Chào cờ');
+            }
+        }
+    }, [classes, subjects, subjectsLoading, classesLoading]);
+
     const handleUpdate = async (timetableData) => {
         try {
             await updateTimetableMutation.mutateAsync(timetableData);
@@ -121,6 +147,10 @@ const TimetableManagement = () => {
             toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
             return;
         }
+        if (newTimetable.details.length === 0) {
+            toast.error('Danh sách chi tiết thời khóa biểu không được rỗng');
+            return;
+        }
         try {
             await createTimetableMutation.mutateAsync(newTimetable);
             queryClient.invalidateQueries(['timetables', selectedSemester]);
@@ -130,7 +160,13 @@ const TimetableManagement = () => {
                 effectiveDate: '',
                 endDate: '',
                 status: 'Không hoạt động',
-                details: [{ classId: 1, subjectId: 1, teacherId: 1, dayOfWeek: 'Thứ Hai', periodId: 1 }],
+                details: classes.map(cls => ({
+                    classId: cls.classId,
+                    subjectId: subjects.find(subject => subject.subjectName === 'Chào cờ')?.subjectID || 1,
+                    teacherId: '64',
+                    dayOfWeek: 'Thứ Hai',
+                    periodId: 1,
+                })),
             });
             setCreateYear('');
             toast.success('Tạo thời khóa biểu thành công');
@@ -141,9 +177,16 @@ const TimetableManagement = () => {
     };
 
     const handleAddDetail = () => {
+        const chaoCoSubject = subjects.find(subject => subject.subjectName === 'Chào cờ');
         setNewTimetable({
             ...newTimetable,
-            details: [...newTimetable.details, { classId: 1, subjectId: 1, teacherId: 1, dayOfWeek: 'Thứ Hai', periodId: 1 }],
+            details: [...newTimetable.details, {
+                classId: classes[0]?.classId || 1,
+                subjectId: chaoCoSubject?.subjectID || 1,
+                teacherId: '64',
+                dayOfWeek: 'Thứ Hai',
+                periodId: 1,
+            }],
         });
     };
 
@@ -417,7 +460,6 @@ const TimetableManagement = () => {
                                     <option value="Không hoạt động">Không hoạt động</option>
                                 </select>
                             </div>
-
                         </div>
                         <div className="flex justify-end gap-2">
                             <Button

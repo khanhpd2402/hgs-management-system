@@ -68,7 +68,7 @@ const FilterSection = memo(({
                     disabled={!selectedYear || !semesters.length}
                 />
                 <div className="filter-column">
-                    <label>Ngày áp dụng</label>
+                    <label>Trạng thái - Ngày áp dụng</label>
                     <div className="flex gap-2">
                         <FilterSelect
                             label=""
@@ -76,7 +76,7 @@ const FilterSection = memo(({
                             onChange={(e) => setSelectedTimetable(e.target.value)}
                             options={timetables.map(timetable => ({
                                 value: timetable.timetableId,
-                                label: `[${timetable.timetableId}] - ${timetable.status} (${formatDate(timetable.effectiveDate)} - ${formatDate(timetable.endDate)})`
+                                label: `${timetable.status} (${formatDate(timetable.effectiveDate)} - ${formatDate(timetable.endDate)})`
                             }))}
                             disabled={!selectedSemester || timetablesLoading}
                         />
@@ -198,20 +198,20 @@ const EditDialog = memo(({
             <div className="schedule-edit-info bg-gray-50 rounded-lg p-6 mb-6 space-y-4">
                 <InfoRow label="Thứ" value={selectedSchedule?.day} />
                 <InfoRow label="Tiết" value={selectedSchedule?.periodId} />
-                <InfoRow label="Lớp" value={`${selectedSchedule?.className}---${selectedSchedule?.classId}`} />
+                <InfoRow label="Lớp" value={`${selectedSchedule?.className}`} />
             </div>
             <div className="schedule-edit-form space-y-6">
                 <FilterSelect
                     label="Môn học"
                     value={selectedSubjectId}
                     onChange={(e) => setSelectedSubjectId(e.target.value)}
-                    options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName} --${subject.subjectID}` }))}
+                    options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName}` }))}
                 />
                 <FilterSelect
                     label="Giáo viên"
                     value={selectedTeacherId}
                     onChange={(e) => setSelectedTeacherId(e.target.value)}
-                    options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}---${teacher.teacherId}` }))}
+                    options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}` }))}
                 />
                 <div className="schedule-edit-actions flex gap-4 mt-8">
                     <button onClick={handleScheduleUpdate} className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
@@ -291,13 +291,13 @@ const AddDetailDialog = memo(({
                         label="Môn học"
                         value={form.subject}
                         onChange={handleChange('subject')}
-                        options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName} --${subject.subjectID}` }))}
+                        options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName}` }))}
                     />
                     <FilterSelect
                         label="Giáo viên"
                         value={form.teacher}
                         onChange={handleChange('teacher')}
-                        options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}---${teacher.teacherId}` }))}
+                        options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}` }))}
                     />
                     <div className="schedule-add-actions flex gap-4 mt-8">
                         <button onClick={handleSubmit} className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
@@ -445,6 +445,13 @@ const Schedule = () => {
             toast.error('Không có thời khóa biểu được chọn để cập nhật');
             return;
         }
+
+        // Prevent updates for "Chào cờ" (Thứ Hai, tiết 1)
+        if (selectedSchedule.day === "Thứ Hai" && selectedSchedule.periodId === 1) {
+            toast.error('Chào cờ không được thay đổi');
+            return;
+        }
+
         const scheduleToUse = filteredSchedule || scheduleData?.[0];
 
         if (!selectedSubjectId || !selectedTeacherId) {
@@ -515,8 +522,7 @@ const Schedule = () => {
             console.error('Lỗi khi cập nhật thời khóa biểu:', error);
             toast.error('Có lỗi xảy ra khi cập nhật thời khóa biểu');
         }
-    }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedTimetable, subjects, createTimeTableMutation, updateTimeTableMutation]);
-    const handleAddDetail = useCallback(async (detail) => {
+    }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedTimetable, subjects, createTimeTableMutation, updateTimeTableMutation]); const handleAddDetail = useCallback(async (detail) => {
         // Find subjectName for validation
         const subject = subjects.find(s => s.subjectID === parseInt(detail.subjectId));
         const subjectName = subject ? subject.subjectName : '';
