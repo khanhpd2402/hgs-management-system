@@ -72,6 +72,11 @@ const TimetableManagement = () => {
     const updateTimetableMutation = useUpdateTimetableInfo();
     const createTimetableMutation = useCreateTimetable();
 
+    // Debug: Log timetables to verify "Chờ Duyệt" status is included
+    useEffect(() => {
+        console.log('Timetables:', timetables);
+    }, [timetables]);
+
     // Fetch semesters based on selected year
     const fetchSemesters = useCallback(async (year, setSemesterState) => {
         if (!year) {
@@ -157,7 +162,7 @@ const TimetableManagement = () => {
             toast.error('Vui lòng điền đầy đủ thông tin bắt buộc');
             return;
         }
-        if (newTimetable.details.length === 0) {
+        if (new ವಿವರಗಳು.length === 0) {
             toast.error('Danh sách chi tiết thời khóa biểu không được rỗng');
             return;
         }
@@ -326,10 +331,14 @@ const TimetableManagement = () => {
                                             <td className="px-4 py-3 text-gray-700 border-b">{formatDate(timetable.effectiveDate)}</td>
                                             <td className="px-4 py-3 text-gray-700 border-b">{formatDate(timetable.endDate)}</td>
                                             <td className="px-4 py-3 text-gray-700 border-b">
-                                                <span className={`px-2 py-1 rounded-full text-xs ${timetable.status === 'Hoạt động'
-                                                    ? 'bg-green-100 text-green-800'
-                                                    : 'bg-gray-100 text-gray-800'
-                                                    }`}>
+                                                <span
+                                                    className={`px-2 py-1 rounded-full text-xs ${timetable.status === 'Hoạt động'
+                                                            ? 'bg-green-100 text-green-800'
+                                                            : timetable.status === 'Chờ Duyệt'
+                                                                ? 'bg-yellow-100 text-yellow-800'
+                                                                : 'bg-gray-100 text-gray-800'
+                                                        }`}
+                                                >
                                                     {timetable.status}
                                                 </span>
                                             </td>
@@ -423,6 +432,7 @@ const TimetableManagement = () => {
                                 >
                                     <option value="Hoạt động">Hoạt động</option>
                                     <option value="Không hoạt động">Không hoạt động</option>
+                                    <option value="Chờ Duyệt">Chờ Duyệt</option>
                                 </select>
                             </div>
                         </div>
@@ -510,6 +520,7 @@ const TimetableManagement = () => {
                                 >
                                     <option value="Hoạt động">Hoạt động</option>
                                     <option value="Không hoạt động">Không hoạt động</option>
+                                    <option value="Chờ Duyệt">Chờ Duyệt</option>
                                 </select>
                             </div>
                         </div>

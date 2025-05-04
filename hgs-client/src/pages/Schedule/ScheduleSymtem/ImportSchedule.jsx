@@ -5,6 +5,7 @@ import { format } from 'date-fns';
 import { getSemesterByYear } from '../../../services/schedule/api';
 import { useAcademicYears } from '@/services/common/queries';
 import toast from 'react-hot-toast';
+import { useNavigate } from 'react-router-dom';
 
 // Component FilterSelect
 const FilterSelect = ({ label, value, onChange, options, disabled }) => (
@@ -32,6 +33,7 @@ const ImportSchedule = ({ onClose }) => {
   const [semesterId, setSemesterId] = useState('');
   const [effectiveDateString, setEffectiveDateString] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchSemesters = async () => {
@@ -106,6 +108,7 @@ const ImportSchedule = ({ onClose }) => {
       console.log('Kết quả từ API:', result);
       toast.success('Tải lên thời khóa biểu thành công');
       onClose();
+      navigate('/system/timetable-manager');
     } catch (error) {
       console.error('Lỗi khi gọi API:', error);
       toast.error(error.message || 'Lỗi khi tải lên thời khóa biểu');
