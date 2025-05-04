@@ -49,13 +49,6 @@ namespace Application.Features.Exams.Services
                 throw new ArgumentException("File không được để trống.");
             }
 
-            var allowedExtensions = new[] { ".doc", ".docx" };
-            var extension = Path.GetExtension(request.File.FileName).ToLower();
-            if (!allowedExtensions.Contains(extension))
-            {
-                throw new ArgumentException("Chỉ hỗ trợ file Word (.doc, .docx).");
-            }
-
             var subject = await _subjectRepository.GetByIdAsync(request.SubjectId);
             if (subject == null)
             {
