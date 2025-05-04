@@ -285,5 +285,24 @@ namespace Application.Features.Exams.Services
 
             return teacherId;
         }
+        public async Task<ExamProposalStatisticsDto> GetDepartmentHeadExamProposalStatisticsAsync()
+        {
+            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
+            if (userRole != "Trưởng bộ môn")
+            {
+                throw new UnauthorizedAccessException("Chỉ Trưởng bộ môn có quyền truy cập thống kê này.");
+            }
+
+            var examProposals = await _examProposalRepository.GetAllAsync();
+            var statistics = new ExamProposalStatisticsDto
+            {
+                TotalExamProposals = examProposals.Count(),
+                SubmittedCount = examProposals.Count(ep => ep.Status == "Đã duyệt"),
+                PendingCount = examProposals.Count(ep => ep.Status == "Từ chối"),
+                WaitingForApprovalCount = examProposals.Count(ep => ep.Status == "Chờ duyệt")
+            };
+
+            return statistics;
+        }
     }
 }

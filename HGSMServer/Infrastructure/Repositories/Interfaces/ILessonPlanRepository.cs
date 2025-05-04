@@ -6,6 +6,7 @@ namespace Infrastructure.Repositories.Interfaces
 {
     public interface ILessonPlanRepository
     {
+        Task<IEnumerable<LessonPlan>> GetAll();
         Task AddLessonPlanAsync(LessonPlan lessonPlan);
         Task UpdateLessonPlanAsync(LessonPlan lessonPlan);
         Task<LessonPlan> GetLessonPlanByIdAsync(int planId);

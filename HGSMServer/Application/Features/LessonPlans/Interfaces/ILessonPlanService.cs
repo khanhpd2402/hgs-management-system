@@ -14,6 +14,6 @@ namespace Application.Features.LessonPlans.Interfaces
         Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetAllLessonPlansAsync(int pageNumber, int pageSize);
         Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByTeacherAsync(int teacherId, int pageNumber, int pageSize);
         Task<(List<LessonPlanResponseDto> LessonPlans, int TotalCount)> GetLessonPlansByStatusAsync(string status, int pageNumber, int pageSize);
-
+        Task<LessonPlanStatisticsDto> GetDepartmentHeadLessonPlanStatisticsAsync();
     }
 }

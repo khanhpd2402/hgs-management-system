@@ -22,5 +22,6 @@ namespace Application.Features.StudentClass.Interfaces
         Task<IEnumerable<StudentClassResponseDto>> GetRepeatStudentsByAcademicYearAsync(int academicYearId);
         Task<IEnumerable<SubjectDto>> GetSubjectsByClassIdAsync(int classId, int semesterId);
         Task<TeacherListDto> GetTeacherByClassAndSubjectAsync(int classId, int subjectId, int semesterId);
+        Task<HomeroomClassInfoDto> GetHomeroomClassInfoAsync(int teacherId, int semesterId);
     }
 }

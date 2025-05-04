@@ -158,6 +158,7 @@ builder.Services.AddScoped<IAttendanceUnitOfWork, AttendanceUnitOfWork>();
 builder.Services.AddScoped<ITeacherService, TeacherService>();
 builder.Services.AddScoped<ITeacherRepository, TeacherRepository>();
 builder.Services.AddScoped<ITeacherSubjectRepository, TeacherSubjectRepository>();
+builder.Services.AddScoped<IHomeroomAssignmentRepository, HomeroomAssignmentRepository>();
 builder.Services.AddScoped<ITeacherSubjectService, TeacherSubjectService>();
 builder.Services.AddScoped<ITeachingAssignmentService, TeachingAssignmentService>();
 builder.Services.AddScoped<ILessonPlanService, LessonPlanService>();

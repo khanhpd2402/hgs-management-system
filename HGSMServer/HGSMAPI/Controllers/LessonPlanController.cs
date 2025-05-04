@@ -236,5 +236,31 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi lọc giáo án theo trạng thái.");
             }
         }
+        [HttpGet("department-head-statistics")]
+        [Authorize(Roles = "Trưởng bộ môn")]
+        public async Task<IActionResult> GetDepartmentHeadLessonPlanStatistics()
+        {
+            try
+            {
+                Console.WriteLine("Fetching lesson plan statistics for department head...");
+                var statistics = await _lessonPlanService.GetDepartmentHeadLessonPlanStatisticsAsync();
+                return Ok(statistics);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                Console.WriteLine($"Unauthorized access: {ex.Message}");
+                return Unauthorized("Không có quyền truy cập.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error fetching lesson plan statistics: {ex.Message}");
+                return BadRequest("Lỗi khi lấy thống kê giáo án.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error fetching lesson plan statistics: {ex.Message}");
+                return StatusCode(500, "Lỗi khi lấy thống kê giáo án.");
+            }
+        }
     }
 }
