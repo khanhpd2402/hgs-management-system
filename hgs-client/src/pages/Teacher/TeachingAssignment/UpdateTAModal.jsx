@@ -32,6 +32,7 @@ import {
   useAssginTeaching,
   useUpdateTeachingAssignment,
 } from "@/services/principal/mutation";
+import { Spinner } from "@/components/Spinner";
 
 export default function UpdateTAModal({
   open,
@@ -57,6 +58,8 @@ export default function UpdateTAModal({
     teacherId,
     semesterId: semester?.semesterID,
   });
+
+  // console.log(subjectConfigQuery.data);
 
   //assign teaching
   // const assignTeachingMutation = useAssginTeaching();
@@ -203,6 +206,17 @@ export default function UpdateTAModal({
       setSubjectAssignments({});
     }
   }, [open, subjects, teacherId, teacherAssignmentQuery.data]);
+
+  // const isLoading =
+  //   teacherQuery.isLoading ||
+  //   classQuery.isLoading ||
+  //   subjects.isLoading ||
+  //   subjectConfigQuery.isLoading ||
+  //   teacherAssignmentQuery.isLoading;
+
+  // if (isLoading) {
+  //   return <Spinner />;
+  // }
 
   return (
     <>

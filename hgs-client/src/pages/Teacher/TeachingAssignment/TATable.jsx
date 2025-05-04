@@ -116,8 +116,17 @@ export default function TATable() {
     };
   });
 
+  const isLoading =
+    isPending ||
+    classQuery.isLoading ||
+    subjectConfigQuery.isLoading ||
+    teacherHomeRoomQuery.isLoading ||
+    teacherQuery.isLoading;
   // Tính toán hàng hiển thị
-  if (isPending) {
+
+  // console.log(subjectConfigQuery.error);
+
+  if (isLoading) {
     return (
       <Card className="relative mt-6 flex min-h-[550px] items-center justify-center p-4">
         <Spinner size="medium" />
