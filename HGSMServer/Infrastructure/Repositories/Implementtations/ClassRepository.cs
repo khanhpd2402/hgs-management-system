@@ -21,8 +21,8 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
                 .Include(c => c.TeachingAssignments)
-                .Include(c => c.TimetableDetails)
-                    .ThenInclude(td => td.Timetable)
+                //.Include(c => c.TimetableDetails)
+                    //.ThenInclude(td => td.Timetable)
                 .ToListAsync();
         }
         public async Task<IEnumerable<Class>> GetAllActiveAsync(string? status = null)
