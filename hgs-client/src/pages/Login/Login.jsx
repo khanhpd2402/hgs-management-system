@@ -19,11 +19,16 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import * as z from "zod";
 import "./Login.scss";
-import { useLoginMutation } from "@/services/common/mutation";
+import {
+  useGoogleLoginMutation,
+  useLoginMutation,
+} from "@/services/common/mutation";
 import { Navigate, useNavigate } from "react-router";
 import { useEffect, useState } from "react";
 import { jwtDecode } from "jwt-decode";
 import { isAuthenticated } from "@/utils/authUtils";
+import { GoogleLogin } from "@react-oauth/google";
+import toast from "react-hot-toast";
 
 const formSchema = z.object({
   username: z.string().min(1, "Tên đăng nhập là bắt buộc"),
@@ -33,11 +38,12 @@ const formSchema = z.object({
 const Login = () => {
   const navigate = useNavigate();
   const loginMutation = useLoginMutation();
+  const googleLoginMutation = useGoogleLoginMutation();
   const [bgLoaded, setBgLoaded] = useState(false);
 
   useEffect(() => {
     const img = new window.Image();
-    img.src = "school.jpg";
+    img.src = "/school.jpg";
     img.onload = () => setBgLoaded(true);
   }, []);
 
@@ -58,6 +64,29 @@ const Login = () => {
     },
   });
 
+  const handleGoogleLogin = (credentialResponse) => {
+    if (!credentialResponse.credential) {
+      toast.error("Đăng nhập Google thất bại!");
+      return;
+    }
+    console.log(credentialResponse);
+    // const googleUser = jwtDecode(credentialResponse.credential);
+    // console.log(googleUser);
+    googleLoginMutation.mutate(
+      { credential: credentialResponse.credential },
+      {
+        onSuccess: (data) => {
+          localStorage.setItem("token", JSON.stringify(data.token));
+          toast.success("Đăng nhập Google thành công!");
+          navigate("/home");
+        },
+        onError: () => {
+          toast.error("Đăng nhập Google thất bại!");
+        },
+      },
+    );
+  };
+
   const onSubmit = async (values) => {
     loginMutation.mutate(values, {
       onSuccess: (data) => {
@@ -72,7 +101,14 @@ const Login = () => {
   };
 
   return (
-    <div className="login-container relative">
+    <div
+      className="login-container relative"
+      style={{
+        backgroundImage: bgLoaded ? 'url("school.jpg")' : "none",
+        backgroundSize: "cover",
+        backgroundPosition: "center",
+      }}
+    >
       {!bgLoaded && (
         <div className="absolute inset-0 z-10 flex items-center justify-center bg-gray-100">
           <div className="h-full w-full animate-pulse bg-gray-200" />
@@ -80,11 +116,11 @@ const Login = () => {
       )}
       <div
         className={`login-content transition-opacity duration-300 ${bgLoaded ? "opacity-100" : "opacity-0"}`}
-        style={{
-          backgroundImage: bgLoaded ? 'url("school.jpg")' : "none",
-          backgroundSize: "cover",
-          backgroundPosition: "center",
-        }}
+        // style={{
+        //   backgroundImage: bgLoaded ? 'url("school.jpg")' : "none",
+        //   backgroundSize: "cover",
+        //   backgroundPosition: "center",
+        // }}
       >
         <div className="login-left">
           <div className="login-welcome">
@@ -157,10 +193,30 @@ const Login = () => {
                 <Button
                   type="submit"
                   className="login-button w-full py-6 text-base font-medium"
-                  disabled={loginMutation.isPending}
+                  disabled={
+                    loginMutation.isPending || googleLoginMutation.isPending
+                  }
                 >
-                  {loginMutation.isPending ? "Đang đăng nhập..." : "Đăng nhập"}
+                  {loginMutation.isPending || googleLoginMutation.isPending
+                    ? "Đang đăng nhập..."
+                    : "Đăng nhập"}
                 </Button>
+                <div className="mt-2 flex flex-col items-center gap-2">
+                  <span className="text-sm text-gray-500">
+                    hoặc đăng nhập với Google (Chỉ dành cho giáo viên)
+                  </span>
+                  {googleLoginMutation.isPending ? (
+                    <div className="flex w-full justify-center">
+                      <div className="h-10 w-40 animate-pulse rounded bg-gray-200" />
+                    </div>
+                  ) : (
+                    <GoogleLogin
+                      onSuccess={handleGoogleLogin}
+                      onError={() => toast.error("Đăng nhập Google thất bại!")}
+                      width="100%"
+                    />
+                  )}
+                </div>
               </form>
             </Form>
           </CardContent>
