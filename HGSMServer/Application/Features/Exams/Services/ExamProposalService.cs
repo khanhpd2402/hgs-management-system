@@ -109,6 +109,28 @@ namespace Application.Features.Exams.Services
                 throw new KeyNotFoundException($"Không tìm thấy đề thi với ID {proposalId}.");
             }
 
+            if (proposal.Status == "Chờ duyệt")
+            {
+                if (status != "Đã duyệt" && status != "Từ chối")
+                {
+                    throw new InvalidOperationException("Chỉ có thể chuyển từ 'Chờ duyệt' sang 'Đã duyệt' hoặc 'Từ chối'.");
+                }
+            }
+            else if (proposal.Status == "Đã duyệt")
+            {
+                if (status != "Từ chối")
+                {
+                    throw new InvalidOperationException("Chỉ có thể chuyển từ 'Đã duyệt' sang 'Từ chối'.");
+                }
+            }
+            else if (proposal.Status == "Từ chối")
+            {
+                if (status == "Đã duyệt")
+                {
+                    throw new InvalidOperationException("Không thể chuyển từ 'Từ chối' sang 'Đã duyệt'.");
+                }
+            }
+
             proposal.Status = status;
             proposal.Comment = comment;
 

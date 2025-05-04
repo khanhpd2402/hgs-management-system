@@ -92,12 +92,12 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error creating academic year: {ex.Message}");
-                return BadRequest("Lỗi khi tạo năm học.");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error creating academic year: {ex.Message}");
-                return StatusCode(500, "Lỗi khi tạo năm học.");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -141,22 +141,22 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error updating academic year: {ex.Message}");
-                return NotFound("Không tìm thấy năm học.");
+                return NotFound(ex.Message);
             }
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error updating academic year: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật năm học.");
+                return BadRequest(ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating academic year: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật năm học.");
+                return BadRequest(ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error updating academic year: {ex.Message}");
-                return StatusCode(500, "Lỗi khi cập nhật năm học.");
+                return StatusCode(500, ex.Message);
             }
         }
 
@@ -172,12 +172,12 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error deleting academic year: {ex.Message}");
-                return NotFound("Không tìm thấy năm học.");
+                return NotFound(ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error deleting academic year: {ex.Message}");
-                return StatusCode(500, "Lỗi khi xóa năm học.");
+                return StatusCode(500, ex.Message);
             }
         }
     }
