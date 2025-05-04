@@ -1,5 +1,6 @@
 import axios from "axios";
 import { message } from "antd";
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 export const sendMailLeaveRequest = async (
   record,
@@ -44,7 +45,7 @@ export const sendMailLeaveRequest = async (
   };
 
   try {
-    await axios.post("https://localhost:8386/api/Notification/send", payload, {
+    await axios.post(`${baseUrl}/api/Notification/send`, payload, {
       headers: {
         Authorization: `Bearer ${token}`,
         "Content-Type": "application/json",

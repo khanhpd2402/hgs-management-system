@@ -5,6 +5,7 @@ import { SearchOutlined, CheckCircleOutlined, EyeOutlined } from '@ant-design/ic
 import axios from 'axios';
 import dayjs from 'dayjs';
 import './ReviewList.scss';
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const { Title } = Typography;
 
@@ -19,7 +20,7 @@ const ReviewList = () => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const response = await axios.get(
-                `https://localhost:8386/api/LessonPlan/filter-by-status?status=Chờ duyệt&pageNumber=${page}&pageSize=${pageSize}`,
+                `${baseUrl}/api/LessonPlan/filter-by-status?status=Chờ duyệt&pageNumber=${page}&pageSize=${pageSize}`,
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }

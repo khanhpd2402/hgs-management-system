@@ -41,6 +41,7 @@ const ListMarkTeacher = () => {
   const [editingRows, setEditingRows] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   // Lấy và kiểm tra token
   const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
@@ -67,7 +68,7 @@ const ListMarkTeacher = () => {
       try {
         const semesterId = selectedSemester === '1' ? 1 : 2;
         const response = await axios.get(
-          `https://localhost:8386/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+          `${baseUrl}/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAssignments(response.data);
@@ -100,7 +101,7 @@ const ListMarkTeacher = () => {
     try {
       const { subjectId, classId } = assignment;
       const semesterId = semester === '1' ? 1 : 2;
-      const response = await axios.get(`https://localhost:8386/api/Grades/teacher`, {
+      const response = await axios.get(`${baseUrl}/api/Grades/teacher`, {
         params: { teacherId, classId, subjectId, semesterId },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -153,7 +154,7 @@ const ListMarkTeacher = () => {
         };
 
         await axios.put(
-          'https://localhost:8386/api/Grades/update-multiple-scores',
+          `${baseUrl}/api/Grades/update-multiple-scores`,
           gradesPayload,
           {
             headers: {
@@ -211,7 +212,7 @@ const ListMarkTeacher = () => {
         };
 
         await axios.put(
-          'https://localhost:8386/api/Grades/update-multiple-scores',
+          `${baseUrl}/api/Grades/update-multiple-scores`,
           gradesPayload,
           {
             headers: {
@@ -450,32 +451,32 @@ const ListMarkTeacher = () => {
                           )}
                         </TableCell>
                       ))}
-                <TableCell className="border border-gray-300 text-center">
-                  {student.teacherComment || 'Chưa có nhận xét'}
-                </TableCell>
-                <TableCell className="border border-gray-300 text-center">
-                  <Button
-                    onClick={() => editingRows[student.studentId] ? handleSaveRow(student.studentId) : handleEditRow(student.studentId)}
-                    className={editingRows[student.studentId] ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
-                    disabled={loading}
-                  >
-                    {editingRows[student.studentId] ? 'Lưu' : 'Cập nhật'}
-                  </Button>
-                </TableCell>
-              </TableRow>
-              ))
-              ) : (
-              <TableRow>
-                <TableCell colSpan="9" className="text-center">
-                  Không có dữ liệu điểm.
-                </TableCell>
-              </TableRow>
+                      <TableCell className="border border-gray-300 text-center">
+                        {student.teacherComment || 'Chưa có nhận xét'}
+                      </TableCell>
+                      <TableCell className="border border-gray-300 text-center">
+                        <Button
+                          onClick={() => editingRows[student.studentId] ? handleSaveRow(student.studentId) : handleEditRow(student.studentId)}
+                          className={editingRows[student.studentId] ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+                          disabled={loading}
+                        >
+                          {editingRows[student.studentId] ? 'Lưu' : 'Cập nhật'}
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : (
+                  <TableRow>
+                    <TableCell colSpan="9" className="text-center">
+                      Không có dữ liệu điểm.
+                    </TableCell>
+                  </TableRow>
                 )}
-            </TableBody>
-          </Table>
+              </TableBody>
+            </Table>
+          </div>
         </div>
       </div>
-    </div>
     </Card >
   );
 };

@@ -164,7 +164,7 @@ const MarkReportTable = () => {
             setLoading(true);
             try {
                 const [gradesResponse, subjectsResponse, classesResponse] = await Promise.all([
-                    axios.get(`https://localhost:8386/api/Grades`, {
+                    axios.get(`${baseUrl}/api/Grades`, {
                         params: {
                             classId: selectedClass,
                             subjectId: selectedSubject,
@@ -172,8 +172,8 @@ const MarkReportTable = () => {
                         },
                         headers: { Accept: "*/*" }
                     }),
-                    axios.get(`https://localhost:8386/api/Subjects`),
-                    axios.get(`https://localhost:8386/api/Classes`)
+                    axios.get(`${baseUrl}/api/Subjects`),
+                    axios.get(`${baseUrl}/api/Classes`)
                 ]);
 
                 setGrades(gradesResponse.data);
@@ -214,7 +214,7 @@ const MarkReportTable = () => {
 
     const handleSaveGrade = async (updatedGrade) => {
         try {
-            await axios.put('https://localhost:8386/api/Grades/update-multiple-scores', {
+            await axios.put('${baseUrl}/api/Grades/update-multiple-scores', {
                 grades: [updatedGrade]
             });
 

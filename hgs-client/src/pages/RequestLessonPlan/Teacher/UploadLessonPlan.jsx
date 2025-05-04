@@ -6,6 +6,7 @@ import './UploadLessonPlan.scss';
 import { useSubjects, useSemestersByAcademicYear } from '../../../services/common/queries';
 import { useTeachersBySubject } from '../../../services/teacher/queries';
 import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const INITIAL_FORM = {
     subjectId: '',
@@ -44,7 +45,7 @@ const UploadLessonPlan = () => {
         setTeachersLoading(true);
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const response = await fetch(`https://localhost:8386/api/TeacherSubject/${subjectId}`, {
+            const response = await fetch(`${baseUrl}/api/TeacherSubject/${subjectId}`, {
                 headers: {
                     'accept': '*/*',
                     'Authorization': `Bearer ${token}`

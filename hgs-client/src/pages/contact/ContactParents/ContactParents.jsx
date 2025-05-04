@@ -12,7 +12,7 @@ const ContactParents = () => {
   const [isFirstMessage, setIsFirstMessage] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
-
+  const baseUrl = import.meta.env.VITE_BASE_URL;
   const normalizeString = (str) => {
     if (!str) return '';
     return str
@@ -40,7 +40,7 @@ const ContactParents = () => {
   useEffect(() => {
     const fetchAcademicYears = async () => {
       try {
-        const response = await axios.get('https://localhost:8386/api/AcademicYear');
+        const response = await axios.get(`${baseUrl}/api/AcademicYear`);
         if (response.data && response.data.length > 0) {
           const sortedYears = response.data.sort((a, b) => b.yearName.localeCompare(a.yearName));
           setAcademicYears(sortedYears);
@@ -70,7 +70,7 @@ const ContactParents = () => {
       const cleanedToken = token ? token.replace(/^"|"$/g, '') : null;
       const headers = cleanedToken ? { Authorization: `Bearer ${cleanedToken}` } : {};
 
-      const response = await axios.get(`https://localhost:8386/api/Student/${value}`, { headers });
+      const response = await axios.get(`${baseUrl}/api/Student/${value}`, { headers });
       const studentData = response.data.students || [];
       setStudents(studentData);
       setFilteredStudents(studentData);

@@ -9,6 +9,7 @@ import { Input } from 'antd';
 import toast from 'react-hot-toast';
 
 const { Option } = Select;
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const LessonPlanList = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
@@ -27,8 +28,8 @@ const LessonPlanList = () => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const url = status === 'All'
-                ? `https://localhost:8386/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
-                : `https://localhost:8386/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
+                ? `${baseUrl}/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
+                : `${baseUrl}/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
 
             const response = await axios.get(url, {
                 headers: {
@@ -342,7 +343,7 @@ const LessonPlanList = () => {
     const handleReview = async (values) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            await axios.post('https://localhost:8386/api/LessonPlan/review', {
+            await axios.post(`${baseUrl}/api/LessonPlan/review`, {
                 planId: selectedPlan.planId,
                 status: values.status,
                 feedback: values.feedback

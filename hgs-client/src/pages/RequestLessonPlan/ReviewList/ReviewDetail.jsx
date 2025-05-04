@@ -35,6 +35,7 @@ const ReviewDetail = () => {
     const [plan, setPlan] = useState(null);
     const [loading, setLoading] = useState(true);
     const [submitting, setSubmitting] = useState(false);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
 
     const getGoogleDriveEmbedUrl = (url) => {
         if (!url) return '';
@@ -69,7 +70,7 @@ const ReviewDetail = () => {
             setLoading(true);
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const response = await axios.get(
-                `https://localhost:8386/api/LessonPlan/${planId}`,
+                `${baseUrl}/api/LessonPlan/${planId}`,
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
@@ -93,7 +94,7 @@ const ReviewDetail = () => {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
 
             const response = await axios.post(
-                'https://localhost:8386/api/LessonPlan/review',
+                `${baseUrl}/api/LessonPlan/review`,
                 {
                     planId: parseInt(planId),
                     status: values.status === 'Approved' ? 'Đã duyệt' : 'Từ chối',

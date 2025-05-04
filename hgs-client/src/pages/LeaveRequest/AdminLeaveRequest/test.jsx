@@ -26,7 +26,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const response = await fetch(
-                `https://localhost:8386/api/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
+                `${baseUrl}/api/SubstituteTeachings?timetableDetailId=${timetableDetailId}&OriginalTeacherId=${originalTeacherId}&date=${date}`,
                 {
                     headers: {
                         'accept': '*/*',

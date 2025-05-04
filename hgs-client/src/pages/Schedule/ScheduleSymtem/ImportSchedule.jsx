@@ -90,7 +90,7 @@ const ImportSchedule = ({ onClose }) => {
     formData.append('effectiveDateString', formattedDate);
 
     try {
-      const response = await fetch('https://localhost:8386/api/Timetables/import', {
+      const response = await fetch('${baseUrl}/api/Timetables/import', {
         method: 'POST',
         headers: {
           'accept': 'application/json;odata.metadata=minimal;odata.streaming=true',
