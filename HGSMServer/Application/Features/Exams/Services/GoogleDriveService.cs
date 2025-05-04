@@ -20,7 +20,6 @@ namespace HGSMAPI
 
             if (string.IsNullOrEmpty(credentialJson))
             {
-                Console.WriteLine("GCP_CREDENTIALS not found in configuration or environment variables.");
                 throw new Exception("GCP_CREDENTIALS not found in configuration or environment variables.");
             }
 
@@ -62,7 +61,7 @@ namespace HGSMAPI
             return folder.Id;
         }
 
-        public async Task<string> UploadWordFileAsync(IFormFile file, int subjectId, int grade, string subjectName)
+        public async Task<string> UploadFileAsync(IFormFile file, int subjectId, int grade, string subjectName)
         {
             var subjectFolderId = await GetOrCreateFolderAsync(subjectName, _rootFolderId);
             var gradeFolderName = $"Khối {grade}";
@@ -70,7 +69,7 @@ namespace HGSMAPI
 
             var fileMetadata = new Google.Apis.Drive.v3.Data.File
             {
-                Name = $"{Guid.NewGuid()}{Path.GetExtension(file.FileName)}",
+                Name = file.FileName, 
                 MimeType = file.ContentType,
                 Parents = new List<string> { gradeFolderId }
             };

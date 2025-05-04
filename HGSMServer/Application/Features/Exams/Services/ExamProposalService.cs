@@ -68,7 +68,7 @@ namespace Application.Features.Exams.Services
 
             try
             {
-                proposal.FileUrl = await _googleDriveService.UploadWordFileAsync(
+                proposal.FileUrl = await _googleDriveService.UploadFileAsync(
                     request.File,
                     request.SubjectId,
                     request.Grade,
@@ -219,7 +219,7 @@ namespace Application.Features.Exams.Services
                         throw new KeyNotFoundException("Môn học không tồn tại.");
                     }
 
-                    proposal.FileUrl = await _googleDriveService.UploadWordFileAsync(
+                    proposal.FileUrl = await _googleDriveService.UploadFileAsync(
                         request.File,
                         proposal.SubjectId,
                         proposal.Grade,
@@ -278,14 +278,9 @@ namespace Application.Features.Exams.Services
 
             return teacherId;
         }
+
         public async Task<ExamProposalStatisticsDto> GetDepartmentHeadExamProposalStatisticsAsync()
         {
-            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole != "Trưởng bộ môn")
-            {
-                throw new UnauthorizedAccessException("Chỉ Trưởng bộ môn có quyền truy cập thống kê này.");
-            }
-
             var examProposals = await _examProposalRepository.GetAllAsync();
             var statistics = new ExamProposalStatisticsDto
             {
