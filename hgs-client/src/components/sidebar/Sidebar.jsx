@@ -161,7 +161,7 @@ const menuItems = [
     label: "Nộp đề thi",
     icon: Upload,
     path: "/teacher/upload-exam",
-    roles: ["Giáo viên", "Trưởng bộ môn", "Hiệu phó"],
+    roles: ["Giáo viên"],
   },
   {
     label: "Phân công làm giáo án",

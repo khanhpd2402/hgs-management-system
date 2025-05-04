@@ -13,6 +13,7 @@ const ContactParents = () => {
   const [currentPage, setCurrentPage] = useState(1);
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const baseUrl = import.meta.env.VITE_BASE_URL;
+
   const normalizeString = (str) => {
     if (!str) return '';
     return str

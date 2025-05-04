@@ -7,20 +7,7 @@ import './ScheduleTeacher.scss';
 const ScheduleTeacher = () => {
     const [teacherId, setTeacherId] = useState(null);
     const [selectedDate, setSelectedDate] = useState(dayjs());
-    const [weekDays, setWeekDays] = useState(() => {
-        const startOfWeek = dayjs().startOf('week');
-        return Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'));
-    });
 
-    // Update weekDays when selectedDate changes
-    useEffect(() => {
-        const effectiveDate = selectedDate || dayjs(); // Default to current date if null
-        const startOfWeek = effectiveDate.startOf('week');
-        const days = Array.from({ length: 7 }, (_, i) => startOfWeek.add(i, 'day'));
-        setWeekDays(days);
-    }, [selectedDate]);
-
-    // Extract teacherId from JWT token
     useEffect(() => {
         const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
         if (token) {
@@ -33,36 +20,7 @@ const ScheduleTeacher = () => {
     }, []);
 
     const { data: scheduleData, isLoading } = useScheduleTeacher(teacherId);
-
-    // Fetch substitute data for each day of the week (exactly 7 queries)
-    const queries = [
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[0], {
-            skip: !teacherId || !weekDays[0],
-        }),
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[1], {
-            skip: !teacherId || !weekDays[1],
-        }),
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[2], {
-            skip: !teacherId || !weekDays[2],
-        }),
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[3], {
-            skip: !teacherId || !weekDays[3],
-        }),
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[4], {
-            skip: !teacherId || !weekDays[4],
-        }),
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[5], {
-            skip: !teacherId || !weekDays[5],
-        }),
-        useGetTimetiableSubstituteSubstituteForTeacher(teacherId, weekDays[6], {
-            skip: !teacherId || !weekDays[6],
-        }),
-    ];
-
-    // Aggregate substitute data
-    const substituteData = queries
-        .flatMap((query) => query.data || [])
-        .filter(Boolean);
+    const { data: substituteData = [] } = useGetTimetiableSubstituteSubstituteForTeacher(teacherId, selectedDate);
 
     const daysOfWeek = [
         'Thứ Hai',
@@ -76,26 +34,21 @@ const ScheduleTeacher = () => {
 
     const shifts = [
         { name: 'Sáng', periods: [1, 2, 3, 4, 5] },
-        { name: 'Chiều', periods: [6, 7, 8] },
+        { name: 'Chiều', periods: [1, 2, 3] },
     ];
 
     const getSchedule = (day, shift, period) => {
         if (!scheduleData?.[0]?.details) return '';
 
-        // Find the corresponding date for the day of the week
-        const dayIndex = daysOfWeek.indexOf(day);
-        const targetDate = weekDays[dayIndex];
-
-        // Check for substitute class on the specific date and period
+        // Kiểm tra xem có lịch dạy thay không
         const substituteClass = substituteData.find(
-            (sub) =>
-                dayjs(sub.date).isSame(targetDate, 'day') && sub.periodId === period
+            sub => sub.dayOfWeek === day && sub.periodId === period
         );
 
         if (substituteClass) {
             return {
                 content: `${substituteClass.className} - ${substituteClass.subjectName}\n(Dạy thay)`,
-                isSubstitute: true,
+                isSubstitute: true
             };
         }
 
@@ -108,7 +61,7 @@ const ScheduleTeacher = () => {
         if (schedule) {
             return {
                 content: `${schedule.className} - ${schedule.subjectName}`,
-                isSubstitute: false,
+                isSubstitute: false
             };
         }
         return '';
@@ -127,7 +80,7 @@ const ScheduleTeacher = () => {
                     <label>Chọn ngày:</label>
                     <DatePicker
                         value={selectedDate}
-                        onChange={(date) => setSelectedDate(date || dayjs())} // Default to current date if null
+                        onChange={(date) => setSelectedDate(date)}
                         format="DD/MM/YYYY"
                         placeholder="Chọn ngày"
                     />
@@ -137,11 +90,7 @@ const ScheduleTeacher = () => {
                     <div className="schedule-info">
                         <h2>Thời Khóa Biểu Trong Tuần</h2>
                         <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
-                        <p>
-                            <strong>Thời gian áp dụng:</strong>{' '}
-                            {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} -{' '}
-                            {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}
-                        </p>
+                        <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
                         <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
                     </div>
                 )}
@@ -178,8 +127,7 @@ const ScheduleTeacher = () => {
                                     return (
                                         <td
                                             key={idx}
-                                            className={`${idx % 2 === 0 ? 'even-column' : 'odd-column'} ${scheduleInfo.isSubstitute ? 'substitute-class' : ''
-                                                }`}
+                                            className={`${idx % 2 === 0 ? 'even-column' : 'odd-column'} ${scheduleInfo.isSubstitute ? 'substitute-class' : ''}`}
                                         >
                                             {scheduleInfo.content || ''}
                                         </td>

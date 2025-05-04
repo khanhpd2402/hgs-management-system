@@ -10,7 +10,6 @@ import '@/pages/Teacher/MarkReport/styles/toast.scss';
 import '@/pages/Teacher/MarkReport/styles/markReport.scss';
 
 import { getGrades } from '@/services/Grade/api';
-const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const EditGradeDialog = ({ grade, onClose, onSave }) => {
   const [score, setScore] = useState(grade.score);
@@ -159,6 +158,7 @@ const MarkReportTable = () => {
   const [toast, setToast] = useState({ show: false, message: '', type: '' });
 
   const semesterId = 4;
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   useEffect(() => {
     const fetchData = async () => {

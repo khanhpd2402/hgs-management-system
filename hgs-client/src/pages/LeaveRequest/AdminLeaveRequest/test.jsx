@@ -12,6 +12,7 @@ const getWeekdayName = (date) => {
     const weekdays = ['Chủ Nhật', 'Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy'];
     return weekdays[dayjs(date).day()];
 };
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const SubstituteTeacherAssignment = ({ leaveRequest }) => {
     const [loading, setLoading] = useState(false);

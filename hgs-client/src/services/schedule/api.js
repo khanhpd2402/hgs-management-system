@@ -107,10 +107,3 @@ export const createTimetable = async (data) => {
   );
   return response.data;
 };
-
-export const getTeacherBySubjectId = async (subjectId) => {
-  const response = await axiosInstance.get(
-    `TeacherSubject/by-subject/${subjectId}`,
-  );
-  return response.data;
-};

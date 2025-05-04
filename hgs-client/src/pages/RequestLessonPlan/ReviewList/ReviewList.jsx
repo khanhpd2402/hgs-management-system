@@ -5,9 +5,9 @@ import { SearchOutlined, CheckCircleOutlined, EyeOutlined } from '@ant-design/ic
 import axios from 'axios';
 import dayjs from 'dayjs';
 import './ReviewList.scss';
-const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const { Title } = Typography;
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const ReviewList = () => {
     const [lessonPlans, setLessonPlans] = useState([]);

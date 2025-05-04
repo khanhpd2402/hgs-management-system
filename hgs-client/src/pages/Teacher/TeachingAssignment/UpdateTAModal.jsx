@@ -207,16 +207,16 @@ export default function UpdateTAModal({
     }
   }, [open, subjects, teacherId, teacherAssignmentQuery.data]);
 
-  // const isLoading =
-  //   teacherQuery.isLoading ||
-  //   classQuery.isLoading ||
-  //   subjects.isLoading ||
-  //   subjectConfigQuery.isLoading ||
-  //   teacherAssignmentQuery.isLoading;
+  const isLoading =
+    teacherQuery.isLoading ||
+    classQuery.isLoading ||
+    subjects.isLoading ||
+    subjectConfigQuery.isLoading ||
+    teacherAssignmentQuery.isLoading;
 
-  // if (isLoading) {
-  //   return <Spinner />;
-  // }
+  if (isLoading) {
+    return <Spinner />;
+  }
 
   return (
     <>

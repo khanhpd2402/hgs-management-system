@@ -6,7 +6,6 @@ import './UploadLessonPlan.scss';
 import { useSubjects, useSemestersByAcademicYear } from '../../../services/common/queries';
 import { useTeachersBySubject } from '../../../services/teacher/queries';
 import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
-const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const INITIAL_FORM = {
     subjectId: '',
@@ -22,6 +21,7 @@ const FORM_FIELDS = [
     { name: 'title', label: 'Tiêu đề', type: 'text' },
     { name: 'planContent', label: 'Nội dung  ', type: 'textarea', rows: 4 },
 ];
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const UploadLessonPlan = () => {
     const [form, setForm] = useState(INITIAL_FORM);

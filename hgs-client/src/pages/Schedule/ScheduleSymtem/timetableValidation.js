@@ -1,19 +1,14 @@
 import toast from "react-hot-toast";
 
 // Validates that a teacher is not assigned to multiple classes in the same period and day,
-// and that a teacher does not exceed 19 periods in total, except for "Chào cờ"
+// and that a teacher does not exceed 19 periods in total
 export const validateTeacherAssignment = (
   newDetail,
   existingDetails,
   isUpdate = false,
   timetableDetailId = null,
 ) => {
-  const { dayOfWeek, periodId, teacherId, subjectName } = newDetail;
-
-  // Skip validation for "Chào cờ"
-  if (subjectName === "Chào cờ") {
-    return true;
-  }
+  const { dayOfWeek, periodId, teacherId } = newDetail;
 
   // Skip validation for the same timetable detail during update
   const filteredDetails = isUpdate
@@ -55,8 +50,7 @@ export const validateTeacherAssignment = (
 
 // Validates that a subject has at most one period per day for a class,
 // except for "Ngữ văn" which can have up to two consecutive periods in the same session,
-// and "Thể dục" cannot be assigned to period 5.
-// For "Chào cờ", enforce dayOfWeek as "Thứ Hai" and periodId as 1 for both create and update.
+// and "Thể dục" cannot be assigned to period 5
 export const validateSubjectAssignment = (
   newDetail,
   existingDetails,
@@ -64,18 +58,6 @@ export const validateSubjectAssignment = (
   timetableDetailId = null,
 ) => {
   const { dayOfWeek, periodId, subjectId, classId, subjectName } = newDetail;
-
-  // Validate "Chào cờ" restrictions (applies to both create and update)
-  if (subjectName === "Chào cờ") {
-    if (dayOfWeek !== "Thứ Hai") {
-      toast.error(`Môn Chào cờ chỉ được phép xếp vào Thứ Hai`);
-      return false;
-    }
-    if (periodId !== 1) {
-      toast.error(`Môn Chào cờ chỉ được phép xếp ở tiết 1`);
-      return false;
-    }
-  }
 
   // Prevent "Thể dục" from being assigned to period 5
   if (subjectName === "Thể dục" && periodId === 5) {

@@ -9,7 +9,6 @@ import { Input } from 'antd';
 import toast from 'react-hot-toast';
 
 const { Option } = Select;
-const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const LessonPlanList = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
@@ -24,6 +23,8 @@ const LessonPlanList = () => {
     const [isReviewModalVisible, setIsReviewModalVisible] = useState(false);
     const [reviewForm] = Form.useForm();
     const [selectedPlan, setSelectedPlan] = useState(null);
+    const baseUrl = import.meta.env.VITE_BASE_URL;
+
     const fetchLessonPlans = async (page, status) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
