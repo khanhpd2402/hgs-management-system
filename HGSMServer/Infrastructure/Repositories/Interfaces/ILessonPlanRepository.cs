@@ -17,6 +17,7 @@ namespace Infrastructure.Repositories.Interfaces
 
         // Task<List<LessonPlan>> GetAllLessonPlansAsync();
         // Task<List<LessonPlan>> GetLessonPlansByStatusAsync(string status);
-        
+        Task<List<LessonPlan>> GetLessonPlansByTeacherIdsAsync(List<int> teacherIds);
+
     }
 }
