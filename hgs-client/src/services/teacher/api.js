@@ -1,3 +1,4 @@
+import axios from "axios";
 import { axiosInstance } from "../axios";
 
 export const getTeachers = async () => {
@@ -96,3 +97,13 @@ export async function getTeachersBySubject(id) {
   const response = await axios.get(`/api/TeacherSubject/${id}`);
   return response.data;
 }
+
+export const getExamStats = async () => {
+  return (await axiosInstance.get(`ExamProposals/department-head-statistics`))
+    .data;
+};
+
+export const getLessonPlanStats = async () => {
+  return (await axiosInstance.get(`LessonPlan/department-head-statistics`))
+    .data;
+};

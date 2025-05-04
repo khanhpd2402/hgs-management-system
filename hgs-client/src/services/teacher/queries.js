@@ -7,6 +7,8 @@ import {
   getStudentByClass,
   getStudentAttendances,
   getTeachersBySubject,
+  getExamStats,
+  getLessonPlanStats,
 } from "./api";
 
 export function useTeachers() {
@@ -100,5 +102,23 @@ export function useTeachersBySubject(id) {
     queryKey: ["teachersBySubject", id],
     queryFn: () => getTeachersBySubject(id),
     enabled: !!id,
+  });
+}
+
+export function useExamStats() {
+  return useQuery({
+    queryKey: ["exam-stats"],
+    queryFn: () => {
+      return getExamStats();
+    },
+  });
+}
+
+export function useLessonPlanStats() {
+  return useQuery({
+    queryKey: ["lesson-plan-stats"],
+    queryFn: () => {
+      return getLessonPlanStats();
+    },
   });
 }
