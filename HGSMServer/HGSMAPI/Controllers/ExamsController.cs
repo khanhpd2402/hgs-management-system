@@ -18,7 +18,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpPost("exam-proposal")]
-        [Authorize(Roles = "Giáo viên")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
         public async Task<IActionResult> CreateExamProposal([FromForm] ExamProposalRequestDto request)
         {
             try
@@ -103,7 +103,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("exam-proposals/status/{status}")]
-        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Trưởng bộ môn")]
         public async Task<IActionResult> GetExamProposalsByStatus(string status)
         {
             try
@@ -157,7 +157,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("exam-proposals")]
-        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư")]
+        [Authorize(Roles = "Hiệu trưởng,Cán bộ văn thư,Trưởng bộ môn")]
         public async Task<IActionResult> GetAllExamProposals()
         {
             try
@@ -179,7 +179,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("exam-proposals/teacher/{teacherId}")]
-        [Authorize(Roles = "Giáo viên,Hiệu trưởng,Cán bộ văn thư")]
+        [Authorize(Roles = "Giáo viên,Hiệu trưởng,Cán bộ văn thư,Trưởng bộ môn")]
         public async Task<IActionResult> GetExamProposalsByTeacherId(int teacherId)
         {
             try
@@ -201,7 +201,7 @@ namespace HGSMAPI.Controllers
         }
 
         [HttpGet("department-head-statistics")]
-        [Authorize(Roles = "Trưởng bộ môn")]
+        [Authorize(Roles = "Trưởng bộ môn,Hiệu trưởng,Cán bộ văn thư")]
         public async Task<IActionResult> GetDepartmentHeadExamProposalStatistics()
         {
             try
