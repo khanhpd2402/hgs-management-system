@@ -13,14 +13,14 @@ import AuthRedirectRoute from "./AuthRedirectRoute";
 import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import { Spinner } from "@/components/Spinner";
-import Home from "@/components/Home/Home";
+
 
 const ScheduleTeacher = lazy(
   () => import("@/pages/Schedule/ScheduleTeacher/ScheduleTeacher"),
-);
+)
 const ScheduleStudent = lazy(
   () => import("@/pages/Schedule/ScheduleStudent/ScheduleStudent"),
-);
+)
 const TimetableManagement = lazy(
   () => import("@/pages/Schedule/ScheduleSymtem/TimetableManagement"),
 );
@@ -294,7 +294,7 @@ const adminRouter = [
         </Suspense>
       </ProtectedRoute>
     ),
-  },
+  }
 ];
 
 const teacherRouter = [
@@ -566,7 +566,7 @@ const privateRouter = [
     children: [
       {
         path: "/home",
-        element: <Home />,
+        element: <div>Home</div>,
       },
       {
         path: "/",

@@ -42,7 +42,6 @@ import {
 } from "@/services/principal/mutation";
 import toast from "react-hot-toast";
 import { useStudents } from "@/services/student/queries";
-import { Spinner } from "@/components/Spinner";
 
 export default function TransferData() {
   const tabs = [
@@ -81,13 +80,6 @@ export default function TransferData() {
   const NEStudents = NEStudentQuery.data || [];
   const currentStudentQuery = useStudents(currentYear?.academicYearID);
   const studentList = currentStudentQuery.data?.students || [];
-
-  const isLoading =
-    classQuery.isLoading ||
-    studentQuery.isLoading ||
-    NEStudentQuery.isLoading ||
-    currentStudentQuery.isLoading;
-
   // console.log(studentList);
 
   const transferClassDataMutation = useTransferClassData();
@@ -160,31 +152,29 @@ export default function TransferData() {
 
   // console.log(currentYear);
 
-  // console.log(selectedAdjustStudents);
+  console.log(selectedAdjustStudents);
 
   // console.log(className);
   // console.log(classes);
   // UI loading skeleton
-  // if (classQuery.isLoading) {
-  //   return (
-  //     <Card className="mt-6 border shadow">
-  //       <CardHeader>
-  //         <CardTitle className="text-2xl font-bold">
-  //           Chuyển dữ liệu học sinh
-  //         </CardTitle>
-  //       </CardHeader>
-  //       <CardContent>
-  //         <Skeleton className="mb-4 h-10 w-1/3" />
-  //         <Skeleton className="mb-2 h-8 w-full" />
-  //         <Skeleton className="mb-2 h-8 w-full" />
-  //         <Skeleton className="h-8 w-full" />
-  //       </CardContent>
-  //     </Card>
-  //   );
-  // }
-  if (isLoading) {
-    return <Spinner />;
+  if (classQuery.isLoading) {
+    return (
+      <Card className="mt-6 border shadow">
+        <CardHeader>
+          <CardTitle className="text-2xl font-bold">
+            Chuyển dữ liệu học sinh
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Skeleton className="mb-4 h-10 w-1/3" />
+          <Skeleton className="mb-2 h-8 w-full" />
+          <Skeleton className="mb-2 h-8 w-full" />
+          <Skeleton className="h-8 w-full" />
+        </CardContent>
+      </Card>
+    );
   }
+
   return (
     <div className="mt-6">
       <h2 className="text-2xl font-bold">

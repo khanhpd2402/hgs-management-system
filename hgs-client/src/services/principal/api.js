@@ -220,7 +220,3 @@ export const getNonEligibleStudents = async (id) => {
     )
   ).data;
 };
-
-export const getStats = async () => {
-  return (await axiosInstance.get(`Statistics/school`)).data;
-};

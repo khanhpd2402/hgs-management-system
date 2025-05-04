@@ -24,7 +24,7 @@ const TeacherTableHeader = ({
       <h2 className="text-2xl font-semibold">Danh sách cán bộ</h2>
       <div className="flex gap-2">
         <TeacherFilter setFilter={setFilter} />
-        <ExcelImportModal type="teachers" />
+        <ExcelImportModal type={type} />
         <ExportExcelByColumn
           fileName="Danh sách giáo viên.xlsx"
           allData={data} // Truyền toàn bộ dữ liệu

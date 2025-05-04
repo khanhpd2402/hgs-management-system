@@ -32,7 +32,6 @@ export default function ExcelImportModal({ type }) {
     onSuccess: () => {
       toast.success("Import dữ liệu thành công!");
       queryClient.invalidateQueries(["teachers"]); // Làm mới danh sách giáo viên
-      queryClient.invalidateQueries(["students"]); // Làm mới danh sách giáo viên
       setIsOpen(false); // Đóng modal
     },
     // onError: () => {
@@ -42,7 +41,7 @@ export default function ExcelImportModal({ type }) {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        toast.error(error?.response?.data);
+        toast.error(error?.response?.data?.errors);
       } else {
         console.log(data);
       }
@@ -50,7 +49,7 @@ export default function ExcelImportModal({ type }) {
   });
 
   const sampleFiles = {
-    teachers:
+    teacher:
       "https://docs.google.com/spreadsheets/d/1HxEDkY54T_NZFDGD_nqIAAt5rxEneW9l/export?format=xlsx",
     student:
       "https://docs.google.com/spreadsheets/d/1Wb9Nra31iOYD3i1R2mlEfgwv8aPnkBLa/export?format=xlsx",
