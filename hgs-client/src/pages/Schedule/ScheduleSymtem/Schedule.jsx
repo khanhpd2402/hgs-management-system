@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, memo, useMemo, useCallback } from 'react';
-import { useTimetableForPrincipal, useGetClasses, useTimetables } from '../../../services/schedule/queries';
+import { useTimetableForPrincipal, useGetClasses, useTimetables, useGetTeacherBySubjectId } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
 import { useSubjects, useAcademicYears } from '@/services/common/queries';
 import { useDeleteTimeTableDetail } from '@/services/schedule/mutation';
@@ -14,6 +14,7 @@ import toast from 'react-hot-toast';
 import { Link } from 'react-router-dom';
 import { useCreateTimeTableDetail, useUpdateTimeTableDetail } from '../../../services/schedule/mutation';
 import { validateTeacherAssignment, validateSubjectAssignment } from './timetableValidation';
+
 // Constants
 const DAYS_OF_WEEK = ['Thứ Hai', 'Thứ Ba', 'Thứ Tư', 'Thứ Năm', 'Thứ Sáu', 'Thứ Bảy', 'Chủ Nhật'];
 const SHIFTS = [
@@ -187,44 +188,58 @@ const EditDialog = memo(({
     showEditDialog, setShowEditDialog, selectedSchedule, selectedSubjectId,
     setSelectedSubjectId, selectedTeacherId, setSelectedTeacherId,
     subjects, teachers, handleScheduleUpdate, handleDelete
-}) => (
-    <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="schedule-edit-content p-6">
-            <DialogHeader className="schedule-edit-header mb-6">
-                <DialogTitle className="schedule-edit-title text-2xl font-semibold text-center text-primary border-b pb-4">
-                    Chỉnh sửa thời khóa biểu
-                </DialogTitle>
-            </DialogHeader>
-            <div className="schedule-edit-info bg-gray-50 rounded-lg p-6 mb-6 space-y-4">
-                <InfoRow label="Thứ" value={selectedSchedule?.day} />
-                <InfoRow label="Tiết" value={selectedSchedule?.periodId} />
-                <InfoRow label="Lớp" value={`${selectedSchedule?.className}`} />
-            </div>
-            <div className="schedule-edit-form space-y-6">
-                <FilterSelect
-                    label="Môn học"
-                    value={selectedSubjectId}
-                    onChange={(e) => setSelectedSubjectId(e.target.value)}
-                    options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName}` }))}
-                />
-                <FilterSelect
-                    label="Giáo viên"
-                    value={selectedTeacherId}
-                    onChange={(e) => setSelectedTeacherId(e.target.value)}
-                    options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}` }))}
-                />
-                <div className="schedule-edit-actions flex gap-4 mt-8">
-                    <button onClick={handleScheduleUpdate} className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
-                        <Save size={16} /> Lưu thay đổi
-                    </button>
-                    <button onClick={handleDelete} className="btn-delete flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
-                        <Trash2 size={16} /> Xóa
-                    </button>
+}) => {
+    const { data: subjectTeachers = [], isLoading: teachersLoading } = useGetTeacherBySubjectId(selectedSubjectId);
+
+    // Reset teacherId when subject changes
+    useEffect(() => {
+        setSelectedTeacherId('');
+    }, [selectedSubjectId, setSelectedTeacherId]);
+
+    return (
+        <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+            <DialogContent className="schedule-edit-content p-6">
+                <DialogHeader className="schedule-edit-header mb-6">
+                    <DialogTitle className="schedule-edit-title text-2xl font-semibold text-center text-primary border-b pb-4">
+                        Chỉnh sửa thời khóa biểu
+                    </DialogTitle>
+                </DialogHeader>
+                <div className="schedule-edit-info bg-gray-50 rounded-lg p-6 mb-6 space-y-4">
+                    <InfoRow label="Thứ" value={selectedSchedule?.day} />
+                    <InfoRow label="Tiết" value={selectedSchedule?.periodId} />
+                    <InfoRow label="Lớp" value={`${selectedSchedule?.className}`} />
                 </div>
-            </div>
-        </DialogContent>
-    </Dialog>
-));
+                <div className="schedule-edit-form space-y-6">
+                    <FilterSelect
+                        label="Môn học"
+                        value={selectedSubjectId}
+                        onChange={(e) => setSelectedSubjectId(e.target.value)}
+                        options={subjects.map(subject => ({ value: subject.subjectID, label: `${subject.subjectName}` }))}
+                    />
+                    <FilterSelect
+                        label="Giáo viên"
+                        value={selectedTeacherId}
+                        onChange={(e) => setSelectedTeacherId(e.target.value)}
+                        options={subjectTeachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.teacherName}` }))}
+                        disabled={teachersLoading || !selectedSubjectId}
+                    />
+                    <div className="schedule-edit-actions flex gap-4 mt-8">
+                        <button
+                            onClick={handleScheduleUpdate}
+                            className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors"
+                            disabled={selectedSchedule?.day === "Thứ Hai" && selectedSchedule?.periodId === 1}
+                        >
+                            <Save size={16} /> Lưu thay đổi
+                        </button>
+                        <button onClick={handleDelete} className="btn-delete flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-red-600 text-white rounded-md hover:bg-red-700 transition-colors">
+                            <Trash2 size={16} /> Xóa
+                        </button>
+                    </div>
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+});
 
 const AddDetailDialog = memo(({
     showAddDialog, setShowAddDialog, classes, days, periods, subjects, teachers,
@@ -233,6 +248,13 @@ const AddDetailDialog = memo(({
     const [form, setForm] = useState({
         class: '', day: '', period: '', subject: '', teacher: ''
     });
+
+    const { data: subjectTeachers = [], isLoading: teachersLoading } = useGetTeacherBySubjectId(form.subject);
+
+    // Reset teacher when subject changes
+    useEffect(() => {
+        setForm(prev => ({ ...prev, teacher: '' }));
+    }, [form.subject]);
 
     const handleSubmit = useCallback(() => {
         const { class: selectedClass, day, period, subject, teacher } = form;
@@ -297,7 +319,8 @@ const AddDetailDialog = memo(({
                         label="Giáo viên"
                         value={form.teacher}
                         onChange={handleChange('teacher')}
-                        options={teachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.fullName}` }))}
+                        options={subjectTeachers.map(teacher => ({ value: teacher.teacherId, label: `${teacher.teacherName}` }))}
+                        disabled={teachersLoading || !form.subject}
                     />
                     <div className="schedule-add-actions flex gap-4 mt-8">
                         <button onClick={handleSubmit} className="btn-save flex-1 inline-flex items-center justify-center gap-2 px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark transition-colors">
@@ -522,7 +545,9 @@ const Schedule = () => {
             console.error('Lỗi khi cập nhật thời khóa biểu:', error);
             toast.error('Có lỗi xảy ra khi cập nhật thời khóa biểu');
         }
-    }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedTimetable, subjects, createTimeTableMutation, updateTimeTableMutation]); const handleAddDetail = useCallback(async (detail) => {
+    }, [selectedSchedule, filteredSchedule, scheduleData, selectedSubjectId, selectedTeacherId, selectedTimetable, subjects, createTimeTableMutation, updateTimeTableMutation]);
+
+    const handleAddDetail = useCallback(async (detail) => {
         // Find subjectName for validation
         const subject = subjects.find(s => s.subjectID === parseInt(detail.subjectId));
         const subjectName = subject ? subject.subjectName : '';
@@ -937,7 +962,6 @@ const Schedule = () => {
                 setSelectedTeacherId={setSelectedTeacherId}
                 subjects={subjects}
                 teachers={teachers}
-                bullsEye
                 handleScheduleUpdate={handleScheduleUpdate}
                 handleDelete={handleDelete}
             />

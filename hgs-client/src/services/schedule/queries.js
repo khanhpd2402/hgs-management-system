@@ -9,6 +9,7 @@ import {
   getStudentNameAndClass,
   getClasses,
   getTimetables,
+  getTeacherBySubjectId,
 } from "./api";
 
 export function useScheduleTeacher(teacherId) {
@@ -97,3 +98,11 @@ export function useTimetables(semesterId) {
     enabled: !!semesterId,
   });
 }
+
+export const useGetTeacherBySubjectId = (subjectId) => {
+  return useQuery({
+    queryKey: ["teachers", subjectId],
+    queryFn: () => getTeacherBySubjectId(subjectId),
+    enabled: !!subjectId,
+  });
+};
