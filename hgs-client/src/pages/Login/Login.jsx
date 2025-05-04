@@ -77,11 +77,10 @@ const Login = () => {
       {
         onSuccess: (data) => {
           localStorage.setItem("token", JSON.stringify(data.token));
-          toast.success("Đăng nhập Google thành công!");
           navigate("/home");
         },
         onError: () => {
-          toast.error("Đăng nhập Google thất bại!");
+          toast.error("Đăng nhập thất bại!");
         },
       },
     );
@@ -212,7 +211,7 @@ const Login = () => {
                   ) : (
                     <GoogleLogin
                       onSuccess={handleGoogleLogin}
-                      onError={() => toast.error("Đăng nhập Google thất bại!")}
+                      onError={() => toast.error("Đăng nhập thất bại!")}
                       width="100%"
                     />
                   )}
