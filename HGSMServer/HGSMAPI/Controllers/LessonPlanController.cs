@@ -246,11 +246,6 @@ namespace HGSMAPI.Controllers
                 var statistics = await _lessonPlanService.GetDepartmentHeadLessonPlanStatisticsAsync();
                 return Ok(statistics);
             }
-            catch (UnauthorizedAccessException ex)
-            {
-                Console.WriteLine($"Unauthorized access: {ex.Message}");
-                return Unauthorized("Không có quyền truy cập.");
-            }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching lesson plan statistics: {ex.Message}");
