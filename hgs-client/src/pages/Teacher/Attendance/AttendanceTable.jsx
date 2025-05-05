@@ -44,6 +44,7 @@ import { Calendar } from "@/components/ui/calendar";
 import { vi } from "date-fns/locale";
 import { useTakeAttendance } from "@/services/teacher/mutation";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Spinner } from "@/components/Spinner";
 
 export default function AttendanceTable() {
   const { currentYear } = useLayout();
@@ -263,6 +264,14 @@ export default function AttendanceTable() {
     studentAttendanceQuery.isLoading ||
     teachingAssignmentQuery.isLoading ||
     classQuery.isLoading;
+
+  const defaultDataLoading =
+    studentAttendanceQuery.isLoading ||
+    teachingAssignmentQuery.isLoading ||
+    classQuery.isLoading;
+  if (defaultDataLoading) {
+    return <Spinner />;
+  }
 
   return (
     <div className="mt-6 p-4">
