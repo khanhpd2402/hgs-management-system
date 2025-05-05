@@ -116,10 +116,14 @@ export const getHomeroomClassInfo = async (teacherId, semesterId) => {
   ).data;
 };
 
-export const getHomeroomAttendanceInfo = async (teacherId, semesterId) => {
+export const getHomeroomAttendanceInfo = async (
+  teacherId,
+  semesterId,
+  weekStart,
+) => {
   return (
     await axiosInstance.get(
-      `Attendance/homeroom-attendance/${teacherId}/${semesterId}`,
+      `Attendance/homeroom-attendance/${teacherId}/${semesterId}?weekStart=${weekStart}`,
     )
   ).data;
 };

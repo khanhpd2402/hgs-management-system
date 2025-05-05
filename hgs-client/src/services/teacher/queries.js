@@ -141,12 +141,13 @@ export function useHomeroomAttendanceInfo({
   isHomeroom,
   teacherId,
   semesterId,
+  weekStart,
 }) {
   return useQuery({
     queryKey: ["homeroom-attendance-info"],
     queryFn: () => {
-      return getHomeroomAttendanceInfo(teacherId, semesterId);
+      return getHomeroomAttendanceInfo(teacherId, semesterId, weekStart);
     },
-    enabled: !!isHomeroom && !!teacherId && !!semesterId,
+    enabled: !!isHomeroom && !!teacherId && !!semesterId && !!weekStart,
   });
 }

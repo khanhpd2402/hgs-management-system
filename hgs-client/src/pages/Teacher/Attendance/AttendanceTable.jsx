@@ -599,8 +599,9 @@ export default function AttendanceTable() {
         <Button
           className="min-w-[150px] bg-blue-600 hover:bg-blue-700 focus-visible:ring-blue-500"
           onClick={handleSubmit}
+          disabled={takeAttendanceMutation.isPending}
         >
-          Lưu điểm danh
+          {takeAttendanceMutation.isPending ? "Đang lưu..." : "Lưu điểm danh"}
         </Button>
       </div>
     </div>

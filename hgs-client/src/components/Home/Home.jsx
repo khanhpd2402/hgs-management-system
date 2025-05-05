@@ -14,6 +14,7 @@ import {
 } from "@/services/teacher/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
+import { formatDate } from "@/helpers/formatDate";
 
 // const userRole = "Trưởng bộ môn";
 const barColors = {
@@ -60,10 +61,19 @@ export default function Home() {
     teacherId,
     semesterId: currentSemester?.semesterID,
   });
+  const getMonday = (d) => {
+    const date = new Date(d);
+    const day = date.getDay();
+    // Nếu là Chủ nhật (0) thì lùi về thứ 2 tuần hiện tại, còn lại lùi về thứ 2
+    const diff = date.getDate() - day + (day === 0 ? -6 : 1);
+    return new Date(date.setDate(diff));
+  };
+  const weekStart = formatDate(getMonday(today));
   const attendanceInfoQuery = useHomeroomAttendanceInfo({
     isHomeroom,
     teacherId,
     semesterId: currentSemester?.semesterID,
+    weekStart,
   });
   const classInfo = classInfoQuery.data || [];
   const attendanceInfo = attendanceInfoQuery.data || [];
