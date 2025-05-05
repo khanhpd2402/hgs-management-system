@@ -3,12 +3,9 @@ using Application.Features.Timetables.Interfaces;
 using AutoMapper;
 using ClosedXML.Excel;
 using Common.Constants;
-using Common.Utils;
 using Domain.Models;
-using Infrastructure.Repositories.Interfaces;
 using Infrastructure.Repositories.UnitOfWork;
 using Microsoft.AspNetCore.Http;
-using Microsoft.Extensions.Logging;
 using System.Text;
 
 namespace Application.Features.Timetables.Services
@@ -104,11 +101,6 @@ namespace Application.Features.Timetables.Services
                 detail.DayOfWeek = detailDto.DayOfWeek;
                 detail.PeriodId = detailDto.PeriodId;
 
-                //if (await _repository.IsConflictAsync(detail))
-                //{
-                //    throw new InvalidOperationException($"Conflict detected for timetable detail ID {detail.TimetableDetailId} on {detail.DayOfWeek} at period {detail.PeriodId}.");
-                //}
-
                 detailsToUpdate.Add(detail);
             }
 
@@ -120,25 +112,8 @@ namespace Application.Features.Timetables.Services
             return await _unitOfWork.Timetables.DeleteDetailAsync(detailId);
         }
 
-        //public async Task<bool> IsConflictAsync(TimetableDetailDto detailDto)
-        //{
-        //    var detail = _mapper.Map<TimetableDetail>(detailDto);
-        //    return await _repository.IsConflictAsync(detail);
-        //}
-
-        // using Microsoft.AspNetCore.Http; // Thêm ở đầu file nếu chưa có
-        // using Common.Utils; // Namespace chứa ExcelImportHelper
-        // using System.Globalization; // Để parse DayOfWeek
-
-
         public async Task CreateDetailAsync(CreateTimetableDetailRequest request)
         {
-            //var conflict = await _timetableDetailRepository.IsConflictAsync(request.ClassId, request.DayOfWeek, request.PeriodId);
-            //if (conflict)
-            //{
-            //    throw new Exception("Lớp này đã có tiết học vào thời điểm này.");
-            //}
-
             var detail = new TimetableDetail
             {
                 TimetableId = request.TimetableId,
@@ -374,9 +349,9 @@ namespace Application.Features.Timetables.Services
             {
                 detail.TimetableId = createdTimetable.TimetableId;
             }
-            foreach (var detail in detailsToCreate) 
+            foreach (var detail in detailsToCreate)
             {
-                await _unitOfWork.TimetableDetails.AddAsync(detail); 
+                await _unitOfWork.TimetableDetails.AddAsync(detail);
             }
             await _unitOfWork.SaveChangesAsync(); // Lưu tất cả thay đổi
 

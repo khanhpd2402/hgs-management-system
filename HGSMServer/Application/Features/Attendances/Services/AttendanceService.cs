@@ -35,6 +35,11 @@ namespace Application.Features.Attendances.Services
             var attendances = await _uow.AttendanceRepository.GetByWeekAsync(classId, weekStart);
             return _mapper.Map<List<AttendanceDto>>(attendances);
         }
+        public async Task<List<AttendanceDto>> GetWeeklyAttendanceByStudentAsync(int studentId, DateOnly weekStart)
+        {
+            var attendances = await _uow.AttendanceRepository.GetByStudentAndWeekAsync(studentId, weekStart);
+            return _mapper.Map<List<AttendanceDto>>(attendances);
+        }
 
         public async Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos)
         {
