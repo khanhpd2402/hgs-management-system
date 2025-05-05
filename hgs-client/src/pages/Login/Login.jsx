@@ -201,9 +201,12 @@ const Login = () => {
                     : "Đăng nhập"}
                 </Button>
                 <div className="mt-2 flex flex-col items-center gap-2">
-                  <span className="text-sm text-gray-500">
-                    hoặc đăng nhập với Google (Chỉ dành cho giáo viên)
-                  </span>
+                  <span>hoặc</span>
+                  <p>Đăng nhập với tài khoản Google</p>
+                  <p className="text-sm">
+                    (Chỉ dành cho nhân viên cán bộ nhà trường)
+                  </p>
+
                   {googleLoginMutation.isPending ? (
                     <div className="flex w-full justify-center">
                       <p>Đang đăng nhập...</p>
