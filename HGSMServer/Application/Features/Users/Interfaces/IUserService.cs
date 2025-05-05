@@ -17,5 +17,7 @@ namespace Application.Features.Users.Interfaces
         Task ChangePasswordAsync(int userId, ChangePasswordDto changePasswordDto);
         Task AdminChangePasswordAsync(int userId, string newPassword);
         Task ChangeUserStatusAsync(int userId, string newStatus);
+        Task ForgotPasswordAsync(string email);
+
     }
 }
