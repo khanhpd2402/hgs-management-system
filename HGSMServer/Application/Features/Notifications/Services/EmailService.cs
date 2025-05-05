@@ -252,5 +252,43 @@ namespace Common.Utils
                 <p>Vui lòng truy cập hệ thống để xem chi tiết.</p>
                 <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
         }
+        public async Task SendAdminPasswordChangeNotificationAsync(string userEmail, string username, string newPassword)
+        {
+            string subject = "Thông báo: Mật khẩu tài khoản của bạn đã được thay đổi";
+            string body = $@"
+                <p>Kính gửi thầy/cô với tài khoản: {username},</p>
+                <p>Mật khẩu tài khoản của bạn đã được quản trị viên thay đổi vào ngày <strong>{DateTime.Now:dd/MM/yyyy HH:mm}</strong>.</p>
+                <p><strong>Mật khẩu mới:</strong> {newPassword}</p>
+                <p><strong>Chú ý:</strong> Đây là thông tin bảo mật, vui lòng không chia sẻ mật khẩu này với bất kỳ ai. Để đảm bảo an toàn, hãy đổi mật khẩu ngay sau khi đăng nhập.</p>
+                <p>Nếu bạn không yêu cầu thay đổi này, vui lòng liên hệ ngay với quản trị viên qua email support@haigiangschool.edu.vn.</p>
+                <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
+
+            await SendEmailAsync(userEmail, subject, body, isHtml: true);
+        }
+        public async Task SendUserStatusChangeNotificationAsync(string userEmail, string fullName, string newStatus)
+        {
+            string subject = "Thông báo: Trạng thái tài khoản của bạn đã được cập nhật";
+            string body = $@"
+                <p>Kính gửi thầy/cô {fullName},</p>
+                <p>Trạng thái tài khoản của bạn đã được quản trị viên cập nhật vào ngày <strong>{DateTime.Now:dd/MM/yyyy HH:mm}</strong>.</p>
+                <p><strong>Trạng thái mới:</strong> {newStatus}</p>
+                <p>Nếu bạn có thắc mắc về sự thay đổi này, vui lòng liên hệ với quản trị viên qua email support@haigiangschool.edu.vn.</p>
+                <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
+
+            await SendEmailAsync(userEmail, subject, body, isHtml: true);
+        }
+        public async Task SendForgotPasswordNotificationAsync(string userEmail, string username, string newPassword)
+        {
+            string subject = "Yêu cầu đặt lại mật khẩu tài khoản của bạn";
+            string body = $@"
+                <p>Kính gửi {username},</p>
+                <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn vào ngày <strong>{DateTime.Now:dd/MM/yyyy HH:mm}</strong>.</p>
+                <p><strong>Mật khẩu mới:</strong> {newPassword}</p>
+                <p><strong>Chú ý:</strong> Đây là thông tin bảo mật, vui lòng không chia sẻ mật khẩu này với bất kỳ ai. Để đảm bảo an toàn, hãy đổi mật khẩu ngay sau khi đăng nhập.</p>
+                <p>Nếu bạn không gửi yêu cầu này, vui lòng liên hệ ngay với chúng tôi qua email support@haigiangschool.edu.vn.</p>
+                <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
+
+            await SendEmailAsync(userEmail, subject, body, isHtml: true);
+        }
     }
 }

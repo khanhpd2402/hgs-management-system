@@ -224,7 +224,25 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi đổi mật khẩu.");
             }
         }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                await _userService.ForgotPasswordAsync(dto.Email);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
+            }
+        }
     }
+
 
     public class ChangeStatusDto
     {

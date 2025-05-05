@@ -18,19 +18,22 @@ namespace Application.Features.Users.Services
         private readonly ITeacherRepository _teacherRepository;
         private readonly IParentRepository _parentRepository;
         private readonly IStudentRepository _studentRepository;
+        private readonly EmailService _emailService;
 
         public UserService(
             IUserRepository userRepository,
             IRoleRepository roleRepository,
             ITeacherRepository teacherRepository,
             IParentRepository parentRepository,
-            IStudentRepository studentRepository)
+            IStudentRepository studentRepository,
+            EmailService emailService)
         {
             _userRepository = userRepository ?? throw new ArgumentNullException(nameof(userRepository));
             _roleRepository = roleRepository ?? throw new ArgumentNullException(nameof(roleRepository));
             _teacherRepository = teacherRepository ?? throw new ArgumentNullException(nameof(teacherRepository));
             _parentRepository = parentRepository ?? throw new ArgumentNullException(nameof(parentRepository));
             _studentRepository = studentRepository ?? throw new ArgumentNullException(nameof(studentRepository));
+            _emailService = emailService ?? throw new ArgumentNullException(nameof(emailService));
         }
 
         public async Task<IEnumerable<UserDTO>> GetAllUsersAsync()
@@ -327,6 +330,12 @@ namespace Application.Features.Users.Services
 
             user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
             await _userRepository.UpdateAsync(user);
+
+            // Send email notification using EmailService
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                await _emailService.SendAdminPasswordChangeNotificationAsync(user.Email, user.Username, newPassword);
+            }
         }
 
         public async Task ChangeUserStatusAsync(int userId, string newStatus)
@@ -337,6 +346,46 @@ namespace Application.Features.Users.Services
 
             user.Status = newStatus;
             await _userRepository.UpdateAsync(user);
+
+            // Send email notification to teacher if applicable
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                var roleName = await GetRoleNameByRoleIdAsync(user.RoleId);
+                if (!string.IsNullOrEmpty(roleName) && !roleName.Equals("Phụ huynh", StringComparison.OrdinalIgnoreCase))
+                {
+                    var teacher = await _teacherRepository.GetByUserIdAsync(userId);
+                    if (teacher != null)
+                    {
+                        await _emailService.SendUserStatusChangeNotificationAsync(user.Email, teacher.FullName, newStatus);
+                    }
+                }
+            }
+        }
+        public async Task ForgotPasswordAsync(string email)
+        {
+            if (string.IsNullOrEmpty(email))
+                throw new ArgumentException("Email là bắt buộc.");
+
+            var user = await _userRepository.GetByEmailAsync(email);
+            if (user == null)
+                throw new ArgumentException("Email không tồn tại.");
+
+            string newPassword = GenerateRandomPassword();
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _userRepository.UpdateAsync(user);
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                await _emailService.SendForgotPasswordNotificationAsync(user.Email, user.Username, newPassword);
+            }
+        }
+
+        private string GenerateRandomPassword(int length = 12)
+        {
+            const string validChars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*-_+=";
+            var random = new Random();
+            return new string(Enumerable.Repeat(validChars, length)
+                .Select(s => s[random.Next(s.Length)]).ToArray());
         }
     }
 }
