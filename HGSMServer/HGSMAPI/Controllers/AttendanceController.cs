@@ -36,6 +36,22 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi lấy danh sách điểm danh hàng tuần.");
             }
         }
+        [HttpGet("student/{studentId}/week")]
+        public async Task<IActionResult> GetAttendanceByStudentAndWeek(int studentId, [FromQuery] string weekStart)
+        {
+            if (!DateOnly.TryParseExact(weekStart, "dd/MM/yyyy", out var startDate))
+                return BadRequest("Ngày bắt đầu tuần không hợp lệ. Định dạng đúng: dd/MM/yyyy");
+
+            try
+            {
+                var result = await _service.GetWeeklyAttendanceByStudentAsync(studentId, startDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi khi lấy dữ liệu điểm danh: {ex.Message}");
+            }
+        }
 
         [HttpPost("upsert")]
         public async Task<IActionResult> UpsertAttendances(
