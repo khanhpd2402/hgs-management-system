@@ -31,7 +31,19 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Attendances
                 .FirstOrDefaultAsync(a => a.StudentClassId == studentClassId && a.Date == date && a.Session == session);
         }
-public async Task AddRangeAsync(IEnumerable<Attendance> attendances)
+        public async Task<List<Attendance>> GetByStudentAndWeekAsync(int studentId, DateOnly weekStart)
+        {
+            var weekDates = Enumerable.Range(0, 6)
+                .Select(i => weekStart.AddDays(i))
+                .ToList();
+
+            return await _context.Attendances
+                .Where(a => a.StudentClass.StudentId == studentId && weekDates.Contains(a.Date))
+                .Include(a => a.StudentClass.Class)
+                .ToListAsync();
+        }
+
+        public async Task AddRangeAsync(IEnumerable<Attendance> attendances)
         {
             _context.Attendances.AddRangeAsync(attendances);
             await _context.SaveChangesAsync();
