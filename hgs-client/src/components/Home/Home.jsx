@@ -14,8 +14,7 @@ import {
 } from "@/services/teacher/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
-import { formatDate, formatDateString } from "@/helpers/formatDate";
-import { endOfWeek, format, startOfWeek } from "date-fns";
+import { formatDate } from "@/helpers/formatDate";
 
 // const userRole = "Trưởng bộ môn";
 const barColors = {
@@ -29,9 +28,15 @@ export default function Home() {
   const token = JSON.parse(localStorage.getItem("token"));
   const teacherId = jwtDecode(token)?.teacherId;
   const userRole = jwtDecode(token)?.role;
+  let studentIds = [];
+  //phuhuynh
+  if (userRole == "Phụ huynh") {
+    studentIds = jwtDecode(token)?.studentIds?.split(",");
+  }
   //hieu truong, hieu pho
   const statsQuery = useStats(userRole);
   const stats = statsQuery.data || [];
+
   //tkb
   const scheduleQuery = useScheduleTeacher(teacherId);
   const schedules = scheduleQuery.data || [];
@@ -83,8 +88,8 @@ export default function Home() {
   });
   const classInfo = classInfoQuery.data || [];
   const attendanceInfo = attendanceInfoQuery.data || [];
-  console.log(classInfo);
-  console.log(attendanceInfo);
+  // console.log(classInfo);
+  // console.log(attendanceInfo);
   // console.log(homeroomTeachers);
   // console.log(userRole);
   // console.log(examStats);
