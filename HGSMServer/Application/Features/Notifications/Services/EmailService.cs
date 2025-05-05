@@ -277,5 +277,18 @@ namespace Common.Utils
 
             await SendEmailAsync(userEmail, subject, body, isHtml: true);
         }
+        public async Task SendForgotPasswordNotificationAsync(string userEmail, string username, string newPassword)
+        {
+            string subject = "Yêu cầu đặt lại mật khẩu tài khoản của bạn";
+            string body = $@"
+                <p>Kính gửi {username},</p>
+                <p>Chúng tôi đã nhận được yêu cầu đặt lại mật khẩu cho tài khoản của bạn vào ngày <strong>{DateTime.Now:dd/MM/yyyy HH:mm}</strong>.</p>
+                <p><strong>Mật khẩu mới:</strong> {newPassword}</p>
+                <p><strong>Chú ý:</strong> Đây là thông tin bảo mật, vui lòng không chia sẻ mật khẩu này với bất kỳ ai. Để đảm bảo an toàn, hãy đổi mật khẩu ngay sau khi đăng nhập.</p>
+                <p>Nếu bạn không gửi yêu cầu này, vui lòng liên hệ ngay với chúng tôi qua email support@haigiangschool.edu.vn.</p>
+                <p>Trân trọng,<br/>Trường THCS Hải Giang</p>";
+
+            await SendEmailAsync(userEmail, subject, body, isHtml: true);
+        }
     }
 }

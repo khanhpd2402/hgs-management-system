@@ -371,7 +371,13 @@ namespace Application.Features.Users.Services
                 throw new ArgumentException("Email không tồn tại.");
 
             string newPassword = GenerateRandomPassword();
-            await AdminChangePasswordAsync(user.UserId, newPassword);
+            user.PasswordHash = BCrypt.Net.BCrypt.HashPassword(newPassword);
+            await _userRepository.UpdateAsync(user);
+
+            if (!string.IsNullOrEmpty(user.Email))
+            {
+                await _emailService.SendForgotPasswordNotificationAsync(user.Email, user.Username, newPassword);
+            }
         }
 
         private string GenerateRandomPassword(int length = 12)
