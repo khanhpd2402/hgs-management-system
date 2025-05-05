@@ -1,4 +1,5 @@
-import { Card } from "@/components/ui/card";
+import React, { useState, useEffect, useMemo } from 'react';
+import { jwtDecode } from 'jwt-decode';
 import {
   Table,
   TableBody,
@@ -7,185 +8,332 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { useState } from "react";
-import { studentData } from "./studentData";
-import StudentScoreHeader from "./StudentScoreHeader";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { useAcademicYears } from '../../../services/common/queries';
+import { getStudentNameAndClass, getSemesterByYear } from '../../../services/schedule/api';
+import './StudentScore.scss';
 
-export default function StudentScore() {
-  const [semester, setSemester] = useState(1);
-  const [studentDada, setStudentDada] = useState(studentData);
+// Hàm ánh xạ assessmentType
+const mapAssessmentType = (field) => {
+  if (field.startsWith('TX')) {
+    const index = field.replace('TX', '');
+    return `ĐĐG TX ${index}`;
+  }
+  return { GK: 'ĐĐG GK', CK: 'ĐĐG CK' }[field] || '';
+};
 
-  // Hàm để xác định màu nền dựa trên học lực
+// Hàm lấy tên ngắn cho đầu điểm
+const getShortAssessmentName = (assessmentType) => {
+  if (assessmentType.startsWith('ĐĐG TX')) {
+    const index = assessmentType.split(' ')[2];
+    return `TX${index}`;
+  }
+  return { 'ĐĐG GK': 'GK', 'ĐĐG CK': 'CK' }[assessmentType] || assessmentType;
+};
 
-  const getScoreBackgroundColor = (score) => {
-    const numScore = parseFloat(score);
-    if (isNaN(numScore)) return "";
-    if (numScore >= 8.5) return "bg-green-100";
-    if (numScore >= 7.0) return "bg-blue-100";
-    if (numScore >= 5.0) return "bg-yellow-100";
-    return "bg-red-100";
+const StudentScore = () => {
+  const [studentId, setStudentId] = useState(null);
+  const [academicYearId, setAcademicYearId] = useState('');
+  const [semesterId, setSemesterId] = useState('');
+  const [studentList, setStudentList] = useState([]);
+  const [selectedStudent, setSelectedStudent] = useState(null);
+  const [semesters, setSemesters] = useState([]);
+  const [grades, setGrades] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+
+  const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
+
+  // Lấy danh sách học kỳ khi năm học thay đổi
+  useEffect(() => {
+    const fetchSemesters = async () => {
+      if (academicYearId) {
+        try {
+          const semesterData = await getSemesterByYear(academicYearId);
+          setSemesters(semesterData || []);
+          setSemesterId(semesterData[0]?.semesterID.toString() || '');
+        } catch (error) {
+          console.error('Lỗi khi lấy dữ liệu học kỳ:', error);
+          setSemesters([]);
+          setSemesterId('');
+          setError('Không thể tải danh sách học kỳ.');
+        }
+      } else {
+        setSemesters([]);
+        setSemesterId('');
+      }
+    };
+    fetchSemesters();
+  }, [academicYearId]);
+
+  // Lấy danh sách học sinh khi năm học thay đổi
+  useEffect(() => {
+    const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+    if (token && academicYearId) {
+      const tokenParts = token.split('.');
+      if (tokenParts.length === 3) {
+        try {
+          const payload = jwtDecode(token);
+          const studentIdList = payload.studentIds.split(',');
+
+          Promise.all(
+            studentIdList.map(id =>
+              getStudentNameAndClass(id, academicYearId)
+            )
+          ).then(students => {
+            const formattedStudents = students.map(student => ({
+              value: student.studentId.toString(),
+              label: `${student.fullName} - Lớp ${student.className}`,
+              studentInfo: student
+            }));
+            setStudentList(formattedStudents);
+            setStudentId(formattedStudents[0]?.value || null);
+            setSelectedStudent(formattedStudents[0]?.studentInfo || null);
+          }).catch(error => {
+            console.error('Error fetching student details:', error);
+            setError('Không thể tải danh sách học sinh.');
+          });
+        } catch (e) {
+          console.error('Invalid token:', e);
+          setError('Phiên đăng nhập không hợp lệ.');
+        }
+      }
+    }
+  }, [academicYearId]);
+
+  // Gọi API lấy danh sách điểm khi studentId hoặc semesterId thay đổi
+  useEffect(() => {
+    const fetchGrades = async () => {
+      if (studentId && semesterId) {
+        setLoading(true);
+        setError('');
+        try {
+          const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+          const response = await fetch(
+            `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/student?studentId=${studentId}&semesterId=${semesterId}`,
+            {
+              method: 'GET',
+              headers: {
+                'Accept': '*/*',
+                'Authorization': `Bearer ${token}`
+              }
+            }
+          );
+          if (!response.ok) {
+            throw new Error('Failed to fetch grades');
+          }
+          const data = await response.json();
+          setGrades(data || []);
+        } catch (error) {
+          console.error('Error fetching grades:', error);
+          setError('Không thể tải danh sách điểm.');
+          setGrades([]);
+        } finally {
+          setLoading(false);
+        }
+      } else {
+        setGrades([]);
+      }
+    };
+    fetchGrades();
+  }, [studentId, semesterId]);
+
+  // Cập nhật thông tin học sinh khi chọn học sinh
+  const handleStudentChange = (value) => {
+    setStudentId(value);
+    const selectedStudentInfo = studentList.find(student => student.value === value)?.studentInfo;
+    setSelectedStudent(selectedStudentInfo);
   };
-  const scoreCol = Array.from({ length: 4 });
-  console.log(Object.entries(studentDada.subjects));
+
+  // Lấy danh sách các đầu điểm thường xuyên
+  const regularAssessmentTypes = useMemo(() => {
+    const types = new Set(grades.map((g) => g.assessmentType));
+    return Array.from(types)
+      .filter((type) => type.startsWith('ĐĐG TX'))
+      .sort((a, b) => {
+        const indexA = parseInt(a.split(' ')[2]) || 0;
+        const indexB = parseInt(b.split(' ')[2]) || 0;
+        return indexA - indexB;
+      });
+  }, [grades]);
+
+  // Nhóm điểm theo môn học
+  const groupedGrades = useMemo(() => {
+    const grouped = grades.reduce((acc, { subjectName, assessmentType, score, teacherComment }) => {
+      if (!acc[subjectName]) {
+        acc[subjectName] = {
+          subjectName,
+          regularAssessments: {},
+          GK: null,
+          CK: null,
+          teacherComment,
+        };
+      }
+      if (assessmentType.startsWith('ĐĐG TX')) {
+        const shortName = getShortAssessmentName(assessmentType);
+        acc[subjectName].regularAssessments[shortName] = score;
+      } else if (assessmentType === 'ĐĐG GK') {
+        acc[subjectName].GK = score;
+      } else if (assessmentType === 'ĐĐG CK') {
+        acc[subjectName].CK = score;
+      }
+      return acc;
+    }, {});
+    return Object.values(grouped);
+  }, [grades]);
 
   return (
-    <Card className="relative mt-6 p-4 shadow-md">
-      <StudentScoreHeader setSemester={setSemester} />
-      <div className="h-fit overflow-auto rounded-md border border-gray-200">
-        {/* Container cho bảng với overflow-x-auto */}
-        <div className="min-w-max">
-          <Table className="w-full border-collapse text-center [&_td]:border [&_td]:border-gray-300 [&_th]:border [&_th]:border-gray-300">
-            <TableHeader className="bg-gray-100">
-              {/* Hàng đầu tiên: Gộp tiêu đề "ĐGDTX" */}
-              <TableRow className="h-10">
-                <TableHead
-                  rowSpan={2}
-                  className="h-5 w-5 text-center font-semibold"
-                >
-                  STT
-                </TableHead>
-                <TableHead
-                  rowSpan={2}
-                  className="h-5 w-60 text-center font-semibold"
-                >
-                  Họ và tên
-                </TableHead>
-
-                {/* Gộp cột tiêu đề DGDTX */}
-                <TableHead
-                  colSpan={scoreCol.length}
-                  className="h-5 w-40 text-center font-semibold"
-                >
-                  ĐGDTX
-                </TableHead>
-
-                {/* Các cột khác */}
-                <TableHead
-                  rowSpan={2}
-                  className="h-5 text-center font-semibold"
-                >
-                  DDGGK
-                </TableHead>
-                <TableHead
-                  rowSpan={2}
-                  className="h-5 text-center font-semibold"
-                >
-                  DDGCK
-                </TableHead>
-                <TableHead
-                  rowSpan={2}
-                  className="h-5 text-center font-semibold"
-                >
-                  TBM
-                </TableHead>
-                {semester == 2 && (
-                  <TableHead
-                    rowSpan={2}
-                    className="h-5 text-center font-semibold"
-                  >
-                    TBMCN
-                  </TableHead>
-                )}
-                <TableHead
-                  rowSpan={2}
-                  className="h-5 text-center font-semibold"
-                >
-                  Nhận xét
-                </TableHead>
-                {semester == 2 && (
-                  <TableHead
-                    rowSpan={2}
-                    className="h-5 text-center font-semibold"
-                  >
-                    Nhận xét cả năm
-                  </TableHead>
-                )}
-              </TableRow>
-
-              {/* Hàng thứ 2: Hiển thị số thứ tự của DGDTX */}
-              <TableRow>
-                {scoreCol.map((_, index) => (
-                  <TableHead
-                    key={index}
-                    className="h-10 w-10 text-center font-semibold"
-                  >
-                    {index + 1}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {Object.entries(studentData.subjects).map(
-                ([subject, data], index) => (
-                  <TableRow
-                    key={index}
-                    className="divide-x divide-gray-300 transition-colors hover:bg-gray-50"
-                  >
-                    <TableCell className="text-center font-medium">
-                      {index + 1}
-                    </TableCell>
-                    <TableCell className="border border-gray-300 pl-2 text-left font-medium">
-                      {subject}
-                    </TableCell>
-
-                    {/* Điểm học kỳ 1 */}
-                    {semester == 1
-                      ? data.HK1.DGDTX.map((grade, index) => (
-                          <TableCell
-                            key={index}
-                            className="border border-gray-300 text-center"
-                          >
-                            {grade}
-                          </TableCell>
-                        ))
-                      : data.HK2.DGDTX.map((grade, index) => (
-                          <TableCell
-                            key={index}
-                            className="border border-gray-300 text-center"
-                          >
-                            {grade}
-                          </TableCell>
-                        ))}
-
-                    <TableCell className="border border-gray-300 text-center">
-                      {semester == 1 ? data.HK1.DDGGK : data.HK2.DDGGK}
-                    </TableCell>
-                    <TableCell className="border border-gray-300 text-center">
-                      {semester == 1 ? data.HK1.DDGCK : data.HK2.DDGCK}
-                    </TableCell>
-                    <TableCell
-                      className={`border border-gray-300 text-center font-medium ${getScoreBackgroundColor(
-                        semester == 1 ? data.HK1.TBM : data.HK2.TBM,
-                      )}`}
-                    >
-                      {semester == 1 ? data.HK1.TBM : data.HK2.TBM}
-                    </TableCell>
-                    {semester == 2 && (
-                      <TableCell
-                        className={`border border-gray-300 text-center font-medium ${getScoreBackgroundColor(
-                          ((+data.HK1.TBM + +data.HK2.TBM) / 2).toFixed(1),
-                        )}`}
-                      >
-                        {((+data.HK1.TBM + +data.HK2.TBM) / 2).toFixed(1)}
-                      </TableCell>
-                    )}
-                    <TableCell className="border border-gray-300 text-center">
-                      {semester == 1
-                        ? studentData.review.HK1
-                        : studentData.review.HK2}
-                    </TableCell>
-                    {semester == 2 && (
-                      <TableCell className="border border-gray-300 text-center">
-                        {studentData.reviewCN}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ),
-              )}
-            </TableBody>
-          </Table>
+    <div className="container mx-auto py-6">
+      <div className="space-y-4">
+        <div className="flex items-center justify-between border-b pb-4">
+          <div>
+            <h1 className="text-2xl font-bold">Bảng điểm học sinh</h1>
+            <p className="text-muted-foreground text-sm">
+              Xem điểm số của học sinh theo học kỳ
+            </p>
+          </div>
         </div>
+
+        <div className="grid gap-4 md:grid-cols-3">
+          <div>
+            <Select
+              value={academicYearId}
+              onValueChange={setAcademicYearId}
+              disabled={loading || academicYearsLoading}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Chọn năm học --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default" disabled>-- Chọn năm học --</SelectItem>
+                {academicYears?.map((year) => (
+                  <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
+                    {year.yearName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select
+              value={semesterId}
+              onValueChange={setSemesterId}
+              disabled={loading || !academicYearId || !semesters.length}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Chọn học kỳ --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default" disabled>-- Chọn học kỳ --</SelectItem>
+                {semesters?.map((semester) => (
+                  <SelectItem key={semester.semesterID} value={semester.semesterID.toString()}>
+                    {semester.semesterName}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+          <div>
+            <Select
+              value={studentId}
+              onValueChange={handleStudentChange}
+              disabled={loading || !studentList.length}
+            >
+              <SelectTrigger className="w-full">
+                <SelectValue placeholder="-- Chọn học sinh --" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="default" disabled>-- Chọn học sinh --</SelectItem>
+                {studentList.map((student) => (
+                  <SelectItem key={student.value} value={student.value}>
+                    {student.label}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {error && (
+          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
+            {error}
+          </div>
+        )}
+
+        {selectedStudent && (
+          <div className="flex justify-between items-center">
+            <h2 className="text-lg font-semibold">
+              Bảng Điểm - {selectedStudent.fullName} - Lớp {selectedStudent.className}
+            </h2>
+          </div>
+        )}
+
+        <Table>
+          <TableHeader>
+            <TableRow>
+              <TableHead rowSpan="2" className="border text-center">Môn học</TableHead>
+              <TableHead colSpan={regularAssessmentTypes.length} className="border text-center">
+                Điểm thường xuyên
+              </TableHead>
+              <TableHead rowSpan="2" className="border text-center">Điểm giữa kỳ</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Điểm cuối kỳ</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Nhận xét</TableHead>
+            </TableRow>
+            <TableRow>
+              {regularAssessmentTypes.map((type) => (
+                <TableHead key={type} className="border text-center">
+                  {getShortAssessmentName(type)}
+                </TableHead>
+              ))}
+            </TableRow>
+          </TableHeader>
+          <TableBody>
+            {groupedGrades.length > 0 ? (
+              groupedGrades.map((subject, index) => (
+                <TableRow key={`${subject.subjectName}-${index}`}>
+                  <TableCell className="border">{subject.subjectName}</TableCell>
+                  {regularAssessmentTypes.map((type) => {
+                    const shortName = getShortAssessmentName(type);
+                    return (
+                      <TableCell key={type} className="border text-center">
+                        {subject.regularAssessments[shortName] !== null
+                          ? subject.regularAssessments[shortName]
+                          : 'Chưa có điểm'}
+                      </TableCell>
+                    );
+                  })}
+                  <TableCell className="border text-center">
+                    {subject.GK !== null ? subject.GK : 'Chưa có điểm'}
+                  </TableCell>
+                  <TableCell className="border text-center">
+                    {subject.CK !== null ? subject.CK : 'Chưa có điểm'}
+                  </TableCell>
+                  <TableCell className="border">
+                    {subject.teacherComment || 'Không có nhận xét'}
+                  </TableCell>
+                </TableRow>
+              ))
+            ) : (
+              <TableRow>
+                <TableCell
+                  colSpan={regularAssessmentTypes.length + 4}
+                  className="text-center"
+                >
+                  Không có dữ liệu điểm.
+                </TableCell>
+              </TableRow>
+            )}
+          </TableBody>
+        </Table>
       </div>
-    </Card>
+    </div>
   );
-}
+};
+
+export default StudentScore;

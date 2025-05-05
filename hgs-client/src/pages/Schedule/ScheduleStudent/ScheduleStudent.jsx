@@ -1,22 +1,50 @@
 import React, { useState, useEffect } from 'react';
 import { useScheduleStudent, useGetStudentNameAndClass } from '../../../services/schedule/queries';
 import { Select } from 'antd';
+import { useAcademicYears } from '../../../services/common/queries';
+import { getStudentNameAndClass, getSemesterByYear } from '../../../services/schedule/api';
 import '../ScheduleTeacher/ScheduleTeacher.scss';
-import { getStudentNameAndClass } from '../../../services/schedule/api';
+
 const ScheduleStudent = () => {
     const [studentId, setStudentId] = useState(null);
-    const [semesterId, setSemesterId] = useState(1);
+    const [academicYearId, setAcademicYearId] = useState(null);
+    const [semesterId, setSemesterId] = useState(null);
     const [studentList, setStudentList] = useState([]);
     const [selectedStudent, setSelectedStudent] = useState(null);
+    const [semesters, setSemesters] = useState([]);
 
+    const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
+    const { data: scheduleData, isLoading } = useScheduleStudent(studentId, semesterId);
+
+    // Lấy danh sách học kỳ khi năm học thay đổi
+    useEffect(() => {
+        const fetchSemesters = async () => {
+            if (academicYearId) {
+                try {
+                    const semesterData = await getSemesterByYear(academicYearId);
+                    setSemesters(semesterData || []);
+                    setSemesterId(semesterData[0]?.semesterID || null);
+                } catch (error) {
+                    console.error('Lỗi khi lấy dữ liệu học kỳ:', error);
+                    setSemesters([]);
+                    setSemesterId(null);
+                }
+            } else {
+                setSemesters([]);
+                setSemesterId(null);
+            }
+        };
+        fetchSemesters();
+    }, [academicYearId]);
+
+    // Lấy danh sách học sinh khi component mount
     useEffect(() => {
         const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-        if (token) {
+        if (token && academicYearId) {
             const tokenParts = token.split('.');
             if (tokenParts.length === 3) {
                 const payload = JSON.parse(atob(tokenParts[1]));
                 const studentIdList = payload.studentIds.split(',');
-                const academicYearId = 1;
 
                 Promise.all(
                     studentIdList.map(id =>
@@ -36,7 +64,7 @@ const ScheduleStudent = () => {
                 });
             }
         }
-    }, []);
+    }, [academicYearId]);
 
     // Cập nhật thông tin học sinh từ danh sách đã lưu
     const handleStudentChange = (value) => {
@@ -44,8 +72,6 @@ const ScheduleStudent = () => {
         const selectedStudentInfo = studentList.find(student => student.value === value)?.studentInfo;
         setSelectedStudent(selectedStudentInfo);
     };
-
-    const { data: scheduleData, isLoading } = useScheduleStudent(studentId, semesterId);
 
     const daysOfWeek = [
         'Thứ Hai',
@@ -92,7 +118,7 @@ const ScheduleStudent = () => {
         return period?.periodName || `Tiết ${periodId}`;
     };
 
-    if (isLoading) {
+    if (isLoading || academicYearsLoading) {
         return (
             <div className="schedule-teacher-container">
                 <div className="loading-container">
@@ -109,6 +135,34 @@ const ScheduleStudent = () => {
             <div className="filter-section">
                 <div className="filter-row">
                     <div className="filter-item">
+                        <label>Năm học</label>
+                        <Select
+                            value={academicYearId}
+                            onChange={(value) => setAcademicYearId(value)}
+                            options={academicYears?.map(year => ({
+                                value: year.academicYearID,
+                                label: `${year.yearName} -- ${year.academicYearID}`
+                            })) || []}
+                            style={{ width: 300 }}
+                            placeholder="Chọn năm học"
+                            disabled={academicYearsLoading}
+                        />
+                    </div>
+                    <div className="filter-item">
+                        <label>Học kỳ</label>
+                        <Select
+                            value={semesterId}
+                            onChange={(value) => setSemesterId(value)}
+                            options={semesters.map(semester => ({
+                                value: semester.semesterID,
+                                label: `${semester.semesterName} -- ${semester.semesterID}`
+                            }))}
+                            style={{ width: 300 }}
+                            placeholder="Chọn học kỳ"
+                            disabled={!academicYearId || !semesters.length}
+                        />
+                    </div>
+                    <div className="filter-item">
                         <label>Chọn học sinh</label>
                         <Select
                             value={studentId}
@@ -116,18 +170,8 @@ const ScheduleStudent = () => {
                             options={studentList}
                             style={{ width: 300 }}
                             placeholder="Chọn học sinh"
+                            disabled={!studentList.length}
                         />
-                    </div>
-                    <div className="filter-item">
-                        <label>Học kỳ</label>
-                        <select
-                            value={semesterId}
-                            onChange={(e) => setSemesterId(Number(e.target.value))}
-                            className="semester-select"
-                        >
-                            <option value={1}>Học kỳ 1</option>
-                            <option value={2}>Học kỳ 2</option>
-                        </select>
                     </div>
                 </div>
             </div>
@@ -136,7 +180,6 @@ const ScheduleStudent = () => {
                 <div className="schedule-header">
                     <h2>Thời Khóa Biểu - {selectedStudent.fullName} - Lớp {selectedStudent.className}</h2>
                     <div className="schedule-info">
-                        <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
                         <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
                         <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
                     </div>
