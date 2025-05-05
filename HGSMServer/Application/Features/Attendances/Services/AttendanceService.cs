@@ -58,11 +58,11 @@ namespace Application.Features.Attendances.Services
             {
                 var attendanceDate = dto.Date;
 
-                //if (attendanceDate > today)
-                //    throw new InvalidOperationException("Không thể điểm danh trước ngày hiện tại.");
+                if (attendanceDate > today)
+                    throw new InvalidOperationException("Chưa đến giờ điểm danh.");
 
-                //if (attendanceDate == today)
-                //    ValidateSessionTime(dto.Session, now);
+                if (attendanceDate == today)
+                    ValidateSessionTime(dto.Session, now);
 
                 var existing = await _uow.AttendanceRepository.GetAsync(dto.StudentClassId, dto.Date, dto.Session);
                 if (existing != null)
@@ -127,16 +127,16 @@ namespace Application.Features.Attendances.Services
         {
             switch (session)
             {
-                //case "Sáng":
-                //    if (now.Hour < 7)
-                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
-                //    break;
-                //case "Chiều":
-                //    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
-                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
-                //    break;
-                //default:
-                //    throw new InvalidOperationException("Buổi học không hợp lệ.");
+                case "Sáng":
+                    if (now.Hour < 7)
+                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
+                    break;
+                case "Chiều":
+                    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
+                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
+                    break;
+                default:
+                    throw new InvalidOperationException("Buổi học không hợp lệ.");
             }
         }
         public async Task<List<AttendanceDto>> GetHomeroomAttendanceAsync(int teacherId, int semesterId, DateOnly weekStart)
