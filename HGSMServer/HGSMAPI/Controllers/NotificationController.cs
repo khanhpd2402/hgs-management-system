@@ -1,4 +1,5 @@
 ﻿using Application.Features.Notification.DTOs;
+using Application.Features.Notifications.DTOs;
 using Application.Features.Teachers.Interfaces;
 using Common.Utils;
 using Microsoft.AspNetCore.Authorization;
@@ -65,6 +66,51 @@ namespace HGSMAPI.Controllers
 
                 await _emailService.SendEmailToMultipleRecipientsAsync(
                     toEmails: teacherEmails,
+                    subject: request.Subject,
+                    body: request.Body,
+                    isHtml: request.IsHtml
+                );
+
+                return Ok("Gửi tin nhắn thành công.");
+            }
+            catch (ArgumentException ex)
+            {
+                Console.WriteLine($"Error sending notification: {ex.Message}");
+                return BadRequest("Lỗi khi gửi tin nhắn.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                Console.WriteLine($"Error sending notification: {ex.Message}");
+                return BadRequest("Lỗi khi gửi tin nhắn.");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Unexpected error sending notification: {ex.Message}");
+                return StatusCode(500, "Lỗi khi gửi tin nhắn.");
+            }
+        }
+
+        [HttpPost("send-by-emails")]
+        [Authorize(Roles = "Hiệu trưởng,Hiệu phó,Trưởng bộ môn,Cán bộ văn thư")]
+        public async Task<IActionResult> SendNotificationByEmails([FromBody] SendNotificationByEmailsRequestDto request)
+        {
+            try
+            {
+                if (request == null || string.IsNullOrWhiteSpace(request.Subject) || string.IsNullOrWhiteSpace(request.Body))
+                {
+                    Console.WriteLine("Invalid notification data.");
+                    return BadRequest("Tiêu đề và nội dung tin nhắn không được để trống.");
+                }
+
+                if (request.Emails == null || !request.Emails.Any())
+                {
+                    Console.WriteLine("Empty email list.");
+                    return BadRequest("Danh sách email không được để trống.");
+                }
+
+                Console.WriteLine("Sending notification to provided emails...");
+                await _emailService.SendEmailToMultipleRecipientsAsync(
+                    toEmails: request.Emails,
                     subject: request.Subject,
                     body: request.Body,
                     isHtml: request.IsHtml
