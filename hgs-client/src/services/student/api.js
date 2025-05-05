@@ -17,3 +17,15 @@ export const updateStudent = async (id, data) => {
 export const createStudent = async (data) => {
   return (await axiosInstance.post(`student`, data)).data;
 };
+
+export const getStudentAttendance = async (studentId, weekStart) => {
+  return (
+    await axiosInstance.get(
+      `Attendance/student/${studentId}/week?weekStart=${weekStart}`,
+    )
+  ).data;
+};
+
+export const getStudentById = async (studentId, academicId) => {
+  return (await axiosInstance.get(`student/${studentId}/${academicId}`)).data;
+};

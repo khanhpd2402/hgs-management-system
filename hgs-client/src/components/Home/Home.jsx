@@ -1,5 +1,15 @@
 // ... existing code ...
 import { AgCharts } from "ag-charts-react";
+import {
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+  ResponsiveContainer,
+  LabelList,
+} from "recharts";
 import { useHomeroomTeachers, useStats } from "@/services/principal/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
@@ -11,10 +21,15 @@ import {
   useHomeroomAttendanceInfo,
   useHomeroomClassInfo,
   useLessonPlanStats,
+  useStudentAttendances,
 } from "@/services/teacher/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
-import { formatDate } from "@/helpers/formatDate";
+import { formatDate, formatDateString } from "@/helpers/formatDate";
+import {
+  useListStudentById,
+  useStudentListAttendances,
+} from "@/services/student/queries";
 
 // const userRole = "Trưởng bộ môn";
 const barColors = {
@@ -88,6 +103,25 @@ export default function Home() {
   });
   const classInfo = classInfoQuery.data || [];
   const attendanceInfo = attendanceInfoQuery.data || [];
+  const studentAttendanceQueries = useStudentListAttendances({
+    studentIds,
+    weekStart: formatDateString(weekStart),
+  });
+  const studentAttendances =
+    studentAttendanceQueries
+      .filter((q) => q.status === "success" && q.data)
+      .map((q) => q.data) || [];
+  const studentInfoQueries = useListStudentById({
+    studentIds,
+    academicYearId: currentYear?.academicYearID,
+  });
+  const studentInfos =
+    studentInfoQueries
+      .filter((q) => q.status === "success" && q.data)
+      .map((q) => q.data) || [];
+  console.log(studentInfos);
+  console.log(studentAttendances);
+
   // console.log(classInfo);
   // console.log(attendanceInfo);
   // console.log(homeroomTeachers);
@@ -261,37 +295,34 @@ export default function Home() {
       </div>
     );
   }
-  function getAttendanceTodayGroupedBar(attendanceInfo, date) {
+
+  const attendanceTodayPieData = (attendanceInfo, date, session) => {
     const statusMap = {
       C: "Có mặt",
       K: "Không phép",
       P: "Có phép",
       X: "Chưa rõ",
     };
-    const sessions = ["Sáng", "Chiều"];
-    let result = [];
-    sessions.forEach((session) => {
-      const records = attendanceInfo.filter(
-        (item) => item.date === date && item.session === session,
-      );
-      // Đếm số lượng từng trạng thái
-      const summary = {
-        "Có mặt": 0,
-        "Có phép": 0,
-        "Không phép": 0,
-        "Chưa rõ": 0,
-      };
-      records.forEach((item) => {
-        const label = statusMap[item.status] || "Chưa rõ";
-        summary[label]++;
-      });
-      result.push({
-        session,
-        ...summary,
-      });
+    const records = attendanceInfo.filter(
+      (item) => item.date === date && item.session === session,
+    );
+    const summary = {
+      "Có mặt": 0,
+      "Có phép": 0,
+      "Không phép": 0,
+      "Chưa rõ": 0,
+    };
+    records.forEach((item) => {
+      const label = statusMap[item.status] || "Chưa rõ";
+      summary[label]++;
     });
-    return result;
-  }
+    return [
+      { label: "Có mặt", value: summary["Có mặt"] },
+      { label: "Có phép", value: summary["Có phép"] },
+      { label: "Không phép", value: summary["Không phép"] },
+      { label: "Chưa rõ", value: summary["Chưa rõ"] },
+    ];
+  };
 
   // Hàm tổng hợp điểm danh trong tuần
   function getWeeklyAttendanceGroupedBar(attendanceInfo, weekDates) {
@@ -309,7 +340,6 @@ export default function Home() {
       "Thứ Năm",
       "Thứ Sáu",
       "Thứ Bảy",
-      "Chủ Nhật",
     ];
     let result = [];
     weekDates.forEach((date, idx) => {
@@ -328,7 +358,7 @@ export default function Home() {
           summary[label]++;
         });
         result.push({
-          daySession: `${daysOfWeek[idx] || date} - ${session}`,
+          daySession: `${daysOfWeek[idx] || date}`,
           "Có mặt": summary["Có mặt"],
           "Có phép": summary["Có phép"],
           "Không phép": summary["Không phép"],
@@ -341,124 +371,32 @@ export default function Home() {
   function getWeekDates(weekStart, weekEnd) {
     const dates = [];
     let current = new Date(weekStart);
-    const end = new Date(weekEnd);
-    while (current <= end) {
+    // Lấy tối đa 6 ngày (Thứ Hai đến Thứ Bảy)
+    for (let i = 0; i < 6; i++) {
       dates.push(formatDate(current));
       current.setDate(current.getDate() + 1);
     }
     return dates;
   }
   const weekDates = getWeekDates(weekStart, weekEnd);
-  const attendanceTodayGroupedBar = getAttendanceTodayGroupedBar(
+  // const attendanceTodayGroupedBar = getAttendanceTodayGroupedBar(
+  //   attendanceInfo,
+  //   todayStr,
+  // );
+  const attendanceTodayMorningPie = attendanceTodayPieData(
     attendanceInfo,
     todayStr,
+    "Sáng",
+  );
+  const attendanceTodayAfternoonPie = attendanceTodayPieData(
+    attendanceInfo,
+    todayStr,
+    "Chiều",
   );
   const weeklyAttendanceGroupedBar = getWeeklyAttendanceGroupedBar(
     attendanceInfo,
     weekDates,
   );
-
-  const groupedBarOptions = {
-    data: attendanceTodayGroupedBar,
-    title: { text: "Thống kê điểm danh hôm nay (Sáng/Chiều)", fontSize: 16 },
-    series: [
-      {
-        type: "bar",
-        xKey: "session",
-        yKey: "Có mặt",
-        stacked: true,
-        fill: "mediumseagreen",
-        label: { enabled: true },
-        name: "Có mặt",
-      },
-      {
-        type: "bar",
-        xKey: "session",
-        yKey: "Có phép",
-        stacked: true,
-        fill: "dodgerblue",
-        label: { enabled: true },
-        name: "Có phép",
-      },
-      {
-        type: "bar",
-        xKey: "session",
-        yKey: "Không phép",
-        stacked: true,
-        fill: "tomato",
-        label: { enabled: true },
-        name: "Không phép",
-      },
-      {
-        type: "bar",
-        xKey: "session",
-        yKey: "Chưa rõ",
-        stacked: true,
-        fill: "gold",
-        label: { enabled: true },
-        name: "Chưa rõ",
-      },
-    ],
-    legend: { position: "bottom" },
-    height: 300,
-    width: "100%",
-    padding: { top: 20, bottom: 20, left: 0, right: 0 },
-    axes: [
-      { type: "category", position: "bottom" },
-      { type: "number", position: "left", nice: true, min: 0 },
-    ],
-  };
-
-  const weeklyGroupedBarOptions = {
-    data: weeklyAttendanceGroupedBar,
-    title: { text: "Thống kê điểm danh theo tuần (Sáng/Chiều)", fontSize: 16 },
-    series: [
-      {
-        type: "bar",
-        xKey: "daySession",
-        yKey: "Có mặt",
-        stacked: true,
-        fill: "mediumseagreen",
-        label: { enabled: true },
-        name: "Có mặt",
-      },
-      {
-        type: "bar",
-        xKey: "daySession",
-        yKey: "Có phép",
-        stacked: true,
-        fill: "dodgerblue",
-        label: { enabled: true },
-        name: "Có phép",
-      },
-      {
-        type: "bar",
-        xKey: "daySession",
-        yKey: "Không phép",
-        stacked: true,
-        fill: "tomato",
-        label: { enabled: true },
-        name: "Không phép",
-      },
-      {
-        type: "bar",
-        xKey: "daySession",
-        yKey: "Chưa rõ",
-        stacked: true,
-        fill: "gold",
-        label: { enabled: true },
-        name: "Chưa rõ",
-      },
-    ],
-    legend: { position: "bottom" },
-    height: 350,
-    width: "100%",
-    padding: { top: 20, bottom: 20, left: 0, right: 0 },
-    axes: [
-      { type: "category", position: "bottom" },
-      { type: "number", position: "left", nice: true, min: 0 },
-    ],
-  };
 
   const isLoading =
     scheduleQuery.isLoading ||
@@ -466,7 +404,10 @@ export default function Home() {
     scheduleQuery.isLoading ||
     examQuery.isLoading ||
     classInfoQuery.isLoading ||
-    attendanceInfoQuery.isLoading;
+    attendanceInfoQuery.isLoading ||
+    studentAttendanceQueries.isLoading ||
+    studentInfoQueries.isLoading ||
+    lessonPlanQuery.isLoading;
 
   if (userRole == "Hiệu trưởng" || userRole == "Hiệu phó") {
     return (
@@ -749,6 +690,86 @@ export default function Home() {
     );
   }
 
+  if (userRole == "Phụ huynh") {
+    return (
+      <>
+        <h2 className="mt-4 text-2xl font-semibold">Tình trạng điểm danh</h2>
+        <div className="mt-4 grid grid-cols-1 gap-6">
+          {studentInfos.map((student, idx) => {
+            const attendances = studentAttendances[idx] || [];
+            const weekDates = getWeekDates(weekStart, weekEnd);
+            const statusMap = {
+              C: "Có mặt",
+              K: "Không phép",
+              P: "Có phép",
+              X: "Chưa rõ",
+            };
+            // Gom nhóm theo ngày và buổi, mỗi ngày/buổi chỉ lấy 1 trạng thái (nếu có)
+            const weeklyData = weekDates.flatMap((date) =>
+              ["Sáng", "Chiều"].map((session) => {
+                const record = attendances.find(
+                  (item) => item.date === date && item.session === session,
+                );
+                let status = "";
+                if (record) {
+                  status = statusMap[record.status];
+                }
+                return {
+                  date,
+                  session,
+                  status,
+                };
+              }),
+            );
+            return (
+              <Card key={student.studentId} className="border shadow-lg">
+                <CardHeader>
+                  <CardTitle>{student.fullName}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="overflow-x-auto">
+                    <table className="min-w-full rounded border text-center shadow">
+                      <thead>
+                        <tr>
+                          <th className="border px-2 py-2">Ngày</th>
+                          <th className="border px-2 py-2">Buổi</th>
+                          <th className="border px-2 py-2">Có mặt</th>
+                          <th className="border px-2 py-2">Có phép</th>
+                          <th className="border px-2 py-2">Không phép</th>
+                          <th className="border px-2 py-2">Chưa rõ</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {weeklyData.map((row, i) => (
+                          <tr key={i}>
+                            <td className="border px-2 py-2">{row.date}</td>
+                            <td className="border px-2 py-2">{row.session}</td>
+                            <td className="border px-2 py-2">
+                              {row.status === "Có mặt" ? "✔️" : ""}
+                            </td>
+                            <td className="border px-2 py-2">
+                              {row.status === "Có phép" ? "✔️" : ""}
+                            </td>
+                            <td className="border px-2 py-2">
+                              {row.status === "Không phép" ? "✔️" : ""}
+                            </td>
+                            <td className="border px-2 py-2">
+                              {row.status === "Chưa rõ" ? "✔️" : ""}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       {userRole === "Giáo viên" && (
@@ -798,9 +819,26 @@ export default function Home() {
                   {attendanceInfoQuery.isLoading ? (
                     <Skeleton className="h-56 w-full" />
                   ) : (
-                    <div className="flex w-full justify-center">
-                      <div style={{ width: "100%", maxWidth: 400 }}>
-                        <AgCharts options={groupedBarOptions} />
+                    <div className="flex flex-col items-center justify-center gap-8 md:flex-row">
+                      <div>
+                        <div style={{ width: 220, height: 220 }}>
+                          <AgCharts
+                            options={pieOptions(
+                              attendanceTodayMorningPie,
+                              "Buổi sáng",
+                            )}
+                          />
+                        </div>
+                      </div>
+                      <div>
+                        <div style={{ width: 220, height: 220 }}>
+                          <AgCharts
+                            options={pieOptions(
+                              attendanceTodayAfternoonPie,
+                              "Buổi chiều",
+                            )}
+                          />
+                        </div>
                       </div>
                     </div>
                   )}
@@ -820,8 +858,82 @@ export default function Home() {
                     <Skeleton className="h-56 w-full" />
                   ) : (
                     <div className="flex w-full justify-center">
-                      <div style={{ width: "100%" }}>
-                        <AgCharts options={weeklyGroupedBarOptions} />
+                      <div style={{ width: "100%", height: 350 }}>
+                        <ResponsiveContainer width="100%" height="100%">
+                          <BarChart
+                            data={weeklyAttendanceGroupedBar}
+                            margin={{ top: 20, right: 30, left: 0, bottom: 20 }}
+                          >
+                            <XAxis
+                              dataKey="daySession"
+                              tick={({ x, y, payload }) => {
+                                const [day, session] = payload.value.split("-");
+                                return (
+                                  <g transform={`translate(${x},${y})`}>
+                                    <text
+                                      textAnchor="middle"
+                                      fontSize={12}
+                                      fill="#333"
+                                    >
+                                      <tspan x="0" dy="16">
+                                        {day}
+                                      </tspan>
+                                      <tspan x="0" dy="16">
+                                        {session}
+                                      </tspan>
+                                    </text>
+                                  </g>
+                                );
+                              }}
+                            />
+                            <YAxis />
+                            <Tooltip
+                              formatter={(value, name) => [value, name]}
+                              contentStyle={{ fontSize: 14 }}
+                            />
+                            <Legend />
+                            <Bar dataKey="Có mặt" stackId="a" fill="#3CB371">
+                              <LabelList
+                                dataKey="Có mặt"
+                                position="top"
+                                fill="#fff"
+                                fontSize={0}
+                                fontWeight="bold"
+                              />
+                            </Bar>
+                            <Bar dataKey="Có phép" stackId="a" fill="#1E90FF">
+                              <LabelList
+                                dataKey="Có phép"
+                                position="top"
+                                fill="#fff"
+                                fontSize={0}
+                                fontWeight="bold"
+                              />
+                            </Bar>
+                            <Bar
+                              dataKey="Không phép"
+                              stackId="a"
+                              fill="#FF6347"
+                            >
+                              <LabelList
+                                dataKey="Không phép"
+                                position="top"
+                                fill="#fff"
+                                fontSize={0}
+                                fontWeight="bold"
+                              />
+                            </Bar>
+                            <Bar dataKey="Chưa rõ" stackId="a" fill="#FFD700">
+                              <LabelList
+                                dataKey="Chưa rõ"
+                                position="top"
+                                fill="#fff"
+                                fontSize={0}
+                                fontWeight="bold"
+                              />
+                            </Bar>
+                          </BarChart>
+                        </ResponsiveContainer>
                       </div>
                     </div>
                   )}
