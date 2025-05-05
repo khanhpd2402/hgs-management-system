@@ -38,6 +38,7 @@ const menuItems = [
       "Trưởng bộ môn",
       "Giáo viên",
       "Cán bộ văn thư",
+      "Phụ huynh",
     ],
   },
   {
