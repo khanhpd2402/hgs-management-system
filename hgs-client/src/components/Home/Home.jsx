@@ -3,7 +3,7 @@ import { AgCharts } from "ag-charts-react";
 import { useHomeroomTeachers, useStats } from "@/services/principal/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "../ui/card";
 import { Skeleton } from "../ui/skeleton";
-import { User, Users, School, GraduationCap } from "lucide-react";
+import { User, Users, School, GraduationCap, Landmark } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { useScheduleTeacher } from "@/services/schedule/queries";
 import {
@@ -323,8 +323,7 @@ export default function Home() {
           summary[label]++;
         });
         result.push({
-          day: daysOfWeek[idx] || date,
-          session,
+          daySession: `${daysOfWeek[idx] || date} - ${session}`,
           "Có mặt": summary["Có mặt"],
           "Có phép": summary["Có phép"],
           "Không phép": summary["Không phép"],
@@ -348,6 +347,10 @@ export default function Home() {
   const attendanceTodayGroupedBar = getAttendanceTodayGroupedBar(
     attendanceInfo,
     todayStr,
+  );
+  const weeklyAttendanceGroupedBar = getWeeklyAttendanceGroupedBar(
+    attendanceInfo,
+    weekDates,
   );
 
   const groupedBarOptions = {
@@ -400,10 +403,57 @@ export default function Home() {
       { type: "number", position: "left", nice: true, min: 0 },
     ],
   };
-  const weeklyAttendanceGroupedBar = getWeeklyAttendanceGroupedBar(
-    attendanceInfo,
-    weekDates,
-  );
+
+  const weeklyGroupedBarOptions = {
+    data: weeklyAttendanceGroupedBar,
+    title: { text: "Thống kê điểm danh theo tuần (Sáng/Chiều)", fontSize: 16 },
+    series: [
+      {
+        type: "bar",
+        xKey: "daySession",
+        yKey: "Có mặt",
+        stacked: true,
+        fill: "mediumseagreen",
+        label: { enabled: true },
+        name: "Có mặt",
+      },
+      {
+        type: "bar",
+        xKey: "daySession",
+        yKey: "Có phép",
+        stacked: true,
+        fill: "dodgerblue",
+        label: { enabled: true },
+        name: "Có phép",
+      },
+      {
+        type: "bar",
+        xKey: "daySession",
+        yKey: "Không phép",
+        stacked: true,
+        fill: "tomato",
+        label: { enabled: true },
+        name: "Không phép",
+      },
+      {
+        type: "bar",
+        xKey: "daySession",
+        yKey: "Chưa rõ",
+        stacked: true,
+        fill: "gold",
+        label: { enabled: true },
+        name: "Chưa rõ",
+      },
+    ],
+    legend: { position: "bottom" },
+    height: 350,
+    width: "100%",
+    padding: { top: 20, bottom: 20, left: 0, right: 0 },
+    axes: [
+      { type: "category", position: "bottom" },
+      { type: "number", position: "left", nice: true, min: 0 },
+    ],
+  };
 
   const isLoading =
     scheduleQuery.isLoading ||
@@ -699,8 +749,8 @@ export default function Home() {
       {userRole === "Giáo viên" && (
         <>
           {isHomeroom && (
-            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
-              <Card className="border shadow-lg">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+              <Card className="md:col-span- border shadow-lg">
                 <CardHeader>
                   <CardTitle>
                     <div className="flex items-center gap-2">
@@ -712,6 +762,7 @@ export default function Home() {
                 <CardContent>
                   <div className="flex flex-col items-center gap-4 py-4">
                     <div className="flex items-center gap-2">
+                      <Landmark className="text-blue-500" />
                       <span className="text-lg font-semibold">Lớp:</span>
                       <span className="text-2xl font-bold text-blue-600">
                         {classInfo.className || "--"}
@@ -729,7 +780,7 @@ export default function Home() {
                   </div>
                 </CardContent>
               </Card>
-              <Card className="border shadow-lg">
+              <Card className="border shadow-lg md:col-span-2">
                 <CardHeader>
                   <CardTitle>
                     <div className="flex items-center gap-2">
@@ -750,7 +801,7 @@ export default function Home() {
                   )}
                 </CardContent>
               </Card>
-              <Card className="border shadow-lg md:col-span-2">
+              <Card className="border shadow-lg md:col-span-3">
                 <CardHeader>
                   <CardTitle>
                     <div className="flex items-center gap-2">
@@ -764,8 +815,8 @@ export default function Home() {
                     <Skeleton className="h-56 w-full" />
                   ) : (
                     <div className="flex w-full justify-center">
-                      <div style={{ width: "100%", maxWidth: 500 }}>
-                        <AgCharts options={weeklyAttendanceGroupedBar} />
+                      <div style={{ width: "100%" }}>
+                        <AgCharts options={weeklyGroupedBarOptions} />
                       </div>
                     </div>
                   )}
