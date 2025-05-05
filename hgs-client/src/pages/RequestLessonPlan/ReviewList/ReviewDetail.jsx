@@ -70,7 +70,7 @@ const ReviewDetail = () => {
             setLoading(true);
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const response = await axios.get(
-                `${baseUrl}/api/LessonPlan/${planId}`,
+                `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/LessonPlan/${planId}`,
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }
@@ -94,7 +94,7 @@ const ReviewDetail = () => {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
 
             const response = await axios.post(
-                `${baseUrl}/api/LessonPlan/review`,
+                `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/LessonPlan/review`,
                 {
                     planId: parseInt(planId),
                     status: values.status === 'Approved' ? 'Đã duyệt' : 'Từ chối',

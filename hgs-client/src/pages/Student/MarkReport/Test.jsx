@@ -48,7 +48,7 @@ const ListMarkTeacher = () => {
             try {
                 const semesterId = selectedSemester === '1' ? 1 : 2;
                 const response = await axios.get(
-                    `${baseUrl}/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+                    `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
                     { headers: { Authorization: `Bearer ${token}` } }
                 );
                 setAssignments(response.data);
@@ -81,7 +81,7 @@ const ListMarkTeacher = () => {
         try {
             const { subjectId, classId } = assignment;
             const semesterId = semester === '1' ? 1 : 2;
-            const response = await axios.get(`${baseUrl}/api/Grades/teacher`, {
+            const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/teacher`, {
                 params: { teacherId, classId, subjectId, semesterId },
                 headers: { Authorization: `Bearer ${token}` },
             });
@@ -134,7 +134,7 @@ const ListMarkTeacher = () => {
                 };
 
                 await axios.put(
-                    '${baseUrl}/api/Grades/update-multiple-scores',
+                    'https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/update-multiple-scores',
                     gradesPayload,
                     {
                         headers: {
@@ -192,7 +192,7 @@ const ListMarkTeacher = () => {
                 };
 
                 await axios.put(
-                    '${baseUrl}/api/Grades/update-multiple-scores',
+                    'https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/update-multiple-scores',
                     gradesPayload,
                     {
                         headers: {

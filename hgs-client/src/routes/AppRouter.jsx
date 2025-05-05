@@ -278,7 +278,7 @@ const adminRouter = [
   {
     path: "/system/review-detail/:planId",
     element: (
-      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
         <Suspense fallback={<Spinner />}>
           <ReviewDetail />
         </Suspense>
@@ -467,7 +467,17 @@ const teacherRouter = [
   {
     path: "system/lesson-plan/add-document/:planId",
     element: (
-      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng"]}>
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng", "Giáo viên"]}>
+        <Suspense fallback={<Spinner />}>
+          <AddDocument />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "teacher/lesson-plan/add-document/:planId",
+    element: (
+      <ProtectedRoute requiredRoles={["Trưởng bộ môn", "Hiệu trưởng", "Giáo viên"]}>
         <Suspense fallback={<Spinner />}>
           <AddDocument />
         </Suspense>

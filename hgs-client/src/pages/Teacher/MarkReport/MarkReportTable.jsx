@@ -165,7 +165,7 @@ const MarkReportTable = () => {
       setLoading(true);
       try {
         const [gradesResponse, subjectsResponse, classesResponse] = await Promise.all([
-          axios.get(`${baseUrl}/api/Grades`, {
+          axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades`, {
             params: {
               classId: selectedClass,
               subjectId: selectedSubject,
@@ -173,8 +173,8 @@ const MarkReportTable = () => {
             },
             headers: { Accept: "*/*" }
           }),
-          axios.get(`${baseUrl}/api/Subjects`),
-          axios.get(`${baseUrl}/api/Classes`)
+          axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Subjects`),
+          axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Classes`)
         ]);
 
         setGrades(gradesResponse.data);
@@ -215,7 +215,7 @@ const MarkReportTable = () => {
 
   const handleSaveGrade = async (updatedGrade) => {
     try {
-      await axios.put(`${baseUrl}/api/Grades/update-multiple-scores`, {
+      await axios.put(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/update-multiple-scores`, {
         grades: [updatedGrade]
       });
 

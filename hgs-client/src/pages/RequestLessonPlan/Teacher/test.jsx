@@ -4,7 +4,6 @@ import { useNavigate } from 'react-router-dom';
 import toast from 'react-hot-toast';
 import './UploadLessonPlan.scss';
 import { useSubjects, useAcademicYears, useSemestersByAcademicYear } from '../../../services/common/queries';
-import { useTeacherBySubject } from '../../../services/subject/queries';
 import { useCreateLessonPlan } from '../../../services/lessonPlan/mutations';
 import { Input } from "@/components/ui/input";
 
@@ -20,8 +19,8 @@ const INITIAL_FORM = {
 };
 
 const FORM_FIELDS = [
-    { name: 'title', label: 'Tiêu đề', type: 'text', required: true },
-    { name: 'planContent', label: 'Nội dung', type: 'textarea', rows: 4, required: true },
+    { name: 'title', label: 'Tiêu đề:', type: 'text' },
+    { name: 'planContent', label: 'Nội dung:', type: 'textarea', rows: 4 },
 ];
 
 const UploadLessonPlan = () => {
@@ -37,13 +36,32 @@ const UploadLessonPlan = () => {
     const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
     const { data: semesters, isLoading: semestersLoading } = useSemestersByAcademicYear(form.academicYearId);
     const { data: subjects, isLoading: subjectsLoading } = useSubjects();
-    const { data: teacherData, isLoading: teachersLoading } = useTeacherBySubject(form.subjectId);
-    const teachers = useMemo(
-        () => (Array.isArray(teacherData) ? teacherData : teacherData ? [teacherData] : []),
-        [teacherData]
-    );
 
-    const createLessonPlanMutation = useCreateLessonPlan();
+    // Direct API call for teachers by subject
+    const [teachersBySubject, setTeachersBySubject] = useState(null);
+    const [teachersLoading, setTeachersLoading] = useState(false);
+
+    const fetchTeachersBySubject = async (subjectId) => {
+        if (!subjectId) return;
+
+        setTeachersLoading(true);
+        try {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            const response = await fetch(`https://localhost:8386/api/TeacherSubject/${subjectId}`, {
+                headers: {
+                    'accept': '*/*',
+                    'Authorization': `Bearer ${token}`
+                }
+            });
+            const data = await response.json();
+            setTeachersBySubject([data]); // Wrap in array since the API returns a single object
+        } catch (error) {
+            console.error('Error fetching teachers:', error);
+            toast.error('Không thể tải danh sách giáo viên');
+        } finally {
+            setTeachersLoading(false);
+        }
+    };
 
     // Reset semesterId when academicYearId changes
     useEffect(() => {
@@ -52,78 +70,59 @@ const UploadLessonPlan = () => {
         }
     }, [form.academicYearId]);
 
-    // Validate form field
-    const validateField = (name, value) => {
-        if (['academicYearId', 'semesterId', 'subjectId', 'teacherId'].includes(name)) {
-            if (!value) return `Vui lòng chọn ${name === 'academicYearId' ? 'năm học' : name === 'semesterId' ? 'học kỳ' : name === 'subjectId' ? 'môn học' : 'giáo viên'}`;
-        } else if (name === 'title') {
-            if (!value.trim()) return 'Tiêu đề không được để trống';
-            if (value.length > 100) return 'Tiêu đề không được vượt quá 100 ký tự';
-        } else if (name === 'planContent') {
-            if (!value.trim()) return 'Nội dung không được để trống';
-            if (value.length > 1000) return 'Nội dung không được vượt quá 1000 ký tự';
-        } else if (name === 'startDate') {
-            if (!value) return 'Vui lòng chọn ngày bắt đầu';
-        } else if (name === 'endDate') {
-            if (!value) return 'Vui lòng chọn ngày kết thúc';
-            if (form.startDate && new Date(value) <= new Date(form.startDate)) {
-                return 'Ngày kết thúc phải sau ngày bắt đầu';
-            }
-        }
-        return '';
-    };
-
-    // Validate entire form
-    const validateForm = () => {
-        for (const key of Object.keys(form)) {
-            const error = validateField(key, form[key]);
-            if (error) {
-                toast.error(error);
-                return false;
-            }
-        }
-        return true;
-    };
-
-    // Handle input change
+    // Event Handlers
     const handleChange = (e) => {
         const { name, value } = e.target;
-        const newValue = ['academicYearId', 'subjectId', 'semesterId', 'teacherId'].includes(name)
-            ? value ? parseInt(value) : ''
-            : value;
-
-        setForm(prev => ({
-            ...prev,
-            [name]: newValue,
-            ...(name === 'subjectId' ? { teacherId: '' } : {}),
-            ...(name === 'academicYearId' ? { semesterId: '' } : {}),
-        }));
+        if (name === 'subjectId') {
+            const numericValue = parseInt(value);
+            setForm(prev => ({
+                ...prev,
+                [name]: numericValue,
+                teacherId: '' // Reset teacherId when subject changes
+            }));
+            fetchTeachersBySubject(numericValue);
+        } else if (name === 'academicYearId') {
+            const numericValue = parseInt(value);
+            setForm(prev => ({
+                ...prev,
+                [name]: numericValue,
+                semesterId: '' // Reset semesterId when academic year changes
+            }));
+        } else {
+            setForm(prev => ({ ...prev, [name]: value }));
+        }
     };
 
-    // Handle form submit
+    const createLessonPlanMutation = useCreateLessonPlan();
+
     const handleSubmit = async (e) => {
         e.preventDefault();
+
         if (!token || !decodedTeacherId) {
             toast.error('Vui lòng đăng nhập để tiếp tục!');
             return;
         }
 
-        if (!validateForm()) {
+        // Validate dates
+        const startDate = new Date(form.startDate);
+        const endDate = new Date(form.endDate);
+        if (startDate >= endDate) {
+            toast.error('Ngày kết thúc phải sau ngày bắt đầu');
             return;
         }
 
-        setIsSubmitting(true);
         const payload = {
-            teacherId: form.teacherId,
-            subjectId: form.subjectId,
-            semesterId: form.semesterId,
+            teacherId: parseInt(form.teacherId),
+            subjectId: parseInt(form.subjectId),
+            semesterId: parseInt(form.semesterId),
             title: form.title.trim(),
             planContent: form.planContent.trim(),
-            startDate: new Date(form.startDate).toISOString(),
-            endDate: new Date(form.endDate).toISOString(),
+            startDate: startDate.toISOString(),
+            endDate: endDate.toISOString(),
         };
 
         try {
+            setIsSubmitting(true);
             await createLessonPlanMutation.mutateAsync(payload);
             setForm(INITIAL_FORM);
             const toastId = toast.success('Tạo lịch phân công giáo án thành công!');
@@ -139,36 +138,41 @@ const UploadLessonPlan = () => {
     };
 
     // Reusable Select Component
-    const FormSelect = ({ name, label, value, options, loading, placeholder, disabled }) => (
+    const RenderSelect = ({ name, label, value, options, loading, placeholder, disabled }) => (
         <div className="form-field">
-            <label>{label}:</label>
+            <label>{label}</label>
             <select
                 name={name}
                 value={value || ''}
                 onChange={handleChange}
-                disabled={loading || disabled}
                 required
+                disabled={loading || disabled}
+                className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
             >
                 <option value="">{placeholder}</option>
-                {options?.map(option => (
+                {options?.map((option) => (
                     <option key={option.id} value={option.id}>
                         {option.name}
                     </option>
                 ))}
             </select>
+            {disabled && !loading && name !== 'academicYearId' && (
+                <span className="text-sm text-gray-500">
+                    {name === 'semesterId' ? 'Vui lòng chọn năm học trước' : 'Vui lòng chọn môn học trước'}
+                </span>
+            )}
         </div>
     );
 
     // Reusable Input Component
     const FormInput = ({ name, label, type, value, rows }) => (
         <div className="form-field">
-            <label>{label}:</label>
+            <label>{label}</label>
             {type === 'textarea' ? (
                 <textarea
                     name={name}
                     value={value || ''}
                     onChange={handleChange}
-                    required
                     rows={rows}
                     className="w-full p-2 border rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
@@ -178,7 +182,7 @@ const UploadLessonPlan = () => {
                     name={name}
                     value={value || ''}
                     onChange={handleChange}
-                    required
+                    placeholder={type === 'datetime-local' ? 'mm/dd/yyyy --:-- --' : undefined}
                     className="w-full focus:outline-none focus:ring-2 focus:ring-blue-500"
                 />
             )}
@@ -190,9 +194,9 @@ const UploadLessonPlan = () => {
             <h1>Phân công làm giáo án</h1>
             <form onSubmit={handleSubmit}>
                 <div className="form-group">
-                    <FormSelect
+                    <RenderSelect
                         name="academicYearId"
-                        label="Năm học"
+                        label="Chọn năm học:"
                         value={form.academicYearId}
                         options={academicYears?.map(year => ({
                             id: year.academicYearID,
@@ -201,9 +205,9 @@ const UploadLessonPlan = () => {
                         loading={academicYearsLoading}
                         placeholder="Chọn năm học"
                     />
-                    <FormSelect
+                    <RenderSelect
                         name="semesterId"
-                        label="Học kỳ"
+                        label="Chọn học kỳ:"
                         value={form.semesterId}
                         options={semesters?.map(semester => ({
                             id: semester.semesterID,
@@ -219,26 +223,26 @@ const UploadLessonPlan = () => {
                     <div className="form-field">
                         <div style={{ display: 'flex', gap: '1rem' }}>
                             <div style={{ flex: 1 }}>
-                                <FormSelect
+                                <RenderSelect
                                     name="subjectId"
-                                    label="Môn học"
+                                    label="Chọn môn học:"
                                     value={form.subjectId}
                                     options={subjects?.map(subject => ({
                                         id: subject.subjectID,
-                                        name: subject.subjectName,
+                                        name: `${subject.subjectName} -- ${subject.subjectID}`,
                                     }))}
                                     loading={subjectsLoading}
                                     placeholder="Chọn môn học"
                                 />
                             </div>
                             <div style={{ flex: 1 }}>
-                                <FormSelect
+                                <RenderSelect
                                     name="teacherId"
-                                    label="Chọn giáo viên làm giáo án"
+                                    label="Chọn giáo viên:"
                                     value={form.teacherId}
-                                    options={teachers?.map(teacher => ({
+                                    options={teachersBySubject?.map(teacher => ({
                                         id: teacher.teacherId,
-                                        name: teacher.teacherName,
+                                        name: `${teacher.teacherName} -- ${teacher.teacherId}`,
                                     }))}
                                     loading={teachersLoading}
                                     disabled={!form.subjectId}
@@ -252,18 +256,17 @@ const UploadLessonPlan = () => {
                 <div className="form-group">
                     <FormInput
                         name="startDate"
-                        label="Ngày bắt đầu"
+                        label="Ngày bắt đầu:"
                         type="datetime-local"
                         value={form.startDate}
                     />
                     <FormInput
                         name="endDate"
-                        label="Ngày kết thúc"
+                        label="Ngày kết thúc:"
                         type="datetime-local"
                         value={form.endDate}
                     />
                 </div>
-
 
                 {FORM_FIELDS.map(({ name, label, type, rows }) => (
                     <div className="form-group" key={name}>
@@ -289,6 +292,8 @@ const UploadLessonPlan = () => {
                         </div>
                     </div>
                 ))}
+
+
                 <div className="buttons-container">
                     <button
                         type="button"
@@ -298,10 +303,7 @@ const UploadLessonPlan = () => {
                     >
                         Trở lại danh sách
                     </button>
-                    <button
-                        type="submit"
-                        disabled={isSubmitting}
-                    >
+                    <button type="submit" disabled={isSubmitting}>
                         {isSubmitting ? 'Đang xử lý...' : 'Phân công làm giáo án'}
                     </button>
                 </div>

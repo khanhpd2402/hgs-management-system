@@ -41,7 +41,7 @@ const ContactParents = () => {
   useEffect(() => {
     const fetchAcademicYears = async () => {
       try {
-        const response = await axios.get(`${baseUrl}/api/AcademicYear`);
+        const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/AcademicYear`);
         if (response.data && response.data.length > 0) {
           const sortedYears = response.data.sort((a, b) => b.yearName.localeCompare(a.yearName));
           setAcademicYears(sortedYears);
@@ -71,7 +71,7 @@ const ContactParents = () => {
       const cleanedToken = token ? token.replace(/^"|"$/g, '') : null;
       const headers = cleanedToken ? { Authorization: `Bearer ${cleanedToken}` } : {};
 
-      const response = await axios.get(`${baseUrl}/api/Student/${value}`, { headers });
+      const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Student/${value}`, { headers });
       const studentData = response.data.students || [];
       setStudents(studentData);
       setFilteredStudents(studentData);
