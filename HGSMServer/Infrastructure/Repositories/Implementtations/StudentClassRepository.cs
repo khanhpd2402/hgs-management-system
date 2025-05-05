@@ -17,9 +17,22 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<IEnumerable<StudentClass>> GetByClassIdAndAcademicYearAsync(int classId, int academicYearId)
         {
             return await _context.StudentClasses
-                .Include(sc => sc.Student)
-                .Where(sc => sc.ClassId == classId
-                             && sc.AcademicYearId == academicYearId)
+                .AsNoTracking()
+                .Where(sc => sc.ClassId == classId && sc.AcademicYearId == academicYearId)
+                .Select(sc => new StudentClass
+                {
+                    Id = sc.Id,
+                    StudentId = sc.StudentId,
+                    ClassId = sc.ClassId,
+                    AcademicYearId = sc.AcademicYearId,
+                    RepeatingYear = sc.RepeatingYear,
+                    Student = new Student
+                    {
+                        StudentId = sc.Student.StudentId,
+                        FullName = sc.Student.FullName,
+                        Status = sc.Student.Status
+                    }
+                })
                 .ToListAsync();
         }
         public async Task<StudentClass?> GetWithClassAndStudentAsync(int studentClassId)
@@ -149,10 +162,36 @@ namespace Infrastructure.Repositories.Implementtations
         public async Task<IEnumerable<StudentClass>> GetByAcademicYearIdAsync(int academicYearId)
         {
             return await _context.StudentClasses
-                .Include(sc => sc.Student) // Include Student
-                .Include(sc => sc.Class)   // Include Class
-                .Include(sc => sc.AcademicYear) // Include AcademicYear
+                .AsNoTracking()
                 .Where(sc => sc.AcademicYearId == academicYearId)
+                .Select(sc => new StudentClass
+                {
+                    Id = sc.Id,
+                    StudentId = sc.StudentId,
+                    ClassId = sc.ClassId,
+                    AcademicYearId = sc.AcademicYearId,
+                    RepeatingYear = sc.RepeatingYear,
+                    Student = new Student
+                    {
+                        StudentId = sc.Student.StudentId,
+                        FullName = sc.Student.FullName,
+                        Status = sc.Student.Status
+                    },
+                    Class = new Class
+                    {
+                        ClassId = sc.Class.ClassId,
+                        ClassName = sc.Class.ClassName,
+                        GradeLevelId = sc.Class.GradeLevelId,
+                        Status = sc.Class.Status
+                    },
+                    AcademicYear = new AcademicYear
+                    {
+                        AcademicYearId = sc.AcademicYear.AcademicYearId,
+                        YearName = sc.AcademicYear.YearName,
+                        StartDate = sc.AcademicYear.StartDate,
+                        EndDate = sc.AcademicYear.EndDate
+                    }
+                })
                 .ToListAsync();
         }
 

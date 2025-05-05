@@ -87,5 +87,14 @@ namespace Infrastructure.Repositories.Implementtations
             return await _context.Classes
                 .FirstOrDefaultAsync(c => c.ClassName.ToLower() == normalizedClassName.ToLower());
         }
+        public async Task<Class> GetByIdWithoutTimetableAsync(int id)
+        {
+            return await _context.Classes
+                .Include(c => c.StudentClasses)
+                    .ThenInclude(sc => sc.Student)
+                .Include(c => c.TeachingAssignments)
+                .FirstOrDefaultAsync(c => c.ClassId == id)
+                ?? throw new Exception("Class not found");
+        }
     }
 }
