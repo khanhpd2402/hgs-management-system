@@ -58,11 +58,11 @@ namespace Application.Features.Attendances.Services
             {
                 var attendanceDate = dto.Date;
 
-                if (attendanceDate > today)
-                    throw new InvalidOperationException("Không thể điểm danh trước ngày hiện tại.");
+                //if (attendanceDate > today)
+                //    throw new InvalidOperationException("Không thể điểm danh trước ngày hiện tại.");
 
-                if (attendanceDate == today)
-                    ValidateSessionTime(dto.Session, now);
+                //if (attendanceDate == today)
+                //    ValidateSessionTime(dto.Session, now);
 
                 var existing = await _uow.AttendanceRepository.GetAsync(dto.StudentClassId, dto.Date, dto.Session);
                 if (existing != null)
@@ -90,7 +90,7 @@ namespace Application.Features.Attendances.Services
                             AttendanceStatus.PERMISSION => "Nghỉ học có phép",
                             AttendanceStatus.LATE => $"Trường hợp khác: {dto.Note}",
                             _ => "Không rõ lý do"
-                        };
+                        };  
 
                         var parentEmails = new List<string?>
                 {
