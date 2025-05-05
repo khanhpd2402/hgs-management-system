@@ -35,6 +35,11 @@ namespace Application.Features.Attendances.Services
             var attendances = await _uow.AttendanceRepository.GetByWeekAsync(classId, weekStart);
             return _mapper.Map<List<AttendanceDto>>(attendances);
         }
+        public async Task<List<AttendanceDto>> GetWeeklyAttendanceByStudentAsync(int studentId, DateOnly weekStart)
+        {
+            var attendances = await _uow.AttendanceRepository.GetByStudentAndWeekAsync(studentId, weekStart);
+            return _mapper.Map<List<AttendanceDto>>(attendances);
+        }
 
         public async Task UpsertAttendancesAsync(int teacherId, int classId, int semesterId, List<AttendanceDto> dtos)
         {
@@ -54,7 +59,7 @@ namespace Application.Features.Attendances.Services
                 var attendanceDate = dto.Date;
 
                 if (attendanceDate > today)
-                    throw new InvalidOperationException("Không thể điểm danh trước ngày hiện tại.");
+                    throw new InvalidOperationException("Chưa đến giờ điểm danh.");
 
                 if (attendanceDate == today)
                     ValidateSessionTime(dto.Session, now);
@@ -85,7 +90,7 @@ namespace Application.Features.Attendances.Services
                             AttendanceStatus.PERMISSION => "Nghỉ học có phép",
                             AttendanceStatus.LATE => $"Trường hợp khác: {dto.Note}",
                             _ => "Không rõ lý do"
-                        };
+                        };  
 
                         var parentEmails = new List<string?>
                 {
@@ -122,16 +127,16 @@ namespace Application.Features.Attendances.Services
         {
             switch (session)
             {
-                //case "Sáng":
-                //    if (now.Hour < 7)
-                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
-                //    break;
-                //case "Chiều":
-                //    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
-                //        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
-                //    break;
-                //default:
-                //    throw new InvalidOperationException("Buổi học không hợp lệ.");
+                case "Sáng":
+                    if (now.Hour < 7)
+                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi sáng.");
+                    break;
+                case "Chiều":
+                    if (now.Hour < 13 || (now.Hour == 13 && now.Minute < 30))
+                        throw new InvalidOperationException("Chưa đến giờ điểm danh buổi chiều.");
+                    break;
+                default:
+                    throw new InvalidOperationException("Buổi học không hợp lệ.");
             }
         }
         public async Task<List<AttendanceDto>> GetHomeroomAttendanceAsync(int teacherId, int semesterId, DateOnly weekStart)

@@ -49,13 +49,6 @@ namespace Application.Features.Exams.Services
                 throw new ArgumentException("File không được để trống.");
             }
 
-            var allowedExtensions = new[] { ".doc", ".docx" };
-            var extension = Path.GetExtension(request.File.FileName).ToLower();
-            if (!allowedExtensions.Contains(extension))
-            {
-                throw new ArgumentException("Chỉ hỗ trợ file Word (.doc, .docx).");
-            }
-
             var subject = await _subjectRepository.GetByIdAsync(request.SubjectId);
             if (subject == null)
             {
@@ -75,7 +68,7 @@ namespace Application.Features.Exams.Services
 
             try
             {
-                proposal.FileUrl = await _googleDriveService.UploadWordFileAsync(
+                proposal.FileUrl = await _googleDriveService.UploadFileAsync(
                     request.File,
                     request.SubjectId,
                     request.Grade,
@@ -114,6 +107,33 @@ namespace Application.Features.Exams.Services
             if (proposal == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy đề thi với ID {proposalId}.");
+            }
+
+            // Kiểm tra trạng thái hiện tại và trạng thái mới để áp dụng quy tắc chuyển trạng thái
+            if (proposal.Status == "Chờ duyệt")
+            {
+                if (status != "Đã duyệt" && status != "Từ chối")
+                {
+                    throw new InvalidOperationException("Chỉ có thể chuyển từ 'Chờ duyệt' sang 'Đã duyệt' hoặc 'Từ chối'.");
+                }
+            }
+            else if (proposal.Status == "Đã duyệt")
+            {
+                if (status != "Từ chối")
+                {
+                    throw new InvalidOperationException("Chỉ có thể chuyển từ 'Đã duyệt' sang 'Từ chối'. Không thể chuyển về 'Chờ duyệt'.");
+                }
+            }
+            else if (proposal.Status == "Từ chối")
+            {
+                if (status == "Đã duyệt")
+                {
+                    throw new InvalidOperationException("Không thể chuyển từ 'Từ chối' sang 'Đã duyệt'.");
+                }
+                if (status == "Chờ duyệt")
+                {
+                    throw new InvalidOperationException("Không thể chuyển từ 'Từ chối' về 'Chờ duyệt'.");
+                }
             }
 
             proposal.Status = status;
@@ -226,7 +246,7 @@ namespace Application.Features.Exams.Services
                         throw new KeyNotFoundException("Môn học không tồn tại.");
                     }
 
-                    proposal.FileUrl = await _googleDriveService.UploadWordFileAsync(
+                    proposal.FileUrl = await _googleDriveService.UploadFileAsync(
                         request.File,
                         proposal.SubjectId,
                         proposal.Grade,
@@ -285,14 +305,9 @@ namespace Application.Features.Exams.Services
 
             return teacherId;
         }
+
         public async Task<ExamProposalStatisticsDto> GetDepartmentHeadExamProposalStatisticsAsync()
         {
-            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst(ClaimTypes.Role)?.Value;
-            if (userRole != "Trưởng bộ môn")
-            {
-                throw new UnauthorizedAccessException("Chỉ Trưởng bộ môn có quyền truy cập thống kê này.");
-            }
-
             var examProposals = await _examProposalRepository.GetAllAsync();
             var statistics = new ExamProposalStatisticsDto
             {

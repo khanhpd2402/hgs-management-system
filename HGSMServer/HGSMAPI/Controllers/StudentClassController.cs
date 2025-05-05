@@ -475,7 +475,7 @@ namespace HGSMAPI.Controllers
             }
         }
         [HttpGet("homeroom-class-info/{teacherId}/{semesterId}")]
-        [Authorize(Roles = "Giáo viên")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
         public async Task<IActionResult> GetHomeroomClassInfo(int teacherId, int semesterId)
         {
             try
@@ -487,12 +487,12 @@ namespace HGSMAPI.Controllers
             catch (KeyNotFoundException ex)
             {
                 Console.WriteLine($"Error fetching homeroom class info: {ex.Message}");
-                return NotFound("Không tìm thấy dữ liệu liên quan.");
+                return NotFound("Không tìm thấy dữ liệu liên quan." + ex.Message);
             }
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching homeroom class info: {ex.Message}");
-                return BadRequest("Lỗi khi lấy thông tin lớp chủ nhiệm.");
+                return BadRequest("Lỗi khi lấy thông tin lớp chủ nhiệm." + ex.Message);
             }
             catch (Exception ex)
             {

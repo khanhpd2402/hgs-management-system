@@ -358,15 +358,34 @@ namespace Application.Features.LessonPlans.Services
 
             return teacher.TeacherId;
         }
+
         public async Task<LessonPlanStatisticsDto> GetDepartmentHeadLessonPlanStatisticsAsync()
         {
-            var userRole = _httpContextAccessor.HttpContext?.User.FindFirst("role")?.Value;
-            if (userRole != "Trưởng bộ môn")
+
+            // Lấy teacherId của trưởng bộ môn từ token
+            var departmentHeadTeacherId = GetCurrentTeacherId();
+
+            // Lấy thông tin trưởng bộ môn để biết tổ bộ môn
+            var departmentHead = await _teacherRepository.GetByIdAsync(departmentHeadTeacherId);
+            if (departmentHead == null)
             {
-                throw new UnauthorizedAccessException("Chỉ Trưởng bộ môn có quyền truy cập thống kê này.");
+                throw new KeyNotFoundException($"Không tìm thấy thông tin trưởng bộ môn với TeacherId {departmentHeadTeacherId}.");
             }
 
-            var lessonPlans = await _lessonPlanRepository.GetAll();
+            var department = departmentHead.Department;
+            if (string.IsNullOrEmpty(department))
+            {
+                throw new InvalidOperationException("Trưởng bộ môn không thuộc tổ bộ môn nào.");
+            }
+
+            // Lấy danh sách giáo viên thuộc cùng tổ bộ môn
+            var teachersInDepartment = await _teacherRepository.GetTeachersByDepartmentAsync(department);
+            var teacherIdsInDepartment = teachersInDepartment.Select(t => t.TeacherId).ToList();
+
+            // Lấy tất cả giáo án của các giáo viên trong cùng tổ bộ môn
+            var lessonPlans = await _lessonPlanRepository.GetLessonPlansByTeacherIdsAsync(teacherIdsInDepartment);
+
+            // Tính toán thống kê
             var statistics = new LessonPlanStatisticsDto
             {
                 TotalLessonPlans = lessonPlans.Count(),

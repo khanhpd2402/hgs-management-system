@@ -247,13 +247,13 @@ export default function AttendanceTable() {
       prev.map((student) =>
         student.studentId === studentId
           ? {
-              ...student,
-              attendanceByDay: student.attendanceByDay.map((att, idx) =>
-                idx === dayIndex
-                  ? { ...att, status: value.toUpperCase() }
-                  : att,
-              ),
-            }
+            ...student,
+            attendanceByDay: student.attendanceByDay.map((att, idx) =>
+              idx === dayIndex
+                ? { ...att, status: value.toUpperCase() }
+                : att,
+            ),
+          }
           : student,
       ),
     );
@@ -403,99 +403,99 @@ export default function AttendanceTable() {
                 <TableBody>
                   {isLoading
                     ? // Hiển thị skeleton loading khi đang tải dữ liệu
-                      Array.from({ length: 6 }).map((_, idx) => (
-                        <TableRow key={idx}>
+                    Array.from({ length: 6 }).map((_, idx) => (
+                      <TableRow key={idx}>
+                        <TableCell className="h-16 border border-gray-200 text-center">
+                          <Skeleton className="mx-auto h-4 w-8" />
+                        </TableCell>
+                        <TableCell className="h-16 border border-gray-200 font-medium">
+                          <Skeleton className="h-4 w-32" />
+                        </TableCell>
+                        <TableCell className="h-16 border border-gray-200 text-center">
+                          <Skeleton className="mx-auto h-4 w-16" />
+                        </TableCell>
+                        <TableCell className="h-16 border border-gray-200">
+                          <Skeleton className="h-4 w-40" />
+                        </TableCell>
+                      </TableRow>
+                    ))
+                    : studentsData.length > 0 &&
+                    studentsData.map((student, index) => {
+                      const today = formatDate(date);
+                      const todayAttendance = student.attendanceByDay?.find(
+                        (att) => att.date === today,
+                      ) || { status: "C", note: "" };
+
+                      return (
+                        <TableRow
+                          key={student.studentId}
+                          className="hover:bg-gray-50"
+                        >
                           <TableCell className="h-16 border border-gray-200 text-center">
-                            <Skeleton className="mx-auto h-4 w-8" />
+                            {index + 1}
                           </TableCell>
                           <TableCell className="h-16 border border-gray-200 font-medium">
-                            <Skeleton className="h-4 w-32" />
+                            {student.fullName}
                           </TableCell>
                           <TableCell className="h-16 border border-gray-200 text-center">
-                            <Skeleton className="mx-auto h-4 w-16" />
+                            <select
+                              value={todayAttendance.status}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setStudentsData((prev) =>
+                                  prev.map((s) =>
+                                    s.studentId === student.studentId
+                                      ? {
+                                        ...s,
+                                        attendanceByDay:
+                                          s.attendanceByDay.map((att) =>
+                                            att.date === today
+                                              ? { ...att, status: val }
+                                              : att,
+                                          ),
+                                      }
+                                      : s,
+                                  ),
+                                );
+                              }}
+                              className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                            >
+                              <option value="C">Có mặt</option>
+                              <option value="P">Nghỉ có phép</option>
+                              <option value="K">Nghỉ không phép</option>
+                              <option value="X">Lí do khác</option>
+                            </select>
                           </TableCell>
                           <TableCell className="h-16 border border-gray-200">
-                            <Skeleton className="h-4 w-40" />
+                            <Input
+                              type="text"
+                              value={todayAttendance.note}
+                              maxLength={50}
+                              disabled={todayAttendance.status !== "X"}
+                              className="disabled:bg-gray-100"
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setStudentsData((prev) =>
+                                  prev.map((s) =>
+                                    s.studentId === student.studentId
+                                      ? {
+                                        ...s,
+                                        attendanceByDay:
+                                          s.attendanceByDay.map((att) =>
+                                            att.date === today
+                                              ? { ...att, note: val }
+                                              : att,
+                                          ),
+                                      }
+                                      : s,
+                                  ),
+                                );
+                              }}
+                            />
                           </TableCell>
                         </TableRow>
-                      ))
-                    : studentsData.length > 0 &&
-                      studentsData.map((student, index) => {
-                        const today = formatDate(date);
-                        const todayAttendance = student.attendanceByDay?.find(
-                          (att) => att.date === today,
-                        ) || { status: "C", note: "" };
-
-                        return (
-                          <TableRow
-                            key={student.studentId}
-                            className="hover:bg-gray-50"
-                          >
-                            <TableCell className="h-16 border border-gray-200 text-center">
-                              {index + 1}
-                            </TableCell>
-                            <TableCell className="h-16 border border-gray-200 font-medium">
-                              {student.fullName}
-                            </TableCell>
-                            <TableCell className="h-16 border border-gray-200 text-center">
-                              <select
-                                value={todayAttendance.status}
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setStudentsData((prev) =>
-                                    prev.map((s) =>
-                                      s.studentId === student.studentId
-                                        ? {
-                                            ...s,
-                                            attendanceByDay:
-                                              s.attendanceByDay.map((att) =>
-                                                att.date === today
-                                                  ? { ...att, status: val }
-                                                  : att,
-                                              ),
-                                          }
-                                        : s,
-                                    ),
-                                  );
-                                }}
-                                className="rounded-md border border-gray-300 px-3 py-1.5 text-sm shadow-sm focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                              >
-                                <option value="C">Có mặt</option>
-                                <option value="P">Nghỉ có phép</option>
-                                <option value="K">Nghỉ không phép</option>
-                                <option value="X">Lí do khác</option>
-                              </select>
-                            </TableCell>
-                            <TableCell className="h-16 border border-gray-200">
-                              <Input
-                                type="text"
-                                value={todayAttendance.note}
-                                maxLength={50}
-                                disabled={todayAttendance.status !== "X"}
-                                className="disabled:bg-gray-100"
-                                onChange={(e) => {
-                                  const val = e.target.value;
-                                  setStudentsData((prev) =>
-                                    prev.map((s) =>
-                                      s.studentId === student.studentId
-                                        ? {
-                                            ...s,
-                                            attendanceByDay:
-                                              s.attendanceByDay.map((att) =>
-                                                att.date === today
-                                                  ? { ...att, note: val }
-                                                  : att,
-                                              ),
-                                          }
-                                        : s,
-                                    ),
-                                  );
-                                }}
-                              />
-                            </TableCell>
-                          </TableRow>
-                        );
-                      })}
+                      );
+                    })}
                 </TableBody>
               </Table>
             )}

@@ -341,10 +341,19 @@ public class TeacherService : ITeacherService
         var teachers = new Dictionary<string, Teacher>();
         var teacherSubjects = new List<(string IdCardNumber, TeacherSubject TeacherSubject)>();
 
+        // Lấy vai trò "Giáo viên"
         var teacherRole = await _roleRepository.GetRoleByNameAsync("Giáo viên");
         if (teacherRole == null)
         {
-            errors.Add("Vai trò 'giáo viên' không tồn tại trong hệ thống.");
+            errors.Add("Vai trò 'Giáo viên' không tồn tại trong hệ thống.");
+            return (false, errors);
+        }
+
+        // Lấy vai trò "Trưởng bộ môn"
+        var headOfDepartmentRole = await _roleRepository.GetRoleByNameAsync("Trưởng bộ môn");
+        if (headOfDepartmentRole == null)
+        {
+            errors.Add("Vai trò 'Trưởng bộ môn' không tồn tại trong hệ thống.");
             return (false, errors);
         }
 
@@ -376,11 +385,16 @@ public class TeacherService : ITeacherService
                     }
 
                     var username = await GenerateUniqueUsernameAsync(row["Họ và tên"]);
+
+                    // Kiểm tra cột "Là tổ trưởng" để gán vai trò phù hợp
+                    bool isHeadOfDepartment = row.TryGetValue("Là tổ trưởng", out var isHead) && isHead == "Có";
+                    var roleId = isHeadOfDepartment ? headOfDepartmentRole.RoleId : teacherRole.RoleId;
+
                     var user = new User
                     {
                         Email = row["Email"],
                         PhoneNumber = row["Số điện thoại"],
-                        RoleId = teacherRole.RoleId,
+                        RoleId = roleId, // Gán RoleId dựa trên điều kiện
                         Username = username,
                         PasswordHash = PasswordHasher.HashPassword("12345678"),
                         Status = "Hoạt động"
@@ -399,7 +413,7 @@ public class TeacherService : ITeacherService
                         EmploymentType = row["Hình thức hợp đồng"],
                         Position = row["Vị trí việc làm"],
                         Department = row["Tổ bộ môn"],
-                        IsHeadOfDepartment = row.TryGetValue("Là tổ trưởng", out var isHead) && isHead == "Có",
+                        IsHeadOfDepartment = isHeadOfDepartment,
                         EmploymentStatus = row.TryGetValue("Trạng thái cán bộ", out var status) ? status : "Đang làm việc",
                         RecruitmentAgency = row.TryGetValue("Cơ quan tuyển dụng", out var agency) ? agency : null,
                         HiringDate = row.TryGetValue("Ngày tuyển dụng", out var hiringDateStr) ? DateHelper.ParseDate(hiringDateStr) : null,

@@ -98,5 +98,11 @@ namespace Infrastructure.Repositories.Implementations
                 .OrderByDescending(lp => lp.PlanId)
                 .ToListAsync();
         }
+        public async Task<List<LessonPlan>> GetLessonPlansByTeacherIdsAsync(List<int> teacherIds)
+        {
+            return await _context.LessonPlans
+                .Where(lp => teacherIds.Contains(lp.TeacherId))
+                .ToListAsync();
+        }
     }
 }

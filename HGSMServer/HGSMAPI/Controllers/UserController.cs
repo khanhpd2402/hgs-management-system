@@ -78,7 +78,7 @@ namespace HGSMAPI.Controllers
             {
                 Console.WriteLine("Updating user...");
                 await _userService.UpdateUserAsync(userDto);
-                return NoContent();
+                return Ok("Cập nhật thành công");
             }
             catch (ArgumentException ex)
             {
@@ -187,7 +187,7 @@ namespace HGSMAPI.Controllers
             catch (ArgumentException ex)
             {
                 Console.WriteLine($"Error changing status: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật trạng thái.");
+                return BadRequest("Lỗi khi cập nhật trạng thái. " + ex.Message);
             }
             catch (Exception ex)
             {
@@ -224,7 +224,25 @@ namespace HGSMAPI.Controllers
                 return StatusCode(500, "Lỗi khi đổi mật khẩu.");
             }
         }
+        [HttpPost("forgot-password")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDto dto)
+        {
+            try
+            {
+                await _userService.ForgotPasswordAsync(dto.Email);
+                return Ok();
+            }
+            catch (ArgumentException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
+            catch (Exception)
+            {
+                return StatusCode(500, new { message = "Đã xảy ra lỗi hệ thống." });
+            }
+        }
     }
+
 
     public class ChangeStatusDto
     {

@@ -27,8 +27,8 @@ const LessonPlanList = () => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const url = status === 'All'
-                ? `https://localhost:8386/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
-                : `https://localhost:8386/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
+                ? `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/LessonPlan/all?pageNumber=${page}&pageSize=${pageSize}`
+                : `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/LessonPlan/filter-by-status?status=${status}&pageNumber=${page}&pageSize=${pageSize}`;
 
             const response = await axios.get(url, {
                 headers: {
@@ -342,7 +342,7 @@ const LessonPlanList = () => {
     const handleReview = async (values) => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            await axios.post('https://localhost:8386/api/LessonPlan/review', {
+            await axios.post('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/LessonPlan/review', {
                 planId: selectedPlan.planId,
                 status: values.status,
                 feedback: values.feedback

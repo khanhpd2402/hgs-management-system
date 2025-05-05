@@ -7,6 +7,7 @@ import dayjs from 'dayjs';
 import './ReviewList.scss';
 
 const { Title } = Typography;
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const ReviewList = () => {
     const [lessonPlans, setLessonPlans] = useState([]);
@@ -19,7 +20,7 @@ const ReviewList = () => {
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
             const response = await axios.get(
-                `https://localhost:8386/api/LessonPlan/filter-by-status?status=Chờ duyệt&pageNumber=${page}&pageSize=${pageSize}`,
+                `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/LessonPlan/filter-by-status?status=Chờ duyệt&pageNumber=${page}&pageSize=${pageSize}`,
                 {
                     headers: { 'Authorization': `Bearer ${token}` }
                 }

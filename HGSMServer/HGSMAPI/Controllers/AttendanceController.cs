@@ -33,7 +33,23 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching weekly attendance: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy danh sách điểm danh hàng tuần.");
+                return StatusCode(500, "Lỗi khi lấy danh sách điểm danh hàng tuần." + ex.Message);
+            }
+        }
+        [HttpGet("student/{studentId}/week")]
+        public async Task<IActionResult> GetAttendanceByStudentAndWeek(int studentId, [FromQuery] string weekStart)
+        {
+            if (!DateOnly.TryParseExact(weekStart, "dd/MM/yyyy", out var startDate))
+                return BadRequest("Ngày bắt đầu tuần không hợp lệ. Định dạng đúng: dd/MM/yyyy");
+
+            try
+            {
+                var result = await _service.GetWeeklyAttendanceByStudentAsync(studentId, startDate);
+                return Ok(result);
+            }
+            catch (Exception ex)
+            {
+                return StatusCode(500, $"Lỗi khi lấy dữ liệu điểm danh: {ex.Message}");
             }
         }
 
@@ -53,11 +69,11 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error upserting attendances: {ex.Message}");
-                return StatusCode(500, "Lỗi khi điểm danh.");
+                return StatusCode(500, "Lỗi khi điểm danh." + ex.Message);
             }
         }
         [HttpGet("homeroom-attendance/{teacherId}/{semesterId}")]
-        [Authorize(Roles = "Giáo viên")]
+        [Authorize(Roles = "Giáo viên,Trưởng bộ môn")]
         public async Task<IActionResult> GetHomeroomAttendance(int teacherId, int semesterId, [FromQuery] DateOnly weekStart)
         {
             try
@@ -69,12 +85,12 @@ namespace HGSMAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching homeroom attendance: {ex.Message}");
-                return BadRequest("Lỗi khi lấy thông tin điểm danh.");
+                return BadRequest("Lỗi khi lấy thông tin điểm danh." + ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error fetching homeroom attendance: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy thông tin điểm danh.");
+                return StatusCode(500, "Lỗi khi lấy thông tin điểm danh." + ex.Message);
             }
         }
     }

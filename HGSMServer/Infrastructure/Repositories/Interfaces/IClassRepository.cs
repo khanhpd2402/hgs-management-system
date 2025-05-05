@@ -7,6 +7,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<IEnumerable<Class>> GetAllAsync();
         Task<IEnumerable<Class>> GetAllActiveAsync(string? status = null);
         Task<Class> GetByIdAsync(int id);
+        Task<Class> GetByIdWithoutTimetableAsync(int id);
         Task<Class> AddAsync(Class classEntity);
         Task<Class> UpdateAsync(Class classEntity);
         Task DeleteAsync(int id);

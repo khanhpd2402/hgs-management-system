@@ -12,3 +12,10 @@ export const getSubjectByTeacher = async (teacherId) => {
   );
   return response.data;
 };
+
+export const getTeacherBySubject = async (subjectId) => {
+  const response = await axiosInstance.get(
+    `/TeacherSubject/by-subject/${subjectId}`,
+  );
+  return response.data;
+};

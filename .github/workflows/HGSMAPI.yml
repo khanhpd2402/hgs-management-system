@@ -56,7 +56,15 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: .net-app
- 
+
+      # Thêm bước để debug giá trị GCP_CREDENTIALS (nếu cần)
+      - name: Debug GCP_CREDENTIALS
+        run: echo "GCP_CREDENTIALS=${{ secrets.GCP_CREDENTIALS }}"
+
+      # Truyền GCP_CREDENTIALS vào biến môi trường (nếu cần gọi API trong pipeline)
+      - name: Set environment variable for GCP credentials
+        run: echo "GCP_CREDENTIALS=${{ secrets.GCP_CREDENTIALS }}" >> $GITHUB_ENV
+
       - name: Login to Azure
         uses: azure/login@v2
         with:
