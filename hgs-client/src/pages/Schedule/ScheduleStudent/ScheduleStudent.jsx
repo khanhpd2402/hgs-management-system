@@ -39,31 +39,58 @@ const ScheduleStudent = () => {
 
     // Lấy danh sách học sinh khi component mount
     useEffect(() => {
-        const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-        if (token && academicYearId) {
-            const tokenParts = token.split('.');
-            if (tokenParts.length === 3) {
+        const fetchStudents = async () => {
+            const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
+            if (!token || !academicYearId) {
+                console.warn('Token or academicYearId is missing');
+                setStudentList([]);
+                setStudentId(null);
+                setSelectedStudent(null);
+                return;
+            }
+
+            try {
+                const tokenParts = token.split('.');
+                if (tokenParts.length !== 3) {
+                    throw new Error('Invalid token format');
+                }
+
                 const payload = JSON.parse(atob(tokenParts[1]));
+                if (!payload.studentIds) {
+                    console.warn('studentIds not found in token payload');
+                    setStudentList([]);
+                    setStudentId(null);
+                    setSelectedStudent(null);
+                    return;
+                }
+                console.log("paload", payload)
+
                 const studentIdList = payload.studentIds.split(',');
 
-                Promise.all(
+                const students = await Promise.all(
                     studentIdList.map(id =>
                         getStudentNameAndClass(id, academicYearId)
                     )
-                ).then(students => {
-                    const formattedStudents = students.map(student => ({
-                        value: student.studentId,
-                        label: `${student.fullName} - Lớp ${student.className}`,
-                        studentInfo: student
-                    }));
-                    setStudentList(formattedStudents);
-                    setStudentId(formattedStudents[0]?.value || null);
-                    setSelectedStudent(formattedStudents[0]?.studentInfo || null);
-                }).catch(error => {
-                    console.error('Error fetching student details:', error);
-                });
+                );
+
+                const formattedStudents = students.map(student => ({
+                    value: student.studentId,
+                    label: `${student.fullName} - Lớp ${student.className}`,
+                    studentInfo: student
+                }));
+
+                setStudentList(formattedStudents);
+                setStudentId(formattedStudents[0]?.value || null);
+                setSelectedStudent(formattedStudents[0]?.studentInfo || null);
+            } catch (error) {
+                console.error('Error fetching student details:', error);
+                setStudentList([]);
+                setStudentId(null);
+                setSelectedStudent(null);
             }
-        }
+        };
+
+        fetchStudents();
     }, [academicYearId]);
 
     // Cập nhật thông tin học sinh từ danh sách đã lưu
@@ -180,6 +207,7 @@ const ScheduleStudent = () => {
                 <div className="schedule-header">
                     <h2>Thời Khóa Biểu - {selectedStudent.fullName} - Lớp {selectedStudent.className}</h2>
                     <div className="schedule-info">
+                        <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
                         <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
                         <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
                     </div>
