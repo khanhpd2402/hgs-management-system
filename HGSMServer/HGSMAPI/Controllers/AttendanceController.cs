@@ -33,7 +33,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching weekly attendance: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy danh sách điểm danh hàng tuần.");
+                return StatusCode(500, "Lỗi khi lấy danh sách điểm danh hàng tuần." + ex.Message);
             }
         }
         [HttpGet("student/{studentId}/week")]
@@ -69,7 +69,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error upserting attendances: {ex.Message}");
-                return StatusCode(500, "Lỗi khi điểm danh.");
+                return StatusCode(500, "Lỗi khi điểm danh." + ex.Message);
             }
         }
         [HttpGet("homeroom-attendance/{teacherId}/{semesterId}")]
@@ -85,12 +85,12 @@ namespace HGSMAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error fetching homeroom attendance: {ex.Message}");
-                return BadRequest("Lỗi khi lấy thông tin điểm danh.");
+                return BadRequest("Lỗi khi lấy thông tin điểm danh." + ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error fetching homeroom attendance: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy thông tin điểm danh.");
+                return StatusCode(500, "Lỗi khi lấy thông tin điểm danh." + ex.Message);
             }
         }
     }
