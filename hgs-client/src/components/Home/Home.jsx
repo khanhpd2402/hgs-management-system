@@ -6,7 +6,14 @@ import { Skeleton } from "../ui/skeleton";
 import { User, Users, School, GraduationCap } from "lucide-react";
 import { jwtDecode } from "jwt-decode";
 import { useScheduleTeacher } from "@/services/schedule/queries";
-import { useExamStats, useLessonPlanStats } from "@/services/teacher/queries";
+import {
+  useExamStats,
+  useHomeroomAttendanceInfo,
+  useHomeroomClassInfo,
+  useLessonPlanStats,
+} from "@/services/teacher/queries";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
+import { useSemestersByAcademicYear } from "@/services/common/queries";
 
 // const userRole = "Trưởng bộ môn";
 const barColors = {
@@ -16,22 +23,51 @@ const barColors = {
 };
 
 export default function Home() {
-  const statsQuery = useStats();
+  const { currentYear } = useLayout();
   const token = JSON.parse(localStorage.getItem("token"));
   const teacherId = jwtDecode(token)?.teacherId;
   const userRole = jwtDecode(token)?.role;
-  const scheduleQuery = useScheduleTeacher(teacherId);
+  //hieu truong, hieu pho
+  const statsQuery = useStats(userRole);
   const stats = statsQuery.data || [];
+  //tkb
+  const scheduleQuery = useScheduleTeacher(teacherId);
   const schedules = scheduleQuery.data || [];
-  const examQuery = useExamStats();
+  //truong bo mon
+  const examQuery = useExamStats(userRole);
   const examStats = examQuery.data || [];
-  const lessonPlanQuery = useLessonPlanStats();
+  const lessonPlanQuery = useLessonPlanStats(userRole);
   const lessonPlanStats = lessonPlanQuery.data || [];
+
+  //semester
+  const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
+  const semesters = semesterQuery.data || [];
+  const today = new Date();
+
+  const currentSemester = semesters.find((semester) => {
+    const start = new Date(semester.startDate);
+    const end = new Date(semester.endDate);
+    return today >= start && today <= end;
+  });
+  //chu nhiem
   const homeroomTeacherQuery = useHomeroomTeachers();
   const homeroomTeachers = homeroomTeacherQuery.data || [];
   const isHomeroom = homeroomTeachers.some(
-    (teacher) => teacher.teacherId === teacherId,
+    (teacher) => teacher.teacherId == teacherId,
   );
+  const classInfoQuery = useHomeroomClassInfo({
+    isHomeroom,
+    teacherId,
+    semesterId: currentSemester?.semesterID,
+  });
+  const attendanceInfoQuery = useHomeroomAttendanceInfo({
+    isHomeroom,
+    teacherId,
+    semesterId: currentSemester?.semesterID,
+  });
+  const classInfo = classInfoQuery.data || [];
+  const attendanceInfo = attendanceInfoQuery.data || [];
+  console.log(attendanceInfo);
   // console.log(homeroomTeachers);
   // console.log(userRole);
   // console.log(examStats);
@@ -208,7 +244,9 @@ export default function Home() {
     scheduleQuery.isLoading ||
     statsQuery.isLoading ||
     scheduleQuery.isLoading ||
-    examQuery.isLoading;
+    examQuery.isLoading ||
+    classInfoQuery.isLoading ||
+    attendanceInfoQuery.isLoading;
 
   if (userRole == "Hiệu trưởng" || userRole == "Hiệu phó") {
     return (

@@ -9,6 +9,8 @@ import {
   getTeachersBySubject,
   getExamStats,
   getLessonPlanStats,
+  getHomeroomClassInfo,
+  getHomeroomAttendanceInfo,
 } from "./api";
 
 export function useTeachers() {
@@ -105,20 +107,46 @@ export function useTeachersBySubject(id) {
   });
 }
 
-export function useExamStats() {
+export function useExamStats(userRole) {
   return useQuery({
     queryKey: ["exam-stats"],
     queryFn: () => {
       return getExamStats();
     },
+    enabled: userRole == "Trưởng bộ môn",
   });
 }
 
-export function useLessonPlanStats() {
+export function useLessonPlanStats(userRole) {
   return useQuery({
     queryKey: ["lesson-plan-stats"],
     queryFn: () => {
       return getLessonPlanStats();
     },
+    enabled: userRole == "Trưởng bộ môn",
+  });
+}
+
+export function useHomeroomClassInfo({ isHomeroom, teacherId, semesterId }) {
+  return useQuery({
+    queryKey: ["homeroom-class-info"],
+    queryFn: () => {
+      return getHomeroomClassInfo(teacherId, semesterId);
+    },
+    enabled: !!isHomeroom && !!teacherId && !!semesterId,
+  });
+}
+
+export function useHomeroomAttendanceInfo({
+  isHomeroom,
+  teacherId,
+  semesterId,
+}) {
+  return useQuery({
+    queryKey: ["homeroom-attendance-info"],
+    queryFn: () => {
+      return getHomeroomAttendanceInfo(teacherId, semesterId);
+    },
+    enabled: !!isHomeroom && !!teacherId && !!semesterId,
   });
 }
