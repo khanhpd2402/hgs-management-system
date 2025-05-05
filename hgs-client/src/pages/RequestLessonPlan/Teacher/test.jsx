@@ -47,7 +47,7 @@ const UploadLessonPlan = () => {
         setTeachersLoading(true);
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const response = await fetch(`https://localhost:8386/api/TeacherSubject/${subjectId}`, {
+            const response = await fetch(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/TeacherSubject/${subjectId}`, {
                 headers: {
                     'accept': '*/*',
                     'Authorization': `Bearer ${token}`

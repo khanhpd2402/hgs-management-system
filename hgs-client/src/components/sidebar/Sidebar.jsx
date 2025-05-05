@@ -47,6 +47,24 @@ const menuItems = [
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
   {
+    label: "Quản lý năm học",
+    icon: Calendar,
+    path: "/system/academic-year",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Quản lý môn học",
+    icon: BookOpen,
+    path: "/system/subject",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
+    label: "Cấu hình môn học",
+    icon: Settings,
+    path: "/system/teacher-subject",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
+  {
     label: "Quản lý lớp",
     icon: Users,
     path: "/system/class",
@@ -59,23 +77,19 @@ const menuItems = [
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
   {
-    label: "Quản lý môn học",
-    icon: BookOpen,
-    path: "/system/subject",
+    label: "Quản lý lịch giảng dạy",
+    icon: CalendarClock,
+    path: "/system/schedule",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
+
   {
     label: "Quản lý đợt nhập điểm",
     icon: FileEdit,
     path: "/system/grade-batch",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
-  {
-    label: "Quản lý lịch giảng dạy",
-    icon: CalendarClock,
-    path: "/system/schedule",
-    roles: ["Hiệu trưởng", "Hiệu phó"],
-  },
+
   {
     label: "Quản lý đơn xin nghỉ phép",
     icon: FileClock,
@@ -88,12 +102,7 @@ const menuItems = [
     path: "/system/contact",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
-  {
-    label: "Quản lý năm học",
-    icon: Calendar,
-    path: "/system/academic-year",
-    roles: ["Hiệu trưởng", "Hiệu phó"],
-  },
+
   {
     label: "Phân công làm giáo án",
     icon: FileText,
@@ -112,12 +121,7 @@ const menuItems = [
     path: "/system/transfer-data",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
-  {
-    label: "Cấu hình môn học",
-    icon: Settings,
-    path: "/system/teacher-subject",
-    roles: ["Hiệu trưởng", "Hiệu phó"],
-  },
+
 
   // Giáo viên
   {
@@ -221,9 +225,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
 
   return (
     <div
-      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${
-        isOpen ? "w-64" : "w-16"
-      } sidebar-scrollbar overflow-y-auto`}
+      className={`fixed top-0 left-0 h-full bg-sky-800 text-white ${isOpen ? "w-64" : "w-16"
+        } sidebar-scrollbar overflow-y-auto`}
     >
       {/* Button đóng/mở menu */}
       <div
@@ -240,9 +243,8 @@ export default function Sidebar({ isOpen, setIsOpen }) {
         {filteredMenuItems.map((item) => (
           <button
             key={item.label}
-            className={`flex h-12 w-full cursor-pointer items-center rounded-md px-2 hover:bg-sky-600 ${
-              isMenuActive(item) ? "bg-sky-500" : ""
-            }`}
+            className={`flex h-12 w-full cursor-pointer items-center rounded-md px-2 hover:bg-sky-600 ${isMenuActive(item) ? "bg-sky-500" : ""
+              }`}
             onClick={() => navigate(item.path)}
           >
             <div className="flex w-8 shrink-0 justify-center">
