@@ -39,6 +39,7 @@ const ListMarkTeacher = () => {
   const [editingRows, setEditingRows] = useState({});
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const baseUrl = import.meta.env.VITE_BASE_URL;
 
   // Lấy và kiểm tra token
   const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
@@ -65,7 +66,7 @@ const ListMarkTeacher = () => {
       try {
         const semesterId = selectedSemester === '1' ? 1 : 2;
         const response = await axios.get(
-          `https://localhost:8386/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+          `${baseUrl}/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setAssignments(response.data);
@@ -98,7 +99,7 @@ const ListMarkTeacher = () => {
     try {
       const { subjectId, classId } = assignment;
       const semesterId = semester === '1' ? 1 : 2;
-      const response = await axios.get(`https://localhost:8386/api/Grades/teacher`, {
+      const response = await axios.get(`${baseUrl}/api/Grades/teacher`, {
         params: { teacherId, classId, subjectId, semesterId },
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -151,7 +152,7 @@ const ListMarkTeacher = () => {
         };
 
         await axios.put(
-          'https://localhost:8386/api/Grades/update-multiple-scores',
+          `${baseUrl}/api/Grades/update-multiple-scores`,
           gradesPayload,
           {
             headers: {
@@ -209,7 +210,7 @@ const ListMarkTeacher = () => {
         };
 
         await axios.put(
-          'https://localhost:8386/api/Grades/update-multiple-scores',
+          `${baseUrl}/api/Grades/update-multiple-scores`,
           gradesPayload,
           {
             headers: {

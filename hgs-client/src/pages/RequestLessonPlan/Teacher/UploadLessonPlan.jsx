@@ -21,6 +21,7 @@ const FORM_FIELDS = [
     { name: 'title', label: 'Tiêu đề', type: 'text' },
     { name: 'planContent', label: 'Nội dung  ', type: 'textarea', rows: 4 },
 ];
+const baseUrl = import.meta.env.VITE_BASE_URL;
 
 const UploadLessonPlan = () => {
     const [form, setForm] = useState(INITIAL_FORM);
@@ -44,7 +45,7 @@ const UploadLessonPlan = () => {
         setTeachersLoading(true);
         try {
             const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
-            const response = await fetch(`https://localhost:8386/api/TeacherSubject/${subjectId}`, {
+            const response = await fetch(`${baseUrl}/api/TeacherSubject/${subjectId}`, {
                 headers: {
                     'accept': '*/*',
                     'Authorization': `Bearer ${token}`

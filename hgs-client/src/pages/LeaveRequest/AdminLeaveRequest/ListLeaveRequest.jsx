@@ -167,7 +167,7 @@ const ListLeaveRequest = () => {
             <Option value="all">Tất cả giáo viên</Option>
             {teachers.map(teacher => (
               <Option key={teacher.teacherId} value={teacher.teacherId}>
-                {teacher.fullName} - {teacher.teacherId}
+                {teacher.fullName}
               </Option>
             ))}
           </Select>
