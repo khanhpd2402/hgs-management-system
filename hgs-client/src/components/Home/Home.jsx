@@ -14,7 +14,8 @@ import {
 } from "@/services/teacher/queries";
 import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import { useSemestersByAcademicYear } from "@/services/common/queries";
-import { formatDate } from "@/helpers/formatDate";
+import { formatDate, formatDateString } from "@/helpers/formatDate";
+import { endOfWeek, format, startOfWeek } from "date-fns";
 
 // const userRole = "Trưởng bộ môn";
 const barColors = {
@@ -44,12 +45,14 @@ export default function Home() {
   const semesterQuery = useSemestersByAcademicYear(currentYear?.academicYearID);
   const semesters = semesterQuery.data || [];
   const today = new Date();
-
+  const todayStr = formatDate(today);
   const currentSemester = semesters.find((semester) => {
     const start = new Date(semester.startDate);
     const end = new Date(semester.endDate);
     return today >= start && today <= end;
   });
+  // Lấy danh sách ngày trong tuần hiện tại
+
   //chu nhiem
   const homeroomTeacherQuery = useHomeroomTeachers();
   const homeroomTeachers = homeroomTeacherQuery.data || [];
@@ -69,6 +72,9 @@ export default function Home() {
     return new Date(date.setDate(diff));
   };
   const weekStart = formatDate(getMonday(today));
+  const weekEnd = formatDate(
+    new Date(new Date(weekStart).setDate(new Date(weekStart).getDate() + 6)),
+  );
   const attendanceInfoQuery = useHomeroomAttendanceInfo({
     isHomeroom,
     teacherId,
@@ -77,6 +83,7 @@ export default function Home() {
   });
   const classInfo = classInfoQuery.data || [];
   const attendanceInfo = attendanceInfoQuery.data || [];
+  console.log(classInfo);
   console.log(attendanceInfo);
   // console.log(homeroomTeachers);
   // console.log(userRole);
@@ -249,6 +256,154 @@ export default function Home() {
       </div>
     );
   }
+  function getAttendanceTodayGroupedBar(attendanceInfo, date) {
+    const statusMap = {
+      C: "Có mặt",
+      K: "Không phép",
+      P: "Có phép",
+      X: "Chưa rõ",
+    };
+    const sessions = ["Sáng", "Chiều"];
+    let result = [];
+    sessions.forEach((session) => {
+      const records = attendanceInfo.filter(
+        (item) => item.date === date && item.session === session,
+      );
+      // Đếm số lượng từng trạng thái
+      const summary = {
+        "Có mặt": 0,
+        "Có phép": 0,
+        "Không phép": 0,
+        "Chưa rõ": 0,
+      };
+      records.forEach((item) => {
+        const label = statusMap[item.status] || "Chưa rõ";
+        summary[label]++;
+      });
+      result.push({
+        session,
+        ...summary,
+      });
+    });
+    return result;
+  }
+
+  // Hàm tổng hợp điểm danh trong tuần
+  function getWeeklyAttendanceGroupedBar(attendanceInfo, weekDates) {
+    const statusMap = {
+      C: "Có mặt",
+      K: "Không phép",
+      P: "Có phép",
+      X: "Chưa rõ",
+    };
+    const sessions = ["Sáng", "Chiều"];
+    const daysOfWeek = [
+      "Thứ Hai",
+      "Thứ Ba",
+      "Thứ Tư",
+      "Thứ Năm",
+      "Thứ Sáu",
+      "Thứ Bảy",
+      "Chủ Nhật",
+    ];
+    let result = [];
+    weekDates.forEach((date, idx) => {
+      sessions.forEach((session) => {
+        const records = attendanceInfo.filter(
+          (item) => item.date === date && item.session === session,
+        );
+        const summary = {
+          "Có mặt": 0,
+          "Có phép": 0,
+          "Không phép": 0,
+          "Chưa rõ": 0,
+        };
+        records.forEach((item) => {
+          const label = statusMap[item.status] || "Chưa rõ";
+          summary[label]++;
+        });
+        result.push({
+          day: daysOfWeek[idx] || date,
+          session,
+          "Có mặt": summary["Có mặt"],
+          "Có phép": summary["Có phép"],
+          "Không phép": summary["Không phép"],
+          "Chưa rõ": summary["Chưa rõ"],
+        });
+      });
+    });
+    return result;
+  }
+  function getWeekDates(weekStart, weekEnd) {
+    const dates = [];
+    let current = new Date(weekStart);
+    const end = new Date(weekEnd);
+    while (current <= end) {
+      dates.push(formatDate(current));
+      current.setDate(current.getDate() + 1);
+    }
+    return dates;
+  }
+  const weekDates = getWeekDates(weekStart, weekEnd);
+  const attendanceTodayGroupedBar = getAttendanceTodayGroupedBar(
+    attendanceInfo,
+    todayStr,
+  );
+
+  const groupedBarOptions = {
+    data: attendanceTodayGroupedBar,
+    title: { text: "Thống kê điểm danh hôm nay (Sáng/Chiều)", fontSize: 16 },
+    series: [
+      {
+        type: "bar",
+        xKey: "session",
+        yKey: "Có mặt",
+        stacked: true,
+        fill: "mediumseagreen",
+        label: { enabled: true },
+        name: "Có mặt",
+      },
+      {
+        type: "bar",
+        xKey: "session",
+        yKey: "Có phép",
+        stacked: true,
+        fill: "dodgerblue",
+        label: { enabled: true },
+        name: "Có phép",
+      },
+      {
+        type: "bar",
+        xKey: "session",
+        yKey: "Không phép",
+        stacked: true,
+        fill: "tomato",
+        label: { enabled: true },
+        name: "Không phép",
+      },
+      {
+        type: "bar",
+        xKey: "session",
+        yKey: "Chưa rõ",
+        stacked: true,
+        fill: "gold",
+        label: { enabled: true },
+        name: "Chưa rõ",
+      },
+    ],
+    legend: { position: "bottom" },
+    height: 300,
+    width: "100%",
+    padding: { top: 20, bottom: 20, left: 0, right: 0 },
+    axes: [
+      { type: "category", position: "bottom" },
+      { type: "number", position: "left", nice: true, min: 0 },
+    ],
+  };
+  const weeklyAttendanceGroupedBar = getWeeklyAttendanceGroupedBar(
+    attendanceInfo,
+    weekDates,
+  );
 
   const isLoading =
     scheduleQuery.isLoading ||
@@ -542,85 +697,168 @@ export default function Home() {
   return (
     <>
       {userRole === "Giáo viên" && (
-        <Card className="my-6 border shadow-lg">
-          <CardHeader>
-            <CardTitle>Thời khoá biểu</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoading ? (
-              <Skeleton className="h-96 w-full" />
-            ) : (
-              <div className="overflow-x-auto">
-                <table className="min-w-full rounded border text-center shadow">
-                  <thead>
-                    <tr>
-                      <th className="border bg-gray-100 px-2 py-2">Buổi</th>
-                      <th className="border bg-gray-100 px-2 py-2">Tiết</th>
-                      {daysOfWeek.map((day) => (
-                        <th key={day} className="border bg-gray-100 px-2 py-2">
-                          {day}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {/* Buổi sáng */}
-                    {morningPeriods.map((period, idx) => (
-                      <tr key={period}>
-                        {idx === 0 && (
-                          <td
-                            className="border bg-blue-50 px-2 py-2 font-bold"
-                            rowSpan={morningPeriods.length}
-                            style={{ verticalAlign: "middle" }}
-                          >
-                            Sáng
-                          </td>
-                        )}
-                        <td className="border bg-blue-50 px-2 py-2 font-bold">
-                          Tiết {period}
-                        </td>
+        <>
+          {isHomeroom && (
+            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+              <Card className="border shadow-lg">
+                <CardHeader>
+                  <CardTitle>
+                    <div className="flex items-center gap-2">
+                      <School className="text-blue-500" />
+                      <span>Thông tin lớp chủ nhiệm</span>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="flex flex-col items-center gap-4 py-4">
+                    <div className="flex items-center gap-2">
+                      <span className="text-lg font-semibold">Lớp:</span>
+                      <span className="text-2xl font-bold text-blue-600">
+                        {classInfo.className || "--"}
+                      </span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <GraduationCap className="text-red-500" />
+                      <span className="text-lg font-semibold">
+                        Tổng số học sinh:
+                      </span>
+                      <span className="text-2xl font-bold text-red-600">
+                        {classInfo.totalStudents ?? "--"}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="border shadow-lg">
+                <CardHeader>
+                  <CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Users className="text-yellow-500" />
+                      <span>Điểm danh hôm nay</span>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {attendanceInfoQuery.isLoading ? (
+                    <Skeleton className="h-56 w-full" />
+                  ) : (
+                    <div className="flex w-full justify-center">
+                      <div style={{ width: "100%", maxWidth: 400 }}>
+                        <AgCharts options={groupedBarOptions} />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+              <Card className="border shadow-lg md:col-span-2">
+                <CardHeader>
+                  <CardTitle>
+                    <div className="flex items-center gap-2">
+                      <Users className="text-green-500" />
+                      <span>Điểm danh trong tuần</span>
+                    </div>
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  {attendanceInfoQuery.isLoading ? (
+                    <Skeleton className="h-56 w-full" />
+                  ) : (
+                    <div className="flex w-full justify-center">
+                      <div style={{ width: "100%", maxWidth: 500 }}>
+                        <AgCharts options={weeklyAttendanceGroupedBar} />
+                      </div>
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </div>
+          )}
+          <Card className="my-6 border shadow-lg">
+            <CardHeader>
+              <CardTitle>Thời khoá biểu</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-96 w-full" />
+              ) : (
+                <div className="overflow-x-auto">
+                  <table className="min-w-full rounded border text-center shadow">
+                    <thead>
+                      <tr>
+                        <th className="border bg-gray-100 px-2 py-2">Buổi</th>
+                        <th className="border bg-gray-100 px-2 py-2">Tiết</th>
                         {daysOfWeek.map((day) => (
-                          <td
+                          <th
                             key={day}
-                            className="align-center border px-2 py-2"
+                            className="border bg-gray-100 px-2 py-2"
                           >
-                            {renderCell(allLessons, day, period) || (
-                              <span className="text-gray-300"></span>
-                            )}
-                          </td>
+                            {day}
+                          </th>
                         ))}
                       </tr>
-                    ))}
-                    {/* Buổi chiều */}
-                    {afternoonPeriods.map((period, idx) => (
-                      <tr key={period}>
-                        {idx === 0 && (
-                          <td
-                            className="border bg-yellow-50 px-2 py-2 font-bold"
-                            rowSpan={afternoonPeriods.length}
-                            style={{ verticalAlign: "middle" }}
-                          >
-                            Chiều
+                    </thead>
+                    <tbody>
+                      {/* Buổi sáng */}
+                      {morningPeriods.map((period, idx) => (
+                        <tr key={period}>
+                          {idx === 0 && (
+                            <td
+                              className="border bg-blue-50 px-2 py-2 font-bold"
+                              rowSpan={morningPeriods.length}
+                              style={{ verticalAlign: "middle" }}
+                            >
+                              Sáng
+                            </td>
+                          )}
+                          <td className="border bg-blue-50 px-2 py-2 font-bold">
+                            Tiết {period}
                           </td>
-                        )}
-                        <td className="border bg-yellow-50 px-2 py-2 font-bold">
-                          Tiết {period}
-                        </td>
-                        {daysOfWeek.map((day) => (
-                          <td key={day} className="border px-2 py-2 align-top">
-                            {renderCell(allLessons, day, period) || (
-                              <span className="text-gray-300"></span>
-                            )}
+                          {daysOfWeek.map((day) => (
+                            <td
+                              key={day}
+                              className="align-center border px-2 py-2"
+                            >
+                              {renderCell(allLessons, day, period) || (
+                                <span className="text-gray-300"></span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                      {/* Buổi chiều */}
+                      {afternoonPeriods.map((period, idx) => (
+                        <tr key={period}>
+                          {idx === 0 && (
+                            <td
+                              className="border bg-yellow-50 px-2 py-2 font-bold"
+                              rowSpan={afternoonPeriods.length}
+                              style={{ verticalAlign: "middle" }}
+                            >
+                              Chiều
+                            </td>
+                          )}
+                          <td className="border bg-yellow-50 px-2 py-2 font-bold">
+                            Tiết {period}
                           </td>
-                        ))}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            )}
-          </CardContent>
-        </Card>
+                          {daysOfWeek.map((day) => (
+                            <td
+                              key={day}
+                              className="border px-2 py-2 align-top"
+                            >
+                              {renderCell(allLessons, day, period) || (
+                                <span className="text-gray-300"></span>
+                              )}
+                            </td>
+                          ))}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </>
       )}
     </>
   );
