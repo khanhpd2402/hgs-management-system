@@ -1,12 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { Card, Table, Form, Select, Button, message, Input, Checkbox } from 'antd';
+import { Card, Table, Form, Select, Button, Checkbox, Input, message } from 'antd';
 import dayjs from 'dayjs';
 import { useScheduleTeacher } from '../../../services/schedule/queries';
 import { useTeachers } from '../../../services/teacher/queries';
-import { useGetSubstituteTeachings, useCreateSubstituteTeaching } from '../../../services/schedule/queries';
+import { useCreateSubstituteTeaching } from '../../../services/schedule/queries';
+import { useSendNotification } from '../../../services/notification/mutations';
 import toast from "react-hot-toast";
 import { getSubstituteTeachings } from "../../../services/schedule/api";
-import { sendMailLeaveRequest } from './sendMailLeaveRequest'; // đường dẫn đúng
+import { sendMailLeaveRequest } from './sendMailLeaveRequest';
 
 const { Option } = Select;
 
@@ -21,8 +22,9 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
   const [form] = Form.useForm();
   const { data: teacherSchedule, isLoading: scheduleLoading } = useScheduleTeacher(leaveRequest?.teacherId);
   const { data: teachersData, isLoading: teachersLoading } = useTeachers();
+  const { mutateAsync: createSubstitute } = useCreateSubstituteTeaching();
+  const { mutateAsync: sendNotification } = useSendNotification();
   const [assignedTeachers, setAssignedTeachers] = useState({});
-
 
   const checkAssignedTeacher = async (timetableDetailId, originalTeacherId, date) => {
     try {
@@ -42,8 +44,6 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
       console.error('Error checking assigned teacher:', error);
     }
   };
-
-  const { mutateAsync: createSubstitute } = useCreateSubstituteTeaching();
 
   // Thêm useEffect để kiểm tra giáo viên dạy thay cho mỗi lịch học
   useEffect(() => {
@@ -91,39 +91,24 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
 
       await createSubstitute(payload);
 
-
-
-
       // Fetch lại dữ liệu sau khi lưu thành công
       await checkAssignedTeacher(
         record.timetableDetailId,
         leaveRequest.teacherId,
         record.date
       );
-      console.log("checkAssignedTeacher", checkAssignedTeacher)
 
-      toast.success('Phân công giáo viên dạy thay thành công!')
+      toast.success('Phân công giáo viên dạy thay thành công!');
       message.success('Phân công giáo viên dạy thay thành công!');
 
-
-
-
-
-      // sendmailLeaverequest
-
-
-
+      // Gửi email thông báo
+      await sendMailLeaveRequest(record, teacherId, note, sendNotification);
 
     } catch (error) {
-      toast.error(`Giáo viên dạy thay không được trùng với giáo viên xin nghỉ`)
+      toast.error(`Giáo viên dạy thay không được trùng với giáo viên xin nghỉ`);
       console.error('Error saving assignment:', error);
       message.error(`Có lỗi khi lưu phân công: ${error.message}`);
     }
-
-
-
-    await sendMailLeaveRequest(record, teacherId, note, schedule);
-
   };
 
   // Process schedules for display
@@ -192,7 +177,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
         )
       );
 
-      toast.success('Lưu thành công')
+      toast.success('Lưu thành công');
       message.success('Đã lưu tất cả phân công thành công!');
       form.resetFields(['assignments', 'notes']);
     } catch (error) {
@@ -217,54 +202,49 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              padding: '10px', // Tăng padding để checkbox nổi bật
-              backgroundColor: isAssigned ? '#e6f4ff' : '#ffffff', // Nền xanh nhạt khi checked, trắng khi không checked
-              borderRadius: '6px', // Bo góc container
-              boxShadow: isAssigned ? '0 0 4px rgba(0, 80, 179, 0.2)' : 'none', // Bóng nhẹ khi checked
+              padding: '10px',
+              backgroundColor: isAssigned ? '#e6f4ff' : '#ffffff',
+              borderRadius: '6px',
+              boxShadow: isAssigned ? '0 0 4px rgba(0, 80, 179, 0.2)' : 'none',
             }}
           >
             <Checkbox
               checked={isAssigned}
               disabled={true}
               style={{
-                transform: 'scale(1.5)', // Phóng to checkbox để rõ hơn
-                fontSize: '18px', // Tăng kích thước để phù hợp
-                // Style cho toàn bộ checkbox
+                transform: 'scale(1.5)',
+                fontSize: '18px',
                 ...(isAssigned
                   ? {
-                    // Khi checked
-                    border: 'none', // Loại bỏ viền mặc định
-                    '--ant-checkbox-bg': '#0050b3', // Xanh dương đậm khi checked
+                    border: 'none',
+                    '--ant-checkbox-bg': '#0050b3',
                     '--ant-checkbox-border': '#0050b3',
-                    '--ant-checkbox-shadow': '0 0 8px rgba(0, 80, 179, 0.5)', // Bóng nổi bật
-                    // Nhắm vào .ant-checkbox-inner khi checked
+                    '--ant-checkbox-shadow': '0 0 8px rgba(0, 80, 179, 0.5)',
                     '& .ant-checkbox-checked .ant-checkbox-inner': {
-                      backgroundColor: 'var(--ant-checkbox-bg)', // Màu nền xanh dương
-                      border: '2px solid var(--ant-checkbox-border)', // Viền đậm
-                      boxShadow: 'var(--ant-checkbox-shadow)', // Bóng
-                      borderRadius: '4px', // Bo góc nhẹ
+                      backgroundColor: 'var(--ant-checkbox-bg)',
+                      border: '2px solid var(--ant-checkbox-border)',
+                      boxShadow: 'var(--ant-checkbox-shadow)',
+                      borderRadius: '4px',
                     },
                     '& .ant-checkbox-inner': {
-                      border: '2px solid var(--ant-checkbox-border)', // Viền đậm khi checked
+                      border: '2px solid var(--ant-checkbox-border)',
                     },
                     '& .ant-checkbox-disabled .ant-checkbox-inner': {
-                      opacity: 1, // Đảm bảo không mờ khi disabled
+                      opacity: 1,
                     },
                   }
                   : {
-                    // Khi không checked
                     border: 'none',
-                    '--ant-checkbox-bg': '#ffffff', // Nền trắng
-                    '--ant-checkbox-border': '#bfbfbf', // Viền xám nhạt
+                    '--ant-checkbox-bg': '#ffffff',
+                    '--ant-checkbox-border': '#bfbfbf',
                     '--ant-checkbox-shadow': 'none',
-                    // Nhắm vào .ant-checkbox-inner khi không checked
                     '& .ant-checkbox-inner': {
-                      backgroundColor: 'var(--ant-checkbox-bg)', // Nền trắng
-                      border: '1px solid var(--ant-checkbox-border)', // Viền mỏng
+                      backgroundColor: 'var(--ant-checkbox-bg)',
+                      border: '1px solid var(--ant-checkbox-border)',
                       borderRadius: '4px',
                     },
                     '& .ant-checkbox-disabled .ant-checkbox-inner': {
-                      opacity: 0.7, // Mờ nhẹ khi disabled và không checked
+                      opacity: 0.7,
                     },
                   }),
               }}
@@ -295,7 +275,6 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
           );
           return (
             <div>
-
               <Form.Item
                 name={['assignments', record.scheduleId]}
                 style={{ margin: 0 }}
@@ -309,7 +288,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
                 >
                   {teachersData?.teachers?.map((teacher) => (
                     <Option key={teacher.teacherId} value={teacher.teacherId}>
-                      {teacher.fullName} - {teacher.teacherId}
+                      {teacher.fullName}
                     </Option>
                   ))}
                 </Select>
@@ -330,7 +309,7 @@ const SubstituteTeacherAssignment = ({ leaveRequest }) => {
             >
               {teachersData?.teachers?.map((teacher) => (
                 <Option key={teacher.teacherId} value={teacher.teacherId}>
-                  {teacher.fullName} - {teacher.teacherId}
+                  {teacher.fullName}
                 </Option>
               ))}
             </Select>
