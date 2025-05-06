@@ -883,6 +883,8 @@ namespace Application.Features.Students.Services
             using var transaction = await _studentRepository.BeginTransactionAsync();
             try
             {
+                bool hasError = false;
+
                 foreach (var row in data)
                 {
                     string fullName = null;
@@ -894,7 +896,7 @@ namespace Application.Features.Students.Services
                         Console.WriteLine($"Processing student: {fullName}");
 
                         if (!row.TryGetValue("Ngày sinh", out var dobStr) || string.IsNullOrEmpty(dobStr))
-                            throw new Exception("Thi484ếu hoặc rỗng 'Ngày sinh'.");
+                            throw new Exception("Thiếu hoặc rỗng 'Ngày sinh'.");
                         Console.WriteLine($"Student DOB: {dobStr}");
 
                         if (!row.TryGetValue("Giới tính", out var gender) || string.IsNullOrEmpty(gender) || !new[] { "Nam", "Nữ", "Khác" }.Contains(gender))
@@ -966,14 +968,14 @@ namespace Application.Features.Students.Services
                             IdcardNumber = idCardNumber,
                             Status = row.TryGetValue("Trạng thái", out var status) ? status.Trim() : "Đang học",
                             StudentClasses = new List<Domain.Models.StudentClass>
-                            {
-                                new Domain.Models.StudentClass
-                                {
-                                    ClassId = classEntity.ClassId,
-                                    AcademicYearId = currentAcademicYear.AcademicYearId,
-                                    RepeatingYear = false
-                                }
-                            }
+                    {
+                        new Domain.Models.StudentClass
+                        {
+                            ClassId = classEntity.ClassId,
+                            AcademicYearId = currentAcademicYear.AcademicYearId,
+                            RepeatingYear = false
+                        }
+                    }
                         };
                         Console.WriteLine($"Created student entity for {fullName} with ClassId: {classEntity.ClassId}, AcademicYearId: {currentAcademicYear.AcademicYearId}");
 
@@ -1068,8 +1070,17 @@ namespace Application.Features.Students.Services
                     catch (Exception ex)
                     {
                         Console.WriteLine($"Error processing student {fullName}: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                        hasError = true;
                         importResults.Add($"Lỗi khi xử lý học sinh {fullName}: {ex.Message}");
+                        throw; // Ném lại exception để endpoint xử lý
                     }
+                }
+
+                if (hasError)
+                {
+                    Console.WriteLine("Errors occurred during student processing. Rolling back transaction.");
+                    await transaction.RollbackAsync();
+                    return importResults;
                 }
 
                 if (!students.Any())
@@ -1092,8 +1103,7 @@ namespace Application.Features.Students.Services
                 Console.WriteLine($"Critical error during import: {ex.Message}\nStackTrace: {ex.StackTrace}");
                 await transaction.RollbackAsync();
                 Console.WriteLine("Transaction rolled back due to critical error.");
-                importResults.Add($"Lỗi nghiêm trọng khi nhập học sinh: {ex.Message}");
-                return importResults;
+                throw new Exception($"Lỗi nghiêm trọng khi nhập học sinh: {ex.Message}");
             }
         }
     }
