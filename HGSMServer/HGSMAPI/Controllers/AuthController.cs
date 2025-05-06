@@ -122,7 +122,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error during login: {ex.Message}");
-                return StatusCode(500, "Lỗi khi đăng nhập.");
+                return StatusCode(500, "Lỗi khi đăng nhập." + ex.Message);
             }
         }
 
