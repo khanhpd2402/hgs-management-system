@@ -447,7 +447,7 @@ namespace Application.Features.StudentClass.Services
                     var previousAcademicYear = await GetPreviousAcademicYearByIdAsync(academicYearId);
                     if (today < previousAcademicYear.EndDate)
                     {
-                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp vì năm học trước (ID: {previousAcademicYear.AcademicYearId}) chưa kết thúc.");
+                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp vì năm học trước ({previousAcademicYear.YearName}) chưa kết thúc.");
                     }
 
                     bool isBeforeAcademicYearStart = today < academicYear.StartDate;
@@ -458,13 +458,13 @@ namespace Application.Features.StudentClass.Services
 
                     if (await IsPreviousAcademicYearAsync(academicYearId))
                     {
-                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho năm học trước (ID: {academicYearId}).");
+                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho năm học trước");
                     }
 
                     var student = await _studentRepository.GetByIdAsync(dto.StudentId);
                     if (student == null)
                     {
-                        throw new KeyNotFoundException($"Không tìm thấy học sinh với ID {dto.StudentId}.");
+                        throw new KeyNotFoundException($"Không tìm thấy học sinh");
                     }
 
                     if (student.Status == "Tốt nghiệp")
@@ -475,7 +475,8 @@ namespace Application.Features.StudentClass.Services
                     var classEntity = await _classRepository.GetByIdWithoutTimetableAsync(dto.ClassId);
                     if (classEntity == null)
                     {
-                        throw new KeyNotFoundException($"Không tìm thấy lớp với ID {dto.ClassId}.");
+                        //throw new KeyNotFoundException($"Không tìm thấy lớp với ID {dto.ClassId}.");
+                        throw new KeyNotFoundException($"Không tìm thấy lớp.");
                     }
 
                     if (classEntity.Status != "Hoạt động")
