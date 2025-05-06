@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Infrastructure.Repositories.Interfaces;
 using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Infrastructure.Repositories.Implementtations
 {
@@ -79,6 +80,24 @@ namespace Infrastructure.Repositories.Implementtations
         {
             return await _context.Grades
                 .Where(g => g.BatchId == batchId).Include(g => g.Batch)
+                .ToListAsync();
+        }
+        public async Task DeleteRangeAsync(IEnumerable<Grade> grades)
+        {
+            _context.Grades.RemoveRange(grades);
+        }
+        public async Task<IEnumerable<Grade>> GetByStudentClassIdsAsync(IEnumerable<int> studentClassIds)
+        {
+            var studentClassIdsList = studentClassIds.ToList();
+            if (!studentClassIdsList.Any())
+            {
+                return new List<Grade>();
+            }
+
+            return await _context.Grades
+                .Where(g => g.StudentClassId.HasValue && studentClassIdsList.Contains(g.StudentClassId.Value))
+                .Include(g => g.StudentClass)
+                .Include(g => g.Batch)
                 .ToListAsync();
         }
     }

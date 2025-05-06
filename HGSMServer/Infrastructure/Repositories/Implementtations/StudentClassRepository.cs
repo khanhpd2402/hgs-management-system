@@ -194,6 +194,10 @@ namespace Infrastructure.Repositories.Implementtations
                 })
                 .ToListAsync();
         }
+        public async Task DeleteRangeAsync(IEnumerable<StudentClass> studentClasses)
+        {
+            _context.StudentClasses.RemoveRange(studentClasses);
+        }
 
     }
     }

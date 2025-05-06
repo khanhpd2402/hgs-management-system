@@ -25,8 +25,8 @@ namespace Infrastructure.Repositories.Interfaces
         Task DeleteRangeAsync(List<int> ids);
         Task<IDbContextTransaction> BeginTransactionAsync();
         Task<List<StudentClass>> GetByGradeLevelAndAcademicYearAsync(int gradeLevelId, int academicYearId);
-        //history of class assignment
         Task<List<StudentClass>> GetByStudentIdAsync(int studentId);
         Task<IEnumerable<StudentClass>> GetByAcademicYearIdAsync(int academicYearId);
+        Task DeleteRangeAsync(IEnumerable<StudentClass> studentClasses);
     }
 }
