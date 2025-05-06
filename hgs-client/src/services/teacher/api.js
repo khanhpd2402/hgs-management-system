@@ -107,3 +107,23 @@ export const getLessonPlanStats = async () => {
   return (await axiosInstance.get(`LessonPlan/department-head-statistics`))
     .data;
 };
+
+export const getHomeroomClassInfo = async (teacherId, semesterId) => {
+  return (
+    await axiosInstance.get(
+      `StudentClass/homeroom-class-info/${teacherId}/${semesterId}`,
+    )
+  ).data;
+};
+
+export const getHomeroomAttendanceInfo = async (
+  teacherId,
+  semesterId,
+  weekStart,
+) => {
+  return (
+    await axiosInstance.get(
+      `Attendance/homeroom-attendance/${teacherId}/${semesterId}?weekStart=${weekStart}`,
+    )
+  ).data;
+};

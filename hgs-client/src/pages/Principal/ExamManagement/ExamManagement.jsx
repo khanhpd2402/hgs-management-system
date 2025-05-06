@@ -367,7 +367,7 @@ export default function ExamManagement() {
                   <SelectValue placeholder="Chọn trạng thái mới" />
                 </SelectTrigger>
                 <SelectContent>
-                  {["Đã duyệt", "Chờ duyệt", "Từ chối"]
+                  {["Đã duyệt", "Từ chối"]
                     .filter((status) => status !== selectedExam?.status)
                     .map((status) => (
                       <SelectItem value={status} key={status}>
