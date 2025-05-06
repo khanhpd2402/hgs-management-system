@@ -1,6 +1,7 @@
 import React, { useState, useCallback, useMemo, useEffect } from 'react';
 import axios from 'axios';
 import { jwtDecode } from 'jwt-decode';
+import toast from 'react-hot-toast';
 import {
   Table,
   TableBody,
@@ -10,7 +11,6 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import {
   Select,
   SelectContent,
@@ -21,25 +21,36 @@ import {
 import { useAcademicYears, useSemestersByAcademicYear } from '../../../services/common/queries';
 import './ListMarkTeacher.scss';
 
-// Hàm ánh xạ assessmentType
+// Custom NumberInput component with simple input
+const NumberInput = ({ value, onChange }) => {
+  return (
+    <div className="flex items-center w-20 mx-auto">
+      <input
+        id={`grade-input-${Math.random().toString(36).substring(2)}`}
+        type="text"
+        inputMode="decimal"
+        className="w-full border rounded-lg p-2 text-sm text-center focus:ring-2 focus:ring-[#7DB6AD]"
+        value={value ?? ''}
+        onChange={(e) => onChange(e.target.value)}
+        aria-label="Grade input"
+      />
+    </div>
+  );
+};
+
+// Utility functions
 const mapAssessmentType = (field) => {
-  if (field.startsWith('TX')) {
-    const index = field.replace('TX', '');
-    return `ĐĐG TX ${index}`;
-  }
+  if (field.startsWith('TX')) return `ĐĐG TX ${field.replace('TX', '')}`;
   return { GK: 'ĐĐG GK', CK: 'ĐĐG CK' }[field] || '';
 };
 
-// Hàm lấy tên ngắn cho đầu điểm (hiển thị trong bảng)
 const getShortAssessmentName = (assessmentType) => {
-  if (assessmentType.startsWith('ĐĐG TX')) {
-    const index = assessmentType.split(' ')[2];
-    return `TX${index}`;
-  }
+  if (assessmentType.startsWith('ĐĐG TX')) return `TX${assessmentType.split(' ')[2]}`;
   return { 'ĐĐG GK': 'GK', 'ĐĐG CK': 'CK' }[assessmentType] || assessmentType;
 };
 
 const ListMarkTeacher = () => {
+  // State
   const [academicYear, setAcademicYear] = useState('');
   const [semester, setSemester] = useState('');
   const [assignments, setAssignments] = useState([]);
@@ -49,148 +60,127 @@ const ListMarkTeacher = () => {
   const [editedGrades, setEditedGrades] = useState({});
   const [editingRows, setEditingRows] = useState({});
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
 
-  // Lấy và kiểm tra token
+  // Token and teacher ID
   const token = localStorage.getItem('token')?.replace(/^"|"$/g, '');
   const decoded = useMemo(() => {
     try {
       return token ? jwtDecode(token) : {};
-    } catch (e) {
-      console.error('Invalid token:', e);
+    } catch {
+      toast.error('Phiên đăng nhập không hợp lệ.');
       return {};
     }
   }, [token]);
   const teacherId = decoded?.teacherId;
 
-  // Queries cho năm học và học kỳ
+  // Queries
   const { data: academicYears, isLoading: academicYearsLoading } = useAcademicYears();
   const { data: semesters, isLoading: semestersLoading } = useSemestersByAcademicYear(academicYear);
 
-  // Reset state khi năm học thay đổi
+  // Reset states on academic year change
   useEffect(() => {
     if (!academicYear) return;
     setSemester('');
     setAssignments([]);
     setSelectedAssignment('');
     setGrades([]);
-    setError('');
   }, [academicYear]);
 
-  // Reset state khi học kỳ thay đổi
+  // Reset states on semester change
   useEffect(() => {
     if (!semester) {
       setAssignments([]);
       setSelectedAssignment('');
       setGrades([]);
-      setError('');
     }
   }, [semester]);
 
-  // Lấy danh sách các đầu điểm thường xuyên
+  // Get regular assessment types
   const regularAssessmentTypes = useMemo(() => {
-    const types = new Set(grades.map((g) => g.assessmentType));
-    return Array.from(types)
+    return Array.from(new Set(grades.map((g) => g.assessmentType)))
       .filter((type) => type.startsWith('ĐĐG TX'))
-      .sort((a, b) => {
-        const indexA = parseInt(a.split(' ')[2]) || 0;
-        const indexB = parseInt(b.split(' ')[2]) || 0;
-        return indexA - indexB;
-      });
+      .sort((a, b) => parseInt(a.split(' ')[2]) - parseInt(b.split(' ')[2]));
   }, [grades]);
 
-  // Hàm xử lý thay đổi học kỳ và lấy phân công
-  const handleSemesterChange = useCallback(
-    async (value) => {
-      setSemester(value);
-      if (!teacherId || !value) return;
+  // Fetch assignments
+  const fetchAssignments = useCallback(async (semesterId) => {
+    if (!teacherId || !semesterId) return;
+    setLoading(true);
+    try {
+      const response = await axios.get(
+        `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/TeachingAssignment/teacher/${teacherId}/semester/${semesterId}`,
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+      setAssignments(response.data);
+    } catch {
+      toast.error('Không thể tải danh sách phân công giảng dạy.');
+      setAssignments([]);
+    } finally {
+      setLoading(false);
+    }
+  }, [teacherId, token]);
 
-      setLoading(true);
-      try {
-        const response = await axios.get(
-          `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/TeachingAssignment/teacher/${teacherId}/semester/${value}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setAssignments(response.data);
-      } catch (error) {
-        console.error('Error fetching assignments:', error);
-        setError('Không thể tải danh sách phân công giảng dạy.');
-        setAssignments([]);
-      } finally {
-        setLoading(false);
-      }
-    },
-    [teacherId, token]
-  );
+  // Handle semester change
+  const handleSemesterChange = useCallback((value) => {
+    setSemester(value);
+    fetchAssignments(value);
+  }, [fetchAssignments]);
 
-  // Hàm xử lý thay đổi phân công
-  const handleAssignmentChange = useCallback((value) => {
-    setSelectedAssignment(value);
-    setError('');
-  }, []);
-
-  // Hàm xác thực trước khi tìm kiếm điểm
+  // Validate search
   const validateSearch = useCallback(() => {
-    if (!selectedAssignment) {
-      setError('Vui lòng chọn lớp và môn học.');
+    if (!semester) {
+      toast.error('Vui lòng chọn học kỳ.');
       return false;
     }
-    if (!semester) {
-      setError('Vui lòng chọn học kỳ.');
+    if (!selectedAssignment) {
+      toast.error('Vui lòng chọn lớp và môn học.');
       return false;
     }
     const assignment = assignments.find((a) => a.assignmentId === parseInt(selectedAssignment));
     if (!assignment) {
-      setError('Phân công không hợp lệ.');
+      toast.error('Phân công không hợp lệ.');
       return false;
     }
     return true;
   }, [assignments, selectedAssignment, semester]);
 
-  // Hàm tìm kiếm điểm
-  const handleSearchGrades = useCallback(async () => {
+  // Fetch grades
+  const fetchGrades = useCallback(async () => {
     if (!validateSearch()) return;
-
     setLoading(true);
-    setError('');
     try {
       const assignment = assignments.find((a) => a.assignmentId === parseInt(selectedAssignment));
       const { subjectId, classId } = assignment;
-      const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/teacher`, {
-        params: { teacherId, classId, subjectId, semesterId: semester },
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/teacher`,
+        {
+          params: { teacherId, classId, subjectId, semesterId: semester },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setGrades(response.data);
-    } catch (error) {
-      console.error('Error fetching grades:', error);
-      setError('Không thể tải danh sách điểm.');
+      toast.success('Tải danh sách điểm thành công.');
+    } catch {
+      toast.error('Không thể tải danh sách điểm.');
       setGrades([]);
     } finally {
       setLoading(false);
     }
   }, [assignments, selectedAssignment, semester, teacherId, token, validateSearch]);
 
-  // Hàm xử lý thay đổi input
+  // Handle input change
   const handleInputChange = useCallback((studentId, field, value) => {
-    // Chỉ validate khi có giá trị và là số
-    if (value !== '') {
-      const numericValue = Number(value);
-      if (isNaN(numericValue) || numericValue < 0 || numericValue > 10) return;
-    }
-
-    setEditedGrades(prev => ({
+    setEditedGrades((prev) => ({
       ...prev,
-      [studentId]: { ...prev[studentId], [field]: value }
+      [studentId]: { ...prev[studentId], [field]: value },
     }));
   }, []);
 
-  // Hàm lưu điểm chung
+  // Save grades
   const saveGrades = useCallback(
     async (gradesToSave, studentId = null) => {
       if (!gradesToSave || !Object.keys(gradesToSave).length) return;
-
       setLoading(true);
-      setError('');
       try {
         const gradesPayload = {
           grades: Object.entries(gradesToSave).flatMap(([sId, fields]) =>
@@ -200,10 +190,11 @@ const ListMarkTeacher = () => {
                 const gradeInfo = grades.find(
                   (g) => g.studentId === parseInt(sId) && g.assessmentType === mapAssessmentType(field)
                 );
+                const formattedScore = parseFloat(value).toFixed(2);
                 return {
                   gradeID: gradeInfo?.gradeId,
-                  score: value.toString(),
-                  teacherComment: 'nhập điểm',
+                  score: formattedScore,
+                  teacherComment: 'Học sinh đi học và làm bài đầy đủ',
                 };
               })
           ),
@@ -221,7 +212,7 @@ const ListMarkTeacher = () => {
           }
         );
 
-        await handleSearchGrades();
+        await fetchGrades();
         if (studentId) {
           setEditingRows((prev) => ({ ...prev, [studentId]: false }));
           setEditedGrades((prev) => {
@@ -233,38 +224,63 @@ const ListMarkTeacher = () => {
           setIsEditing(false);
           setEditedGrades({});
         }
-      } catch (error) {
-        console.error('Error saving grades:', error);
-        setError('Không thể lưu điểm. Vui lòng thử lại.');
+        toast.success('Lưu điểm thành công.');
+      } catch {
+        toast.error('Không thể lưu điểm. Vui lòng thử lại.');
       } finally {
         setLoading(false);
       }
     },
-    [grades, token, handleSearchGrades]
+    [grades, token, fetchGrades]
   );
 
-  // Hàm lưu điểm toàn bộ
+  // Handle save all grades
   const handleSaveGrades = useCallback(() => saveGrades(editedGrades), [editedGrades, saveGrades]);
 
-  // Hàm lưu điểm từng hàng
+  // Handle save row
   const handleSaveRow = useCallback(
     (studentId) => saveGrades({ [studentId]: editedGrades[studentId] }, studentId),
     [editedGrades, saveGrades]
   );
 
-  // Hàm chỉnh sửa hàng
+  // Handle edit row
   const handleEditRow = useCallback(
     async (studentId) => {
       setLoading(true);
-      setError('');
       try {
         const studentGrades = grades.filter((g) => g.studentId === studentId);
+        const studentEditedGrades = editedGrades[studentId] || {};
+        // Validate scores using editedGrades if available, otherwise fall back to grades
+        const invalidScores = [];
+        studentGrades.forEach((grade) => {
+          const assessmentType = grade.assessmentType;
+          const shortName = getShortAssessmentName(assessmentType);
+          const score = studentEditedGrades[shortName] !== undefined ? String(studentEditedGrades[shortName]) : (grade.score ? String(grade.score) : '0.00');
+          const parsedScore = parseFloat(score);
+
+          if (isNaN(parsedScore)) {
+            invalidScores.push(`Điểm ${assessmentType} phải là số hợp lệ.`);
+          } else if (parsedScore < 1 || parsedScore > 10) {
+            invalidScores.push(`Điểm ${assessmentType} phải nằm trong khoảng từ 1 đến 10.`);
+          }
+        });
+
+        if (invalidScores.length > 0) {
+          invalidScores.forEach((error) => toast.error(error));
+          return;
+        }
+
         const gradesPayload = {
-          grades: studentGrades.map((grade) => ({
-            gradeID: grade.gradeId,
-            score: grade.score ? grade.score.toString() : '0',
-            teacherComment: 'nhập điểm',
-          })),
+          grades: studentGrades.map((grade) => {
+            const assessmentType = grade.assessmentType;
+            const shortName = getShortAssessmentName(assessmentType);
+            const score = studentEditedGrades[shortName] !== undefined ? String(studentEditedGrades[shortName]) : (grade.score ? String(grade.score) : '0.00');
+            return {
+              gradeID: grade.gradeId,
+              score: parseFloat(score).toFixed(2),
+              teacherComment: 'Học sinh đi học và làm bài đầy đủ',
+            };
+          }),
         };
 
         await axios.put(
@@ -279,23 +295,23 @@ const ListMarkTeacher = () => {
           }
         );
 
-        await handleSearchGrades();
+        await fetchGrades();
         setEditingRows((prev) => ({ ...prev, [studentId]: true }));
-      } catch (error) {
-        console.error('Error updating grades:', error);
-        setError('Không thể cập nhật điểm. Vui lòng thử lại.');
+        toast.success('Mở chế độ chỉnh sửa thành công.');
+      } catch {
+        toast.error('Không thể cập nhật điểm. Vui lòng thử lại.');
       } finally {
         setLoading(false);
       }
     },
-    [grades, token, handleSearchGrades]
+    [grades, editedGrades, token, fetchGrades]
   );
 
-  // Nhóm điểm theo học sinh
+  // Group grades by student
   const groupedGrades = useMemo(() => {
-    const grouped = grades.reduce((acc, { studentId, studentName, assessmentType, score, teacherComment }) => {
-      if (!acc[studentId]) {
-        acc[studentId] = {
+    return Object.values(
+      grades.reduce((acc, { studentId, studentName, assessmentType, score, teacherComment }) => {
+        acc[studentId] = acc[studentId] || {
           studentId,
           studentName,
           regularAssessments: {},
@@ -303,20 +319,17 @@ const ListMarkTeacher = () => {
           CK: null,
           teacherComment,
         };
-      }
-      if (assessmentType.startsWith('ĐĐG TX')) {
-        const shortName = getShortAssessmentName(assessmentType);
-        acc[studentId].regularAssessments[shortName] = score;
-      } else if (assessmentType === 'ĐĐG GK') {
-        acc[studentId].GK = score;
-      } else if (assessmentType === 'ĐĐG CK') {
-        acc[studentId].CK = score;
-      }
-      return acc;
-    }, {});
-    return Object.values(grouped);
+        if (assessmentType.startsWith('ĐĐG TX')) {
+          acc[studentId].regularAssessments[getShortAssessmentName(assessmentType)] = score ? parseFloat(score).toFixed(2) : null;
+        } else if (assessmentType === 'ĐĐG GK') {
+          acc[studentId].GK = score ? parseFloat(score).toFixed(2) : null;
+        } else if (assessmentType === 'ĐĐG CK') {
+          acc[studentId].CK = score ? parseFloat(score).toFixed(2) : null;
+        }
+        return acc;
+      }, {})
+    );
   }, [grades]);
-
 
   return (
     <div className="container mx-auto py-6">
@@ -324,75 +337,67 @@ const ListMarkTeacher = () => {
         <div className="flex items-center justify-between border-b pb-4">
           <div>
             <h1 className="text-2xl font-bold">Quản lý điểm học sinh</h1>
-            <p className="text-muted-foreground text-sm">
-              Quản lý điểm số của học sinh theo học kỳ
-            </p>
+            <p className="text-muted-foreground text-sm">Quản lý điểm số của học sinh theo học kỳ</p>
           </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-3">
-          <div>
-            <Select
-              value={academicYear}
-              onValueChange={setAcademicYear}
-              disabled={loading || academicYearsLoading}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="-- Chọn năm học --" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default" disabled>-- Chọn năm học --</SelectItem>
-                {academicYears?.map((year) => (
-                  <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
-                    {year.yearName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Select
-              value={semester}
-              onValueChange={handleSemesterChange}
-              disabled={loading || semestersLoading || !academicYear}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="-- Chọn học kỳ --" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default" disabled>-- Chọn học kỳ --</SelectItem>
-                {semesters?.map((semester) => (
-                  <SelectItem key={semester.semesterID} value={semester.semesterID.toString()}>
-                    {semester.semesterName}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
-          <div>
-            <Select
-              value={selectedAssignment}
-              onValueChange={handleAssignmentChange}
-              disabled={loading || !semester}
-            >
-              <SelectTrigger className="w-full">
-                <SelectValue placeholder="-- Chọn lớp và môn học --" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default" disabled>-- Chọn lớp và môn học --</SelectItem>
-                {assignments.map((a) => (
-                  <SelectItem key={a.assignmentId} value={a.assignmentId.toString()}>
-                    {a.subjectName} - {a.className}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
-          </div>
+          <Select
+            value={academicYear}
+            onValueChange={setAcademicYear}
+            disabled={loading || academicYearsLoading}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="-- Chọn năm học --" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default" disabled>-- Chọn năm học --</SelectItem>
+              {academicYears?.map((year) => (
+                <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
+                  {year.yearName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={semester}
+            onValueChange={handleSemesterChange}
+            disabled={loading || semestersLoading || !academicYear}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="-- Chọn học kỳ --" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default" disabled>-- Chọn học kỳ --</SelectItem>
+              {semesters?.map((sem) => (
+                <SelectItem key={sem.semesterID} value={sem.semesterID.toString()}>
+                  {sem.semesterName}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select
+            value={selectedAssignment}
+            onValueChange={setSelectedAssignment}
+            disabled={loading || !semester}
+          >
+            <SelectTrigger className="w-full">
+              <SelectValue placeholder="-- Chọn lớp và môn học --" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="default" disabled>-- Chọn lớp và môn học --</SelectItem>
+              {assignments.map((a) => (
+                <SelectItem key={a.assignmentId} value={a.assignmentId.toString()}>
+                  {a.subjectName} - {a.className}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
 
         <div className="flex justify-end">
           <Button
-            onClick={handleSearchGrades}
+            onClick={fetchGrades}
             className="bg-blue-600 hover:bg-blue-700 text-white"
             disabled={!selectedAssignment || loading}
           >
@@ -400,17 +405,14 @@ const ListMarkTeacher = () => {
           </Button>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 text-red-700 px-4 py-3 rounded">
-            {error}
-          </div>
-        )}
-
-        <div className="flex justify-between items-center">
+        <div className="placeholder  flex justify-between items-center">
           <h2 className="text-lg font-semibold">Danh sách điểm học sinh</h2>
           {grades.length > 0 && (
             <Button
-              onClick={() => setIsEditing(!isEditing)}
+              onClick={() => {
+                if (isEditing) handleSaveGrades();
+                else setIsEditing(true);
+              }}
               className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
               disabled={loading}
             >
@@ -429,7 +431,6 @@ const ListMarkTeacher = () => {
               </TableHead>
               <TableHead rowSpan="2" className="border text-center">Điểm giữa kỳ</TableHead>
               <TableHead rowSpan="2" className="border text-center">Điểm cuối kỳ</TableHead>
-              <TableHead rowSpan="2" className="border text-center">Nhận xét</TableHead>
               <TableHead rowSpan="2" className="border text-center">Hành động</TableHead>
             </TableRow>
             <TableRow>
@@ -451,23 +452,16 @@ const ListMarkTeacher = () => {
                     return (
                       <TableCell key={type} className="border text-center">
                         {isEditing || editingRows[student.studentId] ? (
-                          <Input
-                            type="text"
-                            inputMode="decimal"
-                            pattern="[0-9]*[.]?[0-9]*"
+                          <NumberInput
                             value={
                               editedGrades[student.studentId]?.[shortName] ??
                               student.regularAssessments[shortName] ??
                               ''
                             }
-                            onChange={(e) => handleInputChange(student.studentId, shortName, e.target.value)}
-                            className="w-20 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            disabled={loading}
+                            onChange={(value) => handleInputChange(student.studentId, shortName, value)}
                           />
                         ) : (
-                          student.regularAssessments[shortName] !== null
-                            ? student.regularAssessments[shortName]
-                            : 'Chưa có điểm'
+                          student.regularAssessments[shortName] ?? 'Chưa có điểm'
                         )}
                       </TableCell>
                     );
@@ -475,21 +469,15 @@ const ListMarkTeacher = () => {
                   {['GK', 'CK'].map((field) => (
                     <TableCell key={field} className="border text-center">
                       {isEditing || editingRows[student.studentId] ? (
-                        <Input
-                          type="text"
-                          inputMode="decimal"
-                          pattern="[0-9]*[.]?[0-9]*"
+                        <NumberInput
                           value={editedGrades[student.studentId]?.[field] ?? student[field] ?? ''}
-                          onChange={(e) => handleInputChange(student.studentId, field, e.target.value)}
-                          className="w-20 text-center focus:outline-none focus:ring-2 focus:ring-blue-500"
-                          disabled={loading}
+                          onChange={(value) => handleInputChange(student.studentId, field, value)}
                         />
                       ) : (
-                        student[field] !== null ? student[field] : 'Chưa có điểm'
+                        student[field] ?? 'Chưa có điểm'
                       )}
                     </TableCell>
                   ))}
-                  <TableCell className="border">{student.teacherComment || 'Chưa có nhận xét'}</TableCell>
                   <TableCell className="border text-center">
                     <Button
                       onClick={() =>
@@ -511,10 +499,7 @@ const ListMarkTeacher = () => {
               ))
             ) : (
               <TableRow>
-                <TableCell
-                  colSpan={regularAssessmentTypes.length + 6}
-                  className="text-center"
-                >
+                <TableCell colSpan={regularAssessmentTypes.length + 6} className="text-center">
                   Không có dữ liệu điểm.
                 </TableCell>
               </TableRow>
@@ -522,7 +507,7 @@ const ListMarkTeacher = () => {
           </TableBody>
         </Table>
       </div>
-    </div>
+    </div >
   );
 };
 
