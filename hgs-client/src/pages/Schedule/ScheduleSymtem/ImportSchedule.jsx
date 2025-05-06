@@ -124,8 +124,8 @@ const ImportSchedule = ({ onClose }) => {
       </div>
       <div className="mb-4">
         <a
-          href="/path/to/sample-excel.xlsx"
-          download
+          href="/src/pages/Schedule/ScheduleSymtem/xxTKB.xlsx"
+          download="ThoiKhoaBieu_Mau.xlsx"
           className="text-blue-500 hover:underline flex items-center gap-2"
         >
           <Download size={16} />

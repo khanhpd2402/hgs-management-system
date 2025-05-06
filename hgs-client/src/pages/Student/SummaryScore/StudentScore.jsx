@@ -37,6 +37,28 @@ const getShortAssessmentName = (assessmentType) => {
   return { 'ĐĐG GK': 'GK', 'ĐĐG CK': 'CK' }[assessmentType] || assessmentType;
 };
 
+// Hàm tính điểm trung bình
+const calculateAverageScore = (regularAssessments, gk, ck) => {
+  const txScores = Object.values(regularAssessments).filter(score => score !== null && !isNaN(score));
+  const txCount = txScores.length;
+  const txAverage = txCount > 0 ? txScores.reduce((sum, score) => sum + parseFloat(score), 0) / txCount : 0;
+
+  let totalWeight = txCount;
+  let weightedSum = txAverage * txCount;
+
+  if (gk !== null && !isNaN(gk)) {
+    weightedSum += parseFloat(gk) * 2;
+    totalWeight += 2;
+  }
+
+  if (ck !== null && !isNaN(ck)) {
+    weightedSum += parseFloat(ck) * 3;
+    totalWeight += 3;
+  }
+
+  return totalWeight > 0 ? (weightedSum / totalWeight).toFixed(2) : 'Chưa đủ điểm';
+};
+
 const StudentScore = () => {
   const [studentId, setStudentId] = useState(null);
   const [academicYearId, setAcademicYearId] = useState('');
@@ -283,6 +305,7 @@ const StudentScore = () => {
               </TableHead>
               <TableHead rowSpan="2" className="border text-center">Điểm giữa kỳ</TableHead>
               <TableHead rowSpan="2" className="border text-center">Điểm cuối kỳ</TableHead>
+              <TableHead rowSpan="2" className="border text-center">Điểm trung bình</TableHead>
               <TableHead rowSpan="2" className="border text-center">Nhận xét</TableHead>
             </TableRow>
             <TableRow>
@@ -314,6 +337,9 @@ const StudentScore = () => {
                   <TableCell className="border text-center">
                     {subject.CK !== null ? subject.CK : 'Chưa có điểm'}
                   </TableCell>
+                  <TableCell className="border text-center">
+                    {calculateAverageScore(subject.regularAssessments, subject.GK, subject.CK)}
+                  </TableCell>
                   <TableCell className="border">
                     {subject.teacherComment || 'Không có nhận xét'}
                   </TableCell>
@@ -322,7 +348,7 @@ const StudentScore = () => {
             ) : (
               <TableRow>
                 <TableCell
-                  colSpan={regularAssessmentTypes.length + 4}
+                  colSpan={regularAssessmentTypes.length + 5}
                   className="text-center"
                 >
                   Không có dữ liệu điểm.
