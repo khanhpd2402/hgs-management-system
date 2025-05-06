@@ -79,6 +79,13 @@ namespace Application.Features.Classes.Services
         public async Task<ClassDto> UpdateClassAsync(int id, ClassDto classDto)
         {
             var existingClass = await _classRepository.GetByIdAsync(id);
+            var existingClass = await _classRepository.GetByIdAsync(id);
+            var allclass = await _classRepository.GetAllAsync();
+            foreach (var classEntity in allclass) {
+                if (classDto.ClassName == classEntity.ClassName) {
+                throw new KeyNotFoundException($"Khong the trung ten lop da ton tai.");
+    }
+}
             if (existingClass == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy lớp học với ID {id} để cập nhật.");
