@@ -59,7 +59,9 @@ namespace Application.Features.Attendances.Services
                 var attendanceDate = dto.Date;
 
                 if (attendanceDate > today)
+
                     throw new InvalidOperationException("Chưa đến giờ điểm danh.");
+
 
                 if (attendanceDate == today)
                     ValidateSessionTime(dto.Session, now);
@@ -90,7 +92,7 @@ namespace Application.Features.Attendances.Services
                             AttendanceStatus.PERMISSION => "Nghỉ học có phép",
                             AttendanceStatus.LATE => $"Trường hợp khác: {dto.Note}",
                             _ => "Không rõ lý do"
-                        };  
+                        };
 
                         var parentEmails = new List<string?>
                 {

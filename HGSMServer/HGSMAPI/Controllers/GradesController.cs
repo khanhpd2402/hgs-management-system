@@ -27,7 +27,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching grades for student: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy điểm của học sinh.");
+                return StatusCode(500, "Lỗi khi lấy điểm của học sinh." + ex.Message);
             }
         }
 
@@ -43,7 +43,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching grades for teacher: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy điểm của giáo viên.");
+                return StatusCode(500, "Lỗi khi lấy điểm của giáo viên." + ex.Message);
             }
         }
 
@@ -59,7 +59,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error fetching grades for principal: {ex.Message}");
-                return StatusCode(500, "Lỗi khi lấy điểm toàn trường.");
+                return StatusCode(500, "Lỗi khi lấy điểm toàn trường." + ex.Message);
             }
         }
 
@@ -86,12 +86,12 @@ namespace HGSMAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating grades: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật điểm.");
+                return BadRequest("Lỗi khi cập nhật điểm."+ ex.Message);
             }
             catch (Exception ex)
             {
                 Console.WriteLine($"Unexpected error updating grades: {ex.Message}");
-                return StatusCode(500, "Lỗi khi cập nhật điểm.");
+                return StatusCode(500, "Lỗi khi cập nhật điểm." + ex.Message);
             }
         }
 
@@ -101,7 +101,7 @@ namespace HGSMAPI.Controllers
             var result = await _gradeService.GetGradeSummaryEachSubjectByStudentAsync(studentId, semesterId);
 
             if (result == null || !result.Any())
-                return NotFound("No grades found for the given student and semester.");
+                return NotFound("Không tìm thấy.");
 
             return Ok(result);
         }
@@ -111,7 +111,7 @@ namespace HGSMAPI.Controllers
             var result = await _gradeService.GetTotalGradeSummaryByStudentAsync(studentId, semesterId);
 
             if (result == null)
-                return NotFound("No grade summary found for the given student and semester.");
+                return NotFound("Không tìm thấy.");
 
             return Ok(result);
         }
