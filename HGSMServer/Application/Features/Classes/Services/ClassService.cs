@@ -78,7 +78,7 @@ namespace Application.Features.Classes.Services
 
         public async Task<ClassDto> UpdateClassAsync(int id, ClassDto classDto)
         {
-            var existingClass = await _classRepository.GetByIdAsync(id);
+            //var existingClass = await _classRepository.GetByIdAsync(id);
             var existingClass = await _classRepository.GetByIdAsync(id);
             var allclass = await _classRepository.GetAllAsync();
             foreach (var classEntity in allclass) {
