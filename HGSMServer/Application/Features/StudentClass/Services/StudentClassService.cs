@@ -428,7 +428,7 @@ namespace Application.Features.StudentClass.Services
                 throw new ArgumentException("Tìm thấy ID học sinh trùng lặp trong danh sách phân công lớp.");
             }
 
-            var updatedAssignments = new List<Domain.Models.StudentClass>();
+            var today = DateOnly.FromDateTime(DateTime.Now);
 
             using var transaction = await _studentClassRepository.BeginTransactionAsync();
             try
@@ -437,18 +437,17 @@ namespace Application.Features.StudentClass.Services
                 {
                     int academicYearId = dto.AcademicYearId ?? (await GetCurrentAcademicYearAsync()).AcademicYearId;
 
-                    // Kiểm tra thời gian: sau năm học trước kết thúc, trước năm học đích bắt đầu hoặc trong học kỳ 1
+                    // Validate academic year and timing
                     var academicYear = await _academicYearRepository.GetByIdAsync(academicYearId);
                     if (academicYear == null)
                     {
                         throw new KeyNotFoundException($"Không tìm thấy năm học với ID {academicYearId}.");
                     }
 
-                    var today = DateOnly.FromDateTime(DateTime.Now);
                     var previousAcademicYear = await GetPreviousAcademicYearByIdAsync(academicYearId);
                     if (today < previousAcademicYear.EndDate)
                     {
-                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp vì năm học trước (ID: {previousAcademicYear.AcademicYearId}) chưa kết thúc.");
+                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp vì năm học trước ({previousAcademicYear.YearName}) chưa kết thúc.");
                     }
 
                     bool isBeforeAcademicYearStart = today < academicYear.StartDate;
@@ -459,13 +458,13 @@ namespace Application.Features.StudentClass.Services
 
                     if (await IsPreviousAcademicYearAsync(academicYearId))
                     {
-                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho năm học trước (ID: {academicYearId}).");
+                        throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho năm học trước");
                     }
 
                     var student = await _studentRepository.GetByIdAsync(dto.StudentId);
                     if (student == null)
                     {
-                        throw new KeyNotFoundException($"Không tìm thấy học sinh với ID {dto.StudentId}.");
+                        throw new KeyNotFoundException($"Không tìm thấy học sinh");
                     }
 
                     if (student.Status == "Tốt nghiệp")
@@ -476,7 +475,8 @@ namespace Application.Features.StudentClass.Services
                     var classEntity = await _classRepository.GetByIdWithoutTimetableAsync(dto.ClassId);
                     if (classEntity == null)
                     {
-                        throw new KeyNotFoundException($"Không tìm thấy lớp với ID {dto.ClassId}.");
+                        //throw new KeyNotFoundException($"Không tìm thấy lớp với ID {dto.ClassId}.");
+                        throw new KeyNotFoundException($"Không tìm thấy lớp.");
                     }
 
                     if (classEntity.Status != "Hoạt động")
@@ -486,16 +486,30 @@ namespace Application.Features.StudentClass.Services
 
                     await ValidateAcademicYearAsync(academicYearId, mustBeActive: false);
 
-                    // Kiểm tra phân công lớp hiện tại của học sinh trong năm học
+                    // Check existing assignment
                     var existingAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, academicYearId);
-                    if (existingAssignment != null)
+                    if (existingAssignment == null)
                     {
+                        // Nếu chưa có bản ghi StudentClass, tạo mới
+                        var newAssignment = new Domain.Models.StudentClass
+                        {
+                            StudentId = dto.StudentId,
+                            ClassId = dto.ClassId,
+                            AcademicYearId = academicYearId,
+                            RepeatingYear = false
+                        };
+                        await _studentClassRepository.AddAsync(newAssignment);
+                        existingAssignment = newAssignment; // Gán để sử dụng tiếp
+                    }
+                    else
+                    {
+                        // Nếu đã có bản ghi StudentClass, update ClassId
                         if (existingAssignment.ClassId == dto.ClassId)
                         {
                             throw new InvalidOperationException($"Học sinh {student.FullName} đã được phân công vào lớp {classEntity.ClassName} trong năm học này. Không thể chuyển sang lớp trùng với lớp hiện tại.");
                         }
 
-                        // Nếu năm học đã bắt đầu, chỉ cho phép chuyển cùng GradeLevelId
+                        // Không cho chuyển lên/xuống khối trong cùng năm học
                         if (!isBeforeAcademicYearStart)
                         {
                             var existingClass = await _classRepository.GetByIdWithoutTimetableAsync(existingAssignment.ClassId);
@@ -505,29 +519,28 @@ namespace Application.Features.StudentClass.Services
                             }
                         }
 
-                        await _studentClassRepository.DeleteAsync(existingAssignment.Id);
+                        // Update ClassId của bản ghi hiện có
+                        existingAssignment.ClassId = dto.ClassId;
+                        await _studentClassRepository.UpdateAsync(existingAssignment);
                     }
 
-                    // Kiểm tra phân công trong năm học trước
+                    // Validate previous year assignment (kiểm tra không nhảy cóc, không chuyển xuống khối)
                     var previousAssignment = await _studentClassRepository.GetByStudentAndAcademicYearAsync(dto.StudentId, previousAcademicYear.AcademicYearId);
                     if (previousAssignment != null)
                     {
                         var previousClass = await _classRepository.GetByIdWithoutTimetableAsync(previousAssignment.ClassId);
-                        if (previousClass != null)  
+                        if (previousClass != null)
                         {
-                            // Không cho phép giảm GradeLevelId
                             if (classEntity.GradeLevelId < previousClass.GradeLevelId)
                             {
                                 throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} từ khối {previousClass.GradeLevelId} xuống khối {classEntity.GradeLevelId}.");
                             }
 
-                            // Không cho phép nhảy cóc
                             if (classEntity.GradeLevelId > previousClass.GradeLevelId + 1)
                             {
                                 throw new InvalidOperationException($"Không thể cập nhật phân công lớp cho học sinh {student.FullName} từ khối {previousClass.GradeLevelId} lên khối {classEntity.GradeLevelId}. Không được phép nhảy cóc.");
                             }
 
-                            // Quy tắc RepeatingYear
                             if (previousAssignment.RepeatingYear == true)
                             {
                                 if (classEntity.GradeLevelId != previousClass.GradeLevelId)
@@ -542,19 +555,95 @@ namespace Application.Features.StudentClass.Services
                         }
                     }
 
-                    var newAssignment = new Domain.Models.StudentClass
+                    // Tạo điểm mới cho lớp mới, gắn với StudentClass hiện tại
+                    var semesters = await _semesterRepository.GetByAcademicYearIdAsync(academicYearId);
+                    var currentSemester = semesters.FirstOrDefault(s => s.StartDate <= today && s.EndDate >= today);
+                    if (currentSemester == null)
                     {
-                        StudentId = dto.StudentId,
-                        ClassId = dto.ClassId,
-                        AcademicYearId = academicYearId,
-                        RepeatingYear = false
-                    };
-                    updatedAssignments.Add(newAssignment);
-                }
+                        // Nếu không có học kỳ hiện tại, bỏ qua hoặc throw exception tùy nghiệp vụ
+                        continue;
+                    }
 
-                if (updatedAssignments.Any())
-                {
-                    await _studentClassRepository.AddRangeAsync(updatedAssignments);
+                    // Lấy các đợt nhập điểm hiện có cho học kỳ này
+                    var gradeBatches = await _context.GradeBatches
+                        .Where(gb => gb.SemesterId == currentSemester.SemesterId)
+                        .ToListAsync();
+
+                    if (!gradeBatches.Any())
+                    {
+                        // Nếu không có đợt nhập điểm, bỏ qua hoặc thông báo tùy nghiệp vụ
+                        continue;
+                    }
+
+                    // Lấy danh sách môn học của lớp mới
+                    var assignments = await _teachingAssignmentRepository.GetBySemesterIdAsync(currentSemester.SemesterId);
+                    assignments = assignments.Where(a => a.ClassId == dto.ClassId).ToList();
+
+                    if (!assignments.Any())
+                    {
+                        continue; // Không có phân công giảng dạy cho lớp mới
+                    }
+
+                    var glsRepository = _context.Set<GradeLevelSubject>(); // Giả sử có bảng GradeLevelSubject
+                    var allGrades = new List<Grade>();
+
+                    foreach (var assignment in assignments)
+                    {
+                        var subjectId = assignment.SubjectId;
+                        var gls = await glsRepository
+                            .FirstOrDefaultAsync(g => g.GradeLevelId == classEntity.GradeLevelId && g.SubjectId == subjectId);
+
+                        if (gls == null)
+                        {
+                            continue; // Không có cấu hình môn học cho khối này
+                        }
+
+                        // Sinh đầu điểm dựa trên cấu hình
+                        var assessments = new List<string>();
+                        bool isSemester1 = currentSemester.SemesterName.Contains("1");
+                        int continuousCount = isSemester1 ? gls.ContinuousAssessmentsHki : gls.ContinuousAssessmentsHkii;
+                        for (int i = 1; i <= continuousCount; i++)
+                            assessments.Add($"ĐĐG TX {i}");
+
+                        if (gls.MidtermAssessments > 0)
+                            assessments.Add("ĐĐG GK");
+
+                        if (gls.FinalAssessments > 0)
+                            assessments.Add("ĐĐG CK");
+
+                        foreach (var gradeBatch in gradeBatches)
+                        {
+                            foreach (var assess in assessments)
+                            {
+                                // Kiểm tra xem điểm đã tồn tại chưa để tránh trùng lặp
+                                var existingGrade = await _context.Grades
+                                    .FirstOrDefaultAsync(g => g.StudentClassId == existingAssignment.Id
+                                                           && g.BatchId == gradeBatch.BatchId
+                                                           && g.AssignmentId == assignment.AssignmentId
+                                                           && g.AssessmentsTypeName == assess);
+
+                                if (existingGrade != null)
+                                {
+                                    continue; // Điểm đã tồn tại, bỏ qua để tránh trùng lặp
+                                }
+
+                                allGrades.Add(new Grade
+                                {
+                                    BatchId = gradeBatch.BatchId,
+                                    StudentClassId = existingAssignment.Id,
+                                    AssignmentId = assignment.AssignmentId,
+                                    AssessmentsTypeName = assess,
+                                    Score = null,
+                                    TeacherComment = null
+                                });
+                            }
+                        }
+                    }
+
+                    if (allGrades.Any())
+                    {
+                        await _gradeRepository.AddRangeAsync(allGrades);
+                    }
                 }
 
                 await _context.SaveChangesAsync();

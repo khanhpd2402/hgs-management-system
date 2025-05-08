@@ -11,5 +11,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<IEnumerable<Grade>> GetByBatchIdAsync(int batchId);
         Task<bool> UpdateMultipleGradesAsync(List<Grade> grades);
         Task<List<Grade>> GetGradesByIdsAsync(List<int> gradeIds);
+        Task DeleteRangeAsync(IEnumerable<Grade> grades);
+        Task<IEnumerable<Grade>> GetByStudentClassIdsAsync(IEnumerable<int> studentClassIds);
     }
 }

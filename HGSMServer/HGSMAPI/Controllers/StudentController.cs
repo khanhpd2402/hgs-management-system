@@ -161,19 +161,31 @@ namespace HGSMAPI.Controllers
             if (file == null || file.Length == 0)
             {
                 Console.WriteLine("Excel file is empty or not provided.");
-                return BadRequest("Vui lòng chọn file Excel!");
+                return BadRequest(new { message = "Vui lòng chọn file Excel!" });
             }
 
             try
             {
                 Console.WriteLine("Importing students from Excel...");
                 var results = await _studentService.ImportStudentsFromExcelAsync(file);
-                return Ok(results);
+
+                // Kiểm tra nội dung results để xác định có lỗi hay không
+                if (results.Any(r => r.StartsWith("Lỗi")))
+                {
+                    return BadRequest(new { message = "Có lỗi xảy ra khi nhập học sinh từ Excel", errors = results });
+                }
+
+                return Ok(new { message = "Nhập học sinh thành công", results });
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"Error importing students: {ex.Message}");
-                return BadRequest("Lỗi khi nhập học sinh từ Excel.");
+                Console.WriteLine($"Error importing students: {ex.Message}\nStackTrace: {ex.StackTrace}");
+                // Trả về mã 400 nếu lỗi liên quan đến dữ liệu đầu vào, hoặc 500 nếu lỗi hệ thống
+                if (ex.Message.Contains("Thiếu") || ex.Message.Contains("không hợp lệ") || ex.Message.Contains("đã tồn tại"))
+                {
+                    return BadRequest(new { message = "Lỗi khi nhập học sinh từ Excel", error = ex.Message });
+                }
+                return StatusCode(500, new { message = "Lỗi hệ thống khi nhập học sinh từ Excel", error = ex.Message });
             }
         }
     }

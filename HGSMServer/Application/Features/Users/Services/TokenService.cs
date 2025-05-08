@@ -80,7 +80,7 @@ public class TokenService : ITokenService
             issuer: _configuration["JWT:Issuer"],
             audience: _configuration["JWT:Audience"],
             claims: claims,
-            expires: DateTime.UtcNow.AddDays(1),
+            expires: DateTime.UtcNow.AddMinutes(20),
             signingCredentials: creds);
 
         var tokenString = new JwtSecurityTokenHandler().WriteToken(token);
