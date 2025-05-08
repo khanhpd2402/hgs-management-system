@@ -163,7 +163,7 @@ const ScheduleTable = memo(({
                                 {periodIndex === 0 && (
                                     <td className="sticky-col col-2" rowSpan={shift.periods.length}>{shift.name}</td>
                                 )}
-                                <td className="sticky-col col-3">{scheduleData?.[0]?.details.find(item => item.periodId === period)?.periodName || `Tiết ${period}`}</td>
+                                <td className="sticky-col col-3">{`Tiết ${period}`}</td>
                                 {(selectedClass ? [selectedClass] : getUniqueClasses().map(cls => cls.className)).map((className, classIndex) => (
                                     <Droppable key={`${className}`} droppableId={`${className}-${dayIndex}-${period}`}>
                                         {(provided) => (

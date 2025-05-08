@@ -179,11 +179,12 @@ export function useNonEligibleStudents(academicYearId) {
   });
 }
 
-export function useStats() {
+export function useStats(userRole) {
   return useQuery({
     queryKey: ["stats"],
     queryFn: () => {
       return getStats();
     },
+    enabled: userRole == "Hiệu trưởng" || userRole == "Hiệu phó",
   });
 }

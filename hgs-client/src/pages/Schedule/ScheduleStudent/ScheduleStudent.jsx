@@ -168,7 +168,7 @@ const ScheduleStudent = () => {
                             onChange={(value) => setAcademicYearId(value)}
                             options={academicYears?.map(year => ({
                                 value: year.academicYearID,
-                                label: `${year.yearName} -- ${year.academicYearID}`
+                                label: `${year.yearName}`
                             })) || []}
                             style={{ width: 300 }}
                             placeholder="Chọn năm học"
@@ -182,7 +182,7 @@ const ScheduleStudent = () => {
                             onChange={(value) => setSemesterId(value)}
                             options={semesters.map(semester => ({
                                 value: semester.semesterID,
-                                label: `${semester.semesterName} -- ${semester.semesterID}`
+                                label: `${semester.semesterName}`
                             }))}
                             style={{ width: 300 }}
                             placeholder="Chọn học kỳ"
@@ -207,7 +207,6 @@ const ScheduleStudent = () => {
                 <div className="schedule-header">
                     <h2>Thời Khóa Biểu - {selectedStudent.fullName} - Lớp {selectedStudent.className}</h2>
                     <div className="schedule-info">
-                        <p><strong>Học kỳ:</strong> {currentSchedule.semesterId}</p>
                         <p><strong>Thời gian áp dụng:</strong> {new Date(currentSchedule.effectiveDate).toLocaleDateString('vi-VN')} - {new Date(currentSchedule.endDate).toLocaleDateString('vi-VN')}</p>
                         <p><strong>Trạng thái:</strong> {currentSchedule.status}</p>
                     </div>

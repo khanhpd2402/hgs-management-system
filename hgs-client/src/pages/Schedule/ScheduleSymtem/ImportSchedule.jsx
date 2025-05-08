@@ -124,8 +124,8 @@ const ImportSchedule = ({ onClose }) => {
       </div>
       <div className="mb-4">
         <a
-          href="/path/to/sample-excel.xlsx"
-          download
+          href="/src/pages/Schedule/ScheduleSymtem/ThoiKhoaBieu.xlsx"
+          download="ThoiKhoaBieu_Mau.xlsx"
           className="text-blue-500 hover:underline flex items-center gap-2"
         >
           <Download size={16} />
@@ -139,7 +139,7 @@ const ImportSchedule = ({ onClose }) => {
           onChange={(e) => setAcademicYear(parseInt(e.target.value))}
           options={academicYears.map(year => ({
             value: year.academicYearID,
-            label: `${year.yearName} -- ${year.academicYearID}`
+            label: `${year.yearName}`
           }))}
           disabled={academicYearsLoading}
         />
@@ -149,7 +149,7 @@ const ImportSchedule = ({ onClose }) => {
           onChange={(e) => setSemesterId(parseInt(e.target.value))}
           options={semesters.map(semester => ({
             value: semester.semesterID,
-            label: `${semester.semesterName} -- ${semester.semesterID}`
+            label: `${semester.semesterName} `
           }))}
           disabled={!academicYear || semesters.length === 0}
         />

@@ -112,7 +112,7 @@ namespace HGSMAPI.Controllers
             catch (Exception ex)
             {
                 Console.WriteLine($"Error updating class: {ex.Message}");
-                return NotFound("Không tìm thấy lớp học...");
+                return NotFound("Lỗi Khi cập nhật lớp học!");
             }
         }
 

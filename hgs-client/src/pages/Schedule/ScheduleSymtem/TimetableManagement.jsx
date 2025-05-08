@@ -263,7 +263,7 @@ const TimetableManagement = () => {
                         onChange={(e) => setSelectedYear(Number(e.target.value))}
                         options={academicYears.map(year => ({
                             value: year.academicYearID,
-                            label: `${year.yearName} -- ${year.academicYearID}`
+                            label: `${year.yearName}`
                         }))}
                         disabled={academicYearsLoading}
                     />
@@ -273,7 +273,7 @@ const TimetableManagement = () => {
                         onChange={(e) => setSelectedSemester(Number(e.target.value))}
                         options={semesters.map(semester => ({
                             value: semester.semesterID,
-                            label: `${semester.semesterName} -- ${semester.semesterID}`
+                            label: `${semester.semesterName}`
                         }))}
                         disabled={!selectedYear || !semesters.length}
                     />
@@ -454,7 +454,7 @@ const TimetableManagement = () => {
                                     <option value="">Chọn năm học</option>
                                     {academicYears.map(year => (
                                         <option key={year.academicYearID} value={year.academicYearID}>
-                                            {year.yearName} -- {year.academicYearID}
+                                            {year.yearName}
                                         </option>
                                     ))}
                                 </select>
@@ -470,7 +470,7 @@ const TimetableManagement = () => {
                                     <option value={0}>Chọn học kỳ</option>
                                     {createSemesters.map(semester => (
                                         <option key={semester.semesterID} value={semester.semesterID}>
-                                            {semester.semesterName} -- {semester.semesterID}
+                                            {semester.semesterName}
                                         </option>
                                     ))}
                                 </select>
