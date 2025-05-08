@@ -695,76 +695,81 @@ export default function Home() {
       <>
         <h2 className="mt-4 text-2xl font-semibold">Tình trạng điểm danh</h2>
         <div className="mt-4 grid grid-cols-1 gap-6">
-          {studentInfos.map((student, idx) => {
-            const attendances = studentAttendances[idx] || [];
-            const weekDates = getWeekDates(weekStart, weekEnd);
-            const statusMap = {
-              C: "Có mặt",
-              K: "Không phép",
-              P: "Có phép",
-              X: "Chưa rõ",
-            };
-            // Gom nhóm theo ngày và buổi, mỗi ngày/buổi chỉ lấy 1 trạng thái (nếu có)
-            const weeklyData = weekDates.flatMap((date) =>
-              ["Sáng", "Chiều"].map((session) => {
-                const record = attendances.find(
-                  (item) => item.date === date && item.session === session,
-                );
-                let status = "";
-                if (record) {
-                  status = statusMap[record.status];
-                }
-                return {
-                  date,
-                  session,
-                  status,
+          {studentInfos.length > 0
+            ? studentInfos.map((student, idx) => {
+                const attendances = studentAttendances[idx] || [];
+                const weekDates = getWeekDates(weekStart, weekEnd);
+                const statusMap = {
+                  C: "Có mặt",
+                  K: "Không phép",
+                  P: "Có phép",
+                  X: "Chưa rõ",
                 };
-              }),
-            );
-            return (
-              <Card key={student.studentId} className="border shadow-lg">
-                <CardHeader>
-                  <CardTitle>{student.fullName}</CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="min-w-full rounded border text-center shadow">
-                      <thead>
-                        <tr>
-                          <th className="border px-2 py-2">Ngày</th>
-                          <th className="border px-2 py-2">Buổi</th>
-                          <th className="border px-2 py-2">Có mặt</th>
-                          <th className="border px-2 py-2">Có phép</th>
-                          <th className="border px-2 py-2">Không phép</th>
-                          <th className="border px-2 py-2">Chưa rõ</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {weeklyData.map((row, i) => (
-                          <tr key={i}>
-                            <td className="border px-2 py-2">{row.date}</td>
-                            <td className="border px-2 py-2">{row.session}</td>
-                            <td className="border px-2 py-2">
-                              {row.status === "Có mặt" ? "✔️" : ""}
-                            </td>
-                            <td className="border px-2 py-2">
-                              {row.status === "Có phép" ? "✔️" : ""}
-                            </td>
-                            <td className="border px-2 py-2">
-                              {row.status === "Không phép" ? "✔️" : ""}
-                            </td>
-                            <td className="border px-2 py-2">
-                              {row.status === "Chưa rõ" ? "✔️" : ""}
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
-                  </div>
-                </CardContent>
-              </Card>
-            );
-          })}
+                // Gom nhóm theo ngày và buổi, mỗi ngày/buổi chỉ lấy 1 trạng thái (nếu có)
+                const weeklyData = weekDates.flatMap((date) =>
+                  ["Sáng", "Chiều"].map((session) => {
+                    const record = attendances.find(
+                      (item) => item.date === date && item.session === session,
+                    );
+                    let status = "";
+                    if (record) {
+                      status = statusMap[record.status];
+                    }
+                    return {
+                      date,
+                      session,
+                      status,
+                    };
+                  }),
+                );
+
+                return (
+                  <Card key={student.studentId} className="border shadow-lg">
+                    <CardHeader>
+                      <CardTitle>{student.fullName}</CardTitle>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="overflow-x-auto">
+                        <table className="min-w-full rounded border text-center shadow">
+                          <thead>
+                            <tr>
+                              <th className="border px-2 py-2">Ngày</th>
+                              <th className="border px-2 py-2">Buổi</th>
+                              <th className="border px-2 py-2">Có mặt</th>
+                              <th className="border px-2 py-2">Có phép</th>
+                              <th className="border px-2 py-2">Không phép</th>
+                              <th className="border px-2 py-2">Chưa rõ</th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {weeklyData.map((row, i) => (
+                              <tr key={i}>
+                                <td className="border px-2 py-2">{row.date}</td>
+                                <td className="border px-2 py-2">
+                                  {row.session}
+                                </td>
+                                <td className="border px-2 py-2">
+                                  {row.status === "Có mặt" ? "✔️" : ""}
+                                </td>
+                                <td className="border px-2 py-2">
+                                  {row.status === "Có phép" ? "✔️" : ""}
+                                </td>
+                                <td className="border px-2 py-2">
+                                  {row.status === "Không phép" ? "✔️" : ""}
+                                </td>
+                                <td className="border px-2 py-2">
+                                  {row.status === "Chưa rõ" ? "✔️" : ""}
+                                </td>
+                              </tr>
+                            ))}
+                          </tbody>
+                        </table>
+                      </div>
+                    </CardContent>
+                  </Card>
+                );
+              })
+            : "Không tìm thấy dữ liệu học sinh trong năm nay"}
         </div>
       </>
     );

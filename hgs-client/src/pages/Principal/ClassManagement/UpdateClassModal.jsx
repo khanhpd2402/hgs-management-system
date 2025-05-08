@@ -26,6 +26,7 @@ import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useUpdateClass } from "@/services/principal/mutation";
+import { Spinner } from "@/components/Spinner";
 
 const classSchema = z.object({
   gradeLevelId: z.string().min(1, "Vui lòng chọn khối"),
@@ -185,6 +186,10 @@ export default function UpdateClassModal({
     teacherQuery.isLoading ||
     homeroomTeachers.isLoading;
 
+  if (isLoading) {
+    // return <Spinner />;
+  }
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
@@ -202,7 +207,7 @@ export default function UpdateClassModal({
                   {...field}
                   value={field.value}
                   onValueChange={field.onChange}
-                  required
+                  disabled
                 >
                   <SelectTrigger id="gradeId" className="w-full">
                     <SelectValue placeholder="Chọn khối" />
@@ -231,7 +236,9 @@ export default function UpdateClassModal({
             <Controller
               name="className"
               control={control}
-              render={({ field }) => <Input {...field} id="className" />}
+              render={({ field }) => (
+                <Input {...field} id="className" disabled />
+              )}
             />
             {errors.className && (
               <span className="text-sm text-red-500">

@@ -51,9 +51,9 @@ export default function ExcelImportModal({ type }) {
 
   const sampleFiles = {
     teachers:
-      "https://docs.google.com/spreadsheets/d/1HxEDkY54T_NZFDGD_nqIAAt5rxEneW9l/export?format=xlsx",
+      "https://docs.google.com/spreadsheets/d/1UMBpGmfTolrCnBaPgX-vsruFqW8Ynu8q/export?format=xlsx",
     student:
-      "https://docs.google.com/spreadsheets/d/1Wb9Nra31iOYD3i1R2mlEfgwv8aPnkBLa/export?format=xlsx",
+      "https://docs.google.com/spreadsheets/d/1DjNj97WSeN8dVpUnWKOQQpn0H4lwUj_B/export?format=xlsx",
   };
 
   // console.log(type);
