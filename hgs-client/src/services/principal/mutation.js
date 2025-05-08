@@ -666,6 +666,9 @@ export function useTransferStudentData() {
             { academicYearId: variables[0].academicYearId },
           ],
         });
+        queryClient.invalidateQueries({
+          queryKey: ["students", { academicId: variables[0].academicYearId }],
+        });
       }
     },
   });
