@@ -33,9 +33,9 @@ namespace Infrastructure.Repositories.Implementtations
                 .Where(c => c.Status == statusFilter)
                 .Include(c => c.StudentClasses)
                     .ThenInclude(sc => sc.Student)
-                .Include(c => c.TeachingAssignments)
-                .Include(c => c.TimetableDetails)
-                    .ThenInclude(td => td.Timetable);
+                .Include(c => c.TeachingAssignments);
+                //.Include(c => c.TimetableDetails)
+                //    .ThenInclude(td => td.Timetable);
 
             return await query.ToListAsync();
         }
@@ -96,5 +96,11 @@ namespace Infrastructure.Repositories.Implementtations
                 .FirstOrDefaultAsync(c => c.ClassId == id)
                 ?? throw new Exception("Class not found");
         }
+        public async Task<bool> IsClassNameDuplicatedAsync(string className, int excludeId)
+        {
+            return await _context.Classes
+                .AnyAsync(c => c.ClassName.Trim().ToLower() == className.Trim().ToLower() && c.ClassId != excludeId);
+        }
+
     }
 }

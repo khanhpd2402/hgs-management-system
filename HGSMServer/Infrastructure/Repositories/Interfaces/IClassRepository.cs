@@ -13,5 +13,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task DeleteAsync(int id);
         Task<bool> ExistsAsync(int classId);
         Task<Class> GetClassByNameAsync(string className);
+        Task<bool> IsClassNameDuplicatedAsync(string className, int excludeId);
     }
 }
