@@ -695,7 +695,7 @@ export default function Home() {
       <>
         <h2 className="mt-4 text-2xl font-semibold">Tình trạng điểm danh</h2>
         <div className="mt-4 grid grid-cols-1 gap-6">
-          {studentInfos.map((student, idx) => {
+          {studentInfos.length > 0 ? studentInfos.map((student, idx) => {
             const attendances = studentAttendances[idx] || [];
             const weekDates = getWeekDates(weekStart, weekEnd);
             const statusMap = {
@@ -764,7 +764,7 @@ export default function Home() {
                 </CardContent>
               </Card>
             );
-          })}
+          }) : "Không tìm thấy dữ liệu học sinh trong năm nay"}
         </div>
       </>
     );

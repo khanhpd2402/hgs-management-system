@@ -126,7 +126,7 @@ const ContactTeacher = () => {
         )}
         <button
           onClick={refetch}
-          className="mt-2 px-4 py-2 bg-[#7DB6AD] text-white rounded-lg hover:bg-[#6ca599]"
+          className="mt-2 px-4 py-2 bg-[#00598A] text-white rounded-lg hover:bg-[#6ca599]"
         >
           Thử lại
         </button>
@@ -145,7 +145,7 @@ const ContactTeacher = () => {
             </label>
             <select
               id="department"
-              className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-[#7DB6AD]"
+              className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-[#00598A]"
               value={filters.department}
               onChange={(e) => handleFilterChange('department', e.target.value)}
             >
@@ -161,7 +161,7 @@ const ContactTeacher = () => {
             </label>
             <select
               id="gender"
-              className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-[#7DB6AD]"
+              className="w-full border rounded p-2 text-sm focus:ring-2 focus:ring-[#00598A]"
               value={filters.gender}
               onChange={(e) => handleFilterChange('gender', e.target.value)}
             >
@@ -183,12 +183,12 @@ const ContactTeacher = () => {
         <div className="overflow-x-auto">
           {isLoading ? (
             <div className="flex items-center justify-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#7DB6AD]"></div>
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-[#00598A]"></div>
             </div>
           ) : (
             <table className="w-full text-sm">
               <thead>
-                <tr className="bg-[#7DB6AD] text-white">
+                <tr className="bg-[#00598A] text-white">
                   <th className="w-8 p-2">
                     <input
                       type="checkbox"
@@ -231,7 +231,7 @@ const ContactTeacher = () => {
         <div className="flex items-center justify-between p-4 border-t">
           <div className="flex items-center gap-2">
             <select
-              className="border p-1 rounded text-sm focus:ring-2 focus:ring-[#7DB6AD]"
+              className="border p-1 rounded text-sm focus:ring-2 focus:ring-[#00598A]"
               value={itemsPerPage}
               onChange={(e) => handleItemsPerPageChange(Number(e.target.value))}
               aria-label="Items per page"
@@ -246,7 +246,7 @@ const ContactTeacher = () => {
             {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
               <button
                 key={page}
-                className={`px-3 py-1 border rounded hover:bg-gray-100 ${currentPage === page ? 'bg-[#7DB6AD] text-white' : ''
+                className={`px-3 py-1 border rounded hover:bg-gray-100 ${currentPage === page ? 'bg-[#00598A] text-white' : ''
                   }`}
                 onClick={() => handlePageChange(page)}
                 aria-label={`Page ${page}`}
@@ -270,7 +270,7 @@ const ContactTeacher = () => {
           <input
             id="subject"
             type="text"
-            className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#7DB6AD]"
+            className="w-full border rounded-lg p-2 text-sm focus:ring-2 focus:ring-[#00598A]"
             value={subject}
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Nhập tiêu đề thông báo..."
@@ -283,7 +283,7 @@ const ContactTeacher = () => {
           </label>
           <textarea
             id="message"
-            className="w-full border rounded-lg p-2 min-h-[100px] resize-none focus:ring-2 focus:ring-[#7DB6AD]"
+            className="w-full border rounded-lg p-2 min-h-[100px] resize-none focus:ring-2 focus:ring-[#00598A]"
             value={message}
             onChange={(e) => setMessage(e.target.value)}
             placeholder="Nhập nội dung thông báo..."
@@ -317,7 +317,7 @@ const ContactTeacher = () => {
         <div className="flex justify-end mt-2">
           <button
             onClick={handleSendMessage}
-            className="px-4 py-1 bg-[#7DB6AD] text-white rounded-lg text-sm hover:bg-[#6ca599] disabled:bg-gray-400"
+            className="px-4 py-1 bg-[#00598A] text-white rounded-lg text-sm hover:bg-[#6ca599] disabled:bg-gray-400"
             disabled={!message.trim() || !subject.trim() || selectedTeachers.size === 0 || isSending}
             aria-label="Send notification"
           >
@@ -349,7 +349,7 @@ const ContactTeacher = () => {
               </button>
               <button
                 onClick={confirmSendMessage}
-                className="px-4 py-1 bg-[#7DB6AD] text-white rounded-lg text-sm hover:bg-[#6ca599]"
+                className="px-4 py-1 bg-[#00598A] text-white rounded-lg text-sm hover:bg-[#6ca599]"
                 aria-label="Confirm send"
               >
                 Xác nhận

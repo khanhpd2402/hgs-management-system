@@ -29,12 +29,7 @@ export default function ExcelImportModal({ type }) {
       const response = await axiosInstance.post(`/${type}/import`, formData);
       return response.data;
     },
-    onSuccess: () => {
-      toast.success("Import dữ liệu thành công!");
-      queryClient.invalidateQueries(["teachers"]); // Làm mới danh sách giáo viên
-      queryClient.invalidateQueries(["students"]); // Làm mới danh sách giáo viên
-      setIsOpen(false); // Đóng modal
-    },
+
     // onError: () => {
     //   toast.error("Có lỗi xảy ra khi import dữ liệu!");
     // },
@@ -42,18 +37,22 @@ export default function ExcelImportModal({ type }) {
     onSettled: (data, error) => {
       if (error) {
         console.log(error);
-        toast.error(error?.response?.data);
+        toast.error(error?.response?.data?.error);
       } else {
         console.log(data);
+        toast.success("Import dữ liệu thành công")
+        queryClient.invalidateQueries(["teachers"]); // Làm mới danh sách giáo viên
+        queryClient.invalidateQueries(["students"]); // Làm mới danh sách giáo viên
+        setIsOpen(false); // Đóng modal
       }
     },
   });
 
   const sampleFiles = {
     teachers:
-      "https://docs.google.com/spreadsheets/d/1HxEDkY54T_NZFDGD_nqIAAt5rxEneW9l/export?format=xlsx",
+      "https://docs.google.com/spreadsheets/d/1UMBpGmfTolrCnBaPgX-vsruFqW8Ynu8q/export?format=xlsx",
     student:
-      "https://docs.google.com/spreadsheets/d/1Wb9Nra31iOYD3i1R2mlEfgwv8aPnkBLa/export?format=xlsx",
+      "https://docs.google.com/spreadsheets/d/1DjNj97WSeN8dVpUnWKOQQpn0H4lwUj_B/export?format=xlsx",
   };
 
   // console.log(type);
@@ -129,9 +128,8 @@ export default function ExcelImportModal({ type }) {
           </div>
         ) : (
           <div
-            className={`flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-gray-600 transition ${
-              dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-            }`}
+            className={`flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-gray-600 transition ${dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+              }`}
             onDragOver={(e) => {
               e.preventDefault();
               setDragging(true);
