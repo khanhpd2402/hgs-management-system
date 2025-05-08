@@ -69,7 +69,7 @@ namespace Infrastructure.Repositories.Implementtations
 
         public async Task DeleteAsync(int id)
         {
-            var classEntity = await GetByIdAsync(id);
+            var classEntity = await GetByIdWithoutTimetableAsync(id);
             _context.Classes.Remove(classEntity);
             await _context.SaveChangesAsync();
         }
