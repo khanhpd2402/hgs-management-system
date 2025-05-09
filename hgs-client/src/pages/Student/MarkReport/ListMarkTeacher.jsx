@@ -21,6 +21,7 @@ import {
 import { useAcademicYears, useSemestersByAcademicYear } from '../../../services/common/queries';
 import toast from 'react-hot-toast';
 import './ListMarkTeacher.scss';
+import ExportExcelGrade from '../../Grade/ExportExcelGrade';
 
 // Hàm ánh xạ assessmentType
 const mapAssessmentType = (field) => {
@@ -394,18 +395,30 @@ const ListMarkTeacher = () => {
               `- Lớp: ${selectedAssignmentDetails.className} - Môn: ${selectedAssignmentDetails.subjectName} - Loại điểm: ${subjectInfo.typeOfGrade}`
             ) : ''}
           </h2>
-          {grades.length > 0 && (
-            <Button
-              onClick={() => {
-                if (isEditing) handleSaveGrades();
-                setIsEditing(!isEditing);
-              }}
-              className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
-              disabled={loading}
-            >
-              {isEditing ? 'Lưu điểm' : 'Nhập điểm'}
-            </Button>
-          )}
+          <div className="flex gap-2">
+            {grades.length > 0 && (
+              <>
+                <Button
+                  onClick={() => {
+                    if (isEditing) handleSaveGrades();
+                    setIsEditing(!isEditing);
+                  }}
+                  className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+                  disabled={loading}
+                >
+                  {isEditing ? 'Lưu điểm' : 'Nhập điểm'}
+                </Button>
+                <ExportExcelGrade
+                  grades={groupedGrades}
+                  selectedSubject={subjectInfo}
+                  regularColumns={regularAssessmentTypes.map(type => getShortAssessmentName(type))}
+                  semesterId={semester}
+                  classId={selectedAssignmentDetails?.classId}
+                  className={selectedAssignmentDetails?.className}
+                />
+              </>
+            )}
+          </div>
         </div>
 
         <Table>

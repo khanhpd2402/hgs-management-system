@@ -127,6 +127,10 @@ const TransferData = lazy(
   () => import("@/pages/Principal/TransferData/TransferData"),
 );
 
+const GradePrincipal = lazy(
+  () => import("@/pages/Grade/GradePrincipal"),
+);
+
 const AppRouter = () => {
   const routes = [...privateRouter, ...authRoutes];
   // const routes = authRoutes;
@@ -295,6 +299,16 @@ const adminRouter = [
       </ProtectedRoute>
     ),
   },
+  {
+    path: "/system/grade-principal",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<Spinner />}>
+          <GradePrincipal />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  }
 ];
 
 const teacherRouter = [

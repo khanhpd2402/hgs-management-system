@@ -90,6 +90,12 @@ const menuItems = [
     path: "/system/grade-batch",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
+  {
+    label: "Xem điểm học sinh",
+    icon: BarChart,
+    path: "/system/grade-principal",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
 
   {
     label: "Quản lý đơn xin nghỉ phép",
