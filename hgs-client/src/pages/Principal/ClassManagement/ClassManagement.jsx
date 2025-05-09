@@ -16,6 +16,7 @@ import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 import UpdateClassModal from "./UpdateClassModal";
 import MyPagination from "@/components/MyPagination";
 import PaginationControls from "@/components/PaginationControls";
+import { Spinner } from "@/components/Spinner";
 
 export default function ClassManagement() {
   const { currentYear } = useLayout();
@@ -47,6 +48,11 @@ export default function ClassManagement() {
     classesWithStudentQuery.data?.length,
   );
 
+  const isLoading =
+    classesWithStudentQuery.isLoading || gradelevelQuery.isLoading;
+  if (isLoading) {
+    return <Spinner />;
+  }
   // You should implement these handlers to call your API
 
   return (
