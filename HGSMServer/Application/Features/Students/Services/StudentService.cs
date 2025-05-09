@@ -62,7 +62,9 @@ namespace Application.Features.Students.Services
                     studentDto.ClassId = studentClass.ClassId;
                     studentDto.ClassName = studentClass.Class.ClassName;
                     studentDto.GradeId = studentClass.Class.GradeLevelId;
-                    studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
+                    studentDto.GradeName = studentClass.Class.GradeLevel.GradeName;
+
+                    //studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
                     Console.WriteLine($"StudentId: {student.StudentId}, ClassId: {studentDto.ClassId}, ClassName: {studentDto.ClassName}, GradeId: {studentDto.GradeId}");
                 }
                 else
@@ -119,7 +121,8 @@ namespace Application.Features.Students.Services
                 studentDto.ClassId = studentClass.ClassId;
                 studentDto.ClassName = studentClass.Class.ClassName;
                 studentDto.GradeId = studentClass.Class.GradeLevelId;
-                studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
+                studentDto.GradeName = studentClass.Class.GradeLevel.GradeName;
+                //studentDto.GradeName = studentClass.Class.GradeLevel != null ? $"Khối {studentClass.Class.GradeLevelId}" : "N/A";
                 Console.WriteLine($"StudentId: {id}, ClassId: {studentDto.ClassId}, ClassName: {studentDto.ClassName}, GradeId: {studentDto.GradeId}");
             }
             else
