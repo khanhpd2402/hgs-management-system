@@ -49,7 +49,7 @@ namespace Application.Features.Classes.Services
 
         public async Task<ClassDto> GetClassByIdAsync(int id)
         {
-            var classEntity = await _classRepository.GetByIdAsync(id);
+            var classEntity = await _classRepository.GetByIdWithoutTimetableAsync(id);
             if (classEntity == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy lớp học với ID {id}.");
@@ -80,12 +80,10 @@ namespace Application.Features.Classes.Services
         {
             //var existingClass = await _classRepository.GetByIdAsync(id);
             var existingClass = await _classRepository.GetByIdWithoutTimetableAsync(id);
-            var allclass = await _classRepository.GetAllAsync();
-            foreach (var classEntity in allclass) {
-                if (classDto.ClassName == classEntity.ClassName) {
-                throw new KeyNotFoundException($"Khong the trung ten lop da ton tai.");
-    }
-}
+            if (await _classRepository.IsClassNameDuplicatedAsync(classDto.ClassName, id))
+            {
+                throw new ArgumentException("Tên lớp đã tồn tại. Vui lòng chọn tên khác.");
+            }
             if (existingClass == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy lớp học với ID {id} để cập nhật.");
@@ -110,7 +108,7 @@ namespace Application.Features.Classes.Services
 
         public async Task DeleteClassAsync(int id)
         {
-            var existingClass = await _classRepository.GetByIdAsync(id);
+            var existingClass = await _classRepository.GetByIdWithoutTimetableAsync(id);
             if (existingClass == null)
             {
                 throw new KeyNotFoundException($"Không tìm thấy lớp học với ID {id} để xóa.");
