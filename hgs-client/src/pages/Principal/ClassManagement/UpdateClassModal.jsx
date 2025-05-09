@@ -27,6 +27,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useUpdateClass } from "@/services/principal/mutation";
 import { Spinner } from "@/components/Spinner";
+import { Skeleton } from "@/components/ui/skeleton";
 
 const classSchema = z.object({
   gradeLevelId: z.string().min(1, "Vui lòng chọn khối"),
@@ -187,7 +188,23 @@ export default function UpdateClassModal({
     homeroomTeachers.isLoading;
 
   if (isLoading) {
-    // return <Spinner />;
+    return (
+      <Dialog open={open} onOpenChange={onOpenChange}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Cập nhật lớp học</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-full" />
+            <Skeleton className="h-10 w-1/2" />
+            <Skeleton className="h-10 w-full" />
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
   }
 
   return (
