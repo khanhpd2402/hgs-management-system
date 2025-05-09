@@ -112,6 +112,11 @@ export default function TransferData() {
           academicYearId: previousYear?.academicYearID,
           targetAcademicYearId: currentYear?.academicYearID,
         }));
+        const checkIstargetClassIdNotEmpty = data.every((cls) => cls.targetClassId !== "");
+        if (!checkIstargetClassIdNotEmpty) {
+          toast.error("Vui lòng chọn lớp cho tất cả lớp");
+          return;
+        }
         console.log(data);
         transferClassDataMutation.mutate(data);
       }
@@ -140,6 +145,11 @@ export default function TransferData() {
         classId: student.toClass,
         academicYearId: currentYear?.academicYearID,
       }));
+      const checkClassIdNotEmpty = data.every((student) => student.classId !== "");
+      if (!checkClassIdNotEmpty) {
+        toast.error("Vui lòng chọn lớp cho tất cả học sinh");
+        return;
+      }
       console.log(data);
       transferStudentDataMutation.mutate(data);
     }
@@ -148,11 +158,19 @@ export default function TransferData() {
         toast.error("Vui lòng chọn ít nhất một học sinh để chuyển");
         return;
       }
+
+
       const data = selectedAdjustStudents.map((student) => ({
         studentId: student.studentId,
         classId: student.toClass,
         academicYearId: currentYear?.academicYearID,
       }));
+
+      const checkClassIdNotEmpty = data.every((student) => student.classId !== "");
+      if (!checkClassIdNotEmpty) {
+        toast.error("Vui lòng chọn lớp cho tất cả học sinh");
+        return;
+      }
       console.log(data);
       transferStudentDataMutation.mutate(data);
     }
@@ -194,11 +212,10 @@ export default function TransferData() {
         {tabs.map((tab) => (
           <button
             key={tab.value}
-            className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 ${
-              activeTab === tab.value
-                ? "bg-blue-600 text-white shadow"
-                : "text-gray-600 hover:bg-gray-100"
-            }`}
+            className={`rounded-lg px-5 py-2 text-sm font-medium transition-colors duration-200 ${activeTab === tab.value
+              ? "bg-blue-600 text-white shadow"
+              : "text-gray-600 hover:bg-gray-100"
+              }`}
             onClick={() => {
               setActiveTab(tab.value);
               setGrade("");
@@ -262,7 +279,7 @@ export default function TransferData() {
             <SelectItem value="6">Khối 6</SelectItem>
             <SelectItem value="7">Khối 7</SelectItem>
             <SelectItem value="8">Khối 8</SelectItem>
-            {}
+            { }
             <SelectItem value="9">Khối 9</SelectItem>
           </SelectContent>
         </Select>
@@ -325,14 +342,14 @@ export default function TransferData() {
                               classes.filter((c) => c.className[0] == grade)
                                 .length > 0 &&
                               selectedClasses.length ===
-                                classes.filter((c) => c.className[0] == grade)
-                                  .length
+                              classes.filter((c) => c.className[0] == grade)
+                                .length
                             }
                             indeterminate={
                               selectedClasses.length > 0 &&
                               selectedClasses.length <
-                                classes.filter((c) => c.className[0] == grade)
-                                  .length
+                              classes.filter((c) => c.className[0] == grade)
+                                .length
                             }
                             onCheckedChange={(checked) => {
                               if (checked) {
@@ -716,7 +733,7 @@ export default function TransferData() {
                         {studentList.length === 0 ? (
                           <TableRow className="p-4 text-gray-500">
                             <TableCell colSpan={5}>
-                              Không có dữ liệu học sinh lưu ban
+                              Không có dữ liệu học sinh
                             </TableCell>
                           </TableRow>
                         ) : (
