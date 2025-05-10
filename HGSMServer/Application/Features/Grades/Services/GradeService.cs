@@ -271,19 +271,20 @@ namespace Application.Features.Grades.Services
                         for (int col = 1; col <= lastColUsed; col++)
                         {
                             string mainHeader = columnToMainHeaderMap.ContainsKey(col) ? columnToMainHeaderMap[col] : string.Empty;
-                            string subHeader = (col - 1 < subHeadersList.Count) ? subHeadersList[col - 1] : string.Empty;
 
                             if (mainHeader.Equals("Mã học sinh", StringComparison.OrdinalIgnoreCase)) studentIdCol = col;
-                            else if (mainHeader.Equals("ĐĐG TX", StringComparison.OrdinalIgnoreCase) && !string.IsNullOrEmpty(subHeader))
+                            else if (mainHeader.Contains("TX", StringComparison.OrdinalIgnoreCase))
                             {
-                                if (subHeader.StartsWith("TX", StringComparison.OrdinalIgnoreCase))
-                                {
-                                    string assessmentName = $"ĐĐG {subHeader}";
+                                    string assessmentName = $"ĐĐG {mainHeader}";
                                     txColumnDetails.Add(Tuple.Create(col, assessmentName));
-                                }
                             }
                             else if (mainHeader.Equals("ĐĐG GK", StringComparison.OrdinalIgnoreCase)) gkScoreCol = col;
                             else if (mainHeader.Equals("ĐĐG CK", StringComparison.OrdinalIgnoreCase)) ckScoreCol = col;
+                            else if (mainHeader.Equals("Đánh giá", StringComparison.OrdinalIgnoreCase))
+                            {
+                                string assessmentName = "ĐĐG TX 1";
+                                txColumnDetails.Add(Tuple.Create(col, assessmentName));
+                            }
                         }
 
                         if (studentIdCol == -1)
