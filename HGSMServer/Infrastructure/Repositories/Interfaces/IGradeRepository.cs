@@ -13,5 +13,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<List<Grade>> GetGradesByIdsAsync(List<int> gradeIds);
         Task DeleteRangeAsync(IEnumerable<Grade> grades);
         Task<IEnumerable<Grade>> GetByStudentClassIdsAsync(IEnumerable<int> studentClassIds);
+        Task<Grade?> GetGradeAsync(int studentClassId, int assignmentId, int batchId, string assessmentsTypeName);
     }
 }
