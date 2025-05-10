@@ -12,6 +12,6 @@ namespace Application.Features.Grades.Interfaces
         Task<bool> UpdateMultipleGradesAsync(UpdateMultipleGradesDto dto);
         Task<GradeSummaryDto> GetTotalGradeSummaryByStudentAsync(int studentId, int semesterId);
         Task<List<GradeSummaryEachSubjectNameDto>> GetGradeSummaryEachSubjectByStudentAsync(int studentId, int semesterId);
-        Task<ImportGradesResultDto> ImportGradesFromExcelAsync(int classId, int subjectId, int semesterId, int batchId, IFormFile file);
+        Task<ImportGradesResultDto> ImportGradesFromExcelAsync(int classId, int subjectId, int semesterId, IFormFile file);
     }
 }

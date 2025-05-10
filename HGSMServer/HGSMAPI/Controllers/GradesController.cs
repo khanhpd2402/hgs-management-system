@@ -115,16 +115,11 @@ namespace HGSMAPI.Controllers
 
             return Ok(result);
         }
-        [HttpPost("import/{classId}/{subjectId}/{semesterId}/{batchId}")]
+        [HttpPost("import/{classId}/{subjectId}/{semesterId}")]
         [ProducesResponseType(typeof(ImportGradesResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ImportGradesResultDto), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ImportGrades(
-            [FromRoute] int classId,
-            [FromRoute] int subjectId,
-            [FromRoute] int semesterId,
-            [FromRoute] int batchId,
-            IFormFile file)
+        public async Task<IActionResult> ImportGrades([FromRoute] int classId, [FromRoute] int subjectId, [FromRoute] int semesterId, IFormFile file)
         {
 
             if (file == null || file.Length == 0)
@@ -148,7 +143,7 @@ namespace HGSMAPI.Controllers
 
             try
             {
-                var result = await _gradeService.ImportGradesFromExcelAsync(classId, subjectId, semesterId, batchId, file);
+                var result = await _gradeService.ImportGradesFromExcelAsync(classId, subjectId, semesterId, file);
 
                 if (result.IsSuccess)
                 {

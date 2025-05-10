@@ -207,20 +207,14 @@ namespace Application.Features.Grades.Services
             return Math.Round(tb, 2);
         }
 
-        public async Task<ImportGradesResultDto> ImportGradesFromExcelAsync(int classId, int subjectId, int semesterId, int batchId, IFormFile file)
+        public async Task<ImportGradesResultDto> ImportGradesFromExcelAsync(int classId, int subjectId, int semesterId, IFormFile file)
         {
             var result = new ImportGradesResultDto();
             int updatedCount = 0;
             var gradesToUpdate = new List<Grade>();
 
-            var gradeBatch = await _gradeBatchRepository.GetByIdAsync(batchId);
-            if (gradeBatch == null)
-            {
-                result.IsSuccess = false;
-                result.Message = $"Đợt nhập điểm với ID {batchId} không tìm thấy.";
-                result.Errors.Add(result.Message);
-                return result;
-            }
+            var gradeBatch = await _gradeBatchRepository.GetActiveAsync();
+            
             if (gradeBatch.SemesterId != semesterId)
             {
                 result.IsSuccess = false;
@@ -352,10 +346,10 @@ namespace Application.Features.Grades.Services
 
                 foreach (var gradeEntry in studentImport.GradeEntries)
                 {
-                    var existingGrade = await _gradeRepository.GetGradeAsync(studentClassId, assignmentId, batchId, gradeEntry.AssessmentsTypeName);
+                    var existingGrade = await _gradeRepository.GetGradeAsync(studentClassId, assignmentId, gradeBatch.BatchId, gradeEntry.AssessmentsTypeName);
                     if (existingGrade == null)
                     {
-                        result.Errors.Add($"Lỗi dữ liệu: Không tìm thấy bản ghi điểm có sẵn cho HS ID '{studentImport.StudentId}', Loại điểm: '{gradeEntry.AssessmentsTypeName}', Đợt ID: {batchId}."); continue;
+                        result.Errors.Add($"Lỗi dữ liệu: Không tìm thấy bản ghi điểm có sẵn cho HS ID '{studentImport.StudentId}', Loại điểm: '{gradeEntry.AssessmentsTypeName}', Đợt ID: {gradeBatch.BatchId}."); continue;
                     }
 
                     if (existingGrade.Score != gradeEntry.Score) // Chỉ cập nhật nếu điểm số thay đổi
