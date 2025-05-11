@@ -689,16 +689,17 @@ namespace Application.Features.StudentClass.Services
             int sourceAcademicYearId = dto.AcademicYearId ?? (await GetCurrentAcademicYearAsync()).AcademicYearId;
             int targetAcademicYearId = dto.TargetAcademicYearId ?? await GetNextAcademicYearIdAsync(sourceAcademicYearId);
 
-            await ValidateAcademicYearAsync(sourceAcademicYearId, mustBeActive: false);
-            await ValidateAcademicYearAsync(targetAcademicYearId, mustBeActive: false);
+            // Comment các đoạn validate liên quan đến năm học
+            // await ValidateAcademicYearAsync(sourceAcademicYearId, mustBeActive: false);
+            // await ValidateAcademicYearAsync(targetAcademicYearId, mustBeActive: false);
 
-            bool isNextYearTransfer = await IsNextAcademicYearAsync(sourceAcademicYearId, targetAcademicYearId);
-            if (!isNextYearTransfer)
-            {
-                throw new InvalidOperationException($"Chuyển lớp hàng loạt chỉ được thực hiện giữa hai năm học liền kề. Năm học đích (ID: {targetAcademicYearId}) không phải là năm học tiếp theo của năm học nguồn (ID: {sourceAcademicYearId}).");
-            }
+            // bool isNextYearTransfer = await IsNextAcademicYearAsync(sourceAcademicYearId, targetAcademicYearId);
+            // if (!isNextYearTransfer)
+            // {
+            //     throw new InvalidOperationException($"Chuyển lớp hàng loạt chỉ được thực hiện giữa hai năm học liền kề. Năm học đích (ID: {targetAcademicYearId}) không phải là năm học tiếp theo của năm học nguồn (ID: {sourceAcademicYearId}).");
+            // }
 
-            await ValidateTransferTimeWindowAsync(sourceAcademicYearId, targetAcademicYearId);
+            // await ValidateTransferTimeWindowAsync(sourceAcademicYearId, targetAcademicYearId);
 
             var currentClass = await _classRepository.GetByIdWithoutTimetableAsync(dto.ClassId);
             if (currentClass == null)
