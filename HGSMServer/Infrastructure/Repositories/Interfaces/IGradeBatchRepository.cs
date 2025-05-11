@@ -8,6 +8,7 @@ namespace Infrastructure.Repositories.Interfaces
         Task<IEnumerable<GradeBatch>> GetAllAsync();
         Task<GradeBatch> AddAsync(GradeBatch entity);
         Task<GradeBatch> UpdateAsync(GradeBatch entity);
+        Task<GradeBatch?> GetActiveAsync();
     }
 }
 

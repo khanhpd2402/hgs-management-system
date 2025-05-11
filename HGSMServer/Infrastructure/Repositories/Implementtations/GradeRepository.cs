@@ -100,5 +100,14 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(g => g.Batch)
                 .ToListAsync();
         }
+        public async Task<Grade?> GetGradeAsync(int studentClassId, int assignmentId, int batchId, string assessmentsTypeName)
+        {
+            return await _context.Grades
+                .FirstOrDefaultAsync(g =>
+                    g.StudentClassId == studentClassId &&
+                    g.AssignmentId == assignmentId &&
+                    g.BatchId == batchId &&
+                    g.AssessmentsTypeName == assessmentsTypeName);
+        }
     }
 }
