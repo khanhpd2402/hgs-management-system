@@ -13,8 +13,11 @@ import { RadioGroup } from "@/components/ui/radio-group";
 import { Upload, XCircle, FileText, Download, Loader } from "lucide-react";
 import { axiosInstance } from "@/services/axios";
 import toast from "react-hot-toast";
+import { useLayout } from "@/layouts/DefaultLayout/DefaultLayout";
 
 export default function ExcelImportModal({ type }) {
+  const { currentYear } = useLayout();
+  const academicYearId = currentYear?.academicYearID;
   const [file, setFile] = useState(null);
   const [importType, setImportType] = useState("update");
   const [dragging, setDragging] = useState(false);
@@ -26,7 +29,16 @@ export default function ExcelImportModal({ type }) {
     mutationFn: async (file) => {
       const formData = new FormData();
       formData.append("file", file);
-      const response = await axiosInstance.post(`/${type}/import`, formData);
+      console.log(formData.get("file"));
+      if (type === "teachers") {
+        const response = await axiosInstance.post(`/${type}/import`, formData);
+        return response.data;
+      }
+
+      const response = await axiosInstance.post(
+        `/${type}/import/${academicYearId}`,
+        formData,
+      );
       return response.data;
     },
 
@@ -40,7 +52,7 @@ export default function ExcelImportModal({ type }) {
         toast.error(error?.response?.data?.error);
       } else {
         console.log(data);
-        toast.success("Import dữ liệu thành công")
+        toast.success("Import dữ liệu thành công");
         queryClient.invalidateQueries(["teachers"]); // Làm mới danh sách giáo viên
         queryClient.invalidateQueries(["students"]); // Làm mới danh sách giáo viên
         setIsOpen(false); // Đóng modal
@@ -128,8 +140,9 @@ export default function ExcelImportModal({ type }) {
           </div>
         ) : (
           <div
-            className={`flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-gray-600 transition ${dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
-              }`}
+            className={`flex flex-col items-center gap-2 rounded-md border-2 border-dashed p-6 text-gray-600 transition ${
+              dragging ? "border-blue-500 bg-blue-50" : "border-gray-300"
+            }`}
             onDragOver={(e) => {
               e.preventDefault();
               setDragging(true);
