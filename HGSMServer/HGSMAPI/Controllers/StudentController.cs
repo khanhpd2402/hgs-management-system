@@ -155,8 +155,8 @@ namespace HGSMAPI.Controllers
             }
         }
 
-        [HttpPost("import")]
-        public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file)
+        [HttpPost("import/{academicYearId}")]
+        public async Task<IActionResult> ImportStudentsFromExcel(IFormFile file, int academicYearId)
         {
             if (file == null || file.Length == 0)
             {
@@ -167,7 +167,7 @@ namespace HGSMAPI.Controllers
             try
             {
                 Console.WriteLine("Importing students from Excel...");
-                var results = await _studentService.ImportStudentsFromExcelAsync(file);
+                var results = await _studentService.ImportStudentsFromExcelAsync(file, academicYearId);
 
                 // Kiểm tra nội dung results để xác định có lỗi hay không
                 if (results.Any(r => r.StartsWith("Lỗi")))
