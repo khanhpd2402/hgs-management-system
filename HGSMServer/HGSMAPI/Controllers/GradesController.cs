@@ -86,7 +86,7 @@ namespace HGSMAPI.Controllers
             catch (InvalidOperationException ex)
             {
                 Console.WriteLine($"Error updating grades: {ex.Message}");
-                return BadRequest("Lỗi khi cập nhật điểm."+ ex.Message);
+                return BadRequest("Lỗi khi cập nhật điểm." + ex.Message);
             }
             catch (Exception ex)
             {
@@ -115,7 +115,59 @@ namespace HGSMAPI.Controllers
 
             return Ok(result);
         }
+        [HttpPost("import/{classId}/{subjectId}/{semesterId}")]
+        [ProducesResponseType(typeof(ImportGradesResultDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ImportGradesResultDto), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> ImportGrades([FromRoute] int classId, [FromRoute] int subjectId, [FromRoute] int semesterId, IFormFile file)
+        {
+
+            if (file == null || file.Length == 0)
+            {
+                // _logger?.LogWarning("File nhập điểm không được cung cấp hoặc file trống.");
+                return BadRequest(new ImportGradesResultDto
+                {
+                    IsSuccess = false,
+                    Message = "File Excel không được cung cấp hoặc file trống.",
+                    Errors = new List<string> { "Vui lòng chọn một file Excel để nhập điểm." }
+                });
+            }
 
 
+            string[] permittedExtensions = { ".xlsx" };
+            var ext = Path.GetExtension(file.FileName).ToLowerInvariant();
+            if (string.IsNullOrEmpty(ext) || !permittedExtensions.Contains(ext))
+            {
+                return BadRequest(new ImportGradesResultDto { IsSuccess = false, Message = $"Loại file không hợp lệ. Chỉ chấp nhận file {string.Join(", ", permittedExtensions)}." });
+            }
+
+            try
+            {
+                var result = await _gradeService.ImportGradesFromExcelAsync(classId, subjectId, semesterId, file);
+
+                if (result.IsSuccess)
+                {
+                    // _logger?.LogInformation($"Nhập điểm thành công cho Lớp ID: {classId}, Môn học ID: {subjectId}. {result.Message}");
+                    return Ok(result);
+                }
+                else
+                {
+                    // Các lỗi nghiệp vụ đã được GradeService xử lý và đưa vào result.Errors
+                    // Trả về BadRequest nếu IsSuccess là false để client biết có vấn đề với request hoặc dữ liệu.
+                    return BadRequest(result);
+                }
+            }
+            catch (Exception ex)
+            {
+                // Lỗi không mong muốn xảy ra trong service mà không được catch cụ thể
+                return StatusCode(StatusCodes.Status500InternalServerError, new ImportGradesResultDto
+                {
+                    IsSuccess = false,
+                    Message = "Đã có lỗi không mong muốn xảy ra ở máy chủ.",
+                    Errors = new List<string> { $"Chi tiết lỗi: {ex.Message}" } // Chỉ trả về ex.Message trong môi trường dev
+                });
+
+            }
+        }
     }
 }
