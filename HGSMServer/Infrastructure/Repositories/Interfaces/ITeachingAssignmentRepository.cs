@@ -13,5 +13,6 @@ namespace Infrastructure.Repositories.Interfaces
         Task<IEnumerable<TeachingAssignment>> GetBySemesterIdAsync(int semesterId);
         Task<bool> IsTeacherAssignedAsync(int teacherId, int classId, int semesterId);
         Task<TeachingAssignment> GetByIdAsync(int assignmentId);
+        Task<List<TeachingAssignment>> GetAssignmentsByClassAndSemesterAsync(int classId, int semesterId);
     }
 }

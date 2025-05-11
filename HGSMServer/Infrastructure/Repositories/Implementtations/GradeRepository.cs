@@ -109,5 +109,19 @@ namespace Infrastructure.Repositories.Implementtations
                     g.BatchId == batchId &&
                     g.AssessmentsTypeName == assessmentsTypeName);
         }
+        public async Task<List<Grade>> GetGradesForStudentSubjectSemesterAsync(
+           int studentClassId,
+           int assignmentId,
+           int semesterId)
+        {
+            return await _context.Grades
+                .Include(g => g.Batch) // Cần Batch để lọc theo SemesterId
+                .Where(g => g.StudentClassId == studentClassId &&
+                             g.AssignmentId == assignmentId &&
+                             g.Batch != null && // Đảm bảo Batch không null
+                             g.Batch.SemesterId == semesterId)
+                .AsNoTracking() // Sử dụng AsNoTracking nếu dữ liệu chỉ để đọc
+                .ToListAsync();
+        }
     }
 }
