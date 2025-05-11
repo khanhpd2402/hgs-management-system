@@ -22,6 +22,7 @@ import { useAcademicYears, useSemestersByAcademicYear } from '../../../services/
 import toast from 'react-hot-toast';
 import './ListMarkTeacher.scss';
 import ExportExcelGrade from '../../Grade/ExportExcelGrade';
+import ImportGrade from './ImportGrade';
 
 // Hàm ánh xạ assessmentType
 const mapAssessmentType = (field) => {
@@ -415,6 +416,11 @@ const ListMarkTeacher = () => {
                   semesterId={semester}
                   classId={selectedAssignmentDetails?.classId}
                   className={selectedAssignmentDetails?.className}
+                />
+                <ImportGrade
+                  classId={selectedAssignmentDetails?.classId}
+                  subjectId={selectedAssignmentDetails?.subjectId}
+                  semesterId={semester}
                 />
               </>
             )}

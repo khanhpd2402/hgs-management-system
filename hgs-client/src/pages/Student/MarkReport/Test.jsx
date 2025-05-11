@@ -21,6 +21,7 @@ import {
 import { useAcademicYears, useSemestersByAcademicYear } from '../../../services/common/queries';
 import toast from 'react-hot-toast';
 import './ListMarkTeacher.scss';
+import ExportExcelGrade from '../../Grade/ExportExcelGrade';
 
 // Hàm ánh xạ assessmentType
 const mapAssessmentType = (field) => {
@@ -181,10 +182,42 @@ const ListMarkTeacher = () => {
         }));
     }, []);
 
+    // Hàm kiểm tra điểm hợp lệ
+    const validateGrades = useCallback((gradesToValidate) => {
+        if (!gradesToValidate || !Object.keys(gradesToValidate).length) return true;
+
+        if (subjectInfo?.typeOfGrade !== 'Nhận xét') {
+            for (const [studentId, fields] of Object.entries(gradesToValidate)) {
+                for (const [field, value] of Object.entries(fields)) {
+                    if (value === '') continue;
+
+                    // Kiểm tra giá trị là số hợp lệ
+                    if (!/^\d*\.?\d*$/.test(value)) {
+                        toast.error(`Điểm phải là số hợp lệ`);
+                        return false;
+                    }
+
+                    // Kiểm tra giá trị nằm trong khoảng 0-10
+                    const numValue = parseFloat(value);
+                    if (isNaN(numValue) || numValue < 0 || numValue > 10) {
+                        toast.error(`Điểm phải nằm trong khoảng từ 0 đến 10`);
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }, [subjectInfo]);
+
     // Hàm lưu điểm
     const saveGrades = useCallback(
         async (gradesToSave) => {
             if (!gradesToSave || !Object.keys(gradesToSave).length) return;
+
+            // Kiểm tra điểm trước khi lưu
+            if (!validateGrades(gradesToSave)) {
+                return;
+            }
 
             setLoading(true);
             setError('');
@@ -232,7 +265,7 @@ const ListMarkTeacher = () => {
                 setLoading(false);
             }
         },
-        [grades, token, handleSearchGrades, subjectInfo]
+        [grades, token, handleSearchGrades, subjectInfo, validateGrades]
     );
 
     // Hàm lưu điểm toàn bộ
@@ -362,18 +395,30 @@ const ListMarkTeacher = () => {
                             `- Lớp: ${selectedAssignmentDetails.className} - Môn: ${selectedAssignmentDetails.subjectName} - Loại điểm: ${subjectInfo.typeOfGrade}`
                         ) : ''}
                     </h2>
-                    {grades.length > 0 && (
-                        <Button
-                            onClick={() => {
-                                if (isEditing) handleSaveGrades();
-                                setIsEditing(!isEditing);
-                            }}
-                            className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
-                            disabled={loading}
-                        >
-                            {isEditing ? 'Lưu điểm' : 'Nhập điểm'}
-                        </Button>
-                    )}
+                    <div className="flex gap-2">
+                        {grades.length > 0 && (
+                            <>
+                                <Button
+                                    onClick={() => {
+                                        if (isEditing) handleSaveGrades();
+                                        setIsEditing(!isEditing);
+                                    }}
+                                    className={isEditing ? "bg-green-600 hover:bg-green-700" : "bg-blue-600 hover:bg-blue-700"}
+                                    disabled={loading}
+                                >
+                                    {isEditing ? 'Lưu điểm' : 'Nhập điểm'}
+                                </Button>
+                                <ExportExcelGrade
+                                    grades={groupedGrades}
+                                    selectedSubject={subjectInfo}
+                                    regularColumns={regularAssessmentTypes.map(type => getShortAssessmentName(type))}
+                                    semesterId={semester}
+                                    classId={selectedAssignmentDetails?.classId}
+                                    className={selectedAssignmentDetails?.className}
+                                />
+                            </>
+                        )}
+                    </div>
                 </div>
 
                 <Table>
