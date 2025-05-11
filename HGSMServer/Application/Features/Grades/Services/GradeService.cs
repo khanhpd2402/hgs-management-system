@@ -18,15 +18,17 @@ namespace Application.Features.Grades.Services
         private readonly IStudentClassRepository _studentClassRepository;
         private readonly ITeachingAssignmentRepository _teachingAssignmentRepository;
         private readonly ISemesterRepository _semesterRepository;
+        private readonly IClassRepository _classRepository;
         private readonly IMapper _mapper;
 
-        public GradeService(ISemesterRepository semesterRepository, IGradeRepository gradeRepository, IStudentClassRepository studentClassRepository, ITeachingAssignmentRepository teachingAssignmentRepository, IGradeBatchRepository gradeBatchRepository, IMapper mapper)
+        public GradeService(IClassRepository classRepository, ISemesterRepository semesterRepository, IGradeRepository gradeRepository, IStudentClassRepository studentClassRepository, ITeachingAssignmentRepository teachingAssignmentRepository, IGradeBatchRepository gradeBatchRepository, IMapper mapper)
         {
             _gradeRepository = gradeRepository;
             _gradeBatchRepository = gradeBatchRepository;
             _studentClassRepository = studentClassRepository;
             _teachingAssignmentRepository = teachingAssignmentRepository;
             _semesterRepository = semesterRepository;
+            _classRepository = classRepository; 
             _mapper = mapper;
         }
 
@@ -174,25 +176,136 @@ namespace Application.Features.Grades.Services
                 gradeSummaryEachSubjectNameDtos = subjectSummaries
             };
         }
+        public async Task<ClassGradesSummaryDto?> GetClassGradesSummaryAsync(int classId, int semesterId)
+        {
+            // Lấy thông tin lớp học từ IClassRepository
+            var classInfo = await _classRepository.GetByIdAsync(classId);
+            var semesterInfo = await _semesterRepository.GetByIdAsync(semesterId);
+
+            if (classInfo == null || semesterInfo == null)
+            {
+                // Không tìm thấy thông tin lớp hoặc học kỳ
+                return null;
+            }
+
+            var summaryDto = new ClassGradesSummaryDto
+            {
+                ClassId = classId,
+                ClassName = classInfo.ClassName, // Giả sử Class có thuộc tính ClassName
+                SemesterId = semesterId,
+                SemesterName = semesterInfo.SemesterName, // Giả sử Semester có SemesterName
+                AcademicYear = semesterInfo.AcademicYear.YearName // Giả sử Semester có AcademicYear
+            };
+
+            // Lấy danh sách học sinh trong lớp cho năm học của học kỳ đó
+            // Sử dụng phương thức từ StudentClassRepository.cs bạn cung cấp
+            var studentClasses = await _studentClassRepository.GetByClassIdAndAcademicYearAsync(classId, semesterInfo.AcademicYearId);
+
+            if (studentClasses == null || !studentClasses.Any())
+            {
+                // Không có học sinh nào trong lớp cho năm học này
+                return summaryDto;
+            }
+
+            // Lấy danh sách các môn học được phân công cho lớp và học kỳ đó
+            var teachingAssignments = await _teachingAssignmentRepository.GetAssignmentsByClassAndSemesterAsync(classId, semesterId);
+
+            if (teachingAssignments == null || !teachingAssignments.Any())
+            {
+                // Không có môn học nào được phân công, trả về thông tin lớp và danh sách học sinh (không có điểm môn học)
+                foreach (var sc in studentClasses)
+                {
+                    // Phương thức GetByClassIdAndAcademicYearAsync từ file của bạn đã bao gồm Student
+                    if (sc.Student == null) continue;
+                    summaryDto.Students.Add(new StudentOverallGradesDto
+                    {
+                        StudentId = sc.Student.StudentId, // Từ Student.StudentId
+                        FullName = sc.Student.FullName
+                        // SubjectResults sẽ rỗng
+                    });
+                }
+                return summaryDto;
+            }
+
+            foreach (var sc in studentClasses)
+            {
+                // Phương thức GetByClassIdAndAcademicYearAsync từ file của bạn đã bao gồm Student
+                if (sc.Student == null) continue;
+
+                var studentDto = new StudentOverallGradesDto
+                {
+                    StudentId = sc.Student.StudentId, // Từ Student.StudentId
+                    FullName = sc.Student.FullName
+                };
+
+                foreach (var assignment in teachingAssignments)
+                {
+                    if (assignment.Subject == null) continue;
+
+                    var subjectResult = new SubjectResultDto
+                    {
+                        SubjectId = assignment.SubjectId,
+                        SubjectName = assignment.Subject.SubjectName
+                    };
+
+                    // Lấy tất cả các điểm của học sinh cho môn học này trong học kỳ này
+                    // sc.Id là StudentClassId (PK của bảng StudentClass)
+                    var gradesForSubjectSemester = await _gradeRepository.GetGradesForStudentSubjectSemesterAsync(sc.Id, assignment.AssignmentId, semesterId);
+
+                    if (gradesForSubjectSemester != null && gradesForSubjectSemester.Any())
+                    {
+                        // Ưu tiên kiểm tra xem có phải môn đánh giá bằng nhận xét không
+                        var evaluationGrade = gradesForSubjectSemester.FirstOrDefault(g => g.Score == "Đạt" || g.Score == "Không Đạt");
+
+                        if (evaluationGrade != null)
+                        {
+                            subjectResult.FinalScore = evaluationGrade.Score; // "Đạt", "Không Đạt"
+                            subjectResult.GradeType = "Đánh giá";
+                        }
+                        else // Nếu không phải môn đánh giá, thì là môn tính điểm
+                        {
+                            // Sử dụng hàm CalculateSemesterAverage hiện có của bạn
+                            double? semesterAvg = CalculateSemesterAverage(gradesForSubjectSemester.ToList());
+                            subjectResult.FinalScore = semesterAvg.HasValue ? semesterAvg.Value.ToString("N2") : "N/A"; // "N/A" nếu không đủ điểm
+                            subjectResult.GradeType = "Điểm số";
+                        }
+                    }
+                    else
+                    {
+                        subjectResult.FinalScore = "Chưa có điểm";
+                        subjectResult.GradeType = "Chưa có"; // Hoặc có thể xác định GradeType từ Subject nếu cần
+                    }
+                    studentDto.SubjectResults.Add(subjectResult);
+                }
+                summaryDto.Students.Add(studentDto);
+            }
+            return summaryDto;
+        }
 
         private double? CalculateSemesterAverage(List<Grade> grades)
         {
             var txScores = grades
-                .Where(x => x.AssessmentsTypeName.Contains("ĐĐG TX") && double.TryParse(x.Score, out _))
-                .Select(x => double.Parse(x.Score))
+                .Where(x => x.AssessmentsTypeName.Contains("ĐĐG TX") && !string.IsNullOrEmpty(x.Score) && double.TryParse(x.Score.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))
+                .Select(x => double.Parse(x.Score.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture))
                 .ToList();
 
-            var gkScore = grades.FirstOrDefault(x => x.AssessmentsTypeName == "ĐĐG GK" && double.TryParse(x.Score, out _))?.Score;
-            var ckScore = grades.FirstOrDefault(x => x.AssessmentsTypeName == "ĐĐG CK" && double.TryParse(x.Score, out _))?.Score;
+            var gkScoreStr = grades.FirstOrDefault(x => x.AssessmentsTypeName == "ĐĐG GK" && !string.IsNullOrEmpty(x.Score) && double.TryParse(x.Score.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))?.Score;
+            var ckScoreStr = grades.FirstOrDefault(x => x.AssessmentsTypeName == "ĐĐG CK" && !string.IsNullOrEmpty(x.Score) && double.TryParse(x.Score.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out _))?.Score;
 
-            if (!txScores.Any() || gkScore == null || ckScore == null)
+            // Kiểm tra nếu không có điểm TX nào HOẶC không có điểm GK HOẶC không có điểm CK thì không tính
+            if (!txScores.Any() || gkScoreStr == null || ckScoreStr == null)
                 return null;
 
-            double diemGk = double.Parse(gkScore);
-            double diemCk = double.Parse(ckScore);
+            double diemGk = double.Parse(gkScoreStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture);
+            double diemCk = double.Parse(ckScoreStr.Replace(",", "."), System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture);
 
             double tongDiemTx = txScores.Sum();
-            double tb = (tongDiemTx + 2 * diemGk + 3 * diemCk) / (txScores.Count + 5);
+            // Công thức: (Tổng điểm TX + 2*GK + 3*CK) / (Số lượng cột TX + 2 + 3)
+            // Hoặc công thức của bạn có thể khác, ví dụ: (Trung bình cộng TX * hệ số TX + GK * hệ số GK + CK * hệ số CK) / (Tổng hệ số)
+            // Ví dụ với hệ số TX là 1, GK là 2, CK là 3 (tổng hệ số = số cột TX + 2 + 3)
+            if (txScores.Count == 0) return null; // Tránh chia cho 0 nếu không có điểm TX nào hợp lệ
+
+            double tb = (tongDiemTx + (2 * diemGk) + (3 * diemCk)) / (txScores.Count + 2 + 3);
 
             return Math.Round(tb, 2);
         }

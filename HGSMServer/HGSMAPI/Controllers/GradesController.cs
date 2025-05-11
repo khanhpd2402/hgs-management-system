@@ -169,5 +169,39 @@ namespace HGSMAPI.Controllers
 
             }
         }
+        [HttpGet("class-summary/{classId}/{semesterId}")]
+        [ProducesResponseType(typeof(ClassGradesSummaryDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status404NotFound)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status500InternalServerError)]
+        public async Task<IActionResult> GetClassGradesSummary(int classId, int semesterId)
+        {
+            // _logger?.LogInformation($"Yêu cầu xuất điểm tổng kết cho Lớp ID: {classId}, Học kỳ ID: {semesterId}");
+            try
+            {
+                var summary = await _gradeService.GetClassGradesSummaryAsync(classId, semesterId);
+                if (summary == null)
+                {
+                    // _logger?.LogWarning($"Không tìm thấy dữ liệu tổng kết cho Lớp ID: {classId}, Học kỳ ID: {semesterId}.");
+                    return NotFound(new ProblemDetails
+                    {
+                        Title = "Không tìm thấy dữ liệu",
+                        Detail = $"Không tìm thấy dữ liệu tổng kết cho Lớp ID: {classId} và Học kỳ ID: {semesterId}.",
+                        Status = StatusCodes.Status404NotFound,
+                        Instance = HttpContext.Request.Path
+                    });
+                }
+                return Ok(summary);
+            }
+            catch (Exception ex)
+            {
+                // _logger?.LogError(ex, $"Lỗi khi xuất điểm tổng kết cho Lớp ID: {classId}, Học kỳ ID: {semesterId}.");
+                return Problem(
+                    detail: ex.StackTrace, // Chỉ bao gồm StackTrace trong môi trường Development
+                    title: "Đã có lỗi không mong muốn xảy ra ở máy chủ khi xử lý yêu cầu xuất điểm tổng kết.",
+                    statusCode: StatusCodes.Status500InternalServerError,
+                    instance: HttpContext.Request.Path
+                );
+            }
+        }
     }
 }

@@ -44,5 +44,13 @@ namespace Infrastructure.Repositories.Implementtations
                 .Include(ta => ta.Subject)
                 .FirstOrDefaultAsync(ta => ta.AssignmentId == assignmentId);
         }
+        public async Task<List<TeachingAssignment>> GetAssignmentsByClassAndSemesterAsync(int classId, int semesterId)
+        {
+            return await _context.TeachingAssignments
+                .Include(ta => ta.Subject) 
+                .Where(ta => ta.ClassId == classId && ta.SemesterId == semesterId && ta.Subject != null)
+                .AsNoTracking()
+                .ToListAsync();
+        }
     }
 }
