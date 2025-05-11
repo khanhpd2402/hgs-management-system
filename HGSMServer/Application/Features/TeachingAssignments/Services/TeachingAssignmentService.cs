@@ -78,6 +78,7 @@ namespace Application.Services
                     throw new ArgumentException("Giáo viên chưa được phân công dạy môn học này.");
                 }
 
+                // Xóa các phân công hiện tại của giáo viên cho môn học và kỳ học này
                 var existingAssignments = await _context.TeachingAssignments
                     .Where(ta => ta.TeacherId == dto.TeacherId && ta.SubjectId == dto.SubjectId && ta.SemesterId == dto.SemesterId)
                     .ToListAsync();
@@ -89,6 +90,18 @@ namespace Application.Services
                     if (classEntity == null)
                     {
                         throw new ArgumentException("Lớp học không tồn tại.");
+                    }
+
+                    // Kiểm tra xem lớp này đã được phân công cho giáo viên khác dạy môn học này trong kỳ học này chưa
+                    var existingAssignmentForClass = await _context.TeachingAssignments
+                        .FirstOrDefaultAsync(ta => ta.ClassId == classAssignment.ClassId
+                                                && ta.SubjectId == dto.SubjectId
+                                                && ta.SemesterId == dto.SemesterId
+                                                && ta.TeacherId != dto.TeacherId); // Không tính chính giáo viên hiện tại (trong trường hợp cập nhật)
+
+                    if (existingAssignmentForClass != null)
+                    {
+                        throw new InvalidOperationException($"Lớp {classEntity.ClassName} đã được phân công cho giáo viên khác dạy môn {subject.SubjectName} trong học kỳ này.");
                     }
 
                     var newAssignment = new Domain.Models.TeachingAssignment
@@ -266,12 +279,30 @@ namespace Application.Services
                     throw new ArgumentException($"Giáo viên chưa được phân công dạy môn học với ID {dto.SubjectId}.");
                 }
 
+                var subject = await _context.Subjects.FindAsync(dto.SubjectId);
+                if (subject == null)
+                {
+                    throw new ArgumentException($"Môn học với ID {dto.SubjectId} không tồn tại.");
+                }
+
                 foreach (var classAssignment in dto.ClassAssignments)
                 {
                     var classEntity = await _context.Classes.FindAsync(classAssignment.ClassId);
                     if (classEntity == null)
                     {
                         throw new ArgumentException($"Lớp học với ID {classAssignment.ClassId} không tồn tại.");
+                    }
+
+                    // Kiểm tra xem lớp này đã được phân công cho giáo viên khác dạy môn học này trong kỳ học này chưa
+                    var existingAssignmentForClass = await _context.TeachingAssignments
+                        .FirstOrDefaultAsync(ta => ta.ClassId == classAssignment.ClassId
+                                                && ta.SubjectId == dto.SubjectId
+                                                && ta.SemesterId == semesterId
+                                                && ta.TeacherId != teacherId);
+
+                    if (existingAssignmentForClass != null)
+                    {
+                        throw new InvalidOperationException($"Lớp {classEntity.ClassName} đã được phân công cho giáo viên khác dạy môn {subject.SubjectName} trong học kỳ này.");
                     }
 
                     var newAssignment = new Domain.Models.TeachingAssignment

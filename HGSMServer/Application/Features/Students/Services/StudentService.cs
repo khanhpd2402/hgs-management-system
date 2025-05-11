@@ -857,7 +857,7 @@ namespace Application.Features.Students.Services
             Console.WriteLine("Deleted student successfully.");
         }
 
-        public async Task<List<string>> ImportStudentsFromExcelAsync(IFormFile file)
+        public async Task<List<string>> ImportStudentsFromExcelAsync(IFormFile file, int academicYearId)
         {
             Console.WriteLine("Starting import of students from Excel file...");
 
@@ -870,15 +870,15 @@ namespace Application.Features.Students.Services
             var importResults = new List<string>();
             var students = new List<Student>();
 
-            var currentDate = DateOnly.FromDateTime(DateTime.Now);
-            Console.WriteLine($"Current date for academic year check: {currentDate}");
-            var currentAcademicYear = await _studentRepository.GetCurrentAcademicYearAsync(currentDate);
-            if (currentAcademicYear == null)
+            // Kiểm tra xem academicYearId có hợp lệ không
+            var academicYear = await _context.Set<AcademicYear>()
+                .FirstOrDefaultAsync(ay => ay.AcademicYearId == academicYearId);
+            if (academicYear == null)
             {
-                Console.WriteLine("Error: No current academic year found.");
-                throw new Exception("Không tìm thấy năm học hiện tại.");
+                Console.WriteLine($"Error: Academic year with ID {academicYearId} not found.");
+                throw new Exception($"Không tìm thấy năm học với ID {academicYearId}.");
             }
-            Console.WriteLine($"Current AcademicYearId: {currentAcademicYear.AcademicYearId}");
+            Console.WriteLine($"Selected AcademicYearId: {academicYearId}");
 
             var data = ExcelImportHelper.ReadExcelData(file);
             Console.WriteLine($"Read {data.Count} rows from Excel file.");
@@ -917,13 +917,13 @@ namespace Application.Features.Students.Services
                         // Parse dates
                         Console.WriteLine($"Parsing DOB for {fullName}...");
                         var dob = DateHelper.ParseDate(dobStr);
-                        if (dob == default || dob > currentDate)
+                        if (dob == default)
                             throw new Exception("Ngày sinh không hợp lệ.");
                         Console.WriteLine($"Parsed DOB: {dob}");
 
                         Console.WriteLine($"Parsing Admission Date for {fullName}...");
                         var admissionDate = DateHelper.ParseDate(admissionDateStr);
-                        if (admissionDate == default || admissionDate > currentDate)
+                        if (admissionDate == default)
                             throw new Exception("Ngày nhập học không hợp lệ.");
                         Console.WriteLine($"Parsed Admission Date: {admissionDate}");
 
@@ -975,12 +975,12 @@ namespace Application.Features.Students.Services
                         new Domain.Models.StudentClass
                         {
                             ClassId = classEntity.ClassId,
-                            AcademicYearId = currentAcademicYear.AcademicYearId,
+                            AcademicYearId = academicYearId, // Sử dụng academicYearId từ tham số
                             RepeatingYear = false
                         }
                     }
                         };
-                        Console.WriteLine($"Created student entity for {fullName} with ClassId: {classEntity.ClassId}, AcademicYearId: {currentAcademicYear.AcademicYearId}");
+                        Console.WriteLine($"Created student entity for {fullName} with ClassId: {classEntity.ClassId}, AcademicYearId: {academicYearId}");
 
                         // Process parent information
                         bool hasParentInfo = row.Any(kvp => kvp.Key.Contains("cha") || kvp.Key.Contains("mẹ") || kvp.Key.Contains("người bảo hộ"));

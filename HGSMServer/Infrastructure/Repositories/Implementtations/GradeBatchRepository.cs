@@ -1,6 +1,7 @@
 ﻿using Domain.Models;
 using Microsoft.EntityFrameworkCore;
 using Infrastructure.Repositories.Interfaces;
+using Common.Constants;
 
 namespace Infrastructure.Repositories
 {
@@ -21,6 +22,13 @@ namespace Infrastructure.Repositories
         public async Task<GradeBatch?> GetByIdAsync(int id)
         {
             return await _context.GradeBatches.FindAsync(id);
+        }
+        public async Task<GradeBatch?> GetActiveAsync() 
+        {
+            var activeBatch = await _context.GradeBatches
+                .Include(gb => gb.Semester) 
+                .FirstOrDefaultAsync(g => g.Status == AppConstants.Status.ACTIVE);
+            return activeBatch;
         }
 
         public async Task<GradeBatch> AddAsync(GradeBatch entity)
