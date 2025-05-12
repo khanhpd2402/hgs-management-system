@@ -18,14 +18,53 @@ import {
 import ExportExcelGrade from './ExportExcelGrade';
 
 const GradePrincipal = () => {
-    const [semesterId, setSemesterId] = useState('7');
+    const [academicYearId, setAcademicYearId] = useState('');
+    const [semesterId, setSemesterId] = useState('');
     const [subjectId, setSubjectId] = useState('1');
     const [classId, setClassId] = useState('1');
+    const [academicYears, setAcademicYears] = useState([]);
+    const [semesters, setSemesters] = useState([]);
     const [grades, setGrades] = useState([]);
     const [subjects, setSubjects] = useState([]);
     const [classes, setClasses] = useState([]);
     const [loading, setLoading] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
+
+    // Fetch academic years
+    useEffect(() => {
+        const fetchAcademicYears = async () => {
+            try {
+                const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/AcademicYear');
+                setAcademicYears(response.data);
+                // Set default academic year (latest year)
+                if (response.data.length > 0) {
+                    setAcademicYearId(response.data[0].academicYearID.toString());
+                }
+            } catch (error) {
+                console.error('Lỗi khi tải danh sách năm học:', error);
+            }
+        };
+        fetchAcademicYears();
+    }, []);
+
+    // Fetch semesters when academic year changes
+    useEffect(() => {
+        const fetchSemesters = async () => {
+            if (academicYearId) {
+                try {
+                    const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Semester/by-academic-year/${academicYearId}`);
+                    setSemesters(response.data);
+                    // Set default semester
+                    if (response.data.length > 0) {
+                        setSemesterId(response.data[0].semesterID.toString());
+                    }
+                } catch (error) {
+                    console.error('Lỗi khi tải danh sách học kỳ:', error);
+                }
+            }
+        };
+        fetchSemesters();
+    }, [academicYearId]);
 
     // Fetch subjects
     useEffect(() => {
@@ -45,7 +84,6 @@ const GradePrincipal = () => {
         const fetchClasses = async () => {
             try {
                 const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Classes');
-                // Chỉ lấy các lớp đang hoạt động
                 const activeClasses = response.data.filter(c => c.status === 'Hoạt động');
                 setClasses(activeClasses);
             } catch (error) {
@@ -96,7 +134,7 @@ const GradePrincipal = () => {
         }
     }, [subjectId]);
 
-    // Nhóm điểm theo học sinh
+    // Group grades by student
     const groupedGrades = useMemo(() => {
         const grouped = grades.reduce((acc, { studentId, studentName, assessmentType, score }) => {
             if (!acc[studentId]) {
@@ -121,7 +159,7 @@ const GradePrincipal = () => {
         return Object.values(grouped);
     }, [grades]);
 
-    // Lấy danh sách các cột điểm thường xuyên
+    // Get list of regular assessment columns
     const regularColumns = useMemo(() => {
         const columns = new Set();
         groupedGrades.forEach(student => {
@@ -130,14 +168,12 @@ const GradePrincipal = () => {
         return Array.from(columns).sort();
     }, [groupedGrades]);
 
-    // Tính điểm tổng kết
+    // Calculate final grade
     const calculateFinalGrade = (student) => {
-        // Kiểm tra nếu không có điểm
         if (!student.regularAssessments && !student.GK && !student.CK) {
             return '-';
         }
 
-        // Tính điểm thường xuyên (trung bình cộng)
         const txScores = Object.values(student.regularAssessments)
             .filter(score => score !== null && score !== undefined && score !== '')
             .map(score => parseFloat(score));
@@ -146,14 +182,10 @@ const GradePrincipal = () => {
             ? txScores.reduce((sum, score) => sum + score, 0) / txScores.length
             : 0;
 
-        // Lấy điểm giữa kỳ và cuối kỳ
         const gkScore = student.GK ? parseFloat(student.GK) : 0;
         const ckScore = student.CK ? parseFloat(student.CK) : 0;
 
-        // Tính điểm tổng kết theo hệ số
         const finalGrade = (txAverage + gkScore * 2 + ckScore * 3) / 6;
-
-        // Làm tròn đến 1 chữ số thập phân
         return finalGrade.toFixed(1);
     };
 
@@ -241,13 +273,29 @@ const GradePrincipal = () => {
     return (
         <div className="container mx-auto p-4">
             <div className="flex gap-4 mb-6">
+                <Select value={academicYearId} onValueChange={setAcademicYearId}>
+                    <SelectTrigger className="w-[180px]">
+                        <SelectValue placeholder="Chọn năm học" />
+                    </SelectTrigger>
+                    <SelectContent>
+                        {academicYears.map(year => (
+                            <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
+                                {year.yearName}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+
                 <Select value={semesterId} onValueChange={setSemesterId}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Chọn học kỳ" />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="7">Học kỳ I</SelectItem>
-                        <SelectItem value="8">Học kỳ II</SelectItem>
+                        {semesters.map(semester => (
+                            <SelectItem key={semester.semesterID} value={semester.semesterID.toString()}>
+                                {semester.semesterName}
+                            </SelectItem>
+                        ))}
                     </SelectContent>
                 </Select>
 

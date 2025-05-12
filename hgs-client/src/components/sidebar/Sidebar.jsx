@@ -96,6 +96,12 @@ const menuItems = [
     path: "/system/grade-principal",
     roles: ["Hiệu trưởng", "Hiệu phó"],
   },
+  {
+    label: "Điểm tổng kết",
+    icon: BarChart,
+    path: "/system/grade-summary",
+    roles: ["Hiệu trưởng", "Hiệu phó"],
+  },
 
   {
     label: "Quản lý đơn xin nghỉ phép",

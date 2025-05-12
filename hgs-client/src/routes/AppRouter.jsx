@@ -14,7 +14,9 @@ import ErrorRouteComponent from "@/components/ErrorRouteComponent";
 import AddStudent from "@/pages/Student/Profile/AddStudent";
 import { Spinner } from "@/components/Spinner";
 import Home from "@/components/Home/Home";
-
+const GradeSummary = lazy(
+  () => import("@/pages/Grade/GradeSummary"),
+);
 const ScheduleTeacher = lazy(
   () => import("@/pages/Schedule/ScheduleTeacher/ScheduleTeacher"),
 );
@@ -305,6 +307,16 @@ const adminRouter = [
       <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
         <Suspense fallback={<Spinner />}>
           <GradePrincipal />
+        </Suspense>
+      </ProtectedRoute>
+    ),
+  },
+  {
+    path: "/system/grade-summary",
+    element: (
+      <ProtectedRoute requiredRoles={["Hiệu trưởng"]}>
+        <Suspense fallback={<Spinner />}>
+          <GradeSummary />
         </Suspense>
       </ProtectedRoute>
     ),
