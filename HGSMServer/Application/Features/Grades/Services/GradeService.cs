@@ -320,195 +320,191 @@ namespace Application.Features.Grades.Services
             return Math.Round(tb, 2);
         }
 
-        public async Task<ImportGradesResultDto> ImportGradesFromExcelAsync(int classId, int subjectId, int semesterId, IFormFile file)
+       public async Task<ImportGradesResultDto> ImportGradesFromExcelAsync(int classId, int subjectId, int semesterId, IFormFile file)
+{
+    var result = new ImportGradesResultDto();
+    int updatedCount = 0;
+    var gradesToUpdate = new List<Grade>();
+
+    var gradeBatch = await _gradeBatchRepository.GetActiveAsync();
+    
+    if (gradeBatch.SemesterId != semesterId)
+    {
+        result.IsSuccess = false;
+        result.Message = $"Học kỳ của đợt nhập điểm ({gradeBatch.SemesterId}) không khớp với học kỳ được chọn ({semesterId}).";
+        result.Errors.Add(result.Message);
+        return result;
+    }
+
+    var studentGradeImports = new List<StudentGradeImportDto>();
+
+    try
+    {
+        using (var stream = new MemoryStream())
         {
-            var result = new ImportGradesResultDto();
-            int updatedCount = 0;
-            var gradesToUpdate = new List<Grade>();
+            await file.CopyToAsync(stream);
+            stream.Position = 0;
 
-            var gradeBatch = await _gradeBatchRepository.GetActiveAsync();
-            
-            if (gradeBatch.SemesterId != semesterId)
+            using (var workbook = new XLWorkbook(stream))
             {
-                result.IsSuccess = false;
-                result.Message = $"Học kỳ của đợt nhập điểm ({gradeBatch.SemesterId}) không khớp với học kỳ được chọn ({semesterId}).";
-                result.Errors.Add(result.Message);
-                return result;
-            }
-
-            var studentGradeImports = new List<StudentGradeImportDto>();
-
-            try
-            {
-                using (var stream = new MemoryStream())
+                var worksheet = workbook.Worksheets.FirstOrDefault();
+                if (worksheet == null)
                 {
-                    await file.CopyToAsync(stream);
-                    stream.Position = 0;
+                    result.IsSuccess = false; result.Message = "File Excel trống hoặc không tìm thấy worksheet."; result.Errors.Add(result.Message); return result;
+                }
 
-                    using (var workbook = new XLWorkbook(stream))
+                const int mainHeaderRowIdx = 4; const int dataStartRowIdx = 5;
+                var lastRowUsed = worksheet.LastRowUsed()?.RowNumber() ?? 0;
+                var lastColUsed = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
+
+                if (lastRowUsed < dataStartRowIdx || lastColUsed == 0)
+                {
+                    result.IsSuccess = true; result.Message = "File Excel không có dữ liệu học sinh hoặc cấu trúc không đúng."; return result;
+                }
+
+                Dictionary<int, string> columnToMainHeaderMap = new Dictionary<int, string>();
+                string currentMainHeaderValue = "";
+                var mainHeaderRowObj = worksheet.Row(mainHeaderRowIdx);
+                for (int col = 1; col <= lastColUsed; col++)
+                {
+                    var cell = mainHeaderRowObj.Cell(col);
+                    string cellText = cell.GetString()?.Trim() ?? "";
+                    if (cell.IsMerged()) { var mergedRange = cell.MergedRange(); cellText = mergedRange.FirstCell().GetString()?.Trim() ?? ""; }
+                    if (!string.IsNullOrEmpty(cellText)) currentMainHeaderValue = cellText;
+                    columnToMainHeaderMap[col] = currentMainHeaderValue;
+                }
+
+                int studentIdCol = -1; var txColumnDetails = new List<Tuple<int, string>>();
+                int gkScoreCol = -1, ckScoreCol = -1;
+
+                for (int col = 1; col <= lastColUsed; col++)
+                {
+                    string mainHeader = columnToMainHeaderMap.ContainsKey(col) ? columnToMainHeaderMap[col] : string.Empty;
+
+                    if (mainHeader.Equals("Mã học sinh", StringComparison.OrdinalIgnoreCase)) studentIdCol = col;
+                    else if (mainHeader.Contains("TX", StringComparison.OrdinalIgnoreCase))
                     {
-                        var worksheet = workbook.Worksheets.FirstOrDefault();
-                        if (worksheet == null)
-                        {
-                            result.IsSuccess = false; result.Message = "File Excel trống hoặc không tìm thấy worksheet."; result.Errors.Add(result.Message); return result;
-                        }
-
-                        const int mainHeaderRowIdx = 4; const int subHeaderRowIdx = 5; const int dataStartRowIdx = 6;
-                        var lastRowUsed = worksheet.LastRowUsed()?.RowNumber() ?? 0;
-                        var lastColUsed = worksheet.LastColumnUsed()?.ColumnNumber() ?? 0;
-
-                        if (lastRowUsed < dataStartRowIdx || lastColUsed == 0)
-                        {
-                            result.IsSuccess = true; result.Message = "File Excel không có dữ liệu học sinh hoặc cấu trúc không đúng."; return result;
-                        }
-
-                        Dictionary<int, string> columnToMainHeaderMap = new Dictionary<int, string>();
-                        string currentMainHeaderValue = "";
-                        var mainHeaderRowObj = worksheet.Row(mainHeaderRowIdx);
-                        for (int col = 1; col <= lastColUsed; col++)
-                        {
-                            var cell = mainHeaderRowObj.Cell(col);
-                            string cellText = cell.GetString()?.Trim() ?? "";
-                            if (cell.IsMerged()) { var mergedRange = cell.MergedRange(); cellText = mergedRange.FirstCell().GetString()?.Trim() ?? ""; }
-                            if (!string.IsNullOrEmpty(cellText)) currentMainHeaderValue = cellText;
-                            columnToMainHeaderMap[col] = currentMainHeaderValue;
-                        }
-
-                        List<string> subHeadersList = new List<string>();
-                        var subHeaderRowObj = worksheet.Row(subHeaderRowIdx);
-                        for (int col = 1; col <= lastColUsed; col++) { subHeadersList.Add(subHeaderRowObj.Cell(col).GetString()?.Trim() ?? ""); }
-
-                        int studentIdCol = -1; var txColumnDetails = new List<Tuple<int, string>>();
-                        int gkScoreCol = -1, ckScoreCol = -1;
-
-                        for (int col = 1; col <= lastColUsed; col++)
-                        {
-                            string mainHeader = columnToMainHeaderMap.ContainsKey(col) ? columnToMainHeaderMap[col] : string.Empty;
-
-                            if (mainHeader.Equals("Mã học sinh", StringComparison.OrdinalIgnoreCase)) studentIdCol = col;
-                            else if (mainHeader.Contains("TX", StringComparison.OrdinalIgnoreCase))
-                            {
-                                    string assessmentName = $"ĐĐG {mainHeader}";
-                                    txColumnDetails.Add(Tuple.Create(col, assessmentName));
-                            }
-                            else if (mainHeader.Equals("ĐĐG GK", StringComparison.OrdinalIgnoreCase)) gkScoreCol = col;
-                            else if (mainHeader.Equals("ĐĐG CK", StringComparison.OrdinalIgnoreCase)) ckScoreCol = col;
-                            else if (mainHeader.Equals("Đánh giá", StringComparison.OrdinalIgnoreCase))
-                            {
-                                string assessmentName = "ĐĐG TX 1";
-                                txColumnDetails.Add(Tuple.Create(col, assessmentName));
-                            }
-                        }
-
-                        if (studentIdCol == -1)
-                        {
-                            result.IsSuccess = false; result.Message = "Lỗi cấu trúc file: Không tìm thấy cột 'Mã học sinh'."; result.Errors.Add(result.Message); return result;
-                        }
-
-                        for (int rowIdx = dataStartRowIdx; rowIdx <= lastRowUsed; rowIdx++)
-                        {
-                            var currentRow = worksheet.Row(rowIdx);
-                            int studentIdValue;
-                            var studentIdCell = currentRow.Cell(studentIdCol);
-                            if (studentIdCell.DataType == XLDataType.Number && studentIdCell.TryGetValue(out double studentIdDouble)) studentIdValue = (int)studentIdDouble;
-                            else if (studentIdCell.DataType == XLDataType.Text && int.TryParse(studentIdCell.GetString()?.Trim(), out int parsedInt)) studentIdValue = parsedInt;
-                            else { var cellValueForError = studentIdCell.GetString()?.Trim(); result.Errors.Add($"Lỗi định dạng Mã học sinh (StudentId) ở dòng {rowIdx}: '{cellValueForError}'. Mong đợi số nguyên."); continue; }
-                            if (studentIdValue <= 0) { result.Errors.Add($"Mã học sinh (StudentId) không hợp lệ ở dòng {rowIdx}: '{studentIdValue}'."); continue; }
-
-                            var studentImport = new StudentGradeImportDto { StudentId = studentIdValue };
-                            foreach (var txColDetail in txColumnDetails)
-                            {
-                                var score = currentRow.Cell(txColDetail.Item1).GetString()?.Trim();
-                                if (!string.IsNullOrWhiteSpace(score)) studentImport.GradeEntries.Add(new GradeEntryDto { AssessmentsTypeName = txColDetail.Item2, Score = score });
-                            }
-                            if (gkScoreCol != -1) { var score = currentRow.Cell(gkScoreCol).GetString()?.Trim(); if (!string.IsNullOrWhiteSpace(score)) studentImport.GradeEntries.Add(new GradeEntryDto { AssessmentsTypeName = "ĐĐG GK", Score = score }); }
-                            if (ckScoreCol != -1) { var score = currentRow.Cell(ckScoreCol).GetString()?.Trim(); if (!string.IsNullOrWhiteSpace(score)) studentImport.GradeEntries.Add(new GradeEntryDto { AssessmentsTypeName = "ĐĐG CK", Score = score }); }
-
-
-                            if (studentImport.GradeEntries.Any()) 
-                                studentGradeImports.Add(studentImport);
-                        }
+                            string assessmentName = $"ĐĐG {mainHeader}";
+                            txColumnDetails.Add(Tuple.Create(col, assessmentName));
+                    }
+                    else if (mainHeader.Equals("ĐĐG GK", StringComparison.OrdinalIgnoreCase)) gkScoreCol = col;
+                    else if (mainHeader.Equals("ĐĐG CK", StringComparison.OrdinalIgnoreCase)) ckScoreCol = col;
+                    else if (mainHeader.Equals("Đánh giá", StringComparison.OrdinalIgnoreCase))
+                    {
+                        string assessmentName = "ĐĐG TX 1";
+                        txColumnDetails.Add(Tuple.Create(col, assessmentName));
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                result.IsSuccess = false; result.Message = "Có lỗi xảy ra trong quá trình đọc file Excel."; result.Errors.Add($"Chi tiết: {ex.Message} (StackTrace: {ex.StackTrace})"); return result;
-            }
 
-            if (!studentGradeImports.Any() && !result.Errors.Any())
-            {
-                result.IsSuccess = true; result.Message = "Không tìm thấy dữ liệu học sinh trong file Excel để xử lý."; return result;
-            }
-            if (result.Errors.Any() && !result.IsSuccess) return result;
-
-            var teachingAssignment = await _teachingAssignmentRepository.GetAssignmentByClassSubjectTeacherAsync(classId, subjectId, semesterId);
-            if (teachingAssignment == null)
-            {
-                result.IsSuccess = false; result.Message = $"Không tìm thấy phân công giảng dạy cho Lớp ID: {classId}, Môn học ID: {subjectId}, Học kỳ ID: {semesterId}."; result.Errors.Add(result.Message); return result;
-            }
-            int assignmentId = teachingAssignment.AssignmentId;
-
-            foreach (var studentImport in studentGradeImports)
-            {
-                var studentClass = await _studentClassRepository.GetStudentClassByStudentAndClassIdAsync(studentImport.StudentId, classId);
-                if (studentClass == null)
+                if (studentIdCol == -1)
                 {
-                    result.Errors.Add($"Học sinh với ID '{studentImport.StudentId}' (Lớp ID: {classId}) không tìm thấy. Dữ liệu cho học sinh này sẽ được bỏ qua."); continue;
+                    result.IsSuccess = false; result.Message = "Lỗi cấu trúc file: Không tìm thấy cột 'Mã học sinh'."; result.Errors.Add(result.Message); return result;
                 }
-                int studentClassId = studentClass.Id;
 
-                foreach (var gradeEntry in studentImport.GradeEntries)
+                for (int rowIdx = dataStartRowIdx; rowIdx <= lastRowUsed; rowIdx++)
                 {
-                    var existingGrade = await _gradeRepository.GetGradeAsync(studentClassId, assignmentId, gradeBatch.BatchId, gradeEntry.AssessmentsTypeName);
-                    if (existingGrade == null)
+                    var currentRow = worksheet.Row(rowIdx);
+                    int studentIdValue;
+                    var studentIdCell = currentRow.Cell(studentIdCol);
+                    if (studentIdCell.DataType == XLDataType.Number && studentIdCell.TryGetValue(out double studentIdDouble)) studentIdValue = (int)studentIdDouble;
+                    else if (studentIdCell.DataType == XLDataType.Text && int.TryParse(studentIdCell.GetString()?.Trim(), out int parsedInt)) studentIdValue = parsedInt;
+                    else { var cellValueForError = studentIdCell.GetString()?.Trim(); result.Errors.Add($"Lỗi định dạng Mã học sinh (StudentId) ở dòng {rowIdx}: '{cellValueForError}'. Mong đợi số nguyên."); continue; }
+                    if (studentIdValue <= 0) { result.Errors.Add($"Mã học sinh (StudentId) không hợp lệ ở dòng {rowIdx}: '{studentIdValue}'."); continue; }
+
+                    var studentImport = new StudentGradeImportDto { StudentId = studentIdValue };
+                    foreach (var txColDetail in txColumnDetails)
                     {
-                        result.Errors.Add($"Lỗi dữ liệu: Không tìm thấy bản ghi điểm có sẵn cho HS ID '{studentImport.StudentId}', Loại điểm: '{gradeEntry.AssessmentsTypeName}', Đợt ID: {gradeBatch.BatchId}."); continue;
+                        var score = currentRow.Cell(txColDetail.Item1).GetString()?.Trim();
+                        if (!string.IsNullOrWhiteSpace(score)) studentImport.GradeEntries.Add(new GradeEntryDto { AssessmentsTypeName = txColDetail.Item2, Score = score });
                     }
+                    if (gkScoreCol != -1) { var score = currentRow.Cell(gkScoreCol).GetString()?.Trim(); if (!string.IsNullOrWhiteSpace(score)) studentImport.GradeEntries.Add(new GradeEntryDto { AssessmentsTypeName = "ĐĐG GK", Score = score }); }
+                    if (ckScoreCol != -1) { var score = currentRow.Cell(ckScoreCol).GetString()?.Trim(); if (!string.IsNullOrWhiteSpace(score)) studentImport.GradeEntries.Add(new GradeEntryDto { AssessmentsTypeName = "ĐĐG CK", Score = score }); }
 
-                    if (existingGrade.Score != gradeEntry.Score) // Chỉ cập nhật nếu điểm số thay đổi
-                    {
-                        existingGrade.Score = gradeEntry.Score;
-                        if (!gradesToUpdate.Any(g => g.GradeId == existingGrade.GradeId)) gradesToUpdate.Add(existingGrade);
-                    }
+
+                    if (studentImport.GradeEntries.Any()) 
+                        studentGradeImports.Add(studentImport);
                 }
             }
-
-            if (gradesToUpdate.Any())
-            {
-                var distinctGradesToUpdate = gradesToUpdate.DistinctBy(g => g.GradeId).ToList();
-                try
-                {
-                    await _gradeRepository.UpdateMultipleGradesAsync(distinctGradesToUpdate);
-                    updatedCount = distinctGradesToUpdate.Count;
-                }
-                catch (Exception ex)
-                {
-                    result.IsSuccess = false; result.Message = "Có lỗi xảy ra trong quá trình cập nhật điểm vào cơ sở dữ liệu."; result.Errors.Add($"Chi tiết: {ex.Message}"); return result;
-                }
-            }
-
-            bool hasCriticalDataErrors = result.Errors.Any(e => e.StartsWith("Lỗi dữ liệu:"));
-            if (hasCriticalDataErrors)
-            {
-                result.IsSuccess = false; result.Message = $"Quá trình cập nhật điểm gặp lỗi về dữ liệu. {updatedCount} mục điểm có thể đã được cập nhật. Vui lòng kiểm tra danh sách lỗi.";
-            }
-            else if (updatedCount > 0)
-            {
-                result.IsSuccess = true; result.Message = $"Cập nhật điểm thành công. Đã cập nhật thông tin cho {updatedCount} mục điểm.";
-                if (result.Errors.Any()) result.Message += " Một số mục có cảnh báo, vui lòng kiểm tra danh sách.";
-            }
-            else if (!result.Errors.Any())
-            {
-                result.IsSuccess = true; result.Message = "Không có thay đổi nào về điểm được phát hiện trong file so với dữ liệu hiện tại.";
-            }
-            else
-            {
-                result.IsSuccess = true; result.Message = "Không có điểm nào được cập nhật. Vui lòng kiểm tra danh sách cảnh báo/lỗi.";
-            }
-            result.UpdatedRecords = updatedCount;
-            return result;
         }
+    }
+    catch (Exception ex)
+    {
+        result.IsSuccess = false; result.Message = "Có lỗi xảy ra trong quá trình đọc file Excel."; result.Errors.Add($"Chi tiết: {ex.Message} (StackTrace: {ex.StackTrace})"); return result;
+    }
+
+    if (!studentGradeImports.Any() && !result.Errors.Any())
+    {
+        result.IsSuccess = true; result.Message = "Không tìm thấy dữ liệu học sinh trong file Excel để xử lý."; return result;
+    }
+    if (result.Errors.Any() && !result.IsSuccess) return result;
+
+    var teachingAssignment = await _teachingAssignmentRepository.GetAssignmentByClassSubjectTeacherAsync(classId, subjectId, semesterId);
+    if (teachingAssignment == null)
+    {
+        result.IsSuccess = false; result.Message = $"Không tìm thấy phân công giảng dạy cho Lớp ID: {classId}, Môn học ID: {subjectId}, Học kỳ ID: {semesterId}."; result.Errors.Add(result.Message); return result;
+    }
+    int assignmentId = teachingAssignment.AssignmentId;
+
+    foreach (var studentImport in studentGradeImports)
+    {
+        var studentClass = await _studentClassRepository.GetStudentClassByStudentAndClassIdAsync(studentImport.StudentId, classId);
+        if (studentClass == null)
+        {
+            result.Errors.Add($"Học sinh với ID '{studentImport.StudentId}' (Lớp ID: {classId}) không tìm thấy. Dữ liệu cho học sinh này sẽ được bỏ qua."); continue;
+        }
+        int studentClassId = studentClass.Id;
+
+        foreach (var gradeEntry in studentImport.GradeEntries)
+        {
+            var existingGrade = await _gradeRepository.GetGradeAsync(studentClassId, assignmentId, gradeBatch.BatchId, gradeEntry.AssessmentsTypeName);
+            if (existingGrade == null)
+            {
+                result.Errors.Add($"Lỗi dữ liệu: Không tìm thấy bản ghi điểm có sẵn cho HS ID '{studentImport.StudentId}', Loại điểm: '{gradeEntry.AssessmentsTypeName}', Đợt ID: {gradeBatch.BatchId}."); continue;
+            }
+
+            if (existingGrade.Score != gradeEntry.Score) // Chỉ cập nhật nếu điểm số thay đổi
+            {
+                existingGrade.Score = gradeEntry.Score;
+                if (!gradesToUpdate.Any(g => g.GradeId == existingGrade.GradeId)) gradesToUpdate.Add(existingGrade);
+            }
+        }
+    }
+
+    if (gradesToUpdate.Any())
+    {
+        var distinctGradesToUpdate = gradesToUpdate.DistinctBy(g => g.GradeId).ToList();
+        try
+        {
+            await _gradeRepository.UpdateMultipleGradesAsync(distinctGradesToUpdate);
+            updatedCount = distinctGradesToUpdate.Count;
+        }
+        catch (Exception ex)
+        {
+            result.IsSuccess = false; result.Message = "Có lỗi xảy ra trong quá trình cập nhật điểm vào cơ sở dữ liệu."; result.Errors.Add($"Chi tiết: {ex.Message}"); return result;
+        }
+    }
+
+    bool hasCriticalDataErrors = result.Errors.Any(e => e.StartsWith("Lỗi dữ liệu:"));
+    if (hasCriticalDataErrors)
+    {
+        result.IsSuccess = false; result.Message = $"Quá trình cập nhật điểm gặp lỗi về dữ liệu. {updatedCount} mục điểm có thể đã được cập nhật. Vui lòng kiểm tra danh sách lỗi.";
+    }
+    else if (updatedCount > 0)
+    {
+        result.IsSuccess = true; result.Message = $"Cập nhật điểm thành công. Đã cập nhật thông tin cho {updatedCount} mục điểm.";
+        if (result.Errors.Any()) result.Message += " Một số mục có cảnh báo, vui lòng kiểm tra danh sách.";
+    }
+    else if (!result.Errors.Any())
+    {
+        result.IsSuccess = true; result.Message = "Không có thay đổi nào về điểm được phát hiện trong file so với dữ liệu hiện tại.";
+    }
+    else
+    {
+        result.IsSuccess = true; result.Message = "Không có điểm nào được cập nhật. Vui lòng kiểm tra danh sách cảnh báo/lỗi.";
+    }
+    result.UpdatedRecords = updatedCount;
+    return result;
+}
 
     }
 }
