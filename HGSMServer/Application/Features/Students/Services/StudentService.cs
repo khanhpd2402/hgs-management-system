@@ -927,12 +927,6 @@ namespace Application.Features.Students.Services
                             throw new Exception("Ngày nhập học không hợp lệ.");
                         Console.WriteLine($"Parsed Admission Date: {admissionDate}");
 
-                        // Validate class
-                        var validClasses = new[] { "6A", "6B", "7A", "7B", "7C", "8A", "8B", "9A", "9B" };
-                        if (!validClasses.Contains(className.ToUpper()))
-                            throw new Exception($"Tên lớp '{className}' không hợp lệ.");
-                        Console.WriteLine($"Validated class name: {className}");
-
                         Console.WriteLine($"Fetching class entity for {className}...");
                         var classEntity = await _classRepository.GetClassByNameAsync(className.ToUpper());
                         if (classEntity == null)
