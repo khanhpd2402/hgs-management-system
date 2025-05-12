@@ -27,31 +27,35 @@ const GradeSummary = () => {
     const [academicYearId, setAcademicYearId] = useState('');
     const [semesterId, setSemesterId] = useState('');
     const [classId, setClassId] = useState('');
-    const [academicYears, setAcademicYears] = useState([]);
     const [semesters, setSemesters] = useState([]);
     const [classes, setClasses] = useState([]);
     const [classSummary, setClassSummary] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Fetch academic years
-    useEffect(() => {
-        const fetchAcademicYears = async () => {
+    // Xóa useEffect lắng nghe localStorage change vì không cần thiết nữa
+
+    // Hàm xử lý khi click vào select học kỳ
+    const handleSemesterSelectClick = async () => {
+        const storedAcademicYearId = localStorage.getItem('selectedAcademicYearID');
+        if (storedAcademicYearId) {
+            setAcademicYearId(storedAcademicYearId);
             try {
-                const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/AcademicYear', {
+                const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Semester/by-academic-year/${storedAcademicYearId}`, {
                     headers: {
                         Authorization: `Bearer ${getAuthToken()}`
                     }
                 });
-                setAcademicYears(response.data);
+                setSemesters(response.data);
                 if (response.data.length > 0) {
-                    setAcademicYearId(response.data[0].academicYearID.toString());
+                    setSemesterId(response.data[0].semesterID.toString());
+                } else {
+                    setSemesterId('');
                 }
             } catch (error) {
-                console.error('Lỗi khi tải danh sách năm học:', error);
+                console.error('Lỗi khi tải danh sách học kỳ:', error);
             }
-        };
-        fetchAcademicYears();
-    }, []);
+        }
+    };
 
     // Fetch semesters when academic year changes
     useEffect(() => {
@@ -86,7 +90,10 @@ const GradeSummary = () => {
                         Authorization: `Bearer ${getAuthToken()}`
                     }
                 });
-                const activeClasses = response.data.filter(c => c.status === 'Hoạt động');
+                const activeClasses = response.data.filter(c =>
+                    c.status.toLowerCase() === 'hoạt động' ||
+                    c.status.toLowerCase() === 'Hoạt động'.toLowerCase()
+                );
                 setClasses(activeClasses);
                 if (activeClasses.length > 0) {
                     setClassId(activeClasses[0].classId.toString());
@@ -247,20 +254,13 @@ const GradeSummary = () => {
     return (
         <div className="container mx-auto p-4">
             <div className="flex gap-4 mb-6">
-                <Select value={academicYearId} onValueChange={setAcademicYearId}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Chọn năm học" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {academicYears.map(year => (
-                            <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
-                                {year.yearName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Select value={semesterId} onValueChange={setSemesterId} disabled={!academicYearId}>
+                <Select
+                    value={semesterId}
+                    onValueChange={setSemesterId}
+                    onOpenChange={(open) => {
+                        if (open) handleSemesterSelectClick();
+                    }}
+                >
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Chọn học kỳ" />
                     </SelectTrigger>
@@ -288,58 +288,116 @@ const GradeSummary = () => {
             </div>
 
             {loading ? (
-                <div>Đang tải...</div>
+                <div className="flex items-center justify-center min-h-[200px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
             ) : classSummary && classSummary.students && classSummary.students.length > 0 ? (
-                <div>
-                    <div className="mb- Schmidt4">
-                        <h2 className="text-lg font-semibold">Tổng kết điểm lớp: {classSummary.className}</h2>
-                        <p>Năm học: {academicYearName}</p>
-                        <p>Học kỳ: {semesterName}</p>
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Tổng kết điểm lớp: {classSummary.className}</h2>
+                        <div className="text-gray-600">
+                            <p className="mb-1">Năm học: {academicYearName}</p>
+                            <p>Học kỳ: {semesterName}</p>
+                        </div>
                     </div>
 
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead className="w-[50px]">STT</TableHead>
-                                <TableHead className="w-[200px]">Họ và tên</TableHead>
-                                {getSubjects().map(subject => (
-                                    <TableHead key={subject.subjectId} className="text-center">
-                                        {subject.subjectName}
+                    <div className="overflow-x-auto">
+                        <Table className="w-full border-collapse min-w-[800px]">
+                            <TableHeader>
+                                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                    <TableHead className="w-[50px] py-4 px-4 text-left font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap">
+                                        STT
                                     </TableHead>
-                                ))}
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {classSummary.students.map((student, index) => (
-                                <TableRow key={student.studentId}>
-                                    <TableCell>{index + 1}</TableCell>
-                                    <TableCell>{student.fullName}</TableCell>
-                                    {getSubjects().map(subject => {
-                                        const result = student.subjectResults.find(
-                                            res => res.subjectId === subject.subjectId
-                                        );
-                                        return (
-                                            <TableCell key={subject.subjectId} className="text-center">
-                                                {result?.finalScore || '-'}
-                                            </TableCell>
-                                        );
-                                    })}
+                                    <TableHead className="w-[200px] py-4 px-4 text-left font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap">
+                                        Họ và tên
+                                    </TableHead>
+                                    {getSubjects().map(subject => (
+                                        <TableHead
+                                            key={subject.subjectId}
+                                            className="py-4 px-4 text-center font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap min-w-[100px]"
+                                        >
+                                            {subject.subjectName}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    <div className="mt-4">
+                            </TableHeader>
+                            <TableBody>
+                                {classSummary.students.map((student, index) => (
+                                    <TableRow
+                                        key={student.studentId}
+                                        className="hover:bg-gray-50 transition-colors"
+                                    >
+                                        <TableCell className="py-4 px-4 text-gray-500 border-b border-gray-200 whitespace-nowrap">
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell className="py-4 px-4 font-medium text-gray-900 border-b border-gray-200 whitespace-nowrap">
+                                            {student.fullName}
+                                        </TableCell>
+                                        {getSubjects().map(subject => {
+                                            const result = student.subjectResults.find(
+                                                res => res.subjectId === subject.subjectId
+                                            );
+                                            const score = result?.finalScore;
+                                            const isGradeTypeEvaluation = result?.gradeType === 'Đánh giá';
+
+                                            // Xử lý điểm số có dấu phẩy
+                                            const numericScore = typeof score === 'string' && !isGradeTypeEvaluation
+                                                ? parseFloat(score.replace(',', '.'))
+                                                : null;
+
+                                            return (
+                                                <TableCell
+                                                    key={subject.subjectId}
+                                                    className={`py-4 px-4 text-center border-b border-gray-200 whitespace-nowrap ${isGradeTypeEvaluation
+                                                        ? score === 'Đạt'
+                                                            ? 'text-green-600 font-medium'
+                                                            : score === 'Không đạt'
+                                                                ? 'text-red-600 font-medium'
+                                                                : 'text-gray-400'
+                                                        : numericScore >= 8
+                                                            ? 'text-green-600 font-medium'
+                                                            : numericScore >= 6.5
+                                                                ? 'text-blue-600 font-medium'
+                                                                : numericScore >= 5
+                                                                    ? 'text-yellow-600 font-medium'
+                                                                    : numericScore
+                                                                        ? 'text-red-600 font-medium'
+                                                                        : 'text-gray-400'
+                                                        }`}
+                                                >
+                                                    {isGradeTypeEvaluation
+                                                        ? score || '-'
+                                                        : (score ? score.toString().replace('.', ',') : '-')}
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <div className="mt-6 flex gap-4">
                         <button
                             onClick={handleExportClassGrades}
-                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
+                            className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                             disabled={!classId || !semesterId || loading || !classSummary?.students.length}
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586L7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+                            </svg>
                             In điểm cả lớp
                         </button>
                     </div>
                 </div>
             ) : (
-                <div>Chưa có dữ liệu tổng kết</div>
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">Chưa có dữ liệu tổng kết</h3>
+                    <p className="mt-1 text-sm text-gray-500">Vui lòng chọn lớp và học kỳ để xem bảng điểm</p>
+                </div>
             )}
         </div>
     );

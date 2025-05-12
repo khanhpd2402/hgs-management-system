@@ -37,7 +37,7 @@ const mapAssessmentType = (field) => {
 const getShortAssessmentName = (assessmentType) => {
   if (assessmentType.startsWith('ĐĐG TX')) {
     const index = assessmentType.split(' ')[2];
-    return `TX${index}`;
+    return `TX ${index}`;
   }
   return { 'ĐĐG GK': 'GK', 'ĐĐG CK': 'CK' }[assessmentType] || assessmentType;
 };

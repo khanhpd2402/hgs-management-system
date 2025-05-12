@@ -22,7 +22,6 @@ const GradePrincipal = () => {
     const [semesterId, setSemesterId] = useState('');
     const [subjectId, setSubjectId] = useState('1');
     const [classId, setClassId] = useState('1');
-    const [academicYears, setAcademicYears] = useState([]);
     const [semesters, setSemesters] = useState([]);
     const [grades, setGrades] = useState([]);
     const [subjects, setSubjects] = useState([]);
@@ -30,41 +29,24 @@ const GradePrincipal = () => {
     const [loading, setLoading] = useState(false);
     const [selectedSubject, setSelectedSubject] = useState(null);
 
-    // Fetch academic years
-    useEffect(() => {
-        const fetchAcademicYears = async () => {
+    // Fetch semesters when clicking on semester select
+    const handleSemesterSelectClick = async () => {
+        const storedAcademicYearId = localStorage.getItem('selectedAcademicYearID');
+        if (storedAcademicYearId) {
+            setAcademicYearId(storedAcademicYearId);
             try {
-                const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/AcademicYear');
-                setAcademicYears(response.data);
-                // Set default academic year (latest year)
+                const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Semester/by-academic-year/${storedAcademicYearId}`);
+                setSemesters(response.data);
                 if (response.data.length > 0) {
-                    setAcademicYearId(response.data[0].academicYearID.toString());
+                    setSemesterId(response.data[0].semesterID.toString());
+                } else {
+                    setSemesterId('');
                 }
             } catch (error) {
-                console.error('Lỗi khi tải danh sách năm học:', error);
+                console.error('Lỗi khi tải danh sách học kỳ:', error);
             }
-        };
-        fetchAcademicYears();
-    }, []);
-
-    // Fetch semesters when academic year changes
-    useEffect(() => {
-        const fetchSemesters = async () => {
-            if (academicYearId) {
-                try {
-                    const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Semester/by-academic-year/${academicYearId}`);
-                    setSemesters(response.data);
-                    // Set default semester
-                    if (response.data.length > 0) {
-                        setSemesterId(response.data[0].semesterID.toString());
-                    }
-                } catch (error) {
-                    console.error('Lỗi khi tải danh sách học kỳ:', error);
-                }
-            }
-        };
-        fetchSemesters();
-    }, [academicYearId]);
+        }
+    };
 
     // Fetch subjects
     useEffect(() => {
@@ -84,7 +66,10 @@ const GradePrincipal = () => {
         const fetchClasses = async () => {
             try {
                 const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Classes');
-                const activeClasses = response.data.filter(c => c.status === 'Hoạt động');
+                const activeClasses = response.data.filter(c =>
+                    c.status.toLowerCase() === 'hoạt động' ||
+                    c.status.toLowerCase() === 'Hoạt động'.toLowerCase()
+                );
                 setClasses(activeClasses);
             } catch (error) {
                 console.error('Lỗi khi tải danh sách lớp học:', error);
@@ -147,7 +132,7 @@ const GradePrincipal = () => {
                 };
             }
             if (assessmentType.startsWith('ĐĐG TX')) {
-                const shortName = assessmentType.replace('ĐĐG TX ', 'TX');
+                const shortName = assessmentType.replace('ĐĐG TX ', 'TX ');
                 acc[studentId].regularAssessments[shortName] = score;
             } else if (assessmentType === 'ĐĐG GK') {
                 acc[studentId].GK = score;
@@ -240,7 +225,7 @@ const GradePrincipal = () => {
                             <TableCell>{index + 1}</TableCell>
                             <TableCell>{student.studentId}</TableCell>
                             <TableCell>{student.studentName}</TableCell>
-                            <TableCell>{student.regularAssessments['TX1'] || '-'}</TableCell>
+                            <TableCell>{student.regularAssessments['TX 1'] || '-'}</TableCell>
                         </TableRow>
                     ))}
                 </TableBody>
@@ -273,20 +258,9 @@ const GradePrincipal = () => {
     return (
         <div className="container mx-auto p-4">
             <div className="flex gap-4 mb-6">
-                <Select value={academicYearId} onValueChange={setAcademicYearId}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Chọn năm học" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {academicYears.map(year => (
-                            <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
-                                {year.yearName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Select value={semesterId} onValueChange={setSemesterId}>
+                <Select value={semesterId} onValueChange={setSemesterId} onOpenChange={(open) => {
+                    if (open) handleSemesterSelectClick();
+                }}>
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Chọn học kỳ" />
                     </SelectTrigger>

@@ -27,31 +27,35 @@ const GradeSummary = () => {
     const [academicYearId, setAcademicYearId] = useState('');
     const [semesterId, setSemesterId] = useState('');
     const [classId, setClassId] = useState('');
-    const [academicYears, setAcademicYears] = useState([]);
     const [semesters, setSemesters] = useState([]);
     const [classes, setClasses] = useState([]);
     const [classSummary, setClassSummary] = useState(null);
     const [loading, setLoading] = useState(false);
 
-    // Fetch academic years
-    useEffect(() => {
-        const fetchAcademicYears = async () => {
+    // Xóa useEffect lắng nghe localStorage change vì không cần thiết nữa
+
+    // Hàm xử lý khi click vào select học kỳ
+    const handleSemesterSelectClick = async () => {
+        const storedAcademicYearId = localStorage.getItem('selectedAcademicYearID');
+        if (storedAcademicYearId) {
+            setAcademicYearId(storedAcademicYearId);
             try {
-                const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/AcademicYear', {
+                const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Semester/by-academic-year/${storedAcademicYearId}`, {
                     headers: {
                         Authorization: `Bearer ${getAuthToken()}`
                     }
                 });
-                setAcademicYears(response.data);
+                setSemesters(response.data);
                 if (response.data.length > 0) {
-                    setAcademicYearId(response.data[0].academicYearID.toString());
+                    setSemesterId(response.data[0].semesterID.toString());
+                } else {
+                    setSemesterId('');
                 }
             } catch (error) {
-                console.error('Lỗi khi tải danh sách năm học:', error);
+                console.error('Lỗi khi tải danh sách học kỳ:', error);
             }
-        };
-        fetchAcademicYears();
-    }, []);
+        }
+    };
 
     // Fetch semesters when academic year changes
     useEffect(() => {
@@ -86,7 +90,10 @@ const GradeSummary = () => {
                         Authorization: `Bearer ${getAuthToken()}`
                     }
                 });
-                const activeClasses = response.data.filter(c => c.status === 'Hoạt động');
+                const activeClasses = response.data.filter(c =>
+                    c.status.toLowerCase() === 'hoạt động' ||
+                    c.status.toLowerCase() === 'Hoạt động'.toLowerCase()
+                );
                 setClasses(activeClasses);
                 if (activeClasses.length > 0) {
                     setClassId(activeClasses[0].classId.toString());
@@ -244,23 +251,113 @@ const GradeSummary = () => {
         document.body.removeChild(printContent);
     };
 
+    // Thêm hàm mới để in bảng điểm dạng bảng
+    const printGradeTable = () => {
+        const printContent = document.createElement('div');
+        printContent.className = 'print-content';
+
+        // Tạo HTML cho bảng điểm
+        const tableHTML = `
+            <div style="font-family: Times New Roman, serif; padding: 15px; width: 297mm; margin: auto;">
+                <div style="text-align: center; margin-bottom: 15px;">
+                    <div style="display: flex; justify-content: space-between; font-size: 13px;">
+                        <div>
+                            <p style="margin: 0;">SỞ GIÁO DỤC & ĐÀO TẠO Nam Định</p>
+                            <p style="margin: 0;">TRƯỜNG THCS Hải Giang</p>
+                            <p style="margin: 0;">---*---</p>
+                        </div>
+                        <div>
+                            <p style="margin: 0;">CỘNG HÒA XÃ HỘI CHỦ NGHĨA VIỆT NAM</p>
+                            <p style="margin: 0;">Độc lập - Tự do - Hạnh phúc</p>
+                            <p style="margin: 0;">---o0o---</p>
+                        </div>
+                    </div>
+                    <h2 style="margin: 15px 0; font-size: 16px;">BẢNG ĐIỂM LỚP ${classSummary.className} - ${semesterName} - NĂM HỌC ${academicYearName}</h2>
+                </div>
+
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px;">
+                    <thead>
+                        <tr>
+                            <th style="border: 1px solid black; padding: 6px;">STT</th>
+                            <th style="border: 1px solid black; padding: 6px;">Họ và tên</th>
+                            ${getSubjects().map(subject =>
+            `<th style="border: 1px solid black; padding: 6px;">${subject.subjectName}</th>`
+        ).join('')}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${classSummary.students.map((student, index) => `
+                            <tr>
+                                <td style="border: 1px solid black; padding: 6px; text-align: center;">${index + 1}</td>
+                                <td style="border: 1px solid black; padding: 6px;">${student.fullName}</td>
+                                ${getSubjects().map(subject => {
+            const result = student.subjectResults.find(
+                res => res.subjectId === subject.subjectId
+            );
+            const score = result?.finalScore;
+            const isGradeTypeEvaluation = result?.gradeType === 'Đánh giá';
+            return `<td style="border: 1px solid black; padding: 6px; text-align: center;">
+                                        ${isGradeTypeEvaluation ? (score || '-') : (score ? score.toString().replace('.', ',') : '-')}
+                                    </td>`;
+        }).join('')}
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+
+                <div style="text-align: right; margin-top: 20px; font-size: 13px;">
+                    <p style="margin: 0;">Nam Định, ngày ... tháng ... năm ...</p>
+                    <p style="margin: 40px 0 0 0;">Giáo viên quản nhiệm</p>
+                    <p style="margin: 40px 0 0 0;">...</p>
+                </div>
+            </div>
+        `;
+
+        printContent.innerHTML = tableHTML;
+
+        // Thêm style cho in ấn
+        const style = document.createElement('style');
+        style.textContent = `
+            @media print {
+                body * {
+                    visibility: hidden;
+                }
+                .print-content, .print-content * {
+                    visibility: visible;
+                }
+                .print-content {
+                    position: absolute;
+                    left: 0;
+                    top: 0;
+                }
+                @page {
+                    size: A4 landscape;
+                    margin: 0;
+                }
+            }
+        `;
+        printContent.appendChild(style);
+
+        // Thêm vào body
+        document.body.appendChild(printContent);
+
+        // In
+        window.print();
+
+        // Xóa phần tử tạm sau khi in
+        document.body.removeChild(printContent);
+    };
+
     return (
         <div className="container mx-auto p-4">
             <div className="flex gap-4 mb-6">
-                <Select value={academicYearId} onValueChange={setAcademicYearId}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Chọn năm học" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {academicYears.map(year => (
-                            <SelectItem key={year.academicYearID} value={year.academicYearID.toString()}>
-                                {year.yearName}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-
-                <Select value={semesterId} onValueChange={setSemesterId} disabled={!academicYearId}>
+                <Select
+                    value={semesterId}
+                    onValueChange={setSemesterId}
+                    onOpenChange={(open) => {
+                        if (open) handleSemesterSelectClick();
+                    }}
+                >
                     <SelectTrigger className="w-[180px]">
                         <SelectValue placeholder="Chọn học kỳ" />
                     </SelectTrigger>
@@ -301,6 +398,7 @@ const GradeSummary = () => {
                         </div>
                     </div>
 
+
                     <div className="overflow-x-auto">
                         <Table className="w-full border-collapse min-w-[800px]">
                             <TableHeader>
@@ -339,35 +437,34 @@ const GradeSummary = () => {
                                             );
                                             const score = result?.finalScore;
                                             const isGradeTypeEvaluation = result?.gradeType === 'Đánh giá';
-                                            
+
                                             // Xử lý điểm số có dấu phẩy
                                             const numericScore = typeof score === 'string' && !isGradeTypeEvaluation
                                                 ? parseFloat(score.replace(',', '.'))
                                                 : null;
-                                            
+
                                             return (
                                                 <TableCell
                                                     key={subject.subjectId}
-                                                    className={`py-4 px-4 text-center border-b border-gray-200 whitespace-nowrap ${
-                                                            isGradeTypeEvaluation
-                                                                ? score === 'Đạt' 
-                                                                    ? 'text-green-600 font-medium'
-                                                                    : score === 'Không đạt'
+                                                    className={`py-4 px-4 text-center border-b border-gray-200 whitespace-nowrap ${isGradeTypeEvaluation
+                                                        ? score === 'Đạt'
+                                                            ? 'text-green-600 font-medium'
+                                                            : score === 'Không đạt'
+                                                                ? 'text-red-600 font-medium'
+                                                                : 'text-gray-400'
+                                                        : numericScore >= 8
+                                                            ? 'text-green-600 font-medium'
+                                                            : numericScore >= 6.5
+                                                                ? 'text-blue-600 font-medium'
+                                                                : numericScore >= 5
+                                                                    ? 'text-yellow-600 font-medium'
+                                                                    : numericScore
                                                                         ? 'text-red-600 font-medium'
                                                                         : 'text-gray-400'
-                                                                : numericScore >= 8
-                                                                    ? 'text-green-600 font-medium'
-                                                                    : numericScore >= 6.5
-                                                                        ? 'text-blue-600 font-medium'
-                                                                        : numericScore >= 5
-                                                                            ? 'text-yellow-600 font-medium'
-                                                                            : numericScore
-                                                                                ? 'text-red-600 font-medium'
-                                                                                : 'text-gray-400'
                                                         }`}
                                                 >
-                                                    {isGradeTypeEvaluation 
-                                                        ? score || '-' 
+                                                    {isGradeTypeEvaluation
+                                                        ? score || '-'
                                                         : (score ? score.toString().replace('.', ',') : '-')}
                                                 </TableCell>
                                             );
@@ -378,18 +475,28 @@ const GradeSummary = () => {
                         </Table>
                     </div>
 
-                    <div className="mt-6 flex gap-4">
+                    <div className="flex gap-4 mb-6">
                         <button
                             onClick={handleExportClassGrades}
-                            className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
-                            disabled={!classId || !semesterId || loading || !classSummary?.students.length}
+                            className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2"
                         >
                             <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
                                 <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586L7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
                             </svg>
-                            In điểm cả lớp
+                            In phiếu điểm
+                        </button>
+
+                        <button
+                            onClick={printGradeTable}
+                            className="px-6 py-2.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 flex items-center gap-2"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clipRule="evenodd" />
+                            </svg>
+                            In bảng điểm
                         </button>
                     </div>
+
                 </div>
             ) : (
                 <div className="text-center py-12 bg-gray-50 rounded-lg">
