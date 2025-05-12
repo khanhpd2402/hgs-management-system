@@ -19,7 +19,6 @@ import ExportGradeToExcel from './ExportGradeToExcel.jsx';
 
 // Replace with your actual token retrieval mechanism
 const getAuthToken = () => {
-    // Lấy token và loại bỏ hết dấu nháy đơn nếu có
     const token = localStorage.getItem('token') || 'your-auth-token-here';
     return token.replace(/"/g, "");
 };
@@ -28,12 +27,10 @@ const GradeSummary = () => {
     const [academicYearId, setAcademicYearId] = useState('');
     const [semesterId, setSemesterId] = useState('');
     const [classId, setClassId] = useState('');
-    const [studentId, setStudentId] = useState('');
     const [academicYears, setAcademicYears] = useState([]);
     const [semesters, setSemesters] = useState([]);
     const [classes, setClasses] = useState([]);
-    const [students, setStudents] = useState([]);
-    const [gradeSummary, setGradeSummary] = useState(null);
+    const [classSummary, setClassSummary] = useState(null);
     const [loading, setLoading] = useState(false);
 
     // Fetch academic years
@@ -103,118 +100,65 @@ const GradeSummary = () => {
         fetchClasses();
     }, []);
 
-    // Fetch students when class and academic year change
+    // Fetch class grade summary when class and semester change
     useEffect(() => {
-        const fetchStudents = async () => {
-            if (classId && academicYearId) {
+        const fetchClassSummary = async () => {
+            console.log("class", classId)
+            console.log("semester", semesterId)
+            if (classId && semesterId) {
                 setLoading(true);
                 try {
-                    const response = await axios.get('https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/StudentClass', {
-                        headers: {
-                            Authorization: `Bearer ${getAuthToken()}`,
-                            Accept: 'application/json;odata.metadata=minimal;odata.streaming=true',
-                        }
-                    });
-                    // Filter students by classId and academicYearId
-                    const filteredStudents = response.data.filter(
-                        student =>
-                            student.classId === parseInt(classId) &&
-                            student.academicYearId === parseInt(academicYearId)
-                    );
-                    console.log("Filtered students:", filteredStudents);
-                    setStudents(filteredStudents);
-                } catch (error) {
-                    console.error('Lỗi khi tải danh sách học sinh:', error.response?.data || error.message);
-                    setStudents([]);
-                } finally {
-                    setLoading(false);
-                }
-            } else {
-                setStudents([]);
-            }
-        };
-        fetchStudents();
-    }, [classId, academicYearId]);
-
-    // Fetch grade summary when student and semester change
-    useEffect(() => {
-        const fetchGradeSummary = async () => {
-            if (studentId && semesterId) {
-                setLoading(true);
-                try {
-                    const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/student/${studentId}/grade-summary`, {
-                        params: { semesterId },
+                    const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/class-summary/${classId}/${semesterId}`, {
                         headers: {
                             Authorization: `Bearer ${getAuthToken()}`
                         }
                     });
-                    setGradeSummary(response.data);
+                    setClassSummary(response.data);
                 } catch (error) {
-                    console.error('Lỗi khi tải tổng kết điểm:', error);
+                    console.error('Lỗi khi tải tổng kết điểm lớp:', error);
+                    setClassSummary(null);
                 } finally {
                     setLoading(false);
                 }
             } else {
-                setGradeSummary(null);
+                setClassSummary(null);
             }
         };
-        fetchGradeSummary();
-    }, [studentId, semesterId]);
+        fetchClassSummary();
+    }, [classId, semesterId]);
 
-    // Fetch grade summaries for all students in the class
-    const fetchClassGradeSummaries = async () => {
-        if (!classId || !semesterId || !students.length) return [];
-
-        setLoading(true);
-        const gradeSummaries = [];
-        try {
-            for (const student of students) {
-                try {
-                    const response = await axios.get(`https://hgsmapi-dsf3dzaxgpfyhua4.eastasia-01.azurewebsites.net/api/Grades/student/${student.studentId}/grade-summary`, {
-                        params: { semesterId },
-                        headers: {
-                            Authorization: `Bearer ${getAuthToken()}`
-                        }
-                    });
-                    gradeSummaries.push({
-                        ...response.data,
-                        studentId: student.studentId,
-                        studentName: student.studentName
-                    });
-                } catch (error) {
-                    console.error(`Lỗi khi tải tổng kết điểm cho học sinh ${student.studentName}:`, error);
-                }
-            }
-        } finally {
-            setLoading(false);
-        }
-        return gradeSummaries;
+    // Get unique subjects from class summary
+    const getSubjects = () => {
+        if (!classSummary || !classSummary.students || classSummary.students.length === 0) return [];
+        const subjects = classSummary.students[0].subjectResults.map(subject => ({
+            subjectId: subject.subjectId,
+            subjectName: subject.subjectName
+        }));
+        return subjects.filter(subject => subject.subjectName !== 'Chào cờ');
     };
 
+    // Derive semesterName and academicYearName
+    const semesterName = classSummary?.semesterName || '';
+    const academicYearName = classSummary?.academicYear || '';
+
     // Handle export for all students in the class
-    const handleExportClassGrades = async () => {
-        const gradeSummaries = await fetchClassGradeSummaries();
-        if (gradeSummaries.length > 0) {
-            // Trigger print for all students
-            printClassGradeReport(gradeSummaries);
+    const handleExportClassGrades = () => {
+        if (classSummary && classSummary.students.length > 0) {
+            printClassGradeReport(classSummary.students);
         } else {
             console.error('Không có dữ liệu tổng kết điểm cho lớp này.');
         }
     };
 
-    // Derive semesterName and academicYearName
-    const semesterName = semesters.find(s => s.semesterID.toString() === semesterId)?.semesterName || '';
-    const academicYearName = academicYears.find(y => y.academicYearID.toString() === academicYearId)?.yearName || '';
-
     // Print grade report for all students
-    const printClassGradeReport = (gradeSummaries) => {
+    const printClassGradeReport = (students) => {
         const printContent = document.createElement('div');
         printContent.className = 'print-content';
 
         const className = classes.find(c => c.classId.toString() === classId)?.className || '';
 
         // Generate HTML for each student's grade report
-        const reports = gradeSummaries.map((summary, index) => `
+        const reports = students.map((student, index) => `
             <div style="font-family: Times New Roman, serif; padding: 15px; width: 190mm; margin: auto; page-break-after: always;">
                 <div style="text-align: center; margin-bottom: 15px;">
                     <div style="display: flex; justify-content: space-between; font-size: 13px;">
@@ -233,7 +177,7 @@ const GradeSummary = () => {
                 </div>
 
                 <div style="margin-bottom: 15px; font-size: 13px;">
-                    <p style="margin: 0;">Họ và tên học sinh: ${summary.studentName || ''}    Lớp: ${className}</p>
+                    <p style="margin: 0;">Họ và tên học sinh: ${student.fullName || ''}    Lớp: ${className}</p>
                 </div>
 
                 <table style="width: 100%; border-collapse: collapse; margin-bottom: 15px; font-size: 13px;">
@@ -246,62 +190,28 @@ const GradeSummary = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        ${summary.gradeSummaryEachSubjectNameDtos.map((subject, index) => `
+                        ${student.subjectResults.filter(subject => subject.subjectName !== 'Chào cờ').map((subject, index) => `
                             <tr>
                                 <td style="border: 1px solid black; padding: 6px; text-align: center;">${index + 1}</td>
                                 <td style="border: 1px solid black; padding: 6px;">${subject.subjectName}</td>
-                                <td style="border: 1px solid black; padding: 6px; text-align: center;">${subject.semester1Average?.toFixed(1) || '-'}</td>
+                                <td style="border: 1px solid black; padding: 6px; text-align: center;">${subject.finalScore || '-'}</td>
                                 <td style="border: 1px solid black; padding: 6px;"></td>
                             </tr>
                         `).join('')}
-                        <tr>
-                            <td colspan="2" style="border: 1px solid black; padding: 6px; text-align: center;">TB các môn</td>
-                            <td style="border: 1px solid black; padding: 6px; text-align: center;">${summary.totalSemester1Average?.toFixed(1) || '-'}</td>
-                            <td style="border: 1px solid black; padding: 6px;"></td>
-                        </tr>
                     </tbody>
                 </table>
-
-                <div style="margin-bottom: 15px;">
-                    <table style="width: 50%; border-collapse: collapse; font-size: 13px;">
-                        <tr>
-                            <td style="padding: 3px;">Xếp loại</td>
-                            <td style="padding: 3px;">Học kỳ 1</td>
-                            <td style="padding: 3px;">Ghi chú</td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px;">Học lực</td>
-                            <td style="padding: 3px;">${summary.academicAbility || '-'}</td>
-                            <td style="padding: 3px;"></td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px;">Hạnh kiểm</td>
-                            <td style="padding: 3px;">${summary.conduct || '-'}</td>
-                            <td style="padding: 3px;"></td>
-                        </tr>
-                        <tr>
-                            <td style="padding: 3px;">Danh hiệu thi đua</td>
-                            <td style="padding: 3px;">${summary.competitionTitle || '-'}</td>
-                            <td style="padding: 3px;"></td>
-                        </tr>
-                    </table>
-                </div>
-
-                <div style="margin-bottom: 15px; font-size: 13px;">
-                    <p style="margin: 0;">Nhận xét: ${summary.comment || ''}</p>
-                </div>
 
                 <div style="text-align: right; margin-top: 20px; font-size: 13px;">
                     <p style="margin: 0;">Nam Định, ngày ... tháng ... năm ...</p>
                     <p style="margin: 40px 0 0 0;">Giáo viên quản nhiệm</p>
-                    <p style="margin: 40px 0 0 0;">${summary.teacherName || '...'}</p>
+                    <p style="margin: 40px 0 0 0;">...</p>
                 </div>
             </div>
         `).join('');
 
         printContent.innerHTML = reports;
 
-        // Thêm style cho in ấn
+        // Add print styles
         const style = document.createElement('style');
         style.textContent = `
             @media print {
@@ -324,13 +234,13 @@ const GradeSummary = () => {
         `;
         printContent.appendChild(style);
 
-        // Thêm vào body
+        // Append to body
         document.body.appendChild(printContent);
 
-        // In
+        // Print
         window.print();
 
-        // Xóa phần tử tạm sau khi in
+        // Remove temporary element after printing
         document.body.removeChild(printContent);
     };
 
@@ -375,83 +285,120 @@ const GradeSummary = () => {
                         ))}
                     </SelectContent>
                 </Select>
-
-                <Select value={studentId} onValueChange={setStudentId} disabled={!classId || loading}>
-                    <SelectTrigger className="w-[180px]">
-                        <SelectValue placeholder="Chọn học sinh" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {loading ? (
-                            <SelectItem value="loading" disabled>Đang tải...</SelectItem>
-                        ) : students.length > 0 ? (
-                            students.map(student => (
-                                <SelectItem key={student.studentId} value={student.studentId.toString()}>
-                                    {student.studentName}
-                                </SelectItem>
-                            ))
-                        ) : (
-                            <SelectItem value="no-students" disabled>Không có học sinh</SelectItem>
-                        )}
-                    </SelectContent>
-                </Select>
             </div>
 
             {loading ? (
-                <div>Đang tải...</div>
-            ) : gradeSummary ? (
-                <div>
-                    <div className="mb-4">
-                        <h2 className="text-lg font-semibold">
-                            Tổng kết: {gradeSummary.gradeSummaryEachSubjectNameDtos[0]?.studentName}
-                        </h2>
-                        <p>Năm học: {academicYearName}</p>
-                        <p>Học kỳ: {semesterName}</p>
-                        <p>Học kỳ 1: {gradeSummary.totalSemester1Average?.toFixed(2) || '-'}</p>
-                        <p>Học kỳ 2: {gradeSummary.totalSemester2Average?.toFixed(2) || '-'}</p>
-                        <p>Cả năm: {gradeSummary.totalYearAverage?.toFixed(2) || '-'}</p>
+                <div className="flex items-center justify-center min-h-[200px]">
+                    <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-gray-900"></div>
+                </div>
+            ) : classSummary && classSummary.students && classSummary.students.length > 0 ? (
+                <div className="bg-white rounded-lg shadow-md p-6">
+                    <div className="mb-6">
+                        <h2 className="text-2xl font-bold text-gray-800 mb-2">Tổng kết điểm lớp: {classSummary.className}</h2>
+                        <div className="text-gray-600">
+                            <p className="mb-1">Năm học: {academicYearName}</p>
+                            <p>Học kỳ: {semesterName}</p>
+                        </div>
                     </div>
 
-                    <Table>
-                        <TableHeader>
-                            <TableRow>
-                                <TableHead>Môn học</TableHead>
-                                <TableHead>Học kỳ 1</TableHead>
-                                <TableHead>Học kỳ 2</TableHead>
-                                <TableHead>Cả năm</TableHead>
-                            </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                            {gradeSummary.gradeSummaryEachSubjectNameDtos.map((subject, index) => (
-                                <TableRow key={index}>
-                                    <TableCell>{subject.subjectName}</TableCell>
-                                    <TableCell>{subject.semester1Average?.toFixed(2) || '-'}</TableCell>
-                                    <TableCell>{subject.semester2Average?.toFixed(2) || '-'}</TableCell>
-                                    <TableCell>{subject.yearAverage?.toFixed(2) || '-'}</TableCell>
+                    <div className="overflow-x-auto">
+                        <Table className="w-full border-collapse min-w-[800px]">
+                            <TableHeader>
+                                <TableRow className="bg-gray-50 hover:bg-gray-50">
+                                    <TableHead className="w-[50px] py-4 px-4 text-left font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap">
+                                        STT
+                                    </TableHead>
+                                    <TableHead className="w-[200px] py-4 px-4 text-left font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap">
+                                        Họ và tên
+                                    </TableHead>
+                                    {getSubjects().map(subject => (
+                                        <TableHead
+                                            key={subject.subjectId}
+                                            className="py-4 px-4 text-center font-semibold text-gray-600 border-b border-gray-200 whitespace-nowrap min-w-[100px]"
+                                        >
+                                            {subject.subjectName}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
-                            ))}
-                        </TableBody>
-                    </Table>
-                    <div className="mt-4 flex gap-4">
-                        <ExportGradeToExcel
-                            gradeSummary={gradeSummary}
-                            studentInfo={{
-                                studentName: gradeSummary.gradeSummaryEachSubjectNameDtos[0]?.studentName,
-                                className: classes.find(c => c.classId.toString() === classId)?.className,
-                            }}
-                            semesterName={semesterName}
-                            academicYearName={academicYearName}
-                        />
+                            </TableHeader>
+                            <TableBody>
+                                {classSummary.students.map((student, index) => (
+                                    <TableRow
+                                        key={student.studentId}
+                                        className="hover:bg-gray-50 transition-colors"
+                                    >
+                                        <TableCell className="py-4 px-4 text-gray-500 border-b border-gray-200 whitespace-nowrap">
+                                            {index + 1}
+                                        </TableCell>
+                                        <TableCell className="py-4 px-4 font-medium text-gray-900 border-b border-gray-200 whitespace-nowrap">
+                                            {student.fullName}
+                                        </TableCell>
+                                        {getSubjects().map(subject => {
+                                            const result = student.subjectResults.find(
+                                                res => res.subjectId === subject.subjectId
+                                            );
+                                            const score = result?.finalScore;
+                                            const isGradeTypeEvaluation = result?.gradeType === 'Đánh giá';
+                                            
+                                            // Xử lý điểm số có dấu phẩy
+                                            const numericScore = typeof score === 'string' && !isGradeTypeEvaluation
+                                                ? parseFloat(score.replace(',', '.'))
+                                                : null;
+                                            
+                                            return (
+                                                <TableCell
+                                                    key={subject.subjectId}
+                                                    className={`py-4 px-4 text-center border-b border-gray-200 whitespace-nowrap ${
+                                                            isGradeTypeEvaluation
+                                                                ? score === 'Đạt' 
+                                                                    ? 'text-green-600 font-medium'
+                                                                    : score === 'Không đạt'
+                                                                        ? 'text-red-600 font-medium'
+                                                                        : 'text-gray-400'
+                                                                : numericScore >= 8
+                                                                    ? 'text-green-600 font-medium'
+                                                                    : numericScore >= 6.5
+                                                                        ? 'text-blue-600 font-medium'
+                                                                        : numericScore >= 5
+                                                                            ? 'text-yellow-600 font-medium'
+                                                                            : numericScore
+                                                                                ? 'text-red-600 font-medium'
+                                                                                : 'text-gray-400'
+                                                        }`}
+                                                >
+                                                    {isGradeTypeEvaluation 
+                                                        ? score || '-' 
+                                                        : (score ? score.toString().replace('.', ',') : '-')}
+                                                </TableCell>
+                                            );
+                                        })}
+                                    </TableRow>
+                                ))}
+                            </TableBody>
+                        </Table>
+                    </div>
+
+                    <div className="mt-6 flex gap-4">
                         <button
                             onClick={handleExportClassGrades}
-                            className="px-4 py-2 bg-green-500 text-white rounded hover:bg-green-600 transition-colors"
-                            disabled={!classId || !semesterId || loading || students.length === 0}
+                            className="px-6 py-2.5 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors duration-200 flex items-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
+                            disabled={!classId || !semesterId || loading || !classSummary?.students.length}
                         >
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                                <path fillRule="evenodd" d="M6 2a2 2 0 00-2 2v12a2 2 0 002 2h8a2 2 0 002-2V7.414A2 2 0 0015.414 6L12 2.586A2 2 0 0010.586 2H6zm5 6a1 1 0 10-2 0v3.586L7.707 10.293a1 1 0 10-1.414 1.414l3 3a1 1 0 001.414 0l3-3a1 1 0 00-1.414-1.414L11 11.586V8z" clipRule="evenodd" />
+                            </svg>
                             In điểm cả lớp
                         </button>
                     </div>
                 </div>
             ) : (
-                <div>Chưa có dữ liệu tổng kết</div>
+                <div className="text-center py-12 bg-gray-50 rounded-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" className="mx-auto h-12 w-12 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    <h3 className="mt-2 text-sm font-medium text-gray-900">Chưa có dữ liệu tổng kết</h3>
+                    <p className="mt-1 text-sm text-gray-500">Vui lòng chọn lớp và học kỳ để xem bảng điểm</p>
+                </div>
             )}
         </div>
     );
